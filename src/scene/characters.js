@@ -14,8 +14,8 @@ export function buildCharacters(scene, { stageZ = -26 } = {}) {
     const [x, , z] = d.pos;
     const y = d.onStage ? 1.6 : 0; // lifted onto the stage deck
     group.position.set(x, y, z);
-    // face the crowd/stage-ish
-    group.rotation.y = d.onStage ? 0 : Math.atan2(0 - x, stageZ - z) + Math.PI;
+    // face the crowd/stage-ish (or an explicit override)
+    group.rotation.y = d.rot !== undefined ? d.rot : (d.onStage ? 0 : Math.atan2(0 - x, stageZ - z) + Math.PI);
 
     // build the character/structure model
     const built = (MODELS[d.model] || MODELS.glitch)(d.accent);

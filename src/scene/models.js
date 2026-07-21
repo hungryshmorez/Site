@@ -250,6 +250,80 @@ export function buildBathroom(accent = '#39FF14') {
   return { group: g, update: (t, pulse) => { g.children[3 * 0].material.emissiveIntensity = 0.4 + Math.sin(t * 3) * 0.2 + pulse * 0.3; } };
 }
 
+// ---------------------------------------------------------------- LABS STAGE
+// The Lab as its own second stage: a deck, a truss, and three live experiment
+// screens — Trippy Cam (feedback swirl), DreamOS TV (CRT static), Deadnet
+// (green terminal). Its own green wash + a banner.
+export function buildLabsStage(accent = '#39FF14') {
+  const g = new THREE.Group();
+  const dark = std({ color: 0x0a1410, roughness: 0.8, metalness: 0.3 });
+  const truss = new THREE.MeshStandardMaterial({ color: 0x122018, roughness: 0.5, metalness: 0.7 });
+
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(11, 1.2, 5), dark); deck.position.set(0, 0.6, 0); deck.castShadow = deck.receiveShadow = true; g.add(deck);
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(10, 4.2, 0.3), std({ color: 0x060a08, roughness: 0.9 })); wall.position.set(0, 3.4, -2.2); g.add(wall);
+
+  // three experiment screens
+  const screens = [];
+  const shaders = [trippyFrag(), tvFrag(), deadnetFrag()];
+  const labels = ['TRIPPY CAM', 'DREAMOS TV', 'DEADNET'];
+  for (let i = 0; i < 3; i++) {
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { t: { value: 0 }, pulse: { value: 0 } },
+      vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+      fragmentShader: shaders[i],
+    });
+    const sc = new THREE.Mesh(new THREE.PlaneGeometry(2.7, 1.8), mat);
+    sc.position.set((i - 1) * 3.1, 3.5, -2.03); g.add(sc); screens.push(mat);
+    // little caption bar
+    const cap = new THREE.Mesh(new THREE.PlaneGeometry(2.7, 0.28), std({ color: 0x02160a, emissive: new THREE.Color(accent), emissiveIntensity: 0.5 }));
+    cap.position.set((i - 1) * 3.1, 2.45, -2.02); g.add(cap);
+    const capTex = textPlane(labels[i], accent); capTex.position.set((i - 1) * 3.1, 2.45, -2.0); capTex.scale.set(2.4, 0.24, 1); g.add(capTex);
+  }
+
+  // truss
+  for (const px of [-5, 5]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.4, 6, 0.4), truss); p.position.set(px, 3, -2.4); p.castShadow = true; g.add(p); }
+  const topBar = new THREE.Mesh(new THREE.BoxGeometry(10.4, 0.4, 0.4), truss); topBar.position.set(0, 6, -2.4); g.add(topBar);
+  const banner = textPlane('THE LAB · SIDE STAGE', accent); banner.position.set(0, 5.4, -2.3); banner.scale.set(6, 0.6, 1); g.add(banner);
+
+  // speaker stacks
+  for (const px of [-5.6, 5.6]) { const sp = new THREE.Mesh(new THREE.BoxGeometry(1, 2.4, 1), std({ color: 0x08110c, roughness: 0.9 })); sp.position.set(px, 1.2, 0.5); sp.castShadow = true; g.add(sp); }
+
+  const gl1 = new THREE.PointLight(accent, 8, 16, 2); gl1.position.set(0, 4, 2); g.add(gl1);
+  const gl2 = new THREE.PointLight(accent, 4, 12, 2); gl2.position.set(0, 1, 4); g.add(gl2);
+
+  return { group: g, update: (t, pulse) => { screens.forEach((m) => { m.uniforms.t.value = t; m.uniforms.pulse.value = pulse; }); gl1.intensity = 5 + pulse * 8; } };
+}
+function trippyFrag() {
+  return `varying vec2 vUv; uniform float t,pulse;
+    void main(){ vec2 u=vUv-0.5; float a=atan(u.y,u.x); float r=length(u);
+      float v=sin(a*6.0+t*2.0-r*22.0);
+      vec3 c=0.5+0.5*cos(vec3(0.0,2.0,4.0)+a*3.0+t+r*10.0);
+      c*=0.55+0.45*v; c*=0.7+0.6*pulse; gl_FragColor=vec4(c,1.0);} `;
+}
+function tvFrag() {
+  return `varying vec2 vUv; uniform float t,pulse;
+    float rand(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+    void main(){ vec2 u=vUv; float n=rand(u+floor(t*20.0)*0.017);
+      float scan=sin(u.y*150.0)*0.16; float bar=step(0.96,fract(u.y*3.0-t*0.7));
+      vec3 c=vec3(n)*0.55+scan; c+=bar*vec3(1.0,0.0,0.55); c.r*=1.1; c.b*=1.05;
+      gl_FragColor=vec4(c,1.0);} `;
+}
+function deadnetFrag() {
+  return `varying vec2 vUv; uniform float t,pulse;
+    float rand(vec2 p){return fract(sin(dot(p,vec2(41.0,289.0)))*45758.5);}
+    void main(){ vec2 g=vec2(30.0,20.0); vec2 id=floor(vec2(vUv.x*g.x, vUv.y*g.y - t*4.0));
+      float on=step(0.55,rand(id)); float fl=step(0.5,rand(id+floor(t*3.0)));
+      vec3 c=vec3(0.1,1.0,0.25)*on*(0.35+0.65*fl); gl_FragColor=vec4(c,1.0);} `;
+}
+function textPlane(text, color) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 64; const x = c.getContext('2d');
+  x.fillStyle = 'rgba(0,0,0,0)'; x.fillRect(0, 0, 512, 64);
+  x.font = 'bold 34px ui-monospace, monospace'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.shadowColor = color; x.shadowBlur = 16; x.fillStyle = color; x.fillText(text, 256, 34);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+}
+
 export const MODELS = {
   marshmallow: buildMarshmallow,
   cowboy: buildCowboy,
@@ -258,4 +332,5 @@ export const MODELS = {
   raver: buildRaver,
   stall: buildStall,
   bathroom: buildBathroom,
+  labsstage: buildLabsStage,
 };

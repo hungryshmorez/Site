@@ -4,9 +4,9 @@ import { PALETTE } from '../data/destinations.js';
 // A dense crowd of instanced silhouettes facing the stage, bobbing on the
 // beat, each waving a glowing stick. Instanced for performance (one draw
 // call for all bodies, one for all glowsticks).
-export function buildCrowd(scene, { count = 380, stageZ = -26, exclude = [] } = {}) {
+export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [] } = {}) {
   // ---- bodies: a simple capsule silhouette ----
-  const bodyGeo = new THREE.CapsuleGeometry(0.28, 0.9, 4, 8);
+  const bodyGeo = new THREE.CapsuleGeometry(0.26, 0.72, 4, 8);
   const bodyMat = new THREE.MeshStandardMaterial({ color: 0x05050a, roughness: 1, metalness: 0 });
   const bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, count);
   bodies.castShadow = true;
@@ -28,11 +28,12 @@ export function buildCrowd(scene, { count = 380, stageZ = -26, exclude = [] } = 
     guard++;
     const x = (Math.random() - 0.5) * spanX;
     const z = minZ + Math.random() * (maxZ - minZ);
-    // keep a clear aisle down the middle-front and avoid character spots
-    if (Math.abs(x) < 2.2 && z < stageZ + 14) continue;
-    if (exclude.some((e) => Math.hypot(x - e[0], z - e[1]) < 2.2)) continue;
+    // keep a clear aisle down the middle-front and a clearing around each
+    // destination (exclude points carry their own radius in e[2])
+    if (Math.abs(x) < 2.4 && z < stageZ + 14) continue;
+    if (exclude.some((e) => Math.hypot(x - e[0], z - e[1]) < (e[2] || 3.2))) continue;
 
-    const scale = 0.9 + Math.random() * 0.4;
+    const scale = 0.82 + Math.random() * 0.32;
     agents.push({ x, z, scale, phase: Math.random() * Math.PI * 2, freq: 0.85 + Math.random() * 0.3 });
 
     const c = glowColors[(Math.random() * glowColors.length) | 0];

@@ -29,8 +29,10 @@ export class Hud {
     this.pCta = document.getElementById('pCta');
     document.getElementById('pClose').onclick = () => this.close();
     this.pCta.onclick = () => {
+      const url = this.active && this.active.dest.url;
+      if (url) { window.open(url, '_blank', 'noopener'); return; }
       const t = this.pCta.textContent;
-      this.pCta.textContent = '// wired to the real EPK on build';
+      this.pCta.textContent = '// coming soon';
       setTimeout(() => (this.pCta.textContent = t), 1500);
     };
 
@@ -38,6 +40,7 @@ export class Hud {
   }
 
   open(c) {
+    this.active = c;
     this.activeId = c.dest.id;
     this.panel.style.setProperty('--c', c.dest.accent);
     this.pTitle.textContent = c.dest.name;

@@ -31,10 +31,15 @@ const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 32
 // ---- world ----
 const festival = buildFestival(scene);
 const characters = buildCharacters(scene, { stageZ: festival.stageZ });
+const BIG = new Set(['stall', 'labsstage', 'bathroom']);
 const crowd = buildCrowd(scene, {
-  count: 380,
+  count: 320,
   stageZ: festival.stageZ,
-  exclude: DESTINATIONS.map((d) => [d.pos[0], d.pos[2]]),
+  exclude: [
+    // [x, z, clear-radius] — bigger clearing around structures, plus spawn
+    ...DESTINATIONS.map((d) => [d.pos[0], d.pos[2], BIG.has(d.model) ? 6.5 : 3.6]),
+    [0, 9, 4.5],
+  ],
 });
 const controls = new WalkControls(camera, { bounds: 42, eye: 1.6 });
 const hud = new Hud(document.getElementById('tags'), camera, characters.list);
