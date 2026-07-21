@@ -67,7 +67,7 @@
     .panel .close:hover{color:var(--ink);border-color:var(--c,var(--cyan))}
 
     /* trash-hunt: progress pill (hidden until you pick up your first piece) */
-    .trashpill{position:fixed;z-index:10;top:52px;right:18px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+    .trashpill{position:fixed;z-index:10;top:90px;right:18px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
       color:var(--green);background:rgba(8,14,8,.6);border:1px solid rgba(57,255,20,.35);border-radius:999px;
       padding:6px 13px;backdrop-filter:blur(6px);opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s;
       pointer-events:none;text-shadow:0 0 8px rgba(57,255,20,.4)}
@@ -97,6 +97,27 @@
     .reward .rclose{display:block;margin:16px auto 0;background:transparent;border:none;color:var(--muted);font-family:var(--mono);
       font-size:11px;letter-spacing:.16em;cursor:pointer}
     .reward .rclose:hover{color:var(--ink)}
+
+    /* TRI-PPY rainbow warp — scored from the dealer, echoes doesntmatter.us */
+    .trippy{position:fixed;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .9s;mix-blend-mode:hue;overflow:hidden}
+    .trippy.on{opacity:.9}
+    .trippy .a,.trippy .b{position:absolute;inset:-25%}
+    .trippy .a{filter:blur(46px);animation:trip1 19s linear infinite;
+      background:conic-gradient(from 0deg,#ff0055,#ff6b35,#e6c04a,#39ff14,#00f3ff,#6a6cff,#b967ff,#ff0055)}
+    .trippy .b{filter:blur(64px);opacity:.55;mix-blend-mode:screen;animation:trip2 27s ease-in-out infinite;
+      background:repeating-linear-gradient(115deg,#ff0055 0%,#39ff14 22%,#00f3ff 44%,#b967ff 66%,#ff6b35 88%,#ff0055 100%)}
+    @keyframes trip1{to{transform:rotate(360deg) scale(1.25)}}
+    @keyframes trip2{0%,100%{transform:translate(-8%,0)}50%{transform:translate(8%,-6%)}}
+    body.rm .trippy .a,body.rm .trippy .b{animation:none}
+    body.rm .trippy.on{opacity:.5}
+
+    .triptoggle{position:fixed;z-index:10;top:52px;right:18px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+      color:var(--cyan);background:rgba(8,14,18,.6);border:1px solid rgba(0,243,255,.5);border-radius:8px;padding:6px 12px;
+      cursor:pointer;backdrop-filter:blur(6px);opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s;pointer-events:none;
+      text-shadow:0 0 8px rgba(0,243,255,.4)}
+    .triptoggle.shown{opacity:1;transform:translateY(0);pointer-events:auto}
+    .triptoggle:hover{border-color:var(--cyan);color:#fff}
+    .triptoggle.active{color:#ff71ce;border-color:#ff71ce;text-shadow:0 0 10px rgba(255,113,206,.6)}
 
     /* portal warp — plays before loading an EPK on its own page */
     .warp{position:fixed;inset:0;z-index:40;overflow:hidden;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -135,7 +156,10 @@
   <canvas id="scene"></canvas>
   <audio id="track" loop preload="auto" src="/static-drift-anthem.mp3"></audio>
   <div class="vig"></div>
+  <div class="trippy" id="trippy"><div class="a"></div><div class="b"></div></div>
   <div class="scan"></div>
+
+  <button class="triptoggle" id="tripToggle" title="Toggle the trip">TRI-PPY: OFF</button>
 
   <div class="hud top">
     <div class="brand"><b>12MATT3R</b><span>THE FESTIVAL</span></div>

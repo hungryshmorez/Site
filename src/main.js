@@ -4,6 +4,7 @@ import { buildFestival } from './scene/festival.js';
 import { buildCrowd } from './scene/crowd.js';
 import { buildCharacters } from './scene/characters.js';
 import { buildTrash } from './scene/trash.js';
+import { buildDealer } from './scene/dealer.js';
 import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
 import { createAudioReactor } from './audio/reactor.js';
@@ -46,9 +47,17 @@ const characters = buildCharacters(scene, { stageZ: festival.stageZ });
 const DUMPSTER_POS = [-19, 15];
 const trash = buildTrash(scene, {
   dumpsterPos: DUMPSTER_POS,
-  onPickup: (label, s) => { trashToast(`picked up ${label}`); trashHudUpdate(s); },
-  onDeposit: (n, s) => { trashToast(n === 1 ? 'tossed it in the dumpster' : `dumped ${n} pieces`); trashHudUpdate(s); },
+  onPickup: (label, s) => { flash(`picked up ${label}`); trashHudUpdate(s); },
+  onDeposit: (n, s) => { flash(n === 1 ? 'tossed it in the dumpster' : `dumped ${n} pieces`); trashHudUpdate(s); },
   onComplete: (s) => { trashHudUpdate(s); unlockReward(); },
+});
+
+// a dealer hidden in the crowd → reach him to score the TRI-PPY (rainbow warp)
+const DEALER_POS = [-5, 5];
+const dealer = buildDealer(scene, {
+  pos: DEALER_POS,
+  stageZ: festival.stageZ,
+  onToggle: () => toggleTrippy(),
 });
 
 const BIG = new Set(['stall', 'labsstage', 'bathroom', 'sofaboi']);
@@ -60,6 +69,7 @@ const crowd = buildCrowd(scene, {
     ...DESTINATIONS.map((d) => [d.pos[0], d.pos[2], BIG.has(d.model) ? 6.5 : 3.6]),
     [0, 9, 4.5],
     [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
+    [DEALER_POS[0], DEALER_POS[1], 2.4],
   ],
 });
 const controls = new WalkControls(camera, { bounds: 42, eye: 1.6 });
@@ -96,6 +106,8 @@ function handleTap(sx, sy) {
   raycaster.setFromCamera(ndc, camera);
   // trash first — clicking a piece picks it up (don't walk)
   if (trash.tryClick(raycaster)) return;
+  // the dealer — clicking him toggles the trip
+  if (dealer.tryClick(raycaster)) return;
   // characters next
   const hitC = raycaster.intersectObjects(characters.proxies, false)[0];
   if (hitC) {
@@ -154,6 +166,7 @@ function frame() {
   crowd.update(dt, time, pulse);
   characters.update(dt, time, pulse);
   trash.update(dt, time, pulse, controls.pos);
+  dealer.update(dt, time, pulse, controls.pos, trippy);
   hud.update(controls.pos);
 
   if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
@@ -183,7 +196,7 @@ const tCarryEl = document.getElementById('tCarry');
 const toastEl = document.getElementById('toast');
 let toastTimer = null;
 
-function trashToast(msg) {
+function flash(msg) {
   if (!toastEl) return;
   toastEl.textContent = msg;
   toastEl.classList.add('on');
@@ -227,7 +240,7 @@ if (rewardClose) rewardClose.onclick = () => document.getElementById('reward').c
 let warping = false;
 function enterDestination(dest) {
   const target = dest.page || dest.url;
-  if (!target) { trashToast('// coming soon'); return; }
+  if (!target) { flash('// coming soon'); return; }
   const sameTab = !!dest.page || target.startsWith('/');
   playWarp(dest, () => {
     if (sameTab) window.location.href = target;
@@ -251,5 +264,26 @@ function playWarp(dest, atPeak) {
   setTimeout(() => { el.classList.remove('go'); warping = false; }, peak + 550);
 }
 
+// ---- TRI-PPY (scored from the dealer) --------------------------------------
+// Reaching the dealer flips the rainbow warp on; finding him the first time
+// also reveals the TRI-PPY toggle in the HUD (mirrors doesntmatter.us).
+let trippy = false;
+let trippyUnlocked = false;
+const trippyEl = document.getElementById('trippy');
+const tripToggleEl = document.getElementById('tripToggle');
+if (tripToggleEl) tripToggleEl.onclick = () => toggleTrippy();
+
+function toggleTrippy() { setTrippy(!trippy); }
+function setTrippy(on) {
+  trippy = on;
+  if (trippyEl) trippyEl.classList.toggle('on', on);
+  if (!trippyUnlocked) { trippyUnlocked = true; if (tripToggleEl) tripToggleEl.classList.add('shown'); }
+  if (tripToggleEl) {
+    tripToggleEl.textContent = on ? 'TRI-PPY: ON' : 'TRI-PPY: OFF';
+    tripToggleEl.classList.toggle('active', on);
+  }
+  flash(on ? 'the dealer hooks you up — everything melts' : 'you come back down');
+}
+
 // dev-only debug bridge for automated testing (stripped from production builds)
-if (import.meta.env.DEV) window.__dbg = { controls, trash, enterDestination };
+if (import.meta.env.DEV) window.__dbg = { controls, trash, dealer, enterDestination, setTrippy };
