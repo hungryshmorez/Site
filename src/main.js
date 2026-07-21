@@ -3,6 +3,7 @@ import { DESTINATIONS } from './data/destinations.js';
 import { buildFestival } from './scene/festival.js';
 import { buildCrowd } from './scene/crowd.js';
 import { buildCharacters } from './scene/characters.js';
+import { buildTrash } from './scene/trash.js';
 import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
 import { createAudioReactor } from './audio/reactor.js';
@@ -40,6 +41,16 @@ const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 32
 // ---- world ----
 const festival = buildFestival(scene);
 const characters = buildCharacters(scene, { stageZ: festival.stageZ });
+
+// hidden trash-hunt → clean the grounds → secret download
+const DUMPSTER_POS = [-19, 15];
+const trash = buildTrash(scene, {
+  dumpsterPos: DUMPSTER_POS,
+  onPickup: (label, s) => { trashToast(`picked up ${label}`); trashHudUpdate(s); },
+  onDeposit: (n, s) => { trashToast(n === 1 ? 'tossed it in the dumpster' : `dumped ${n} pieces`); trashHudUpdate(s); },
+  onComplete: (s) => { trashHudUpdate(s); unlockReward(); },
+});
+
 const BIG = new Set(['stall', 'labsstage', 'bathroom']);
 const crowd = buildCrowd(scene, {
   count: 320,
@@ -48,6 +59,7 @@ const crowd = buildCrowd(scene, {
     // [x, z, clear-radius] — bigger clearing around structures, plus spawn
     ...DESTINATIONS.map((d) => [d.pos[0], d.pos[2], BIG.has(d.model) ? 6.5 : 3.6]),
     [0, 9, 4.5],
+    [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
   ],
 });
 const controls = new WalkControls(camera, { bounds: 42, eye: 1.6 });
@@ -82,7 +94,9 @@ function handleTap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1;
   ndc.y = -(sy / innerHeight) * 2 + 1;
   raycaster.setFromCamera(ndc, camera);
-  // characters first
+  // trash first — clicking a piece picks it up (don't walk)
+  if (trash.tryClick(raycaster)) return;
+  // characters next
   const hitC = raycaster.intersectObjects(characters.proxies, false)[0];
   if (hitC) {
     const c = characters.list.find((x) => x.proxy === hitC.object);
@@ -139,6 +153,7 @@ function frame() {
   festival.update(dt, time, pulse, dayT);
   crowd.update(dt, time, pulse);
   characters.update(dt, time, pulse);
+  trash.update(dt, time, pulse, controls.pos);
   hud.update(controls.pos);
 
   if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
@@ -156,3 +171,52 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) cloc
 
 // render one frame behind the start overlay so it isn't black
 renderer.render(scene, camera);
+
+// ---- trash-hunt UI ----------------------------------------------------------
+const REWARD = { url: '/secret/cleanup-reward.txt', name: '12matt3r-secret-drop.txt' };
+const REWARD_KEY = 'sk_festival_cleaned';
+
+const trashHudEl = document.getElementById('trashHud');
+const tCleanEl = document.getElementById('tClean');
+const tTotalEl = document.getElementById('tTotal');
+const tCarryEl = document.getElementById('tCarry');
+const toastEl = document.getElementById('toast');
+let toastTimer = null;
+
+function trashToast(msg) {
+  if (!toastEl) return;
+  toastEl.textContent = msg;
+  toastEl.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('on'), 1800);
+}
+
+function trashHudUpdate(s) {
+  if (!trashHudEl) return;
+  trashHudEl.classList.add('on');           // reveal once the hunt is discovered
+  if (tCleanEl) tCleanEl.textContent = String(s.dumped);
+  if (tTotalEl) tTotalEl.textContent = String(s.total);
+  if (tCarryEl) {
+    tCarryEl.textContent = s.held > 0 ? `· carrying ${s.held}` : '';
+    tCarryEl.classList.toggle('carrying', s.held > 0);
+  }
+}
+
+function unlockReward() {
+  try { localStorage.setItem(REWARD_KEY, '1'); } catch (e) { /* private mode */ }
+  showReward();
+}
+
+function showReward() {
+  const el = document.getElementById('reward');
+  if (!el) return;
+  const link = document.getElementById('rewardDl');
+  if (link) { link.href = REWARD.url; link.setAttribute('download', REWARD.name); }
+  el.classList.add('on');
+}
+
+const rewardClose = document.getElementById('rewardClose');
+if (rewardClose) rewardClose.onclick = () => document.getElementById('reward').classList.remove('on');
+
+// dev-only debug bridge for automated testing (stripped from production builds)
+if (import.meta.env.DEV) window.__dbg = { controls, trash };

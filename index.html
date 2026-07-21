@@ -66,6 +66,38 @@
       border:1px solid rgba(255,255,255,.14);color:var(--muted);cursor:pointer;font-family:var(--mono)}
     .panel .close:hover{color:var(--ink);border-color:var(--c,var(--cyan))}
 
+    /* trash-hunt: progress pill (hidden until you pick up your first piece) */
+    .trashpill{position:fixed;z-index:10;top:52px;right:18px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+      color:var(--green);background:rgba(8,14,8,.6);border:1px solid rgba(57,255,20,.35);border-radius:999px;
+      padding:6px 13px;backdrop-filter:blur(6px);opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s;
+      pointer-events:none;text-shadow:0 0 8px rgba(57,255,20,.4)}
+    .trashpill.on{opacity:1;transform:translateY(0)}
+    .trashpill #tCarry{color:var(--ink);opacity:.7}
+    .trashpill #tCarry.carrying{color:var(--green);opacity:1}
+
+    /* transient feedback toast */
+    .toast{position:fixed;z-index:12;left:50%;bottom:120px;transform:translate(-50%,8px);font-family:var(--mono);
+      font-size:11px;letter-spacing:.1em;color:var(--ink);background:rgba(8,8,18,.8);border:1px solid rgba(57,255,20,.35);
+      border-radius:9px;padding:8px 14px;backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+    .toast.on{opacity:1;transform:translate(-50%,0)}
+
+    /* secret-download reward overlay */
+    .reward{position:fixed;inset:0;z-index:31;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;
+      background:radial-gradient(70% 60% at 50% 45%,rgba(6,26,10,.6),rgba(4,8,6,.94));opacity:0;pointer-events:none;transition:opacity .5s}
+    .reward.on{opacity:1;pointer-events:auto}
+    .reward .card{max-width:460px;background:linear-gradient(180deg,rgba(10,18,10,.9),rgba(4,10,6,.96));
+      border:1px solid rgba(57,255,20,.5);border-radius:16px;padding:30px 28px;box-shadow:0 0 60px -12px rgba(57,255,20,.5)}
+    .reward .k{font-family:var(--mono);font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--green)}
+    .reward h2{font-family:var(--mono);font-size:24px;margin:10px 0 12px;letter-spacing:.02em;
+      text-shadow:1.5px 0 rgba(255,0,85,.35),-1.5px 0 rgba(0,243,255,.35)}
+    .reward p{color:#bfe0c2;font-size:14px;line-height:1.65;margin-bottom:20px}
+    .reward .dl{display:inline-block;font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:#05100a;font-weight:700;
+      background:var(--green);border:none;border-radius:10px;padding:13px 26px;cursor:pointer;text-decoration:none;box-shadow:0 0 30px -6px var(--green)}
+    .reward .dl:hover{background:#fff}
+    .reward .rclose{display:block;margin:16px auto 0;background:transparent;border:none;color:var(--muted);font-family:var(--mono);
+      font-size:11px;letter-spacing:.16em;cursor:pointer}
+    .reward .rclose:hover{color:var(--ink)}
+
     /* start overlay */
     .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
       text-align:center;padding:24px;background:radial-gradient(70% 60% at 50% 45%,rgba(14,10,34,.5),rgba(4,4,10,.96));transition:opacity .8s}
@@ -93,6 +125,9 @@
   <div class="hud tags" id="tags"></div>
   <div class="prompt" id="prompt"></div>
 
+  <div class="trashpill" id="trashHud">🗑 <span id="tClean">0</span>/<span id="tTotal">10</span> cleaned <span id="tCarry"></span></div>
+  <div class="toast" id="toast"></div>
+
   <div class="help">
     <kbd>W A S D</kbd> walk · <kbd>drag</kbd> look · <b>click a name</b> to walk to them · <kbd>[ ]</kbd> time of day
   </div>
@@ -106,6 +141,16 @@
     <h2 id="pTitle">—</h2>
     <p id="pBody">—</p>
     <div class="row"><button class="cta" id="pCta">Enter</button></div>
+  </div>
+
+  <div class="reward" id="reward" role="dialog" aria-labelledby="rTitle">
+    <div class="card">
+      <div class="k">secret unlocked</div>
+      <h2 id="rTitle">You cleaned up the festival</h2>
+      <p>Every last piece of trash, in the dumpster. You left it better than you found it — here's something just for you.</p>
+      <a class="dl" id="rewardDl" href="/secret/cleanup-reward.txt" download>▼ Grab the secret drop</a>
+      <button class="rclose" id="rewardClose">keep exploring</button>
+    </div>
   </div>
 
   <div class="start" id="start">
