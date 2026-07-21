@@ -63,7 +63,7 @@ const crowd = buildCrowd(scene, {
   ],
 });
 const controls = new WalkControls(camera, { bounds: 42, eye: 1.6 });
-const hud = new Hud(document.getElementById('tags'), camera, characters.list);
+const hud = new Hud(document.getElementById('tags'), camera, characters.list, enterDestination);
 
 // ---- input: drag to look, click/tap a person to walk over ----
 const raycaster = new THREE.Raycaster();
@@ -218,5 +218,38 @@ function showReward() {
 const rewardClose = document.getElementById('rewardClose');
 if (rewardClose) rewardClose.onclick = () => document.getElementById('reward').classList.remove('on');
 
+// ---- portal transition → load a destination on its own page --------------
+// Reaching a character and hitting "enter" plays a warp themed to their accent,
+// then loads their EPK. Local EPK pages (dest.page, e.g. '/epk/shmorez/') load
+// in the same tab as a fresh, lightweight page — each carries a portal back to
+// the festival — so we never hold every world in memory at once. External
+// links (store, socials) open in a new tab and the festival stays put.
+let warping = false;
+function enterDestination(dest) {
+  const target = dest.page || dest.url;
+  if (!target) { trashToast('// coming soon'); return; }
+  const sameTab = !!dest.page || target.startsWith('/');
+  playWarp(dest, () => {
+    if (sameTab) window.location.href = target;
+    else window.open(target, '_blank', 'noopener');
+  });
+}
+
+function playWarp(dest, atPeak) {
+  if (warping) return;
+  warping = true;
+  const el = document.getElementById('warp');
+  if (!el) { atPeak(); warping = false; return; }
+  el.style.setProperty('--c', dest.accent);
+  const label = document.getElementById('warpLabel');
+  if (label) label.textContent = `entering ${dest.name}`;
+  el.classList.toggle('rm', reduceMotion);
+  el.classList.add('go');
+  const peak = reduceMotion ? 150 : 700;
+  setTimeout(atPeak, peak);
+  // if we stayed on this page (external → new tab), clear the warp
+  setTimeout(() => { el.classList.remove('go'); warping = false; }, peak + 550);
+}
+
 // dev-only debug bridge for automated testing (stripped from production builds)
-if (import.meta.env.DEV) window.__dbg = { controls, trash };
+if (import.meta.env.DEV) window.__dbg = { controls, trash, enterDestination };

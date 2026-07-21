@@ -4,9 +4,10 @@ import * as THREE from 'three';
 // (projected each frame), a "walk closer" prompt, and the destination panel
 // that opens when you reach someone.
 export class Hud {
-  constructor(root, camera, characters) {
+  constructor(root, camera, characters, onEnter = null) {
     this.cam = camera;
     this.characters = characters;
+    this.onEnter = onEnter;
     this._v = new THREE.Vector3();
     this.activeId = null;
 
@@ -29,11 +30,7 @@ export class Hud {
     this.pCta = document.getElementById('pCta');
     document.getElementById('pClose').onclick = () => this.close();
     this.pCta.onclick = () => {
-      const url = this.active && this.active.dest.url;
-      if (url) { window.open(url, '_blank', 'noopener'); return; }
-      const t = this.pCta.textContent;
-      this.pCta.textContent = '// coming soon';
-      setTimeout(() => (this.pCta.textContent = t), 1500);
+      if (this.active && this.onEnter) this.onEnter(this.active.dest);
     };
 
     this.prompt = document.getElementById('prompt');

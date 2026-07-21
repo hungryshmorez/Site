@@ -98,12 +98,30 @@
       font-size:11px;letter-spacing:.16em;cursor:pointer}
     .reward .rclose:hover{color:var(--ink)}
 
+    /* portal warp — plays before loading an EPK on its own page */
+    .warp{position:fixed;inset:0;z-index:40;overflow:hidden;opacity:0;pointer-events:none;transition:opacity .2s}
+    .warp.go{opacity:1;pointer-events:auto}
+    .warp .rings{position:absolute;inset:-60%;opacity:0;mix-blend-mode:screen;
+      background:repeating-radial-gradient(circle at 50% 50%, color-mix(in srgb,var(--c,#0ff) 85%,transparent) 0 2px, transparent 2px 30px)}
+    .warp.go .rings{animation:warpRings .82s ease-in forwards}
+    .warp .core{position:absolute;left:50%;top:50%;width:22px;height:22px;border-radius:50%;transform:translate(-50%,-50%) scale(0);
+      background:radial-gradient(circle,#fff 0%,var(--c,#0ff) 55%,transparent 72%);filter:blur(1px)}
+    .warp.go .core{animation:warpCore .82s cubic-bezier(.6,0,.85,1) forwards}
+    .warp .label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;font-family:var(--mono);
+      font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:#05050e;opacity:0;white-space:nowrap;text-shadow:0 0 12px rgba(255,255,255,.6)}
+    .warp.go .label{animation:warpLabel .82s ease-out forwards}
+    @keyframes warpRings{0%{opacity:0;transform:scale(1) rotate(0)}25%{opacity:.9}100%{opacity:1;transform:scale(4.2) rotate(55deg)}}
+    @keyframes warpCore{0%{transform:translate(-50%,-50%) scale(0);opacity:0}18%{opacity:1}100%{transform:translate(-50%,-50%) scale(130);opacity:1}}
+    @keyframes warpLabel{0%,45%{opacity:0}70%{opacity:1}100%{opacity:1}}
+    .warp.rm .rings,.warp.rm .core,.warp.rm .label{animation-duration:.16s}
+
     /* start overlay */
     .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
       text-align:center;padding:24px;background:radial-gradient(70% 60% at 50% 45%,rgba(14,10,34,.5),rgba(4,4,10,.96));transition:opacity .8s}
     .start.gone{opacity:0;pointer-events:none}
     .start .g{font-family:var(--mono);font-size:clamp(28px,7vw,60px);letter-spacing:.08em;text-shadow:3px 0 var(--magenta),-3px 0 var(--cyan)}
-    .start .s{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--muted);max-width:46ch;line-height:1.8}
+    .start .s{font-family:var(--mono);font-size:clamp(13px,2vw,16px);letter-spacing:.22em;color:var(--ink);max-width:46ch;line-height:1.9;opacity:.9}
+    .start .s2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
     .start .enter{font-family:var(--mono);font-size:14px;letter-spacing:.18em;color:#05050e;font-weight:700;background:var(--cyan);
       border:none;border-radius:11px;padding:14px 32px;cursor:pointer;box-shadow:0 0 34px -4px var(--cyan)}
     .start .enter:hover{background:#fff}
@@ -153,11 +171,18 @@
     </div>
   </div>
 
+  <div class="warp" id="warp" aria-hidden="true">
+    <div class="rings"></div>
+    <div class="core"></div>
+    <div class="label" id="warpLabel"></div>
+  </div>
+
   <div class="start" id="start">
-    <div class="g">ＴＨＥ ＦＥＳＴＩＶＡＬ</div>
-    <div class="s">you spawn on a bench at the edge of the crowd, staring at the stage. walk through the crowd and reach an artist to open their world.</div>
-    <button class="enter" id="enterBtn">▶ ENTER THE CROWD</button>
-    <div class="foot">12matt3r experience · three.js prototype</div>
+    <div class="g">12matt3r</div>
+    <div class="s">Above all that will be<br>Remember it….</div>
+    <div class="s2">walk the festival · reach anyone to step into their world</div>
+    <button class="enter" id="enterBtn">▶ ENTER</button>
+    <div class="foot">12matt3r experience</div>
   </div>
 
   <script type="module" src="/src/main.js"></script>
