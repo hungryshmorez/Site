@@ -51,7 +51,7 @@ const trash = buildTrash(scene, {
   onComplete: (s) => { trashHudUpdate(s); unlockReward(); },
 });
 
-const BIG = new Set(['stall', 'labsstage', 'bathroom']);
+const BIG = new Set(['stall', 'labsstage', 'bathroom', 'sofaboi']);
 const crowd = buildCrowd(scene, {
   count: 320,
   stageZ: festival.stageZ,

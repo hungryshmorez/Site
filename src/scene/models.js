@@ -203,6 +203,65 @@ export function buildRaver(accent = '#FF0055') {
   };
 }
 
+// ---------------------------------------------------------------- SOFA KING SAD BOI
+// A hooded sad-boi slumped on a worn couch under his own little rain cloud —
+// dubstep / weird bass, watching the whole festival from the back. Also the
+// personal hub (blog / memories / guest book live around his couch).
+export function buildSofaBoi(accent = '#6a6cff') {
+  const g = new THREE.Group();
+  const fabric = std({ color: 0x2a2c3a, roughness: 0.95 });   // worn couch
+  const fabric2 = std({ color: 0x22242f, roughness: 0.95 });
+  const hoodie = std({ color: 0x191b26, roughness: 0.9, emissive: new THREE.Color(accent), emissiveIntensity: 0.12 });
+  const shins = std({ color: 0x14161f, roughness: 0.9 });
+  const skin = std({ color: 0xc9a888, roughness: 0.7 });
+
+  // ---- couch ----
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.4, 1.1), fabric); seat.position.set(0, 0.5, 0); seat.castShadow = seat.receiveShadow = true; g.add(seat);
+  const cushL = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.22, 1.0), fabric2); cushL.position.set(-0.55, 0.72, 0.02); g.add(cushL);
+  const cushR = cushL.clone(); cushR.position.x = 0.55; g.add(cushR);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.9, 0.28), fabric); back.position.set(0, 0.95, -0.55); back.castShadow = true; g.add(back);
+  const bcushL = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.7, 0.2), fabric2); bcushL.position.set(-0.55, 0.95, -0.4); g.add(bcushL);
+  const bcushR = bcushL.clone(); bcushR.position.x = 0.55; g.add(bcushR);
+  for (const sx of [-1.28, 1.28]) { const arm = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.75, 1.1), fabric); arm.position.set(sx, 0.72, 0); arm.castShadow = true; g.add(arm); }
+  for (const [ax, az] of [[-1.05, 0.45], [1.05, 0.45], [-1.05, -0.45], [1.05, -0.45]]) { const f = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.3, 8), std({ color: 0x140f0a })); f.position.set(ax, 0.15, az); g.add(f); }
+
+  // ---- the sad boi (sitting, slumped forward) ----
+  const boi = new THREE.Group(); boi.position.set(0.05, 0, 0.05); g.add(boi);
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.4, 6, 12), hoodie); torso.position.set(0, 1.15, 0.05); torso.rotation.x = 0.3; torso.castShadow = true; boi.add(torso);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 18, 16), skin); head.position.set(0, 1.52, 0.24); boi.add(head);
+  const hood = new THREE.Mesh(new THREE.SphereGeometry(0.31, 18, 16, 0, Math.PI * 2, 0, Math.PI * 0.64), hoodie); hood.position.set(0, 1.58, 0.16); hood.rotation.x = 0.5; hood.castShadow = true; boi.add(hood);
+  const eyeMat = std({ color: 0x0e0e16 });
+  for (const sx of [-0.09, 0.09]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 8), eyeMat); e.position.set(sx, 1.5, 0.46); boi.add(e); }
+  for (const sx of [-0.16, 0.16]) { const th = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.4, 4, 8), hoodie); th.rotation.x = Math.PI / 2; th.position.set(sx, 0.88, 0.35); boi.add(th); }
+  for (const sx of [-0.16, 0.16]) { const sh = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.5, 4, 8), shins); sh.position.set(sx, 0.42, 0.62); boi.add(sh); }
+  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.35, 4, 8), hoodie); armL.rotation.x = Math.PI / 2.2; armL.position.set(-0.24, 1.0, 0.42); boi.add(armL);
+  const armR = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.35, 4, 8), hoodie); armR.rotation.x = Math.PI / 2.2; armR.position.set(0.24, 1.0, 0.42); boi.add(armR);
+  const phone = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.28, 0.02), std({ color: 0x05060a, emissive: new THREE.Color(accent), emissiveIntensity: 1.2 }));
+  phone.position.set(0.24, 1.04, 0.58); phone.rotation.x = -0.5; boi.add(phone);
+  const phoneGlow = new THREE.PointLight(accent, 2, 2.5, 2); phoneGlow.position.set(0.24, 1.12, 0.62); boi.add(phoneGlow);
+
+  // ---- personal rain cloud ----
+  const cloud = new THREE.Group(); cloud.position.set(0.05, 2.65, 0.1); g.add(cloud);
+  const cloudMat = std({ color: 0x2b2f3e, roughness: 1, emissive: new THREE.Color(accent), emissiveIntensity: 0.08 });
+  for (const [cx, cy, cr] of [[-0.38, 0, 0.32], [0.02, 0.09, 0.42], [0.44, 0, 0.3], [0.04, -0.06, 0.36]]) { const puff = new THREE.Mesh(new THREE.SphereGeometry(cr, 14, 12), cloudMat); puff.position.set(cx, cy, 0); cloud.add(puff); }
+  const rain = [];
+  const rainMat = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false });
+  for (let i = 0; i < 12; i++) { const drop = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.18, 4), rainMat); drop.position.set((Math.random() - 0.5) * 0.9, -0.25 - Math.random() * 0.7, (Math.random() - 0.5) * 0.35); cloud.add(drop); rain.push(drop); }
+
+  return {
+    group: g,
+    update: (t, pulse) => {
+      // dejected slump sinks on the bass; slow breathing otherwise
+      boi.position.y = -pulse * 0.06 + Math.sin(t * 1.2) * 0.01;
+      boi.rotation.x = 0.02 + pulse * 0.04;
+      phone.material.emissiveIntensity = 0.9 + Math.sin(t * 3) * 0.3 + pulse * 0.5;
+      phoneGlow.intensity = 1.4 + pulse;
+      rain.forEach((d, i) => { d.position.y -= (0.5 + i * 0.03) * 0.03; if (d.position.y < -1.15) d.position.y = -0.2; });
+      cloud.position.x = 0.05 + Math.sin(t * 0.5) * 0.05;
+    },
+  };
+}
+
 // ---------------------------------------------------------------- VENDOR STALL
 // The merch tent: a striped canopy on posts + a glowing sign + a small vendor.
 export function buildStall(accent = '#39FF14') {
@@ -326,6 +385,7 @@ function textPlane(text, color) {
 
 export const MODELS = {
   marshmallow: buildMarshmallow,
+  sofaboi: buildSofaBoi,
   cowboy: buildCowboy,
   vaporwave: buildVaporwave,
   glitch: buildGlitch,

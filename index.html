@@ -116,12 +116,13 @@
     .warp.rm .rings,.warp.rm .core,.warp.rm .label{animation-duration:.16s}
 
     /* start overlay */
-    .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
-      text-align:center;padding:24px;background:radial-gradient(70% 60% at 50% 45%,rgba(14,10,34,.5),rgba(4,4,10,.96));transition:opacity .8s}
+    .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+      text-align:center;padding:24px;overflow-y:auto;background:radial-gradient(70% 60% at 50% 45%,rgba(14,10,34,.5),rgba(4,4,10,.96));transition:opacity .8s}
     .start.gone{opacity:0;pointer-events:none}
     .start .g{font-family:var(--mono);font-size:clamp(28px,7vw,60px);letter-spacing:.08em;text-shadow:3px 0 var(--magenta),-3px 0 var(--cyan)}
-    .start .s{font-family:var(--mono);font-size:clamp(13px,2vw,16px);letter-spacing:.22em;color:var(--ink);max-width:46ch;line-height:1.9;opacity:.9}
-    .start .s2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
+    .start .s{font-family:var(--mono);font-size:clamp(12px,1.5vw,14.5px);letter-spacing:.06em;color:var(--ink);max-width:64ch;line-height:1.75;opacity:.92}
+    .start .s3{font-family:var(--mono);font-size:clamp(10.5px,1.2vw,12.5px);letter-spacing:.04em;color:var(--muted);max-width:64ch;line-height:1.7}
+    .start .s2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--cyan);text-transform:uppercase;opacity:.75;margin-top:4px}
     .start .enter{font-family:var(--mono);font-size:14px;letter-spacing:.18em;color:#05050e;font-weight:700;background:var(--cyan);
       border:none;border-radius:11px;padding:14px 32px;cursor:pointer;box-shadow:0 0 34px -4px var(--cyan)}
     .start .enter:hover{background:#fff}
@@ -179,10 +180,11 @@
 
   <div class="start" id="start">
     <div class="g">12matt3r</div>
-    <div class="s">Above all that will be<br>Remember it….</div>
+    <div class="s">12matt3r is a genre-defying experience design collective where the digital, the analog, and the algorithmic collide. Comprised of video artists, rappers, and producers, the group dismantles the barriers between live performance and new media.</div>
+    <div class="s3">The name is a dual-layered philosophy: it bridges the concept of &ldquo;12&rdquo; as a symbol of cosmic completeness with the raw physical &ldquo;matter&rdquo; of our world&mdash;all while acknowledging the ultimate freedom found in the fact that, at the end of the day, a dozen or a zero, it simply doesn&rsquo;t matter.</div>
     <div class="s2">walk the festival · reach anyone to step into their world</div>
     <button class="enter" id="enterBtn">▶ ENTER</button>
-    <div class="foot">12matt3r experience</div>
+    <div class="foot">a 12matt3r experience</div>
   </div>
 
   <script type="module" src="/src/main.js"></script>
