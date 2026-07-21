@@ -26,6 +26,8 @@
     .brand span{display:block;font-size:9.5px;color:var(--muted);letter-spacing:.3em;margin-top:3px}
     .clock{pointer-events:none;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--ink);text-transform:uppercase;
       background:rgba(8,8,18,.5);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:6px 13px;backdrop-filter:blur(6px)}
+    .nowplaying{position:fixed;z-index:10;left:50%;top:58px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;
+      letter-spacing:.18em;color:var(--cyan);opacity:.7;pointer-events:none;text-shadow:0 0 8px rgba(0,243,255,.5)}
 
     /* floating name tags */
     .tags .tag{position:absolute;top:0;left:0;pointer-events:none;text-align:center;white-space:nowrap;
@@ -80,6 +82,7 @@
 </head>
 <body>
   <canvas id="scene"></canvas>
+  <audio id="track" loop preload="auto" src="/static-drift-anthem.mp3"></audio>
   <div class="vig"></div>
   <div class="scan"></div>
 
@@ -93,7 +96,9 @@
   <div class="help">
     <kbd>W A S D</kbd> walk · <kbd>drag</kbd> look · <b>click a name</b> to walk to them · <kbd>[ ]</kbd> time of day
   </div>
+  <button class="rmbtn" id="mutebtn" style="right:112px" title="Sound">🔊 sound</button>
   <button class="rmbtn" id="rmbtn" title="Reduced motion">◐ motion</button>
+  <div class="nowplaying" id="nowplaying">♪ Static Drift Anthem</div>
 
   <div class="panel" id="panel" role="dialog" aria-labelledby="pTitle">
     <button class="close" id="pClose" aria-label="Back">✕</button>

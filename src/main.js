@@ -5,9 +5,18 @@ import { buildCrowd } from './scene/crowd.js';
 import { buildCharacters } from './scene/characters.js';
 import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
+import { createAudioReactor } from './audio/reactor.js';
 
 const canvas = document.getElementById('scene');
 const body = document.body;
+
+// ---- live audio → beat ----
+const reactor = createAudioReactor(document.getElementById('track'));
+const muteBtn = document.getElementById('mutebtn');
+if (muteBtn) muteBtn.onclick = () => {
+  const m = !reactor.isMuted(); reactor.setMuted(m);
+  muteBtn.textContent = m ? '🔇 muted' : '🔊 sound';
+};
 
 // ---- reduced motion ----
 let reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -121,7 +130,9 @@ function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   const time = clock.elapsedTime;
   const beat = time * (BPM / 60);
-  const pulse = reduceMotion ? 0.35 : Math.pow(1 - (beat % 1), 2.2); // sharp on-beat, decays
+  const bpmPulse = Math.pow(1 - (beat % 1), 2.2);           // fallback: sharp on-beat, decays
+  const audioPulse = reactor.pulse();                       // live bass energy, or null
+  const pulse = reduceMotion ? 0.35 : (audioPulse != null ? Math.max(audioPulse, 0.05) : bpmPulse);
   const dayT = (((DAY_START + time / DAY_CYCLE + dayScrub) % 1) + 1) % 1;
 
   controls.update(dt);
@@ -138,6 +149,7 @@ function frame() {
 // ---- start ----
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
+  reactor.start();                       // user gesture → satisfies autoplay policy
   if (!running) { running = true; clock.start(); frame(); }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
