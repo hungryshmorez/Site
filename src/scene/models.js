@@ -54,37 +54,35 @@ export function buildMarshmallow(accent = '#ff6b35') {
 // A cowboy: brown duster body, wide-brim hat, boots, glowing gold star badge.
 export function buildCowboy(accent = '#e6c04a') {
   const g = new THREE.Group();
-  const denim = std({ color: 0x3a2c22, roughness: 0.85 });
+  const jeans = std({ color: 0x2b4a86, roughness: 0.85 });                 // blue jeans
+  const tee = std({ color: 0xf2f2f0, roughness: 0.92 });                   // white t-shirt
   const skin = std({ color: 0xcaa07a, roughness: 0.7 });
-  const felt = std({ color: 0x241a12, roughness: 0.9 });
-  const gold = std({ color: 0x3a2c10, emissive: new THREE.Color(accent), emissiveIntensity: 0.8, metalness: 0.6, roughness: 0.3 });
+  const brown = std({ color: 0x5a3a1e, roughness: 0.82 });                 // brown hat + boots
+  const dark = std({ color: 0x1a120c, roughness: 0.7 });
+  const gold = std({ color: 0x3a2c10, emissive: new THREE.Color(accent), emissiveIntensity: 0.9, metalness: 0.7, roughness: 0.3 });
 
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.33, 1.0, 6, 12), denim);
-  body.position.y = 1.05; body.castShadow = true; g.add(body);
-  // duster flare
-  const coat = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.0, 16, 1, true), denim);
-  coat.position.y = 0.7; coat.castShadow = true; g.add(coat);
+  // legs (jeans)
+  for (const sx of [-0.16, 0.16]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.13, 0.9, 12), jeans); leg.position.set(sx, 0.5, 0); leg.castShadow = true; g.add(leg); }
+  const hips = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.34, 0.34), jeans); hips.position.y = 1.0; hips.castShadow = true; g.add(hips);
+  // belt + gold buckle (Tanky's accent)
+  const belt = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.09, 0.36), dark); belt.position.y = 1.16; g.add(belt);
+  const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.09, 0.03), gold); buckle.position.set(0, 1.16, 0.19); g.add(buckle);
+  // torso (white tee) + short sleeves + skin forearms
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.31, 0.45, 6, 12), tee); torso.position.y = 1.5; torso.castShadow = true; g.add(torso);
+  for (const sx of [-0.34, 0.34]) {
+    const sleeve = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 10), tee); sleeve.position.set(sx, 1.62, 0); g.add(sleeve);
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.42, 10), skin); arm.position.set(sx, 1.32, 0); g.add(arm);
+  }
+  // head + brown cowboy hat
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 18, 16), skin); head.position.y = 1.98; head.castShadow = true; g.add(head);
+  const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, 0.05, 24), brown); brim.position.y = 2.12; brim.castShadow = true; g.add(brim);
+  const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.29, 0.34, 20), brown); crown.position.y = 2.3; g.add(crown);
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.295, 0.295, 0.06, 20), dark); band.position.y = 2.18; g.add(band);
+  const brow = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.05), brown); brow.position.set(0, 2.05, 0.2); g.add(brow);
+  // brown boots
+  for (const sx of [-0.16, 0.16]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.34), brown); b.position.set(sx, 0.1, 0.06); b.castShadow = true; g.add(b); }
 
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 18, 16), skin);
-  head.position.y = 1.92; head.castShadow = true; g.add(head);
-
-  // hat: brim + crown
-  const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, 0.05, 24), felt);
-  brim.position.y = 2.06; g.add(brim);
-  const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.3, 0.34, 20), felt);
-  crown.position.y = 2.24; g.add(crown);
-  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.305, 0.305, 0.07, 20), gold);
-  band.position.y = 2.12; g.add(band);
-
-  // boots
-  for (const sx of [-0.18, 0.18]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.34), felt); b.position.set(sx, 0.1, 0.06); b.castShadow = true; g.add(b); }
-  // star badge
-  const star = new THREE.Mesh(new THREE.CircleGeometry(0.1, 5), gold);
-  star.position.set(0.14, 1.25, 0.33); g.add(star);
-  // brim shade for face
-  const brow = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.06, 0.05), felt); brow.position.set(0, 1.99, 0.22); g.add(brow);
-
-  return { group: g, update: (t, pulse) => { star.material.emissiveIntensity = 0.6 + pulse * 0.8; g.rotation.y = Math.sin(t * 0.5) * 0.08; } };
+  return { group: g, update: (t, pulse) => { buckle.material.emissiveIntensity = 0.7 + pulse * 0.9; g.rotation.y = Math.sin(t * 0.5) * 0.08; } };
 }
 
 // ---------------------------------------------------------------- DRIFTWAVE
