@@ -98,6 +98,17 @@
       font-size:11px;letter-spacing:.16em;cursor:pointer}
     .reward .rclose:hover{color:var(--ink)}
 
+    /* lab porta-potty portal HUD (shown only while inside) */
+    .portahud{display:none}
+    body.inportal .portahud{display:block}
+    body.inportal .tags,body.inportal .prompt,body.inportal .help,body.inportal .trashpill,
+    body.inportal .triptoggle,body.inportal .nowplaying,body.inportal .clock,body.inportal .panel{display:none !important}
+    .portahud .pprompt{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);z-index:11;font-family:var(--mono);
+      font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);pointer-events:none;text-shadow:0 0 10px rgba(57,255,20,.55)}
+    .portahud .pexit{position:fixed;top:16px;left:16px;z-index:11;font-family:var(--mono);font-size:11px;color:var(--ink);
+      background:rgba(8,14,8,.6);border:1px solid rgba(57,255,20,.4);border-radius:9px;padding:8px 12px;cursor:pointer;backdrop-filter:blur(6px)}
+    .portahud .pexit:hover{border-color:var(--green);color:#fff}
+
     /* TRI-PPY rainbow warp — scored from the dealer, echoes doesntmatter.us */
     .trippy{position:fixed;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .9s;mix-blend-mode:hue;overflow:hidden}
     .trippy.on{opacity:.9}
@@ -158,6 +169,11 @@
   <div class="vig"></div>
   <div class="trippy" id="trippy"><div class="a"></div><div class="b"></div></div>
   <div class="scan"></div>
+
+  <div class="portahud" id="portaHud">
+    <button class="pexit" id="portaExit">✕ back to the festival</button>
+    <div class="pprompt">click the old screen to boot the lab</div>
+  </div>
 
   <button class="triptoggle" id="tripToggle" title="Toggle the trip">TRI-PPY: OFF</button>
 

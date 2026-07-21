@@ -5,6 +5,7 @@ import { buildCrowd } from './scene/crowd.js';
 import { buildCharacters } from './scene/characters.js';
 import { buildTrash } from './scene/trash.js';
 import { buildDealer } from './scene/dealer.js';
+import { buildLabPortal } from './scene/labPortal.js';
 import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
 import { createAudioReactor } from './audio/reactor.js';
@@ -75,6 +76,12 @@ const crowd = buildCrowd(scene, {
 const controls = new WalkControls(camera, { bounds: 42, eye: 1.6 });
 const hud = new Hud(document.getElementById('tags'), camera, characters.list, enterDestination);
 
+// ---- lab portal: a porta-potty interior you step into; click the old CRT to
+// boot the Lab (its own page). While inside, the festival stops rendering. ----
+const labPortal = buildLabPortal();
+let mode = 'festival';              // 'festival' | 'porta' | 'zoom'
+let portaYaw = 0, portaPitch = -0.12;
+
 // ---- input: drag to look, click/tap a person to walk over ----
 const raycaster = new THREE.Raycaster();
 const ndc = new THREE.Vector2();
@@ -90,12 +97,17 @@ canvas.addEventListener('pointermove', (e) => {
   if (!down || e.pointerId !== down.id) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y;
   if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
-  controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
+  const mx = e.movementX || dx * 0.2, my = e.movementY || dy * 0.2;
+  if (mode === 'festival') controls.look(mx, my);
+  else if (mode === 'porta') portaLook(mx, my);
   down.x = e.clientX; down.y = e.clientY;
 });
 canvas.addEventListener('pointerup', (e) => {
   canvas.classList.remove('drag');
-  if (down && !dragged) handleTap(e.clientX, e.clientY);
+  if (down && !dragged) {
+    if (mode === 'festival') handleTap(e.clientX, e.clientY);
+    else if (mode === 'porta') handlePortaTap(e.clientX, e.clientY);
+  }
   down = null;
 });
 canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
@@ -159,19 +171,24 @@ function frame() {
   const bpmPulse = Math.pow(1 - (beat % 1), 2.2);           // fallback: sharp on-beat, decays
   const audioPulse = reactor.pulse();                       // live bass energy, or null
   const pulse = reduceMotion ? 0.35 : (audioPulse != null ? Math.max(audioPulse, 0.05) : bpmPulse);
-  const dayT = (((DAY_START + time / DAY_CYCLE + dayScrub) % 1) + 1) % 1;
-
-  controls.update(dt);
-  festival.update(dt, time, pulse, dayT);
-  crowd.update(dt, time, pulse);
-  characters.update(dt, time, pulse);
-  trash.update(dt, time, pulse, controls.pos);
-  dealer.update(dt, time, pulse, controls.pos, trippy);
-  hud.update(controls.pos);
-
-  if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
-
-  renderer.render(scene, camera);
+  if (mode === 'festival') {
+    const dayT = (((DAY_START + time / DAY_CYCLE + dayScrub) % 1) + 1) % 1;
+    controls.update(dt);
+    festival.update(dt, time, pulse, dayT);
+    crowd.update(dt, time, pulse);
+    characters.update(dt, time, pulse);
+    trash.update(dt, time, pulse, controls.pos);
+    dealer.update(dt, time, pulse, controls.pos, trippy);
+    hud.update(controls.pos);
+    if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
+    renderer.render(scene, camera);
+  } else {
+    // inside the lab portal — festival is parked, we render the tiny stall
+    labPortal.update(dt, time);
+    if (mode === 'zoom') updateZoom(dt);
+    else applyPortaCamera();
+    renderer.render(labPortal.scene, camera);
+  }
 }
 
 // ---- start ----
@@ -239,6 +256,7 @@ if (rewardClose) rewardClose.onclick = () => document.getElementById('reward').c
 // links (store, socials) open in a new tab and the festival stays put.
 let warping = false;
 function enterDestination(dest) {
+  if (dest.portal === 'lab') { enterLabPortal(dest); return; }
   const target = dest.page || dest.url;
   if (!target) { flash('// coming soon'); return; }
   const sameTab = !!dest.page || target.startsWith('/');
@@ -246,6 +264,67 @@ function enterDestination(dest) {
     if (sameTab) window.location.href = target;
     else window.open(target, '_blank', 'noopener');
   });
+}
+
+// ---- lab porta-potty portal ------------------------------------------------
+const _fwd = new THREE.Vector3(), _right = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _tgt = new THREE.Vector3();
+const portaHudEl = document.getElementById('portaHud');
+const portaExitEl = document.getElementById('portaExit');
+if (portaExitEl) portaExitEl.onclick = () => exitPortal();
+
+function enterLabPortal(dest) {
+  playWarp(dest, () => {
+    mode = 'porta';
+    portaYaw = 0; portaPitch = -0.12;
+    if (hud.close) hud.close();
+    body.classList.add('inportal');
+  });
+}
+
+function exitPortal() {
+  if (mode === 'festival') return;
+  playWarp({ accent: '#39ff14', name: 'THE FESTIVAL' }, () => {
+    mode = 'festival';
+    body.classList.remove('inportal');
+  });
+}
+
+function portaLook(mx, my) {
+  portaYaw = THREE.MathUtils.clamp(portaYaw - mx * 0.004, -1.1, 1.1);
+  portaPitch = THREE.MathUtils.clamp(portaPitch - my * 0.004, -0.7, 0.5);
+}
+
+function applyPortaCamera() {
+  camera.position.copy(labPortal.eye);
+  _fwd.subVectors(labPortal.lookAt, labPortal.eye).normalize();
+  _right.crossVectors(_fwd, _up).normalize();
+  _tgt.copy(labPortal.lookAt).addScaledVector(_right, portaYaw * 1.2).addScaledVector(_up, portaPitch * 1.2);
+  camera.lookAt(_tgt);
+}
+
+function handlePortaTap(sx, sy) {
+  ndc.x = (sx / innerWidth) * 2 - 1;
+  ndc.y = -(sy / innerHeight) * 2 + 1;
+  raycaster.setFromCamera(ndc, camera);
+  if (raycaster.intersectObject(labPortal.screen, false)[0]) startZoom();
+}
+
+let zoomProg = 0;
+const _zoomFrom = new THREE.Vector3();
+function startZoom() {
+  if (mode === 'zoom') return;
+  mode = 'zoom';
+  zoomProg = 0;
+  _zoomFrom.copy(camera.position);
+}
+function updateZoom(dt) {
+  zoomProg = Math.min(1, zoomProg + dt / 1.3);
+  const e = zoomProg < 0.5 ? 2 * zoomProg * zoomProg : 1 - Math.pow(-2 * zoomProg + 2, 2) / 2; // easeInOutQuad
+  camera.position.lerpVectors(_zoomFrom, labPortal.zoomEye, e);
+  camera.lookAt(labPortal.lookAt);
+  if (zoomProg >= 1 && !warping) {
+    playWarp({ accent: '#39ff14', name: 'THE LAB' }, () => { window.location.href = 'lab.html'; });
+  }
 }
 
 function playWarp(dest, atPeak) {
@@ -286,4 +365,7 @@ function setTrippy(on) {
 }
 
 // dev-only debug bridge for automated testing (stripped from production builds)
-if (import.meta.env.DEV) window.__dbg = { controls, trash, dealer, enterDestination, setTrippy };
+if (import.meta.env.DEV) window.__dbg = {
+  controls, trash, dealer, enterDestination, setTrippy,
+  enterLabPortal, startZoom, exitPortal, portalState: () => ({ mode, zoomProg, warping }),
+};

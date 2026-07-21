@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>12matt3r LABS // DreamOS</title>
+  <style>
+    :root{--green:#39ff14;--dim:#1c6b12;--ink:#c9ffd0;--mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;background:#02120a;color:var(--ink);font-family:var(--mono);overflow:hidden}
+    .scan{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:.5;
+      background:repeating-linear-gradient(0deg,rgba(0,0,0,.35),rgba(0,0,0,.35) 1px,transparent 1px,transparent 3px)}
+    .vig{position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(120% 95% at 50% 45%,transparent 50%,rgba(0,0,0,.8) 100%)}
+    .wrap{position:relative;z-index:6;height:100%;display:flex;flex-direction:column;justify-content:center;padding:min(9vw,90px);max-width:900px}
+    h1{font-size:clamp(30px,7vw,64px);letter-spacing:.06em;color:var(--green);text-shadow:0 0 18px rgba(57,255,20,.55);margin-bottom:6px}
+    .sub{color:var(--dim);letter-spacing:.24em;text-transform:uppercase;font-size:12px;margin-bottom:34px}
+    .line{font-size:clamp(13px,1.7vw,15px);line-height:2;opacity:.92}
+    .line .b{color:var(--green)}
+    .cur{display:inline-block;width:.6ch;height:1.1em;background:var(--green);vertical-align:-2px;animation:blink 1s steps(1) infinite;box-shadow:0 0 8px var(--green)}
+    @keyframes blink{50%{opacity:0}}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:30px 0 36px;max-width:640px}
+    .cell{border:1px solid rgba(57,255,20,.3);border-radius:8px;padding:12px 14px;font-size:12px;letter-spacing:.06em;color:var(--ink);background:rgba(57,255,20,.04)}
+    .cell b{color:var(--green);display:block;margin-bottom:3px;letter-spacing:.1em}
+    .cell span{color:var(--dim);font-size:10.5px}
+    .back{display:inline-flex;align-items:center;gap:9px;font-size:13px;letter-spacing:.1em;color:#02120a;font-weight:700;
+      background:var(--green);border:none;border-radius:10px;padding:13px 22px;cursor:pointer;text-decoration:none;box-shadow:0 0 28px -6px var(--green);width:max-content}
+    .back:hover{background:#fff}
+    .foot{margin-top:26px;color:var(--dim);font-size:11px;letter-spacing:.16em}
+    @media(prefers-reduced-motion:reduce){.cur{animation:none}}
+  </style>
+</head>
+<body>
+  <div class="vig"></div>
+  <div class="scan"></div>
+  <div class="wrap">
+    <h1>12matt3r LABS</h1>
+    <div class="sub">DreamOS terminal · you booted in from the porta-potty</div>
+    <div class="line"><span class="b">C:\&gt;</span> mount lab_world<br>
+      <span class="b">C:\&gt;</span> status: <span class="b">world under construction</span> <span class="cur"></span></div>
+
+    <div class="grid">
+      <div class="cell"><b>DreamOS TV</b><span>the movie theater</span></div>
+      <div class="cell"><b>Trippy Cam</b><span>browser feedback</span></div>
+      <div class="cell"><b>Deadnet</b><span>alt web protocols</span></div>
+      <div class="cell"><b>Driftwave Vaporizer</b><span>slushwave tool</span></div>
+      <div class="cell"><b>Games (25+)</b><span>flash portal</span></div>
+      <div class="cell"><b>Stories</b><span>experiences</span></div>
+    </div>
+
+    <a class="back" href="index.html">◄ back through the porta-potty</a>
+    <div class="foot">a 12matt3r experience · the full lab world lands here soon</div>
+  </div>
+</body>
+</html>
