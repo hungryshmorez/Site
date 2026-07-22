@@ -205,8 +205,7 @@ export function buildRaver(accent = '#FF0055') {
 
 // ---------------------------------------------------------------- SOFA KING SAD BOI
 // A hooded sad-boi slumped on a worn couch under his own little rain cloud —
-// dubstep / weird bass, watching the whole festival from the back. Also the
-// personal hub (blog / memories / guest book live around his couch).
+// dubstep / weird bass, watching the whole festival from the back.
 export function buildSofaBoi(accent = '#6a6cff') {
   const g = new THREE.Group();
   const fabric = std({ color: 0x2a2c3a, roughness: 0.95 });   // worn couch

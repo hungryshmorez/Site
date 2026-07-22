@@ -147,6 +147,39 @@
     @keyframes warpLabel{0%,45%{opacity:0}70%{opacity:1}100%{opacity:1}}
     .warp.rm .rings,.warp.rm .core,.warp.rm .label{animation-duration:.16s}
 
+    /* 12matt3r hub board: news + guest book */
+    .boardhint{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);z-index:9;font-family:var(--mono);font-size:11px;
+      letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);opacity:0;transition:opacity .25s;pointer-events:none;text-shadow:0 0 10px rgba(0,243,255,.5)}
+    .boardhint.on{opacity:.85}
+    .boardpanel{position:fixed;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;padding:20px;
+      background:rgba(4,4,10,.72);opacity:0;pointer-events:none;transition:opacity .3s}
+    .boardpanel.on{opacity:1;pointer-events:auto}
+    .boardpanel .bcard{width:min(680px,100%);max-height:88vh;overflow-y:auto;position:relative;padding:26px 26px 30px;
+      background:linear-gradient(180deg,rgba(12,12,22,.97),rgba(6,6,14,.98));border:1px solid rgba(0,243,255,.4);border-radius:16px;
+      box-shadow:0 0 50px -12px rgba(0,243,255,.4)}
+    .boardpanel .bk{font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--cyan)}
+    .boardpanel h2{font-family:var(--mono);font-size:22px;margin:6px 0 20px;letter-spacing:.02em;text-transform:uppercase;
+      text-shadow:1.5px 0 rgba(255,0,85,.35),-1.5px 0 rgba(0,243,255,.35)}
+    .boardpanel .bclose{position:absolute;top:14px;right:16px;width:28px;height:28px;border-radius:8px;background:transparent;
+      border:1px solid rgba(255,255,255,.15);color:var(--muted);cursor:pointer;font-family:var(--mono)}
+    .boardpanel .bclose:hover{color:var(--ink);border-color:var(--cyan)}
+    .bsection{margin-bottom:22px}
+    .blabel{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+    .notes{display:flex;flex-wrap:wrap;gap:12px}
+    .note{width:150px;min-height:104px;padding:12px 13px;border-radius:3px;color:#181810;font-family:var(--sans);font-size:13px;
+      line-height:1.42;box-shadow:2px 4px 12px rgba(0,0,0,.45);transform:rotate(var(--r,-1deg))}
+    .note .nd{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;opacity:.6;margin-bottom:6px;text-transform:uppercase}
+    .note .nn{font-weight:700;margin-bottom:3px}
+    .note.cyan{background:#8fe1ff}.note.pink{background:#ff8fb1}.note.green{background:#9dffa3}.note.yellow{background:#ffe14d}
+    .gform{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+    .gform input{flex:1;min-width:130px;font-family:var(--mono);font-size:13px;color:var(--ink);background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:10px 12px}
+    .gform input:focus{outline:none;border-color:var(--cyan)}
+    .gform button{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:#05050e;font-weight:700;background:var(--cyan);
+      border:none;border-radius:8px;padding:10px 20px;cursor:pointer}
+    .gform button:hover{background:#fff}
+    .gempty{font-family:var(--mono);font-size:11px;color:var(--muted);opacity:.7}
+
     /* start overlay */
     .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
       text-align:center;padding:24px;overflow-y:auto;background:radial-gradient(70% 60% at 50% 45%,rgba(14,10,34,.5),rgba(4,4,10,.96));transition:opacity .8s}
@@ -216,6 +249,28 @@
     <div class="rings"></div>
     <div class="core"></div>
     <div class="label" id="warpLabel"></div>
+  </div>
+
+  <div class="boardhint" id="boardHint">click the board</div>
+  <div class="boardpanel" id="boardPanel" role="dialog" aria-labelledby="boardTitle">
+    <div class="bcard">
+      <button class="bclose" id="boardClose" aria-label="Close">✕</button>
+      <div class="bk">12matt3r // the board</div>
+      <h2 id="boardTitle">news · guest book</h2>
+      <div class="bsection">
+        <div class="blabel">📌 news &amp; updates</div>
+        <div class="notes" id="newsNotes"></div>
+      </div>
+      <div class="bsection">
+        <div class="blabel">✍ leave a message · sign the guest book</div>
+        <form class="gform" id="guestForm">
+          <input id="guestName" maxlength="24" placeholder="your name" autocomplete="off" />
+          <input id="guestMsg" maxlength="140" placeholder="leave a message…" autocomplete="off" />
+          <button type="submit">pin it</button>
+        </form>
+        <div class="notes" id="guestNotes"></div>
+      </div>
+    </div>
   </div>
 
   <div class="start" id="start">

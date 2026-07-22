@@ -37,7 +37,7 @@ export const DESTINATIONS = [
     role: 'the back couch // dubstep', accent: PALETTE.indigo,
     pos: [14, 0, 17], tag: 'dubstep · weird bass',
     url: 'https://doesntmatter.us/',
-    blurb: 'Hood up, slumped on a beat-up couch under his own little rain cloud, watching the whole thing from the back — dubstep and weird bass. This is the sad-boi hub: the personal side of 12matt3r — the blog, the memories wall, the guest book — lives around his couch.',
+    blurb: 'Hood up, slumped on a beat-up couch under his own little rain cloud, watching the whole thing from the back — dubstep and weird bass. Reach him to drop into his world.',
     cta: 'Sit with the sad boi',
   },
   {

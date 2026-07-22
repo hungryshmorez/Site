@@ -5,6 +5,8 @@ import { buildCrowd } from './scene/crowd.js';
 import { buildCharacters } from './scene/characters.js';
 import { buildTrash } from './scene/trash.js';
 import { buildDealer } from './scene/dealer.js';
+import { buildBoard } from './scene/board.js';
+import { NEWS } from './data/news.js';
 import { buildLabPortal } from './scene/labPortal.js';
 import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
@@ -61,6 +63,14 @@ const dealer = buildDealer(scene, {
   onToggle: () => toggleTrippy(),
 });
 
+// the 12matt3r hub board → walk up, read news, sign the guest book
+const BOARD_POS = [3, 11];
+const board = buildBoard(scene, {
+  pos: BOARD_POS,
+  stageZ: festival.stageZ,
+  onOpen: () => openBoard(),
+});
+
 const BIG = new Set(['stall', 'labsstage', 'bathroom', 'sofaboi']);
 const crowd = buildCrowd(scene, {
   count: 320,
@@ -71,6 +81,7 @@ const crowd = buildCrowd(scene, {
     [0, 9, 4.5],
     [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
     [DEALER_POS[0], DEALER_POS[1], 2.4],
+    [BOARD_POS[0], BOARD_POS[1], 3],
   ],
 });
 const controls = new WalkControls(camera, { bounds: 42, eye: 1.6 });
@@ -120,6 +131,8 @@ function handleTap(sx, sy) {
   if (trash.tryClick(raycaster)) return;
   // the dealer — clicking him toggles the trip
   if (dealer.tryClick(raycaster)) return;
+  // the hub board — clicking it opens news + guest book
+  if (board.tryClick(raycaster)) return;
   // characters next
   const hitC = raycaster.intersectObjects(characters.proxies, false)[0];
   if (hitC) {
@@ -179,7 +192,9 @@ function frame() {
     characters.update(dt, time, pulse);
     trash.update(dt, time, pulse, controls.pos);
     dealer.update(dt, time, pulse, controls.pos, trippy);
+    board.update(dt, time, pulse);
     hud.update(controls.pos);
+    if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
     renderer.render(scene, camera);
   } else {
@@ -247,6 +262,80 @@ function showReward() {
 
 const rewardClose = document.getElementById('rewardClose');
 if (rewardClose) rewardClose.onclick = () => document.getElementById('reward').classList.remove('on');
+
+// ---- 12matt3r hub board: news + guest book ---------------------------------
+const GUEST_KEY = 'sk_guestbook_v1';
+const NOTE_CLASSES = ['cyan', 'pink', 'green', 'yellow'];
+const boardPanelEl = document.getElementById('boardPanel');
+const boardHintEl = document.getElementById('boardHint');
+let boardOpen = false;
+
+function openBoard() {
+  renderNews();
+  renderGuests();
+  boardOpen = true;
+  if (boardPanelEl) boardPanelEl.classList.add('on');
+  if (boardHintEl) boardHintEl.classList.remove('on');
+}
+function closeBoard() {
+  boardOpen = false;
+  if (boardPanelEl) boardPanelEl.classList.remove('on');
+}
+
+function makeNote(colorClass, dateStr, name, text) {
+  const note = document.createElement('div');
+  note.className = `note ${colorClass}`;
+  note.style.setProperty('--r', `${(Math.random() - 0.5) * 3.5}deg`);
+  if (dateStr) { const d = document.createElement('div'); d.className = 'nd'; d.textContent = dateStr; note.appendChild(d); }
+  if (name) { const n = document.createElement('div'); n.className = 'nn'; n.textContent = name; note.appendChild(n); }
+  const t = document.createElement('div'); t.textContent = text; note.appendChild(t);   // textContent = no HTML injection
+  return note;
+}
+
+function renderNews() {
+  const wrap = document.getElementById('newsNotes');
+  if (!wrap) return;
+  wrap.textContent = '';
+  for (const n of NEWS) wrap.appendChild(makeNote(n.color, n.date, '', n.text));
+}
+
+function loadGuests() {
+  try { return JSON.parse(localStorage.getItem(GUEST_KEY)) || []; } catch (e) { return []; }
+}
+function renderGuests() {
+  const wrap = document.getElementById('guestNotes');
+  if (!wrap) return;
+  wrap.textContent = '';
+  const guests = loadGuests();
+  if (!guests.length) {
+    const empty = document.createElement('div'); empty.className = 'gempty';
+    empty.textContent = 'no messages yet — be the first to sign the board.';
+    wrap.appendChild(empty); return;
+  }
+  guests.slice().reverse().forEach((g, i) => {
+    wrap.appendChild(makeNote(NOTE_CLASSES[(guests.length - 1 - i) % NOTE_CLASSES.length], g.date, g.name, g.msg));
+  });
+}
+
+const guestForm = document.getElementById('guestForm');
+if (guestForm) guestForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const nameEl = document.getElementById('guestName');
+  const msgEl = document.getElementById('guestMsg');
+  const name = (nameEl.value || 'anon').trim().slice(0, 24);
+  const msg = (msgEl.value || '').trim().slice(0, 140);
+  if (!msg) { msgEl.focus(); return; }
+  const guests = loadGuests();
+  guests.push({ name, msg, date: new Date().toISOString().slice(0, 10) });
+  try { localStorage.setItem(GUEST_KEY, JSON.stringify(guests.slice(-100))); } catch (e) { /* full/private */ }
+  nameEl.value = ''; msgEl.value = '';
+  renderGuests();
+  flash('pinned to the board ✓');
+});
+
+const boardClose = document.getElementById('boardClose');
+if (boardClose) boardClose.onclick = () => closeBoard();
+if (boardPanelEl) boardPanelEl.addEventListener('click', (e) => { if (e.target === boardPanelEl) closeBoard(); });
 
 // ---- portal transition → load a destination on its own page --------------
 // Reaching a character and hitting "enter" plays a warp themed to their accent,
@@ -368,4 +457,5 @@ function setTrippy(on) {
 if (import.meta.env.DEV) window.__dbg = {
   controls, trash, dealer, enterDestination, setTrippy,
   enterLabPortal, startZoom, exitPortal, portalState: () => ({ mode, zoomProg, warping }),
+  openBoard, closeBoard,
 };
