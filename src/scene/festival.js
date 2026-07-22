@@ -92,6 +92,38 @@ export function buildFestival(scene) {
   for (const px of [-12, 12]) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.5, 11, 0.5), truss); m.position.set(px, 5.5, stageZ - 4.7); m.castShadow = true; stage.add(m); }
   const topBar = new THREE.Mesh(new THREE.BoxGeometry(24.5, 0.5, 0.5), truss); topBar.position.set(0, 10.6, stageZ - 4.7); stage.add(topBar);
 
+  // ---- PA speaker stacks flanking the wall, as tall as the video wall ----
+  const speakerCones = [];
+  function speakerStack(sx, accent) {
+    const grp = new THREE.Group();
+    const cab = new THREE.MeshStandardMaterial({ color: 0x08080d, roughness: 0.85, metalness: 0.2 });
+    const cone = (r, y, cx) => {
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.09, 20),
+        new THREE.MeshStandardMaterial({ color: 0x0a0a10, roughness: 0.7, emissive: c(accent), emissiveIntensity: 0.05 }));
+      m.rotation.x = Math.PI / 2; m.position.set(cx, y, 0.92); grp.add(m); speakerCones.push(m);
+    };
+    let y = 1.6;                       // sit on the deck
+    for (let i = 0; i < 2; i++) {      // two subwoofers
+      const h = 1.4; const box = new THREE.Mesh(new THREE.BoxGeometry(3.0, h, 2.0), cab);
+      box.position.set(0, y + h / 2, 0); box.castShadow = true; grp.add(box);
+      cone(0.55, y + h / 2, 0); y += h;
+    }
+    for (let i = 0; i < 6; i++) {      // line-array cabinets
+      const h = 0.9, w = 2.7 - i * 0.06;
+      const box = new THREE.Mesh(new THREE.BoxGeometry(w, h, 1.7), cab);
+      box.position.set(0, y + h / 2, 0); box.rotation.x = -0.04 * i; box.castShadow = true; grp.add(box);
+      cone(0.26, y + h / 2, -0.55); cone(0.26, y + h / 2, 0.55); y += h;
+    }
+    // side neon accent strip
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(0.06, y - 1.6, 0.06),
+      new THREE.MeshStandardMaterial({ color: 0x02121a, emissive: c(accent), emissiveIntensity: 0.6 }));
+    strip.position.set(sx < 0 ? -1.55 : 1.55, (1.6 + y) / 2, 0.9); grp.add(strip);
+    grp.position.set(sx, 0, stageZ - 3);
+    stage.add(grp);
+  }
+  speakerStack(-13, PALETTE.cyan);
+  speakerStack(13, PALETTE.magenta);
+
   // ---- moving-head spotlights ----
   const spots = [];
   const spotColors = [PALETTE.cyan, PALETTE.magenta, PALETTE.green, PALETTE.purple];
@@ -155,6 +187,12 @@ export function buildFestival(scene) {
     }
     lasers.material.opacity = Math.pow(pulse, 2) * 0.5 * darkness;
     lasers.rotation.y = Math.sin(time * 0.4) * 0.15;
+
+    // speaker cones glow + punch on the bass
+    for (const cn of speakerCones) {
+      cn.material.emissiveIntensity = 0.05 + pulse * (0.5 + 0.7 * darkness);
+      const s = 1 + pulse * 0.18; cn.scale.set(s, s, 1);
+    }
   }
 
   return { stageZ, deck: deckInfo, update };
