@@ -13,6 +13,10 @@ import { createTrippyCam } from './scene/trippycam.js';
 import { buildCampfire } from './scene/campfire.js';
 import { buildTailgate } from './scene/tailgate.js';
 import { buildLounge } from './scene/lounge.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
 import { createAudioReactor } from './audio/reactor.js';
@@ -50,6 +54,23 @@ renderer.setClearColor(0x05050e, 1);
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 320);
+
+// ---- post-processing: bloom makes the neon physically glow (desktop only) ----
+const useBloom = !isMobile;
+let composer = null, renderPass = null;
+if (useBloom) {
+  composer = new EffectComposer(renderer);
+  renderPass = new RenderPass(scene, camera);
+  composer.addPass(renderPass);
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.72, 0.5, 0.62)); // strength, radius, threshold
+  composer.addPass(new OutputPass());
+  composer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
+  composer.setSize(innerWidth, innerHeight);
+}
+function renderActive(s, cam) {
+  if (composer) { renderPass.scene = s; renderPass.camera = cam; composer.render(); }
+  else renderer.render(s, cam);
+}
 
 // ---- world ----
 const festival = buildFestival(scene);
@@ -191,6 +212,7 @@ addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
   renderer.setSize(innerWidth, innerHeight);
+  if (composer) composer.setSize(innerWidth, innerHeight);
 });
 renderer.setSize(innerWidth, innerHeight);
 
@@ -242,13 +264,13 @@ function frame() {
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
-    renderer.render(scene, camera);
+    renderActive(scene, camera);
   } else {
     // inside the lab portal — festival is parked, we render the tiny stall
     labPortal.update(dt, time);
     if (mode === 'zoom') updateZoom(dt);
     else applyPortaCamera();
-    renderer.render(labPortal.scene, camera);
+    renderActive(labPortal.scene, camera);
   }
 }
 
@@ -261,7 +283,7 @@ document.getElementById('enterBtn').onclick = () => {
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
 // render one frame behind the start overlay so it isn't black
-renderer.render(scene, camera);
+renderActive(scene, camera);
 
 // ---- trash-hunt UI ----------------------------------------------------------
 const REWARD = { url: import.meta.env.BASE_URL + 'secret/cleanup-reward.txt', name: '12matt3r-secret-drop.txt' };
