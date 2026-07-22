@@ -76,7 +76,7 @@ export const DESTINATIONS = [
     id: 'labs', name: 'THE LAB', model: 'labsstage',
     role: 'the side stage // experiments', accent: PALETTE.green,
     pos: [18, 0, 4], rot: -1.79, tag: 'trippy cam · dreamOS · deadnet',
-    portal: 'lab', url: '/lab.html',
+    portal: 'lab', url: 'lab.html',
     blurb: 'The Lab gets its own side stage: live screens running the experiments — Trippy Cam (a browser feedback loop), DreamOS TV (a glitching virtual CRT), Deadnet (alternative web protocols), the Driftwave Vaporizer, 25+ games, Stories & Experiences, and the whole Dream OS ecosystem. The weird tools that prove what you can build.',
     cta: 'Enter the Lab',
   },

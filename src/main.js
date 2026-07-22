@@ -224,7 +224,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) cloc
 renderer.render(scene, camera);
 
 // ---- trash-hunt UI ----------------------------------------------------------
-const REWARD = { url: '/secret/cleanup-reward.txt', name: '12matt3r-secret-drop.txt' };
+const REWARD = { url: import.meta.env.BASE_URL + 'secret/cleanup-reward.txt', name: '12matt3r-secret-drop.txt' };
 const REWARD_KEY = 'sk_festival_cleaned';
 
 const trashHudEl = document.getElementById('trashHud');
