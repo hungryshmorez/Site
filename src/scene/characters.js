@@ -12,7 +12,7 @@ export function buildCharacters(scene, { stageZ = -26 } = {}) {
     const color = new THREE.Color(d.accent);
     const group = new THREE.Group();
     const [x, , z] = d.pos;
-    const y = d.onStage ? 1.6 : 0; // lifted onto the stage deck
+    const y = d.onStage ? 1.6 : (d.lift || 0); // onStage = main deck; lift = a custom riser
     group.position.set(x, y, z);
     // face the crowd/stage-ish (or an explicit override)
     group.rotation.y = d.rot !== undefined ? d.rot : (d.onStage ? 0 : Math.atan2(0 - x, stageZ - z) + Math.PI);

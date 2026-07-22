@@ -34,8 +34,8 @@ export const DESTINATIONS = [
   },
   {
     id: 'sofaboi', name: 'SOFA KING SAD BOI', model: 'sofaboi',
-    role: 'the back couch // dubstep', accent: PALETTE.indigo,
-    pos: [14, 0, 17], tag: 'dubstep · weird bass',
+    role: 'the lounge // up on his own stage', accent: PALETTE.indigo,
+    pos: [14, 0, 17], lift: 1.0, rot: Math.PI, tag: 'dubstep · weird bass',
     url: 'https://doesntmatter.us/',
     blurb: 'Hood up, slumped on a beat-up couch under his own little rain cloud, watching the whole thing from the back — dubstep and weird bass. Reach him to drop into his world.',
     cta: 'Sit with the sad boi',

@@ -12,6 +12,7 @@ import { buildDJBooth } from './scene/djbooth.js';
 import { createTrippyCam } from './scene/trippycam.js';
 import { buildCampfire } from './scene/campfire.js';
 import { buildTailgate } from './scene/tailgate.js';
+import { buildLounge } from './scene/lounge.js';
 import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
 import { createAudioReactor } from './audio/reactor.js';
@@ -79,6 +80,10 @@ const campfire = buildCampfire(scene, { pos: CAMPFIRE_POS, roasters: 3 });
 const TAILGATE_POS = [16, -8];
 const tailgate = buildTailgate(scene, { pos: TAILGATE_POS, rot: -1.1 });
 
+// Sofa King's elevated lounge (riser + audience couches) at his spot
+const LOUNGE_POS = [14, 17];
+const lounge = buildLounge(scene, { pos: LOUNGE_POS });
+
 // the 12matt3r hub board → walk up, read news, sign the guest book
 const BOARD_POS = [3, 11];
 const board = buildBoard(scene, {
@@ -100,6 +105,7 @@ const crowd = buildCrowd(scene, {
     [BOARD_POS[0], BOARD_POS[1], 3],
     [CAMPFIRE_POS[0], CAMPFIRE_POS[1], 4.5],
     [TAILGATE_POS[0], TAILGATE_POS[1], 6.5],
+    [LOUNGE_POS[0], LOUNGE_POS[1] - 3, 5],
   ],
 });
 const controls = new WalkControls(camera, { bounds: 42, eye: 1.6, zMin: -30 });
@@ -228,6 +234,7 @@ function frame() {
     characters.update(dt, time, pulse);
     campfire.update(dt, time, pulse);
     tailgate.update(dt, time, pulse);
+    lounge.update(dt, time, pulse);
     trash.update(dt, time, pulse, controls.pos);
     dealer.update(dt, time, pulse, controls.pos, trippy);
     board.update(dt, time, pulse);
