@@ -130,6 +130,7 @@
     .triptoggle.shown{opacity:1;transform:translateY(0);pointer-events:auto}
     .triptoggle:hover{border-color:var(--cyan);color:#fff}
     .triptoggle.active{color:#ff71ce;border-color:#ff71ce;text-shadow:0 0 10px rgba(255,113,206,.6)}
+    .triptoggle.tripcam{top:128px}
 
     /* portal warp — plays before loading an EPK on its own page */
     .warp{position:fixed;inset:0;z-index:40;overflow:hidden;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -210,6 +211,7 @@
   </div>
 
   <button class="triptoggle" id="tripToggle" title="Toggle the trip">TRI-PPY: OFF</button>
+  <button class="triptoggle tripcam" id="tripcamToggle" title="Toggle the trippy cam">TRIPPY CAM: OFF</button>
 
   <div class="hud top">
     <div class="brand"><b>12MATT3R</b><span>THE FESTIVAL</span></div>

@@ -18,10 +18,10 @@ export const PALETTE = {
 export const DESTINATIONS = [
   {
     id: 'ravecharles', name: 'RAVE CHARLES', model: 'raver',
-    role: 'headliner // masked on the main stage', accent: PALETTE.magenta,
-    pos: [0, 0, -22], onStage: true, tag: 'rapper · DJ · founder',
+    role: 'headliner // down in the pit', accent: PALETTE.magenta,
+    pos: [0, 0, -15], tag: 'rapper · DJ · founder',
     url: 'https://express.adobe.com/page/s43NCJty7DfTO/',
-    blurb: 'The masked headliner running the decks behind a glowing LED visor — nearly 400 shows across America, 2014–2020. Reach the front and his live-history timeline opens.',
+    blurb: 'The masked headliner, down in the mosh pit with the crowd instead of above it — glowing LED visor, nearly 400 shows across America, 2014–2020. Reach him and his live-history timeline opens.',
     cta: 'Open the tour timeline',
   },
   {

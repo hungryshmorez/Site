@@ -8,6 +8,8 @@ import { buildDealer } from './scene/dealer.js';
 import { buildBoard } from './scene/board.js';
 import { NEWS } from './data/news.js';
 import { buildLabPortal } from './scene/labPortal.js';
+import { buildDJBooth } from './scene/djbooth.js';
+import { createTrippyCam } from './scene/trippycam.js';
 import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
 import { createAudioReactor } from './audio/reactor.js';
@@ -88,8 +90,22 @@ const crowd = buildCrowd(scene, {
     [BOARD_POS[0], BOARD_POS[1], 3],
   ],
 });
-const controls = new WalkControls(camera, { bounds: 42, eye: 1.6 });
+const controls = new WalkControls(camera, { bounds: 42, eye: 1.6, zMin: -30 });
+// let the player walk up the ramp onto the stage deck
+controls.groundAt = (x, z) => {
+  const d = festival.deck;
+  if (x < -d.halfW || x > d.halfW || z >= d.rampFront) return 0;
+  if (z <= d.zFront) return d.top;                                  // on the deck
+  return ((d.rampFront - z) / (d.rampFront - d.zFront)) * d.top;    // up the ramp
+};
 const hud = new Hud(document.getElementById('tags'), camera, characters.list, enterDestination);
+
+// DJ booth on the main stage → the TRIPPY CAM (your webcam becomes the sky)
+const djbooth = buildDJBooth(scene, {
+  pos: [0, festival.deck.top, festival.stageZ + 2],
+  onActivate: () => toggleTrippyCam(),
+});
+const trippycam = createTrippyCam(scene, { onState: (on, err) => onTrippyCamState(on, err) });
 
 // ---- lab portal: a porta-potty interior you step into; click the old CRT to
 // boot the Lab (its own page). While inside, the festival stops rendering. ----
@@ -137,6 +153,8 @@ function handleTap(sx, sy) {
   if (dealer.tryClick(raycaster)) return;
   // the hub board — clicking it opens news + guest book
   if (board.tryClick(raycaster)) return;
+  // the DJ booth on stage — toggles the trippy cam
+  if (djbooth.tryClick(raycaster)) return;
   // characters next
   const hitC = raycaster.intersectObjects(characters.proxies, false)[0];
   if (hitC) {
@@ -199,6 +217,7 @@ function frame() {
     trash.update(dt, time, pulse, controls.pos);
     dealer.update(dt, time, pulse, controls.pos, trippy);
     board.update(dt, time, pulse);
+    djbooth.update(dt, time, pulse, controls.pos);
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
@@ -459,9 +478,23 @@ function setTrippy(on) {
   flash(on ? 'the dealer hooks you up — everything melts' : 'you come back down');
 }
 
+// ---- TRIPPY CAM (scored at the DJ booth) -----------------------------------
+const tripcamToggleEl = document.getElementById('tripcamToggle');
+if (tripcamToggleEl) tripcamToggleEl.onclick = () => toggleTrippyCam();
+function toggleTrippyCam() { trippycam.toggle(); }
+function onTrippyCamState(on, err) {
+  if (tripcamToggleEl) {
+    tripcamToggleEl.classList.add('shown');
+    tripcamToggleEl.textContent = on ? 'TRIPPY CAM: ON' : 'TRIPPY CAM: OFF';
+    tripcamToggleEl.classList.toggle('active', on);
+  }
+  if (err) flash('camera blocked — allow it to look down on the festival');
+  else flash(on ? 'look up — that’s you, over the whole festival' : 'trippy cam off');
+}
+
 // dev-only debug bridge for automated testing (stripped from production builds)
 if (import.meta.env.DEV) window.__dbg = {
   controls, trash, dealer, enterDestination, setTrippy,
   enterLabPortal, startZoom, exitPortal, portalState: () => ({ mode, zoomProg, warping }),
-  openBoard, closeBoard,
+  openBoard, closeBoard, djbooth, trippycam, toggleTrippyCam,
 };

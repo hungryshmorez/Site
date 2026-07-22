@@ -4,10 +4,12 @@ import * as THREE from 'three';
 // person / spot to auto-walk there. Keeps the camera at eye height and inside
 // the field. Auto-walk is cancelled the moment you take manual control.
 export class WalkControls {
-  constructor(camera, { bounds = 42, eye = 1.6 } = {}) {
+  constructor(camera, { bounds = 42, eye = 1.6, zMin = -18 } = {}) {
     this.cam = camera;
     this.bounds = bounds;
     this.eye = eye;
+    this.zMin = zMin;
+    this.groundAt = () => 0; // floor height under (x,z) — lets you walk up on stage
     this.yaw = 0;                // face -Z (the stage) on spawn
     this.pitch = -0.02;
     this.pos = new THREE.Vector3(0, eye, 8);
@@ -83,10 +85,10 @@ export class WalkControls {
     const targetBob = (this._moving && this.bobEnabled) ? Math.sin(this.bobPhase * 2) * 0.045 : 0;
     this._bob += (targetBob - this._bob) * Math.min(1, dt * 10);
 
-    // clamp to field, never behind the stage
+    // clamp to field; zMin lets you reach the stage
     this.pos.x = THREE.MathUtils.clamp(this.pos.x, -this.bounds, this.bounds);
-    this.pos.z = THREE.MathUtils.clamp(this.pos.z, -18, this.bounds);
-    this.pos.y = this.eye;
+    this.pos.z = THREE.MathUtils.clamp(this.pos.z, this.zMin, this.bounds);
+    this.pos.y = this.groundAt(this.pos.x, this.pos.z) + this.eye;
     this._apply();
   }
 

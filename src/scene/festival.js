@@ -68,6 +68,16 @@ export function buildFestival(scene) {
   const deck = new THREE.Mesh(new THREE.BoxGeometry(30, 1.6, 10), new THREE.MeshStandardMaterial({ color: 0x0a0a12, roughness: 0.8, metalness: 0.3 }));
   deck.position.set(0, 0.8, stageZ); deck.receiveShadow = true; deck.castShadow = true; stage.add(deck);
 
+  // front-of-stage ramp so the player can walk up onto the deck
+  const RAMP_RUN = 3, DECK_FRONT = stageZ + 5; // -21
+  const ramp = new THREE.Mesh(
+    new THREE.BoxGeometry(16, 0.25, Math.hypot(RAMP_RUN, 1.6)),
+    new THREE.MeshStandardMaterial({ color: 0x0c0c16, roughness: 0.8, metalness: 0.3 })
+  );
+  ramp.position.set(0, 0.8, DECK_FRONT + RAMP_RUN / 2); ramp.rotation.x = Math.atan2(1.6, RAMP_RUN);
+  ramp.receiveShadow = true; stage.add(ramp);
+  const deckInfo = { halfW: 15, top: 1.6, zFront: DECK_FRONT, zBack: stageZ - 5, rampFront: DECK_FRONT + RAMP_RUN };
+
   const screenMat = new THREE.ShaderMaterial({
     uniforms: { t: { value: 0 }, pulse: { value: 0 }, cA: { value: c(PALETTE.cyan) }, cB: { value: c(PALETTE.magenta) } },
     vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
@@ -147,7 +157,7 @@ export function buildFestival(scene) {
     lasers.rotation.y = Math.sin(time * 0.4) * 0.15;
   }
 
-  return { stageZ, update };
+  return { stageZ, deck: deckInfo, update };
 }
 
 // spawn bench (simple wooden slats + iron legs), at +Z facing the stage
