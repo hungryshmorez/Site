@@ -205,6 +205,7 @@ function handleTap(sx, sy) {
   if (groundHit) controls.walkTo(groundHit);
 }
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+const STAGE_PT = new THREE.Vector3(0, 1.6, -18); // audio swells as you approach this
 
 // ---- resize ----
 addEventListener('resize', () => {
@@ -257,6 +258,9 @@ function frame() {
     campfire.update(dt, time, pulse);
     tailgate.update(dt, time, pulse);
     lounge.update(dt, time, pulse);
+    // spatial audio: swell as you near the stage/pit; open (not enclosed)
+    reactor.setSpatial(THREE.MathUtils.clamp(1 - (controls.pos.distanceTo(STAGE_PT) - 6) / 40, 0.4, 1));
+    reactor.setEnclosed(false);
     trash.update(dt, time, pulse, controls.pos);
     dealer.update(dt, time, pulse, controls.pos, trippy);
     board.update(dt, time, pulse);
@@ -266,7 +270,8 @@ function frame() {
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
     renderActive(scene, camera);
   } else {
-    // inside the lab portal — festival is parked, we render the tiny stall
+    // inside the lab portal — festival is parked, the music muffles
+    reactor.setEnclosed(true);
     labPortal.update(dt, time);
     if (mode === 'zoom') updateZoom(dt);
     else applyPortaCamera();
