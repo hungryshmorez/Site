@@ -29,9 +29,13 @@ const setRM = (v) => { reduceMotion = v; body.classList.toggle('rm', v); };
 setRM(reduceMotion);
 document.getElementById('rmbtn').onclick = () => setRM(!reduceMotion);
 
+// ---- device tier → adaptive quality (keeps phones smooth) ----
+const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
+const maxDPR = isMobile ? 1.5 : 2;
+
 // ---- renderer ----
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
@@ -73,7 +77,7 @@ const board = buildBoard(scene, {
 
 const BIG = new Set(['stall', 'labsstage', 'bathroom', 'sofaboi']);
 const crowd = buildCrowd(scene, {
-  count: 320,
+  count: isMobile ? 170 : 320,
   stageZ: festival.stageZ,
   exclude: [
     // [x, z, clear-radius] — bigger clearing around structures, plus spawn
@@ -149,6 +153,7 @@ const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
   renderer.setSize(innerWidth, innerHeight);
 });
 renderer.setSize(innerWidth, innerHeight);
@@ -186,6 +191,7 @@ function frame() {
   const pulse = reduceMotion ? 0.35 : (audioPulse != null ? Math.max(audioPulse, 0.05) : bpmPulse);
   if (mode === 'festival') {
     const dayT = (((DAY_START + time / DAY_CYCLE + dayScrub) % 1) + 1) % 1;
+    controls.bobEnabled = !reduceMotion;
     controls.update(dt);
     festival.update(dt, time, pulse, dayT);
     crowd.update(dt, time, pulse);

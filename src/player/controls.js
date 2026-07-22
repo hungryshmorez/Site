@@ -16,6 +16,11 @@ export class WalkControls {
     this.speed = 7.2;
     this.keys = new Set();
     this._tmp = new THREE.Vector3();
+    // subtle walking head-bob (disabled under reduced motion)
+    this.bobEnabled = true;
+    this.bobPhase = 0;
+    this._bob = 0;
+    this._moving = false;
 
     window.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
@@ -72,6 +77,12 @@ export class WalkControls {
       }
     }
 
+    // subtle head-bob while moving, eased so it settles smoothly on stop
+    this._moving = !!(forward || strafe) || !!this.walkTarget;
+    if (this._moving && this.bobEnabled) this.bobPhase += dt * this.speed * run * 1.1;
+    const targetBob = (this._moving && this.bobEnabled) ? Math.sin(this.bobPhase * 2) * 0.045 : 0;
+    this._bob += (targetBob - this._bob) * Math.min(1, dt * 10);
+
     // clamp to field, never behind the stage
     this.pos.x = THREE.MathUtils.clamp(this.pos.x, -this.bounds, this.bounds);
     this.pos.z = THREE.MathUtils.clamp(this.pos.z, -18, this.bounds);
@@ -80,7 +91,7 @@ export class WalkControls {
   }
 
   _apply() {
-    this.cam.position.copy(this.pos);
+    this.cam.position.set(this.pos.x, this.pos.y + this._bob, this.pos.z);
     this._tmp.set(
       this.pos.x - Math.sin(this.yaw) * Math.cos(this.pitch),
       this.pos.y + Math.sin(this.pitch),

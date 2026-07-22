@@ -75,11 +75,11 @@ export function buildLabPortal() {
   cursor.position.set(-0.02, 0.24, 0.224); comp.add(cursor);
   // keyboard on the floor / lid front
   const kbd = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.03, 0.16), beige); kbd.position.set(0, 0.02, 0.28); kbd.rotation.x = -0.05; comp.add(kbd);
-  // screen glow light
-  const glow = new THREE.PointLight(0x39ff14, 1.4, 3.5, 2); glow.position.set(0, 0.92, 0.2); g.add(glow);
+  // screen glow light — gentle, so the beige monitor reads as beige, not neon
+  const glow = new THREE.PointLight(0x39ff14, 0.8, 3, 2); glow.position.set(0, 0.92, 0.25); g.add(glow);
 
   // dim ambient so the room reads but the screen dominates
-  scene.add(new THREE.AmbientLight(0x223b33, 0.7));
+  scene.add(new THREE.AmbientLight(0x2a4a3d, 0.5));
   const top = new THREE.PointLight(0x9fd8c0, 0.5, 4, 2); top.position.set(0, H - 0.2, 0.2); scene.add(top);
 
   // camera pose while standing in the stall (looking at the screen)
@@ -90,8 +90,7 @@ export function buildLabPortal() {
 
   function update(dt, time) {
     // CRT flicker + blink
-    screenMat.opacity = 1; screenMat.transparent = false;
-    glow.intensity = 1.2 + Math.sin(time * 30) * 0.06 + Math.random() * 0.05;
+    glow.intensity = 0.72 + Math.sin(time * 30) * 0.05 + Math.random() * 0.04;
     cursor.visible = (time % 1) < 0.5;
   }
 
