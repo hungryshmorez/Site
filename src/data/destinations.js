@@ -73,6 +73,14 @@ export const DESTINATIONS = [
     cta: 'Browse commissions',
   },
   {
+    id: 'dreamtv', name: 'DREAMOS TV', model: 'doorway',
+    role: 'the side doorway // theater', accent: PALETTE.magenta,
+    pos: [-18, 0, 8], tag: 'walk-in cinema',
+    page: 'tv.html',
+    blurb: 'A lit doorway off the side of the grounds, glowing from underneath like a vendor stand. Step through into DreamOS TV — a movie theater with a big screen, a crowd, and popcorn in the air.',
+    cta: 'Step through',
+  },
+  {
     id: 'labs', name: 'THE LAB', model: 'labsstage',
     role: 'the side stage // experiments', accent: PALETTE.green,
     pos: [18, 0, 4], rot: -1.79, tag: 'trippy cam · dreamOS · deadnet',

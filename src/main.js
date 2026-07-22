@@ -75,7 +75,7 @@ const board = buildBoard(scene, {
   onOpen: () => openBoard(),
 });
 
-const BIG = new Set(['stall', 'labsstage', 'bathroom', 'sofaboi']);
+const BIG = new Set(['stall', 'labsstage', 'bathroom', 'sofaboi', 'doorway']);
 const crowd = buildCrowd(scene, {
   count: isMobile ? 170 : 320,
   stageZ: festival.stageZ,

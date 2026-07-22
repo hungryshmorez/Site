@@ -22,9 +22,6 @@
     .cell{border:1px solid rgba(57,255,20,.3);border-radius:8px;padding:12px 14px;font-size:12px;letter-spacing:.06em;color:var(--ink);background:rgba(57,255,20,.04)}
     .cell b{color:var(--green);display:block;margin-bottom:3px;letter-spacing:.1em}
     .cell span{color:var(--dim);font-size:10.5px}
-    a.cell{display:block;text-decoration:none;transition:border-color .2s,background .2s,box-shadow .2s}
-    a.cell.live{border-color:rgba(57,255,20,.6);background:rgba(57,255,20,.09)}
-    a.cell.live:hover{border-color:var(--green);background:rgba(57,255,20,.16);box-shadow:0 0 22px -6px var(--green)}
     .back{display:inline-flex;align-items:center;gap:9px;font-size:13px;letter-spacing:.1em;color:#02120a;font-weight:700;
       background:var(--green);border:none;border-radius:10px;padding:13px 22px;cursor:pointer;text-decoration:none;box-shadow:0 0 28px -6px var(--green);width:max-content}
     .back:hover{background:#fff}
@@ -42,7 +39,7 @@
       <span class="b">C:\&gt;</span> status: <span class="b">world under construction</span> <span class="cur"></span></div>
 
     <div class="grid">
-      <a class="cell live" href="tv.html"><b>DreamOS TV ▸</b><span>enter the movie theater</span></a>
+      <div class="cell"><b>DreamOS TV</b><span>the movie theater (side doorway)</span></div>
       <div class="cell"><b>Trippy Cam</b><span>browser feedback</span></div>
       <div class="cell"><b>Deadnet</b><span>alt web protocols</span></div>
       <div class="cell"><b>Driftwave Vaporizer</b><span>slushwave tool</span></div>

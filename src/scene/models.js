@@ -261,6 +261,69 @@ export function buildSofaBoi(accent = '#6a6cff') {
   };
 }
 
+// ---------------------------------------------------------------- DREAMOS TV DOORWAY
+// A freestanding marquee doorway off to the side, glowing from underneath like
+// a vendor stand, with a shimmering portal void and chase bulbs. Walk through
+// → DreamOS TV (the movie theater).
+export function buildDoorway(accent = '#FF0055') {
+  const g = new THREE.Group();
+  const col = new THREE.Color(accent);
+  const frameMat = std({ color: 0x14141c, metalness: 0.6, roughness: 0.5 });
+  const DW = 2.0, DH = 3.0, T = 0.22;
+
+  for (const sx of [-(DW / 2 + T / 2), (DW / 2 + T / 2)]) {
+    const p = new THREE.Mesh(new THREE.BoxGeometry(T, DH, T), frameMat);
+    p.position.set(sx, DH / 2, 0); p.castShadow = true; g.add(p);
+  }
+  const lintel = new THREE.Mesh(new THREE.BoxGeometry(DW + T * 2.4, T, T), frameMat);
+  lintel.position.set(0, DH + T / 2, 0); lintel.castShadow = true; g.add(lintel);
+
+  // shimmering portal void inside the frame
+  const portalMat = new THREE.ShaderMaterial({
+    transparent: true,
+    uniforms: { t: { value: 0 }, c: { value: new THREE.Vector3(col.r, col.g, col.b) } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+    fragmentShader: `varying vec2 vUv; uniform float t; uniform vec3 c;
+      void main(){ vec2 u=vUv-0.5; float r=length(u);
+        float rings=0.5+0.5*sin(r*30.0 - t*3.0);
+        float v=smoothstep(0.55,0.0,r)*(0.32+0.55*rings);
+        vec3 col=mix(vec3(0.02,0.0,0.04), c, v);
+        gl_FragColor=vec4(col, 0.92); }`,
+  });
+  const portal = new THREE.Mesh(new THREE.PlaneGeometry(DW, DH), portalMat);
+  portal.position.set(0, DH / 2, 0); g.add(portal);
+
+  // lit up underneath — the vendor-stand glow
+  const baseGlow = new THREE.Mesh(new THREE.BoxGeometry(DW + T * 2, 0.12, 1.0), std({ color: 0x120010, emissive: col, emissiveIntensity: 1.2 }));
+  baseGlow.position.set(0, 0.06, 0.1); g.add(baseGlow);
+  const up = new THREE.PointLight(accent, 4, 7, 2); up.position.set(0, 0.4, 0.5); g.add(up);
+  const pool = new THREE.Mesh(new THREE.CircleGeometry(1.7, 32),
+    new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false }));
+  pool.rotation.x = -Math.PI / 2; pool.position.y = 0.03; g.add(pool);
+
+  // marquee sign + chase bulbs
+  const sign = textPlane('DREAMOS TV', accent);
+  sign.position.set(0, DH + 0.55, 0.06); sign.scale.set(2.6, 0.5, 1); g.add(sign);
+  const bulbs = [];
+  const addBulb = (x, y) => { const b = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), new THREE.MeshBasicMaterial({ color: col.clone() })); b.position.set(x, y, T / 2 + 0.02); g.add(b); bulbs.push(b); };
+  const N = 7;
+  for (let i = 0; i <= N; i++) { const yy = 0.2 + (DH - 0.2) * (i / N); addBulb(-(DW / 2 + T / 2), yy); addBulb((DW / 2 + T / 2), yy); }
+  for (let i = 1; i < N; i++) { addBulb(-DW / 2 + DW * (i / N), DH + T / 2); }
+
+  const gl = new THREE.PointLight(accent, 3, 8, 2); gl.position.set(0, DH / 2, 1.2); g.add(gl);
+
+  return {
+    group: g,
+    update: (t, pulse) => {
+      portalMat.uniforms.t.value = t;
+      up.intensity = 3 + pulse * 2 + Math.sin(t * 8) * 0.3;
+      baseGlow.material.emissiveIntensity = 1 + pulse * 0.8;
+      bulbs.forEach((b, i) => b.material.color.copy(col).multiplyScalar(0.55 + 0.45 * Math.sin(t * 5 + i * 0.6)));
+      gl.intensity = 2.5 + pulse * 2;
+    },
+  };
+}
+
 // ---------------------------------------------------------------- VENDOR STALL
 // The merch tent: a striped canopy on posts + a glowing sign + a small vendor.
 export function buildStall(accent = '#39FF14') {
@@ -385,6 +448,7 @@ function textPlane(text, color) {
 export const MODELS = {
   marshmallow: buildMarshmallow,
   sofaboi: buildSofaBoi,
+  doorway: buildDoorway,
   cowboy: buildCowboy,
   vaporwave: buildVaporwave,
   glitch: buildGlitch,

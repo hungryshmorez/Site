@@ -231,7 +231,7 @@ document.getElementById('prevCh').onclick = () => setChannel(chIndex - 1);
 // ---- back portal → the Lab ----
 document.getElementById('backBtn').onclick = () => {
   const w = document.getElementById('warp'); if (w) w.classList.add('go');
-  setTimeout(() => { window.location.href = 'lab.html'; }, 480);
+  setTimeout(() => { window.location.href = 'index.html'; }, 480);
 };
 
 // ---- loop ----
