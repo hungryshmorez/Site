@@ -11,6 +11,7 @@ import { buildLabPortal } from './scene/labPortal.js';
 import { buildDJBooth } from './scene/djbooth.js';
 import { createTrippyCam } from './scene/trippycam.js';
 import { buildCampfire } from './scene/campfire.js';
+import { buildTailgate } from './scene/tailgate.js';
 import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
 import { createAudioReactor } from './audio/reactor.js';
@@ -74,6 +75,10 @@ const dealer = buildDealer(scene, {
 const CAMPFIRE_POS = [-10, -8];
 const campfire = buildCampfire(scene, { pos: CAMPFIRE_POS, roasters: 3 });
 
+// Tanky's tailgate: lifted truck + beer pong + ping-pong tosses, by his spot
+const TAILGATE_POS = [16, -8];
+const tailgate = buildTailgate(scene, { pos: TAILGATE_POS, rot: -1.1 });
+
 // the 12matt3r hub board → walk up, read news, sign the guest book
 const BOARD_POS = [3, 11];
 const board = buildBoard(scene, {
@@ -94,6 +99,7 @@ const crowd = buildCrowd(scene, {
     [DEALER_POS[0], DEALER_POS[1], 2.4],
     [BOARD_POS[0], BOARD_POS[1], 3],
     [CAMPFIRE_POS[0], CAMPFIRE_POS[1], 4.5],
+    [TAILGATE_POS[0], TAILGATE_POS[1], 6.5],
   ],
 });
 const controls = new WalkControls(camera, { bounds: 42, eye: 1.6, zMin: -30 });
@@ -221,6 +227,7 @@ function frame() {
     crowd.update(dt, time, pulse);
     characters.update(dt, time, pulse);
     campfire.update(dt, time, pulse);
+    tailgate.update(dt, time, pulse);
     trash.update(dt, time, pulse, controls.pos);
     dealer.update(dt, time, pulse, controls.pos, trippy);
     board.update(dt, time, pulse);
