@@ -13,6 +13,7 @@ import { createTrippyCam } from './scene/trippycam.js';
 import { buildCampfire } from './scene/campfire.js';
 import { buildTailgate } from './scene/tailgate.js';
 import { buildLounge } from './scene/lounge.js';
+import { buildFireworks } from './scene/fireworks.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -75,6 +76,7 @@ function renderActive(s, cam) {
 // ---- world ----
 const festival = buildFestival(scene);
 const characters = buildCharacters(scene, { stageZ: festival.stageZ });
+const fireworks = buildFireworks(scene, { origin: [0, 15, festival.stageZ] });
 
 // hidden trash-hunt → clean the grounds → secret download
 const DUMPSTER_POS = [-19, 15];
@@ -223,6 +225,7 @@ const DAY_CYCLE = 150;     // seconds for a full midnight→midnight cycle
 const DAY_START = 0.70;    // begin at dusk, sliding into night
 const clock = new THREE.Clock();
 let running = false, dayScrub = 0;
+let shake = 0, lastBurst = -10, burstGap = 4;   // beat-drop fireworks + camera shake
 const clockEl = document.getElementById('clock');
 
 window.addEventListener('keydown', (e) => {           // [ and ] scrub time of day
@@ -252,9 +255,20 @@ function frame() {
     const dayT = (((DAY_START + time / DAY_CYCLE + dayScrub) % 1) + 1) % 1;
     controls.bobEnabled = !reduceMotion;
     controls.update(dt);
+    // beat-drop fireworks + camera shake on big bass spikes
+    if (!reduceMotion && pulse > 0.85 && time - lastBurst > burstGap) {
+      fireworks.burst(); shake = Math.max(shake, 0.4); lastBurst = time; burstGap = 3.5 + Math.random() * 3.5;
+    }
+    if (shake > 0.002) {
+      camera.position.x += (Math.random() - 0.5) * shake;
+      camera.position.y += (Math.random() - 0.5) * shake;
+      camera.position.z += (Math.random() - 0.5) * shake * 0.5;
+      shake = Math.max(0, shake - dt * 1.6);
+    }
     festival.update(dt, time, pulse, dayT);
     crowd.update(dt, time, pulse);
     characters.update(dt, time, pulse);
+    fireworks.update(dt);
     campfire.update(dt, time, pulse);
     tailgate.update(dt, time, pulse);
     lounge.update(dt, time, pulse);
