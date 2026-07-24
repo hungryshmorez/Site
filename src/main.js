@@ -44,7 +44,7 @@ const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth,
 const maxDPR = isMobile ? 1.5 : 2;
 
 // ---- renderer ----
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance', preserveDrawingBuffer: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -554,9 +554,37 @@ function onTrippyCamState(on, err) {
   else flash(on ? 'look up — that’s you, over the whole festival' : 'trippy cam off');
 }
 
+// ---- photo booth: a clean, branded snapshot of the view (great for sharing) --
+const photoBtn = document.getElementById('photobtn');
+if (photoBtn) photoBtn.onclick = () => snapshot();
+function snapshot() {
+  // the HUD is DOM overlay, so the WebGL canvas is already UI-free — just render fresh
+  renderActive(mode === 'festival' ? scene : labPortal.scene, camera);
+  const src = renderer.domElement;
+  const cv = document.createElement('canvas'); cv.width = src.width; cv.height = src.height;
+  const g = cv.getContext('2d');
+  g.drawImage(src, 0, 0);
+  // subtle vignette + branding
+  const grd = g.createRadialGradient(cv.width / 2, cv.height / 2, cv.height * 0.3, cv.width / 2, cv.height / 2, cv.height * 0.75);
+  grd.addColorStop(0, 'rgba(0,0,0,0)'); grd.addColorStop(1, 'rgba(0,0,0,0.35)');
+  g.fillStyle = grd; g.fillRect(0, 0, cv.width, cv.height);
+  g.textBaseline = 'alphabetic';
+  g.font = `700 ${Math.round(cv.height * 0.03)}px ui-monospace, "JetBrains Mono", monospace`;
+  g.shadowColor = 'rgba(0,243,255,0.7)'; g.shadowBlur = cv.width * 0.008;
+  g.fillStyle = '#00F3FF'; g.fillText('12MATT3R // THE FESTIVAL', cv.width * 0.035, cv.height * 0.94);
+  g.shadowBlur = 0; g.fillStyle = 'rgba(230,230,240,0.7)';
+  g.font = `${Math.round(cv.height * 0.02)}px ui-monospace, "JetBrains Mono", monospace`;
+  g.fillText('doesntmatter.us', cv.width * 0.035, cv.height * 0.975);
+  const a = document.createElement('a');
+  a.href = cv.toDataURL('image/jpeg', 0.92);
+  a.download = `12matt3r-festival-${Date.now()}.jpg`;
+  a.click();
+  flash('snapshot saved 📸');
+}
+
 // dev-only debug bridge for automated testing (stripped from production builds)
 if (import.meta.env.DEV) window.__dbg = {
   controls, trash, dealer, enterDestination, setTrippy,
   enterLabPortal, startZoom, exitPortal, portalState: () => ({ mode, zoomProg, warping }),
-  openBoard, closeBoard, djbooth, trippycam, toggleTrippyCam,
+  openBoard, closeBoard, djbooth, trippycam, toggleTrippyCam, snapshot,
 };
