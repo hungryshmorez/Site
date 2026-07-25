@@ -104,6 +104,8 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
 - **Beat-drop fireworks + camera shake**, **spatial/enclosed audio**, day/night (scrub `[` `]`).
 - **Fireworks launcher** (🎆 fw console) — load a colour canister and FIRE: shells rise from the mortar
   rack by the stage and burst overhead in your colour.
+- **Basketball hoop** — a neon hoop at ~[11, 8]. Walk near (a 🏀 hint appears) and **click to shoot** a
+  ball along your aim with an arc; sink it through the ring to score (running tally).
 - **Photo booth** — 📷 downloads a branded, UI-free JPEG of your view (shareable).
 
 ## 05 · The Lab (built — a working launcher)

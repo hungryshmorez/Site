@@ -18,6 +18,7 @@ import { buildTent } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { createFXPass, FX_MODES } from './scene/fxpass.js';
 import { buildFxChips } from './scene/fxchips.js';
+import { buildHoop } from './scene/hoop.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -220,6 +221,10 @@ const MORTAR = [-3, -20];
   for (let i = 0; i < 5; i++) { const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.9, 10), tubeMat); tube.position.set((i - 2) * 0.5, 0.45, 0); tube.castShadow = true; m.add(tube); }
   scene.add(m);
 }
+// a neon basketball hoop — walk near, click to shoot
+const hoopHudEl = document.getElementById('hoopHud');
+const hoop = buildHoop(scene, { pos: [11, 8], onScore: (n) => { flash(`🏀 SCORE! (${n})`); if (hoopHudEl) hoopHudEl.textContent = `🏀 made: ${n} · click to shoot`; } });
+
 const FW_COLORS = ['#00F3FF', '#FF0055', '#39FF14', '#e6c04a', '#b967ff', '#ff6b35'];
 let fwColor = FW_COLORS[0];
 const fwPanelEl = document.getElementById('fwPanel');
@@ -295,6 +300,8 @@ function handleTap(sx, sy) {
   if (djbooth.tryClick(raycaster)) return;
   // hidden FX chips — clicking one unlocks a camera mode
   { const got = fxchips.tryClick(raycaster); if (got) { unlockFx(got); return; } }
+  // near the hoop — a click shoots a ball instead of walking
+  if (hoop.near(controls.pos)) { hoop.throwBall(camera); return; }
   // characters next
   const hitC = raycaster.intersectObjects(characters.proxies, false)[0];
   if (hitC) {
@@ -386,6 +393,8 @@ function frame() {
     djbooth.update(dt, time, pulse, controls.pos);
     trippycam.update(dt);
     fxchips.update(dt, time, pulse);
+    hoop.update(dt, time);
+    if (hoopHudEl) hoopHudEl.classList.toggle('on', hoop.near(controls.pos));
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }

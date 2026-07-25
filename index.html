@@ -86,6 +86,7 @@
       padding:6px 13px;backdrop-filter:blur(6px);opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s;
       pointer-events:none;text-shadow:0 0 8px rgba(57,255,20,.4)}
     .trashpill.on{opacity:1;transform:translateY(0)}
+    .hoophud{top:130px;color:#ff8a4a;background:rgba(20,12,6,.6);border-color:rgba(255,107,53,.4);text-shadow:0 0 8px rgba(255,107,53,.4)}
     .trashpill #tCarry{color:var(--ink);opacity:.7}
     .trashpill #tCarry.carrying{color:var(--green);opacity:1}
 
@@ -238,6 +239,7 @@
   <div class="prompt" id="prompt"></div>
 
   <div class="trashpill" id="trashHud">🗑 <span id="tClean">0</span>/<span id="tTotal">10</span> cleaned <span id="tCarry"></span></div>
+  <div class="trashpill hoophud" id="hoopHud">🏀 click to shoot</div>
   <div class="toast" id="toast"></div>
 
   <div class="help">
