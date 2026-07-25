@@ -108,7 +108,7 @@ const LOUNGE_POS = [17, -8];
 const lounge = buildLounge(scene, { pos: LOUNGE_POS });
 
 // the 12matt3r hub board → walk up, read news, sign the guest book
-const BOARD_POS = [1, 10];
+const BOARD_POS = [-14, 16];
 const board = buildBoard(scene, {
   pos: BOARD_POS,
   stageZ: festival.stageZ,
@@ -122,7 +122,7 @@ const crowd = buildCrowd(scene, {
   exclude: [
     // [x, z, clear-radius] — bigger clearing around structures, plus spawn
     ...DESTINATIONS.map((d) => [d.pos[0], d.pos[2], BIG.has(d.model) ? 6.5 : 3.6]),
-    [-2, 7, 4.5],
+    [-18, 18, 4.5],
     [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
     [DEALER_POS[0], DEALER_POS[1], 2.4],
     [BOARD_POS[0], BOARD_POS[1], 3],
@@ -144,7 +144,7 @@ const hud = new Hud(document.getElementById('tags'), camera, characters.list, en
 // DJ booth on the main stage → the TRIPPY CAM (your webcam becomes the sky)
 const djbooth = buildDJBooth(scene, {
   pos: [0, festival.deck.top, festival.stageZ + 2],
-  onActivate: () => toggleTrippyCam(),
+  onActivate: () => hitDJBooth(),
 });
 const trippycam = createTrippyCam(scene, { onState: (on, err) => onTrippyCamState(on, err) });
 
@@ -279,6 +279,7 @@ function frame() {
     dealer.update(dt, time, pulse, controls.pos, trippy);
     board.update(dt, time, pulse);
     djbooth.update(dt, time, pulse, controls.pos);
+    trippycam.update(dt);
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
@@ -544,6 +545,12 @@ function setTrippy(on) {
 const tripcamToggleEl = document.getElementById('tripcamToggle');
 if (tripcamToggleEl) tripcamToggleEl.onclick = () => toggleTrippyCam();
 function toggleTrippyCam() { trippycam.toggle(); }
+// Hitting the DJ booth turns the cam on; once it's live, hitting it again
+// randomizes the effect instead of shutting it off (use the HUD toggle for off).
+function hitDJBooth() {
+  if (trippycam.isActive()) { trippycam.randomizeEffect(); flash('remix the trippy cam'); }
+  else trippycam.toggle();
+}
 function onTrippyCamState(on, err) {
   if (tripcamToggleEl) {
     tripcamToggleEl.classList.add('shown');

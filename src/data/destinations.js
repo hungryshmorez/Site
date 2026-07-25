@@ -59,7 +59,7 @@ export const DESTINATIONS = [
   {
     id: 'studio', name: '12MATT3R', model: 'glitch',
     role: 'the VJ booth // visuals', accent: PALETTE.cyan,
-    pos: [-1, 0, 17], tag: 'glitch art · code · the collective',
+    pos: [-19, 0, -7], tag: 'glitch art · code · the collective',
     url: 'https://12matt3r.univer.se/',
     blurb: 'A glitching, RGB-splitting figure at the VJ booth driving every screen at the festival — the web-OS and glitch-art engine that houses all of this. The studio itself.',
     cta: 'Open the web-OS',
@@ -83,7 +83,7 @@ export const DESTINATIONS = [
   {
     id: 'labs', name: 'THE LAB', model: 'labsstage',
     role: 'the side stage // experiments', accent: PALETTE.green,
-    pos: [-19, 0, -7], tag: 'trippy cam · dreamOS · deadnet',
+    pos: [-1, 0, 17], tag: 'trippy cam · dreamOS · deadnet',
     portal: 'lab', url: 'lab.html',
     blurb: 'The Lab gets its own side stage: live screens running the experiments — Trippy Cam (a browser feedback loop), DreamOS TV (a glitching virtual CRT), Deadnet (alternative web protocols), the Driftwave Vaporizer, 25+ games, Stories & Experiences, and the whole Dream OS ecosystem. The weird tools that prove what you can build.',
     cta: 'Enter the Lab',
