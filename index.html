@@ -88,6 +88,8 @@
     .trashpill.on{opacity:1;transform:translateY(0)}
     .hoophud{top:130px;color:#ff8a4a;background:rgba(20,12,6,.6);border-color:rgba(255,107,53,.4);text-shadow:0 0 8px rgba(255,107,53,.4)}
     .ponghud{top:170px;color:#e6c04a;background:rgba(20,16,6,.6);border-color:rgba(230,192,74,.4);text-shadow:0 0 8px rgba(230,192,74,.4)}
+    .carryhud{top:210px;color:#b967ff;background:rgba(16,8,24,.6);border-color:rgba(185,103,255,.4);text-shadow:0 0 8px rgba(185,103,255,.4)}
+    .drughud{top:250px;color:#ff5aa8;background:rgba(22,8,16,.6);border-color:rgba(255,90,168,.45);text-shadow:0 0 8px rgba(255,90,168,.45)}
     .trashpill #tCarry{color:var(--ink);opacity:.7}
     .trashpill #tCarry.carrying{color:var(--green);opacity:1}
 
@@ -229,7 +231,6 @@
     <div class="pprompt">click the old screen to read the codex</div>
   </div>
 
-  <button class="triptoggle" id="tripToggle" title="Toggle the trip">TRI-PPY: OFF</button>
   <button class="triptoggle tripcam" id="tripcamToggle" title="Toggle the trippy cam">TRIPPY CAM: OFF</button>
 
   <div class="hud top">
@@ -242,18 +243,19 @@
   <div class="trashpill" id="trashHud">🗑 <span id="tClean">0</span>/<span id="tTotal">10</span> cleaned <span id="tCarry"></span></div>
   <div class="trashpill hoophud" id="hoopHud">🏀 click to shoot</div>
   <div class="trashpill ponghud" id="pongHud">🍺 beer pong — click to toss</div>
+  <div class="trashpill carryhud" id="carryHud">💊 carrying an orb</div>
+  <div class="trashpill drughud" id="drugHud">💊 tripping</div>
   <div class="toast" id="toast"></div>
 
   <div class="help">
     <kbd>W A S D</kbd> walk · <kbd>drag</kbd> look · <b>click a name</b> to walk to them · <kbd>[ ]</kbd> time of day
   </div>
-  <button class="rmbtn" id="fwToggle" style="right:474px" title="Fireworks launcher">🎆 fw</button>
-  <button class="rmbtn" id="todToggle" style="right:388px" title="Time of day">🕑 time</button>
-  <button class="rmbtn" id="fxToggle" style="right:298px" title="Camera FX modes">◉ fx</button>
+  <button class="rmbtn" id="fwToggle" style="right:388px" title="Fireworks launcher">🎆 fw</button>
+  <button class="rmbtn" id="todToggle" style="right:298px" title="Time of day">🕑 time</button>
   <button class="rmbtn" id="photobtn" style="right:210px" title="Save a snapshot">📷 photo</button>
   <button class="rmbtn" id="mutebtn" style="right:112px" title="Sound">🔊 sound</button>
   <button class="rmbtn" id="rmbtn" title="Reduced motion">◐ motion</button>
-  <div class="fxpanel" id="fxPanel"></div>
+  <div class="fxpanel" id="dealerPanel"></div>
   <div class="fxpanel" id="todPanel"></div>
   <div class="fxpanel" id="fwPanel"></div>
   <div class="nowplaying" id="nowplaying">♪ Static Drift Anthem</div>

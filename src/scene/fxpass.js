@@ -16,7 +16,7 @@ function asciiAtlas() {
   return { tex: t, cols: n };
 }
 
-export const FX_MODES = ['normal', 'crt', 'vhs', 'ascii', 'gameboy', 'wireframe'];
+export const FX_MODES = ['normal', 'crt', 'vhs', 'ascii', 'gameboy', 'wireframe', 'trip'];
 
 export function createFXPass() {
   const { tex, cols } = asciiAtlas();
@@ -71,14 +71,24 @@ export function createFXPass() {
           vec3 col = l<0.25?g0 : (l<0.5?g1 : (l<0.75?g2 : g3));
           gl_FragColor=vec4(col,1.0); return;
         }
-        // uMode==5 WIREFRAME (edge detect)
-        vec2 px=1.0/uRes;
-        float gx = lumAt(vUv+vec2(-px.x,-px.y))+2.0*lumAt(vUv+vec2(-px.x,0.0))+lumAt(vUv+vec2(-px.x,px.y))
-                 - lumAt(vUv+vec2(px.x,-px.y))-2.0*lumAt(vUv+vec2(px.x,0.0))-lumAt(vUv+vec2(px.x,px.y));
-        float gy = lumAt(vUv+vec2(-px.x,-px.y))+2.0*lumAt(vUv+vec2(0.0,-px.y))+lumAt(vUv+vec2(px.x,-px.y))
-                 - lumAt(vUv+vec2(-px.x,px.y))-2.0*lumAt(vUv+vec2(0.0,px.y))-lumAt(vUv+vec2(px.x,px.y));
-        float e=clamp(sqrt(gx*gx+gy*gy)*1.6,0.0,1.0);
-        gl_FragColor=vec4(mix(vec3(0.01,0.02,0.03), vec3(0.0,1.0,0.9), e),1.0);
+        if(uMode==5){ // WIREFRAME (edge detect)
+          vec2 px=1.0/uRes;
+          float gx = lumAt(vUv+vec2(-px.x,-px.y))+2.0*lumAt(vUv+vec2(-px.x,0.0))+lumAt(vUv+vec2(-px.x,px.y))
+                   - lumAt(vUv+vec2(px.x,-px.y))-2.0*lumAt(vUv+vec2(px.x,0.0))-lumAt(vUv+vec2(px.x,px.y));
+          float gy = lumAt(vUv+vec2(-px.x,-px.y))+2.0*lumAt(vUv+vec2(0.0,-px.y))+lumAt(vUv+vec2(px.x,-px.y))
+                   - lumAt(vUv+vec2(-px.x,px.y))-2.0*lumAt(vUv+vec2(0.0,px.y))-lumAt(vUv+vec2(px.x,px.y));
+          float e=clamp(sqrt(gx*gx+gy*gy)*1.6,0.0,1.0);
+          gl_FragColor=vec4(mix(vec3(0.01,0.02,0.03), vec3(0.0,1.0,0.9), e),1.0); return;
+        }
+        // uMode==6 TRIP — kaleidoscope + swirl + chroma + rolling rainbow
+        vec2 u=vUv-0.5; float r=length(u); float ang=atan(u.y,u.x);
+        ang=mod(ang, 1.0472); ang=abs(ang-0.5236);        // 6-fold mirror kaleidoscope
+        ang += uTime*0.35 + r*3.5;                         // swirl
+        vec2 p=vec2(cos(ang),sin(ang))*r*(0.9+0.1*sin(uTime*1.5))+0.5;
+        float sh=0.012*sin(uTime*2.0);
+        vec3 col; col.r=texture2D(tDiffuse,p+vec2(sh,0.0)).r; col.g=texture2D(tDiffuse,p).g; col.b=texture2D(tDiffuse,p-vec2(sh,0.0)).b;
+        col=mix(col, 0.5+0.5*cos(vec3(0.0,2.0,4.0)+uTime*1.2+r*10.0+ang), 0.4);
+        gl_FragColor=vec4(col,1.0);
       }`,
   };
   const pass = new ShaderPass(shader);

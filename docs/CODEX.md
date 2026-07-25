@@ -90,7 +90,7 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
 
 - **Portal warp** — themed transition into a world (local page + portal home, or external new tab).
 - **Trash-hunt** — 10 hidden pieces → dumpster → secret download.
-- **Dealer → TRI-PPY** — hooded dealer in the crowd → rainbow hue over the world.
+- **Dealer → drugs** — hooded dealer in the crowd; bring him effect orbs, then buy timed camera trips (§04 orbs).
 - **Photo booth → TRIPPY CAM** — reach the photo booth in the back (by the hub board) → your live
   **webcam becomes the sky** (getUserMedia → VideoTexture on a BackSide sphere). The feed is **zoomed out / tiled** so you
   can see yourself. **Hitting the booth again while it's live randomizes the effect** (mirror-hall
@@ -98,10 +98,11 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
 - **The hub board** — walk-up news Post-its + guest book (localStorage), bottom-left by spawn.
 - **Porta-potty → the Codex** — step inside the porta-potty, boot the old CRT → the encyclopedia
   (`codex.html`) loads. Reuses the porta-potty interior + CRT-zoom machinery.
-- **Camera FX modes** — an ◉ fx console (bottom-right) switches the whole view between NORMAL, CRT, VHS,
-  ASCII, GAMEBOY, and WIREFRAME (a post-processing pass). Each non-normal mode is **locked until you find
-  its hidden shader chip** tucked around the grounds (behind the stage, against the grandstands, a back
-  corner) — click a chip to unlock it forever (saved in localStorage). Console + unlocks both.
+- **The dealer's drugs (camera FX)** — the camera effects (CRT, VHS, ASCII, GAMEBOY, WIREFRAME) are
+  **orbs** scattered in out-of-the-way spots. Pick one up (click or walk into it), carry it to the
+  **dealer**, and it goes **in stock**; then buy it from his menu to trip on that post-processing effect
+  for a **limited time** (25–30s countdown, then it wears off). **TRIP** — a 6-fold kaleidoscope + swirl +
+  chroma + rolling-rainbow shader — is his always-in-stock signature. In-stock drugs persist (localStorage).
 - **In-site popup window** — games/worlds/EPKs open in a draggable Windows-style window
   (title bar, min/max/close, live page in an iframe, no URL) over the site, so you never leave.
 - **Beat-drop fireworks + camera shake**, **spatial/enclosed audio**, day/night (scrub `[` `]`).
@@ -208,7 +209,7 @@ of the Wake Up / games slugs for any dead links.
 ## 14 · Glossary
 
 **Portal/warp** — festival → world transition. **EPK** — a walkable press kit. **Pulse** — the beat
-value driving everything. **TRI-PPY** — the dealer's rainbow trip. **TRIPPY CAM** — your webcam as the
+value driving everything. **TRIP / drugs** — the dealer's timed camera effects, unlocked with orbs. **TRIPPY CAM** — your webcam as the
 sky. **DreamOS** — the fictional OS / Lab through-line. **Deadnet** — the digital afterlife, a non-real
 internet. **The Arcade** — the walk-up door to the games library. **The hub** — 12matt3r's news/guest-
 book board. **The catalog** — `data/catalog.js`, the one source of truth feeding every view.

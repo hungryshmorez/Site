@@ -33,9 +33,13 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
   restyle to a dedicated photo-booth model still TODO — it currently reuses the booth mesh.)*
 - ⏳ **12matt3r Labs / stage VJ**: switch between trippy videos (list TBD) that play on the big stage screen — **visual only, no audio** — so you're VJ'ing the concert. Also a good home for the fireworks + laser show controls.
 
-## Dealer / drugs / FX orbs
-- ⏳ Dealer's trip effect isn't trippy enough — beef it up.
-- ⏳ Turn the map FX pickups into **orbs**: the player finds orbs around the map, carries them to the dealer, which **unlocks that effect as a buyable "drug"** — and it's **time-limited** (wears off after a while).
+## Dealer / drugs / FX orbs — done ✅
+- ✅ Beefed up the trip: a new **TRIP** shader (6-fold kaleidoscope + swirl + chroma + rolling rainbow),
+  the dealer's always-in-stock signature.
+- ✅ The camera effects are now **orbs** scattered on the map. Pick one up (click or walk into it), carry
+  it to the dealer to put it **in stock**, then buy it from the dealer's menu to trip on that effect for a
+  **limited time** (25–30s, with a countdown, then it wears off). In-stock drugs persist (localStorage).
+  Replaces the old FX console + instant-unlock chips + standalone TRI-PPY toggle.
 
 ## Outer wall / arena — done ✅
 - ✅ Clicking the **outer wall / above the horizon** now walks you toward that heading to the arena edge.

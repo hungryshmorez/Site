@@ -16,8 +16,8 @@ import { buildLounge } from './scene/lounge.js';
 import { buildFireworks } from './scene/fireworks.js';
 import { buildTent } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
-import { createFXPass, FX_MODES } from './scene/fxpass.js';
-import { buildFxChips } from './scene/fxchips.js';
+import { createFXPass } from './scene/fxpass.js';
+import { buildOrbs } from './scene/orbs.js';
 import { buildHoop } from './scene/hoop.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -95,7 +95,7 @@ const DEALER_POS = [16, -18];
 const dealer = buildDealer(scene, {
   pos: DEALER_POS,
   stageZ: festival.stageZ,
-  onToggle: () => toggleTrippy(),
+  onToggle: () => reachDealer(),
 });
 
 // Shmorez's campfire micro-scene (fire + roasting NPCs) out back by his spot,
@@ -156,41 +156,75 @@ controls.groundAt = (x, z) => {
 };
 const hud = new Hud(document.getElementById('tags'), camera, characters.list, enterDestination);
 
-// ---- camera FX modes: a console to switch, hidden chips to unlock ----------
-const FX_STORE = 'fxUnlocked';
-let fxUnlocked = [];
-try { fxUnlocked = JSON.parse(localStorage.getItem(FX_STORE) || '[]'); } catch (e) { fxUnlocked = []; }
-let fxMode = 'normal';
-const fxchips = buildFxChips(scene, { unlocked: fxUnlocked });
-const FX_LABELS = { normal: 'NORMAL', crt: 'CRT', vhs: 'VHS', ascii: 'ASCII', gameboy: 'GAMEBOY', wireframe: 'WIREFRAME' };
-function applyFx(mode) { fxMode = mode; fx.setMode(mode); buildFxMenu(); }
-function unlockFx(mode) {
-  if (!fxUnlocked.includes(mode)) {
-    fxUnlocked.push(mode);
-    try { localStorage.setItem(FX_STORE, JSON.stringify(fxUnlocked)); } catch (e) { /* noop */ }
-    flash(`unlocked ${FX_LABELS[mode]} camera — open the FX menu (◉)`);
+// ---- the dealer's drugs: pick up effect ORBS around the map, carry them to
+// the dealer to put them "in stock", then buy one to trip on that camera effect
+// for a limited time. TRIP is the dealer's signature (always in stock). --------
+const DRUGS = [
+  { id: 'trip', name: 'TRIP', mode: 'trip', dur: 30, stock: true },
+  { id: 'crt', name: 'CRT', mode: 'crt', dur: 25 },
+  { id: 'vhs', name: 'VHS', mode: 'vhs', dur: 25 },
+  { id: 'ascii', name: 'ASCII', mode: 'ascii', dur: 25 },
+  { id: 'gameboy', name: 'GAMEBOY', mode: 'gameboy', dur: 25 },
+  { id: 'wireframe', name: 'WIREFRAME', mode: 'wireframe', dur: 25 },
+];
+const DRUG_STORE = 'drugsOwned';
+let owned = [];
+try { owned = JSON.parse(localStorage.getItem(DRUG_STORE) || '[]'); } catch (e) { owned = []; }
+let carrying = null;             // drug id being carried to the dealer
+let activeDrug = null, drugTime = 0;  // currently tripping + seconds left
+let trippy = false;              // true while a drug is active (drives the dealer's glow)
+const inStock = (id) => DRUGS.find((d) => d.id === id)?.stock || owned.includes(id);
+// scatter orbs only for drugs you don't have in stock yet
+const orbs = buildOrbs(scene, { need: DRUGS.filter((d) => !inStock(d.id)).map((d) => d.id) });
+
+const carryHudEl = document.getElementById('carryHud');
+const drugHudEl = document.getElementById('drugHud');
+const dealerPanelEl = document.getElementById('dealerPanel');
+function updateCarryHud() {
+  if (!carryHudEl) return;
+  carryHudEl.classList.toggle('on', !!carrying);
+  if (carrying) carryHudEl.textContent = `💊 carrying the ${DRUGS.find((d) => d.id === carrying).name} orb — take it to the dealer`;
+}
+function pickupOrb(id) {
+  if (carrying) { flash('hands full — deliver that orb to the dealer first'); return; }
+  carrying = id; updateCarryHud();
+  flash(`picked up the ${DRUGS.find((d) => d.id === id).name} orb — find the dealer`);
+}
+function reachDealer() {
+  if (carrying) { // deliver → in stock
+    if (!owned.includes(carrying)) { owned.push(carrying); try { localStorage.setItem(DRUG_STORE, JSON.stringify(owned)); } catch (e) { /* noop */ } }
+    flash(`the dealer pockets the ${DRUGS.find((d) => d.id === carrying).name} orb — it's on the menu now`);
+    carrying = null; updateCarryHud();
   }
-  applyFx(mode);
-  if (fxPanelEl) fxPanelEl.classList.add('open');
+  openDealerMenu();
 }
-const fxToggleEl = document.getElementById('fxToggle');
-const fxPanelEl = document.getElementById('fxPanel');
-if (fxToggleEl) fxToggleEl.onclick = () => { closeConsoles('fxPanel'); buildFxMenu(); fxPanelEl.classList.toggle('open'); };
-function buildFxMenu() {
-  if (!fxPanelEl) return;
-  const found = fxUnlocked.length, total = FX_MODES.length - 1;
-  fxPanelEl.innerHTML = `<div class="fxhead">CAMERA FX <span>${found}/${total} unlocked</span></div>`;
-  FX_MODES.forEach((m) => {
-    const locked = m !== 'normal' && !fxUnlocked.includes(m);
-    const b = document.createElement('button');
-    b.className = 'fxrow' + (fxMode === m ? ' on' : '') + (locked ? ' locked' : '');
-    b.textContent = locked ? `🔒 ${FX_LABELS[m]}` : FX_LABELS[m];
-    if (locked) { const s = document.createElement('span'); s.className = 'fxhint'; s.textContent = 'hidden on the grounds'; b.appendChild(s); }
-    else b.onclick = () => { applyFx(m); };
-    fxPanelEl.appendChild(b);
+function openDealerMenu() {
+  if (!dealerPanelEl) return;
+  closeConsoles('dealerPanel');
+  dealerPanelEl.innerHTML = '<div class="fxhead">THE DEALER <span>what you havin\'?</span></div>';
+  DRUGS.filter((d) => inStock(d.id)).forEach((d) => {
+    const b = document.createElement('button'); b.className = 'fxrow' + (activeDrug === d.id ? ' on' : '');
+    b.textContent = `💊 ${d.name}`;
+    const s = document.createElement('span'); s.className = 'fxhint'; s.textContent = `${d.dur}s trip`; b.appendChild(s);
+    b.onclick = () => { buyDrug(d.id); };
+    dealerPanelEl.appendChild(b);
   });
+  const missing = DRUGS.filter((d) => !inStock(d.id)).length;
+  if (missing) { const n = document.createElement('div'); n.className = 'fxhint'; n.style.padding = '6px'; n.textContent = `${missing} more effect${missing === 1 ? '' : 's'} hidden on the grounds — bring the orbs here`; dealerPanelEl.appendChild(n); }
+  dealerPanelEl.classList.add('open');
 }
-buildFxMenu();
+function buyDrug(id) {
+  const d = DRUGS.find((x) => x.id === id); if (!d) return;
+  activeDrug = id; drugTime = d.dur; fx.setMode(d.mode); trippy = true;
+  flash(`you take the ${d.name}${d.id === 'trip' ? ' — everything melts' : ''}`);
+  if (dealerPanelEl) dealerPanelEl.classList.remove('open');
+  if (drugHudEl) drugHudEl.classList.add('on');
+}
+function endDrug() {
+  activeDrug = null; drugTime = 0; fx.setMode('normal'); trippy = false;
+  if (drugHudEl) drugHudEl.classList.remove('on');
+  flash('you come back down');
+}
 
 // ---- time-of-day console: snap the sky/lighting to a preset (or auto cycle) --
 const TOD = [
@@ -233,7 +267,7 @@ const FW_COLORS = ['#00F3FF', '#FF0055', '#39FF14', '#e6c04a', '#b967ff', '#ff6b
 let fwColor = FW_COLORS[0];
 const fwPanelEl = document.getElementById('fwPanel');
 const fwToggleEl = document.getElementById('fwToggle');
-function closeConsoles(keepId) { ['fxPanel', 'todPanel', 'fwPanel'].forEach((id) => { if (id !== keepId) { const e = document.getElementById(id); if (e) e.classList.remove('open'); } }); }
+function closeConsoles(keepId) { ['dealerPanel', 'todPanel', 'fwPanel'].forEach((id) => { if (id !== keepId) { const e = document.getElementById(id); if (e) e.classList.remove('open'); } }); }
 if (fwToggleEl) fwToggleEl.onclick = () => { closeConsoles('fwPanel'); buildFw(); fwPanelEl.classList.toggle('open'); };
 function buildFw() {
   if (!fwPanelEl) return;
@@ -303,8 +337,8 @@ function handleTap(sx, sy) {
   if (board.tryClick(raycaster)) return;
   // the DJ booth on stage — toggles the trippy cam
   if (djbooth.tryClick(raycaster)) return;
-  // hidden FX chips — clicking one unlocks a camera mode
-  { const got = fxchips.tryClick(raycaster); if (got) { unlockFx(got); return; } }
+  // effect orbs — clicking one picks it up to carry to the dealer
+  { const got = orbs.tryClick(raycaster); if (got) { pickupOrb(got); return; } }
   // near the hoop — a click shoots a ball instead of walking
   if (hoop.near(controls.pos)) { hoop.throwBall(camera); return; }
   // near the beer-pong table — a click tosses a ball at the cups
@@ -402,7 +436,9 @@ function frame() {
     board.update(dt, time, pulse);
     djbooth.update(dt, time, pulse, controls.pos);
     trippycam.update(dt);
-    fxchips.update(dt, time, pulse);
+    orbs.update(dt, time, pulse);
+    { const grabbed = orbs.pickNear(controls.pos); if (grabbed) pickupOrb(grabbed); } // walk into an orb to grab it
+    if (activeDrug) { drugTime -= dt; if (drugHudEl) drugHudEl.textContent = `💊 ${DRUGS.find((d) => d.id === activeDrug).name} · ${Math.ceil(drugTime)}s`; if (drugTime <= 0) endDrug(); }
     hoop.update(dt, time);
     if (hoopHudEl) hoopHudEl.classList.toggle('on', hoop.near(controls.pos));
     if (pongHudEl) pongHudEl.classList.toggle('on', tailgate.near(controls.pos));
@@ -652,27 +688,6 @@ function playWarp(dest, atPeak) {
   setTimeout(() => { el.classList.remove('go'); warping = false; }, peak + 550);
 }
 
-// ---- TRI-PPY (scored from the dealer) --------------------------------------
-// Reaching the dealer flips the rainbow warp on; finding him the first time
-// also reveals the TRI-PPY toggle in the HUD (mirrors doesntmatter.us).
-let trippy = false;
-let trippyUnlocked = false;
-const trippyEl = document.getElementById('trippy');
-const tripToggleEl = document.getElementById('tripToggle');
-if (tripToggleEl) tripToggleEl.onclick = () => toggleTrippy();
-
-function toggleTrippy() { setTrippy(!trippy); }
-function setTrippy(on) {
-  trippy = on;
-  if (trippyEl) trippyEl.classList.toggle('on', on);
-  if (!trippyUnlocked) { trippyUnlocked = true; if (tripToggleEl) tripToggleEl.classList.add('shown'); }
-  if (tripToggleEl) {
-    tripToggleEl.textContent = on ? 'TRI-PPY: ON' : 'TRI-PPY: OFF';
-    tripToggleEl.classList.toggle('active', on);
-  }
-  flash(on ? 'the dealer hooks you up — everything melts' : 'you come back down');
-}
-
 // ---- TRIPPY CAM (scored at the DJ booth) -----------------------------------
 const tripcamToggleEl = document.getElementById('tripcamToggle');
 if (tripcamToggleEl) tripcamToggleEl.onclick = () => toggleTrippyCam();
@@ -723,7 +738,7 @@ function snapshot() {
 
 // dev-only debug bridge for automated testing (stripped from production builds)
 if (import.meta.env.DEV) window.__dbg = {
-  controls, trash, dealer, enterDestination, setTrippy,
+  controls, trash, dealer, enterDestination, buyDrug, reachDealer,
   enterLabPortal, startZoom, exitPortal, portalState: () => ({ mode, zoomProg, warping }),
   openBoard, closeBoard, djbooth, trippycam, toggleTrippyCam, snapshot,
 };
