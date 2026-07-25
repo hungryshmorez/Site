@@ -81,7 +81,8 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
   label). Step inside, boot the old CRT → **this encyclopedia** (`codex.html`) loads.
 - **THE DECKS** — the DJ rig **up on the stage deck** — cyan → **$AUCELAB**, a real two-deck DJ console
   (`dj.html`): upload your own tracks, EQ, filters, crossfader, tempo, cue, sync, loops, jog wheels,
-  waveforms, meters. Single-user (the battle/multiplayer layer was stripped out).
+  waveforms, meters. Uploads are **saved on your computer** (IndexedDB) so they're there next visit, and
+  an **AUTO RADIO** cycles your whole library whenever you stop DJing. Single-user.
 
 ## 04 · Systems & Secrets (all built)
 

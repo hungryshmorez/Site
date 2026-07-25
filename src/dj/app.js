@@ -10,12 +10,19 @@ import {
   getCurrentPosition, getDuration, seekTo, getTrackInfo, getAudioContext,
 } from './audio.js';
 import WaveSurfer from 'wavesurfer.js';
+import { saveTrack, allTracks } from './store.js';
 import './styles.css';
 
 const library = {}; // id -> { name, genre, file, bpm }
 const tapTempo = { a: { taps: [], lastTap: 0 }, b: { taps: [], lastTap: 0 } };
 let lastRenderTime = 0;
 const FPS = 1000 / 30;
+
+// auto-radio: when you stop DJing it cycles through your whole library
+let radioActive = false, radioIndex = 0, lastUserAction = performance.now();
+let autoEnabled = localStorage.getItem('djAuto') !== 'off';
+const IDLE_MS = 4500;
+function userActed() { lastUserAction = performance.now(); if (radioActive) stopRadio(); }
 
 const KEYS = {
   KeyQ: () => togglePlay('a'), KeyP: () => togglePlay('b'),
@@ -34,9 +41,29 @@ async function init() {
   initKeyboard();
   requestAnimationFrame(loop);
 
-  // seed the library with the site's anthem so there's something to spin
+  // when a radio track finishes, advance to the next one
+  document.addEventListener('track-ended', (e) => { if (radioActive && e.detail.deck === 'a') { radioIndex++; radioPlay(); } });
+
+  // seed the site's anthem, then restore the user's saved uploads (IndexedDB)
   await addTrack('Static Drift Anthem', 'vaporwave', 'static-drift-anthem.mp3');
+  for (const t of await allTracks()) {
+    library[t.id] = { name: t.name, genre: t.genre, bpm: t.bpm, file: URL.createObjectURL(t.blob) };
+  }
   renderLibrary();
+}
+
+// ── auto-radio (idle jukebox) ────────────────────────────────────────────────
+function startRadio() { radioActive = true; radioIndex = 0; radioPlay(); updateRadioBadge(); }
+function stopRadio() { radioActive = false; updateRadioBadge(); }
+async function radioPlay() {
+  const ids = Object.keys(library); if (!ids.length) { radioActive = false; return; }
+  const id = ids[radioIndex % ids.length];
+  await loadToDeck(id, 'a');
+  if (radioActive) { getAudioContext()?.resume(); playTrack('a'); document.getElementById('play-a').textContent = 'PAUSE'; updateRadioBadge(); }
+}
+function updateRadioBadge() {
+  const b = document.getElementById('radio-badge');
+  if (b) b.classList.toggle('on', radioActive);
 }
 
 function initWaveforms() {
@@ -62,6 +89,11 @@ function loop(ts) {
       try { ws.setTime(Math.min(getCurrentPosition(deck), dur)); } catch (e) { /* noop */ }
     }
     updateMeter(deck, info && info.isPlaying);
+  }
+  // idle → start the auto-radio (cycles the whole library) once you stop DJing
+  const anyPlaying = ['a', 'b'].some((d) => { const i = getTrackInfo(d); return i && i.isPlaying; });
+  if (autoEnabled && !radioActive && !anyPlaying && Object.keys(library).length && performance.now() - lastUserAction > IDLE_MS) {
+    startRadio();
   }
 }
 
@@ -112,17 +144,22 @@ function renderLibrary(list) {
       </div>
     </div>`).join('');
   container.querySelectorAll('.load-deck-button').forEach((btn) => {
-    btn.onclick = () => loadToDeck(btn.dataset.id, btn.dataset.deck);
+    btn.onclick = () => { userActed(); loadToDeck(btn.dataset.id, btn.dataset.deck); };
   });
 }
 
 async function handleUpload(e) {
   const files = Array.from(e.target.files || []);
   for (const file of files) {
-    const url = URL.createObjectURL(file);
     const n = file.name.toLowerCase();
     const genre = n.includes('vaporwave') ? 'vaporwave' : n.includes('lofi') ? 'lofi' : n.includes('dubstep') ? 'dubstep' : n.includes('surf') ? 'surf' : 'other';
-    await addTrack(file.name.replace(/\.[^.]+$/, ''), genre, url);
+    const name = file.name.replace(/\.[^.]+$/, '');
+    const id = `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    let bpm = 120;
+    try { const buf = await file.arrayBuffer(); bpm = (await analyzeBPM(await getAudioContext().decodeAudioData(buf.slice(0)))) || 120; } catch (err) { /* keep default */ }
+    library[id] = { name, genre, bpm, file: URL.createObjectURL(file) };
+    // persist the actual audio to the user's computer (IndexedDB) for next time
+    saveTrack({ id, name, genre, bpm, blob: file });
   }
   e.target.value = '';
   renderLibrary();
@@ -143,6 +180,7 @@ async function loadToDeck(id, deck) {
 
 // ── deck controls ────────────────────────────────────────────────────────────
 function togglePlay(deck) {
+  userActed();
   const info = getTrackInfo(deck); if (!info) return;
   const btn = document.getElementById(`play-${deck}`);
   if (info.isPlaying) { pauseTrack(deck); btn.textContent = 'PLAY'; }
@@ -150,6 +188,7 @@ function togglePlay(deck) {
 }
 
 function handleCue(deck) {
+  userActed();
   const info = getTrackInfo(deck); if (!info) return;
   const cue = setCuePoint(deck);
   const markers = document.getElementById(`cue-markers-${deck}`);
@@ -159,6 +198,7 @@ function handleCue(deck) {
 }
 
 function handleSync(source, target) {
+  userActed();
   const s = getTrackInfo(source), t = getTrackInfo(target);
   if (!s || !t || !s.bpm || !t.bpm) { alert('Both decks need tracks with BPM to sync.'); return; }
   if (syncDecks(source, target)) {
@@ -169,11 +209,13 @@ function handleSync(source, target) {
 }
 
 function handleLoop(deck) {
+  userActed();
   const on = toggleLoop(deck);
   document.getElementById(`loop-${deck}`).classList.toggle('active', on);
 }
 
 function handleTap(deck) {
+  userActed();
   const now = Date.now(); const ti = tapTempo[deck];
   if (now - ti.lastTap > 2000) ti.taps = [];
   if (ti.lastTap > 0) {
@@ -211,6 +253,7 @@ function setupJog(deck) {
 }
 
 function scrub(deck, dy) {
+  userActed();
   const dur = getDuration(deck); if (!dur) return;
   const info = getTrackInfo(deck); const wasPlaying = info && info.isPlaying;
   const np = Math.max(0, Math.min(dur, getCurrentPosition(deck) - dy * 0.02));
@@ -228,15 +271,17 @@ function initUI() {
     document.getElementById(`loop-${d}`).onclick = () => handleLoop(d);
     document.getElementById(`tap-tempo-${d}`).onclick = () => handleTap(d);
     document.getElementById(`tempo-${d}`).oninput = (e) => {
+      userActed();
       const pct = +e.target.value;
       document.getElementById(`tempo-value-${d}`).textContent = `${pct > 0 ? '+' : ''}${pct}%`;
       setPlaybackRate(d, 1 + pct / 100);
     };
-    document.getElementById(`volume-${d}`).oninput = (e) => setVolume(d, e.target.value / 100);
-    for (const band of ['high', 'mid', 'low']) document.getElementById(`${band}-${d}`).oninput = (e) => setEQ(d, band, e.target.value / 100);
-    document.getElementById(`filter-${d}`).oninput = (e) => setFilter(d, e.target.value / 100);
+    document.getElementById(`volume-${d}`).oninput = (e) => { userActed(); setVolume(d, e.target.value / 100); };
+    for (const band of ['high', 'mid', 'low']) document.getElementById(`${band}-${d}`).oninput = (e) => { userActed(); setEQ(d, band, e.target.value / 100); };
+    document.getElementById(`filter-${d}`).oninput = (e) => { userActed(); setFilter(d, e.target.value / 100); };
     // click the waveform to scrub
     document.getElementById(`waveform-${d}`).addEventListener('click', (e) => {
+      userActed();
       const dur = getDuration(d); if (!dur) return;
       const rect = e.currentTarget.getBoundingClientRect();
       const pos = ((e.clientX - rect.left) / rect.width) * dur;
@@ -247,12 +292,20 @@ function initUI() {
   }
   document.getElementById('sync-a').onclick = () => handleSync('b', 'a');
   document.getElementById('sync-b').onclick = () => handleSync('a', 'b');
-  document.getElementById('crossfader').oninput = (e) => setCrossfader(e.target.value / 100);
+  document.getElementById('crossfader').oninput = (e) => { userActed(); setCrossfader(e.target.value / 100); };
   document.getElementById('library-search').oninput = () => renderLibrary();
   document.getElementById('library-filter').onchange = () => renderLibrary();
   document.getElementById('library-upload').onchange = handleUpload;
   const shortcutToggle = document.getElementById('shortcut-toggle');
   if (shortcutToggle) shortcutToggle.onclick = () => document.getElementById('keyboard-shortcuts').classList.toggle('open');
+
+  // auto-radio toggle (persists in localStorage)
+  const autoBtn = document.getElementById('auto-toggle');
+  if (autoBtn) {
+    const paint = () => { autoBtn.textContent = `AUTO RADIO: ${autoEnabled ? 'ON' : 'OFF'}`; autoBtn.classList.toggle('on', autoEnabled); };
+    paint();
+    autoBtn.onclick = () => { autoEnabled = !autoEnabled; localStorage.setItem('djAuto', autoEnabled ? 'on' : 'off'); if (!autoEnabled && radioActive) { stopRadio(); pauseTrack('a'); document.getElementById('play-a').textContent = 'PLAY'; } paint(); };
+  }
 }
 
 function initKeyboard() {
