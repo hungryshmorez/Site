@@ -445,6 +445,59 @@ function textPlane(text, color) {
   return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
 }
 
+// ---------------------------------------------------------------- ARCADE
+// An arcade cabinet — the physical door to the Flash Games portal and the games
+// library. Walk up, "insert coin". Live grid on the screen, joystick + buttons.
+export function buildArcade(accent = '#FF0055') {
+  const g = new THREE.Group();
+  const body = std({ color: 0x0d0d16, roughness: 0.6, metalness: 0.3 });
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(1.3, 2.4, 1.1), body); cab.position.y = 1.2; cab.castShadow = true; g.add(cab);
+  const side = std({ color: 0x120018, emissive: new THREE.Color(accent), emissiveIntensity: 0.25, roughness: 0.7 });
+  for (const sx of [-0.66, 0.66]) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.02, 2.4, 1.1), side); s.position.set(sx, 1.2, 0); g.add(s); }
+  const scrMat = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 }, pulse: { value: 0 } },
+    vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`, fragmentShader: arcadeFrag() });
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.8), scrMat); scr.position.set(0, 1.78, 0.57); scr.rotation.x = -0.22; g.add(scr);
+  const marq = textPlane('ARCADE', accent); marq.position.set(0, 2.38, 0.5); marq.scale.set(1.4, 0.36, 1); g.add(marq);
+  const panel = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.1, 0.6), std({ color: 0x101018, roughness: 0.7 })); panel.position.set(0, 1.16, 0.62); panel.rotation.x = -0.5; g.add(panel);
+  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.22, 8), std({ color: 0x222230 })); stick.position.set(-0.32, 1.3, 0.72); g.add(stick);
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 10), new THREE.MeshBasicMaterial({ color: accent })); ball.position.set(-0.32, 1.42, 0.72); g.add(ball);
+  for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.04, 12), new THREE.MeshBasicMaterial({ color: i ? 0x33ffff : accent })); b.position.set(0.02 + i * 0.16, 1.3, 0.72); b.rotation.x = Math.PI / 2; g.add(b); }
+  const gl = new THREE.PointLight(accent, 4, 8, 2); gl.position.set(0, 1.8, 1.2); g.add(gl);
+  return { group: g, update: (t, pulse) => { scrMat.uniforms.t.value = t; scrMat.uniforms.pulse.value = pulse; gl.intensity = 3 + pulse * 4; } };
+}
+function arcadeFrag() {
+  return `varying vec2 vUv; uniform float t,pulse;
+    float rand(vec2 p){return fract(sin(dot(p,vec2(12.9,78.2)))*43758.5);}
+    void main(){ vec2 gr=floor(vUv*vec2(8.0,6.0)); float c=rand(gr+floor(t*2.0));
+      vec3 col=0.5+0.5*cos(vec3(0.0,2.0,4.0)+c*6.28+t);
+      col*=step(0.18,fract(vUv.y*6.0)); col*=0.6+0.6*pulse; gl_FragColor=vec4(col,1.0);} `;
+}
+
+// ---------------------------------------------------------------- DEADNET
+// The digital afterlife — a dead, flickering CRT monolith in a lonely corner,
+// running the deadnet feed. Broken, glitching, orbited by shards.
+export function buildDeadnet(accent = '#b967ff') {
+  const g = new THREE.Group();
+  const dark = std({ color: 0x0a0812, roughness: 0.8, metalness: 0.4 });
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.1, 0.5, 6), dark); base.position.y = 0.25; base.castShadow = true; g.add(base);
+  const shell = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.2, 1.2), dark); shell.position.y = 1.7; shell.castShadow = true; g.add(shell);
+  const scrMat = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 }, pulse: { value: 0 } },
+    vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`, fragmentShader: deadnetFrag() });
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.5), scrMat); scr.position.set(0, 1.8, 0.62); g.add(scr);
+  const cap = textPlane('DEADNET', accent); cap.position.set(0, 3.1, 0.3); cap.scale.set(2.4, 0.5, 1); g.add(cap);
+  const shards = [];
+  for (let i = 0; i < 6; i++) {
+    const s = new THREE.Mesh(new THREE.TetrahedronGeometry(0.12 + Math.random() * 0.1), new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const a = Math.random() * 6.28, rr = 1.4 + Math.random(); s.position.set(Math.cos(a) * rr, 2 + Math.random() * 1.5, Math.sin(a) * rr); g.add(s); shards.push(s);
+  }
+  const gl = new THREE.PointLight(accent, 5, 10, 2); gl.position.set(0, 2, 1.4); g.add(gl);
+  return { group: g, update: (t, pulse) => {
+    scrMat.uniforms.t.value = t; scrMat.uniforms.pulse.value = pulse;
+    gl.intensity = 3 + Math.sin(t * 7.0) * 1.5 + pulse * 3;
+    shards.forEach((s, i) => { s.rotation.x += 0.01 * (i + 1); s.rotation.y += 0.013 * (i + 1); s.position.y += Math.sin(t * 2 + i) * 0.002; });
+  } };
+}
+
 export const MODELS = {
   marshmallow: buildMarshmallow,
   sofaboi: buildSofaBoi,
@@ -456,4 +509,6 @@ export const MODELS = {
   stall: buildStall,
   bathroom: buildBathroom,
   labsstage: buildLabsStage,
+  arcade: buildArcade,
+  deadnet: buildDeadnet,
 };

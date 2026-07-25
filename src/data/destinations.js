@@ -81,6 +81,22 @@ export const DESTINATIONS = [
     cta: 'Step through',
   },
   {
+    id: 'arcade', name: 'THE ARCADE', model: 'arcade',
+    role: 'insert coin // the games', accent: PALETTE.magenta,
+    pos: [10, 0, 11], tag: 'flash games · 30+ playable worlds',
+    url: 'https://flash-games-collection--sofakingsadboi.on.websim.com/',
+    blurb: 'A lone arcade cabinet humming in the field — the door to the Flash Games portal and the whole playable library: racers, sims, backrooms, NPC therapy, the Wake Up saga. Walk up and insert a coin.',
+    cta: 'Insert coin',
+  },
+  {
+    id: 'deadnet', name: 'DEADNET', model: 'deadnet',
+    role: 'the digital afterlife // dead corner', accent: PALETTE.purple,
+    pos: [-12, 0, -18], tag: 'alt web · a self-generating dead internet',
+    url: 'https://deadnet.on.websim.com/',
+    blurb: 'Off in a lonely corner, a broken CRT monolith flickers with a web that never really existed — Deadnet, the digital afterlife. A self-generating, non-real internet you can wander into. Nobody comes back the same.',
+    cta: 'Log into the afterlife',
+  },
+  {
     id: 'labs', name: 'THE LAB', model: 'labsstage',
     role: 'the side stage // experiments', accent: PALETTE.green,
     pos: [-1, 0, 17], tag: 'trippy cam · dreamOS · deadnet',
