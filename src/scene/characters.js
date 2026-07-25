@@ -14,8 +14,10 @@ export function buildCharacters(scene, { stageZ = -26 } = {}) {
     const [x, , z] = d.pos;
     const y = d.onStage ? 1.6 : (d.lift || 0); // onStage = main deck; lift = a custom riser
     group.position.set(x, y, z);
-    // face the crowd/stage-ish (or an explicit override)
-    group.rotation.y = d.rot !== undefined ? d.rot : (d.onStage ? 0 : Math.atan2(0 - x, stageZ - z) + Math.PI);
+    // everything faces the CENTER of the grounds (front = +Z), so the whole
+    // build reads as pointing inward. Stage acts face out; `rot` still overrides.
+    const CX = 0, CZ = -4;
+    group.rotation.y = d.rot !== undefined ? d.rot : (d.onStage ? 0 : Math.atan2(CX - x, CZ - z));
 
     // build the character/structure model
     const built = (MODELS[d.model] || MODELS.glitch)(d.accent);

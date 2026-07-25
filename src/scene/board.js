@@ -11,7 +11,7 @@ export function buildBoard(scene, { pos = [3, 11], stageZ = -24, accent = '#00F3
   const group = new THREE.Group();
   const [x, z] = pos;
   group.position.set(x, 0, z);
-  group.rotation.y = Math.atan2(0 - x, stageZ - z) + Math.PI; // face the crowd
+  group.rotation.y = Math.atan2(0 - x, -4 - z); // face the center of the grounds
   scene.add(group);
 
   const wood = std({ color: 0x5a4326, roughness: 0.85 });

@@ -100,13 +100,18 @@ const dealer = buildDealer(scene, {
 const CAMPFIRE_POS = [3, -14];
 const campfire = buildCampfire(scene, { pos: CAMPFIRE_POS, roasters: 3 });
 
-// Tanky's tailgate: lifted truck + beer pong + ping-pong tosses, by his spot
-const TAILGATE_POS = [18, 4];
-const tailgate = buildTailgate(scene, { pos: TAILGATE_POS, rot: -1.1 });
+// everything faces the center of the grounds (front = +Z toward [0,-4])
+const faceCenter = (x, z) => Math.atan2(0 - x, -4 - z);
 
-// Sofa King's elevated lounge (riser + audience couches) at his spot
+// Tanky's tailgate: lifted truck + beer pong + ping-pong tosses, by his spot.
+// The bed/tailgate (party side, +Z) faces center; the cab backs into the corner.
+const TAILGATE_POS = [18, 4];
+const tailgate = buildTailgate(scene, { pos: TAILGATE_POS, rot: faceCenter(TAILGATE_POS[0], TAILGATE_POS[1]) });
+
+// Sofa King's elevated lounge (riser + audience couches) at his spot. The
+// audience side (-Z) points at center, so the couches sit between him and it.
 const LOUNGE_POS = [17, -8];
-const lounge = buildLounge(scene, { pos: LOUNGE_POS });
+const lounge = buildLounge(scene, { pos: LOUNGE_POS, rot: faceCenter(LOUNGE_POS[0], LOUNGE_POS[1]) + Math.PI });
 
 // the 12matt3r hub board → walk up, read news, sign the guest book
 const BOARD_POS = [-14, 16];

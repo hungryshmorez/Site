@@ -12,7 +12,7 @@ export function buildDealer(scene, { pos = [-5, 5], stageZ = -24, onToggle } = {
   const group = new THREE.Group();
   const [x, z] = pos;
   group.position.set(x, 0, z);
-  group.rotation.y = Math.atan2(0 - x, stageZ - z) + Math.PI; // roughly face the crowd
+  group.rotation.y = Math.atan2(0 - x, -4 - z); // face the center of the grounds
   scene.add(group);
 
   const hoodie = std({ color: 0x0e0f14, roughness: 0.92 });

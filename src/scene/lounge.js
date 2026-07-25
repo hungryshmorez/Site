@@ -6,9 +6,10 @@ import * as THREE from 'three';
 
 const std = (o) => new THREE.MeshStandardMaterial(o);
 
-export function buildLounge(scene, { pos = [14, 17], accent = '#6a6cff' } = {}) {
+export function buildLounge(scene, { pos = [14, 17], rot = 0, accent = '#6a6cff' } = {}) {
   const group = new THREE.Group();
   group.position.set(pos[0], 0, pos[1]);
+  group.rotation.y = rot; // orient the whole cluster (audience side, -Z, toward center)
   scene.add(group);
   const col = new THREE.Color(accent);
 

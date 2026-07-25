@@ -126,6 +126,7 @@ export function buildTrash(scene, {
 
   const dumpster = buildDumpster();
   dumpster.group.position.set(dumpsterPos[0], 0, dumpsterPos[1]);
+  dumpster.group.rotation.y = Math.atan2(0 - dumpsterPos[0], -4 - dumpsterPos[1]); // face center
   const dumpPos = new THREE.Vector3(dumpsterPos[0], 0, dumpsterPos[1]);
   scene.add(dumpster.group);
 
