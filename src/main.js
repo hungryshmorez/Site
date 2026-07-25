@@ -170,7 +170,7 @@ function unlockFx(mode) {
 }
 const fxToggleEl = document.getElementById('fxToggle');
 const fxPanelEl = document.getElementById('fxPanel');
-if (fxToggleEl) fxToggleEl.onclick = () => { const tp = document.getElementById('todPanel'); if (tp) tp.classList.remove('open'); buildFxMenu(); fxPanelEl.classList.toggle('open'); };
+if (fxToggleEl) fxToggleEl.onclick = () => { closeConsoles('fxPanel'); buildFxMenu(); fxPanelEl.classList.toggle('open'); };
 function buildFxMenu() {
   if (!fxPanelEl) return;
   const found = fxUnlocked.length, total = FX_MODES.length - 1;
@@ -198,7 +198,7 @@ const TOD = [
 let dayLock = null, todSel = 'auto';
 const todPanelEl = document.getElementById('todPanel');
 const todToggleEl = document.getElementById('todToggle');
-if (todToggleEl) todToggleEl.onclick = () => { if (fxPanelEl) fxPanelEl.classList.remove('open'); buildTod(); todPanelEl.classList.toggle('open'); };
+if (todToggleEl) todToggleEl.onclick = () => { closeConsoles('todPanel'); buildTod(); todPanelEl.classList.toggle('open'); };
 function buildTod() {
   if (!todPanelEl) return;
   todPanelEl.innerHTML = '<div class="fxhead">TIME OF DAY</div>';
@@ -211,6 +211,32 @@ function buildTod() {
   });
 }
 buildTod();
+
+// ---- fireworks launcher: load a colour canister into the mortar + fire -------
+const MORTAR = [-3, -20];
+{ // a little mortar rack near the stage front
+  const m = new THREE.Group(); m.position.set(MORTAR[0], 0, MORTAR[1]);
+  const tubeMat = new THREE.MeshStandardMaterial({ color: 0x14141c, metalness: 0.5, roughness: 0.6 });
+  for (let i = 0; i < 5; i++) { const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.9, 10), tubeMat); tube.position.set((i - 2) * 0.5, 0.45, 0); tube.castShadow = true; m.add(tube); }
+  scene.add(m);
+}
+const FW_COLORS = ['#00F3FF', '#FF0055', '#39FF14', '#e6c04a', '#b967ff', '#ff6b35'];
+let fwColor = FW_COLORS[0];
+const fwPanelEl = document.getElementById('fwPanel');
+const fwToggleEl = document.getElementById('fwToggle');
+function closeConsoles(keepId) { ['fxPanel', 'todPanel', 'fwPanel'].forEach((id) => { if (id !== keepId) { const e = document.getElementById(id); if (e) e.classList.remove('open'); } }); }
+if (fwToggleEl) fwToggleEl.onclick = () => { closeConsoles('fwPanel'); buildFw(); fwPanelEl.classList.toggle('open'); };
+function buildFw() {
+  if (!fwPanelEl) return;
+  fwPanelEl.innerHTML = '<div class="fxhead">FIREWORKS <span>load + fire</span></div>';
+  const chips = document.createElement('div'); chips.className = 'fwchips';
+  FW_COLORS.forEach((cHex) => { const b = document.createElement('button'); b.className = 'fwchip' + (fwColor === cHex ? ' on' : ''); b.style.background = cHex; b.title = cHex; b.onclick = () => { fwColor = cHex; buildFw(); }; chips.appendChild(b); });
+  fwPanelEl.appendChild(chips);
+  const fire = document.createElement('button'); fire.className = 'fxrow'; fire.textContent = '🎆 FIRE';
+  fire.onclick = () => { for (let i = 0; i < 3; i++) setTimeout(() => fireworks.launch({ color: fwColor, x: MORTAR[0] + (Math.random() - 0.5) * 6, z: MORTAR[1] }), i * 180); };
+  fwPanelEl.appendChild(fire);
+}
+buildFw();
 
 // DJ booth on the main stage → the TRIPPY CAM (your webcam becomes the sky)
 const djbooth = buildDJBooth(scene, {

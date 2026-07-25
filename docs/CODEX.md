@@ -102,6 +102,8 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
 - **In-site popup window** — games/worlds/EPKs open in a draggable Windows-style window
   (title bar, min/max/close, live page in an iframe, no URL) over the site, so you never leave.
 - **Beat-drop fireworks + camera shake**, **spatial/enclosed audio**, day/night (scrub `[` `]`).
+- **Fireworks launcher** (🎆 fw console) — load a colour canister and FIRE: shells rise from the mortar
+  rack by the stage and burst overhead in your colour.
 - **Photo booth** — 📷 downloads a branded, UI-free JPEG of your view (shareable).
 
 ## 05 · The Lab (built — a working launcher)
