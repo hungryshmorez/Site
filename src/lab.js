@@ -11,11 +11,14 @@ const app = document.getElementById('app');
 
 // Trippy Cam, DreamOS TV and Deadnet already exist as their own destinations
 // out in the 3D festival (the DJ booth, the doorway, the monolith), so the Lab
-// holds everything *else* from the catalog. Filter them out, drop empty folders.
-const OUT_IN_WORLD = /trippy cam|dreamos tv|deadnet/i;
+// holds everything *else* from the catalog: skip the whole Deadnet folder and
+// filter those items, dropping any folder left empty.
+const OUT_FOLDERS = new Set(['Deadnet']);
+const OUT_ITEM = /trippy cam|dreamos tv/i;
 const LAB = {};
 for (const [folder, items] of Object.entries(FULL_LAB)) {
-  const kept = items.filter((it) => !OUT_IN_WORLD.test(it.name));
+  if (OUT_FOLDERS.has(folder)) continue;
+  const kept = items.filter((it) => !OUT_ITEM.test(it.name));
   if (kept.length) LAB[folder] = kept;
 }
 const folderNames = Object.keys(LAB);
@@ -72,7 +75,7 @@ function renderAliases() {
   app.appendChild(crumb('Artist Profiles', ALIASES.length));
   const grid = el('div', 'grid');
   ALIASES.forEach((al) => {
-    const card = itemCard({ name: al.name, url: al.epk, note: al.kind });
+    const card = itemCard({ name: al.name, url: al.epk, note: al.genre });
     grid.appendChild(card);
   });
   app.appendChild(grid);

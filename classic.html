@@ -81,6 +81,19 @@
     .links a:hover{color:var(--cyan)}
     .links a::before{content:"› ";color:var(--muted)}
 
+    /* character tabs (links at the top) */
+    .ctabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+    .ctab{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);cursor:pointer;
+      border:1px solid var(--edge);border-radius:999px;padding:9px 15px;background:var(--panel);transition:.14s;white-space:nowrap}
+    .ctab:hover{color:var(--ink);border-color:rgba(255,255,255,.25)}
+    .ctab.on{color:#05050e;background:var(--cyan);border-color:var(--cyan);font-weight:700}
+    .cpanel{border:1px solid var(--edge);border-radius:14px;padding:clamp(16px,3vw,26px);background:var(--panel)}
+    .cpanel .who{font-family:var(--mono);font-size:20px;letter-spacing:.05em;color:var(--cyan)}
+    .cpanel .genre{color:var(--muted);font-size:12.5px;letter-spacing:.06em;margin:3px 0 16px}
+    .epk{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:#05050e;font-weight:700;
+      background:var(--cyan);border-radius:9px;padding:11px 20px;margin-bottom:16px;cursor:pointer;box-shadow:0 0 24px -8px var(--cyan)}
+    .epk:hover{background:#fff}
+
     .foot{border-top:1px solid var(--edge);padding-top:20px;color:var(--muted);font-size:12px;letter-spacing:.08em;font-family:var(--mono)}
 
     .menutoggle{display:none}

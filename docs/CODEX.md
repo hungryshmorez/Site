@@ -117,12 +117,14 @@ channel.
 
 ## 07 · The classic (flat) site — built
 
-`classic.html` is a **two-column menu index** for anyone who doesn't want the 3D walk: a sticky sidebar
-(nav with live counts + active-scroll highlight), a hero bio, featured **Trippy Cam** and **DreamOS TV**
-cards, and every section (Artist Profiles, DreamOS Ecosystem, Wake Up, Games, Stories, Tools, Links).
-It's generated from the **same `data/catalog.js`** as the Lab and the 3D roster, so the flat and 3D
-experiences never drift. The 3D entry screen links to it ("prefer a classic site?"); the classic sidebar
-links back to the 3D festival.
+`classic.html` is a **two-column menu index** for anyone who doesn't want the 3D walk. At the **top is
+the Links block**: a **tab/emblem per artist** (plus a COLLECTIVE tab) — click one and that artist's own
+links swap in (EPK + Spotify/IG/etc.), exactly like the old site; COLLECTIVE shows the shared hubs, dev
+nodes, web3, and support. Below: featured **Trippy Cam** / **DreamOS TV** cards and every catalog section
+(DreamOS, Wake Up, Games, Stories, Deadnet, Tools). It's generated from the **same `data/catalog.js`**
+(now mirroring the collective's own dataset — per-artist links, labs content, 22 TV channels), so the flat
+page, the Lab, and the 3D roster never drift. The 3D entry screen links to it; the classic sidebar links
+back to the festival.
 
 ## 08 · The living grounds — micro-scenes (built)
 
