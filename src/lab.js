@@ -4,19 +4,29 @@
 // artist EPKs and the off-site link wall. Nothing is hard-coded here; edit
 // src/data/catalog.js instead.
 
-import { ALIASES, LAB, LINKS } from './data/catalog.js';
+import { ALIASES, LAB as FULL_LAB, LINKS } from './data/catalog.js';
 import { openWindow } from './ui/popup.js';
 
 const app = document.getElementById('app');
+
+// Trippy Cam, DreamOS TV and Deadnet already exist as their own destinations
+// out in the 3D festival (the DJ booth, the doorway, the monolith), so the Lab
+// holds everything *else* from the catalog. Filter them out, drop empty folders.
+const OUT_IN_WORLD = /trippy cam|dreamos tv|deadnet/i;
+const LAB = {};
+for (const [folder, items] of Object.entries(FULL_LAB)) {
+  const kept = items.filter((it) => !OUT_IN_WORLD.test(it.name));
+  if (kept.length) LAB[folder] = kept;
+}
 const folderNames = Object.keys(LAB);
 
 // One-line descriptions for the dashboard folder cards.
 const FOLDER_DESC = {
-  'DreamOS Ecosystem': 'operating systems & the TV',
+  'DreamOS Ecosystem': 'the wake-up nodes & OS builds',
   'Wake Up Series': 'the surreal dream saga',
   'Games': 'playable worlds & experiments',
   'Stories & Experiences': 'narrative & liminal spaces',
-  'Tools': 'trippy cam, effects, the portal',
+  'Tools': 'effects, synth studio, the flash portal',
 };
 
 function el(tag, cls, html) {

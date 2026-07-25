@@ -42,15 +42,16 @@ stage; the 12matt3r hub board sits beside you at **[−14, 16]**.
 | Main stage | 0, −26 | | 12MATT3R (VJ) | −19, −7 |
 | DJ booth (on deck) | 0, −24 | | Merch tent | −19, 3 |
 | Rave Charles (pit) | −8, −13 | | Sofa King (lounge) | 17, −8 |
-| Shmorez + campfire | 4/3, −11/−14 | | THE LAB (porta-potty) | −1, 17 |
+| Shmorez + campfire | 4/3, −11/−14 | | THE LAB (big stage) | −1, 17 |
 | Tanky + tailgate | 14/18, 3/4 | | DreamOS TV doorway | 14, 16 |
 | DriftWave | −2, −3 | | **THE ARCADE** | 10, 11 |
 | Spawn + hub board | −18/−14, 18/16 | | **DEADNET** | −12, −18 |
-| dealer / dumpster | 16,−18 / −18,−16 | | | |
+| dealer / dumpster | 16,−18 / −18,−16 | | **PORTA-POTTY** (gag) | 20, −2 |
 
-*Note: THE LAB and 12MATT3R swapped corners — the Lab now sits near spawn, 12MATT3R back-left.*
+*Everything is rotated to face the **center** of the grounds ([0, −4]) so the whole
+build reads as pointing inward. THE LAB and 12MATT3R swapped corners — the Lab sits near spawn.*
 
-## 03 · The Roster (11 destinations)
+## 03 · The Roster (12 destinations)
 
 Each a procedural model with its own neon accent, matching doesntmatter.us. Reaching one plays the warp
 and opens its info panel; the CTA opens the real place (EPK / world / portal).
@@ -63,10 +64,12 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
 - **12MATT3R** — VJ figure, back-left — glitch·code — cyan. RGB-splitting glitch figure → the web-OS.
 - **THE MERCH TENT** — store/commissions — green. → planned: the camera-lock Etsy carousel.
 - **DREAMOS TV** — a lit side doorway (magenta marquee, vendor-stand underglow) → the theater (§06).
-- **THE LAB** — porta-potty entrance — green → the CRT-boot Lab terminal (§05).
+- **THE LAB** — a big screen-stage — green → warps straight into the Lab terminal (§05).
 - **THE ARCADE** — a lone arcade cabinet — magenta → the **Flash Games portal / games library**. New.
 - **DEADNET** — a broken flickering CRT monolith in a lonely corner — purple → *deadnet*, "the digital
   afterlife," a self-generating non-real internet. New.
+- **PORTA-POTTY** — a standalone gag on the right edge. Step inside, click the busted CRT → it boots
+  to nothing and spits you back out, pointing you at the real Lab. New.
 
 ## 04 · Systems & Secrets (all built)
 
@@ -78,19 +81,23 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
   can see yourself. **Hitting the booth again while it's live randomizes the effect** (mirror-hall
   tiling, hue tint, texture spin, additive blend); the HUD toggle turns it off. Opt-in.
 - **The hub board** — walk-up news Post-its + guest book (localStorage), bottom-left by spawn.
-- **The Lab portal** — porta-potty → CRT → zoom → Lab terminal (§05).
+- **Porta-potty gag** — a standalone secret: step inside, click the busted CRT → it boots to nothing,
+  warps you back out, and points you at the real Lab. Reuses the old porta-potty interior machinery.
+- **In-site popup window** — games/worlds/EPKs open in a draggable Windows-style window
+  (title bar, min/max/close, live page in an iframe, no URL) over the site, so you never leave.
 - **Beat-drop fireworks + camera shake**, **spatial/enclosed audio**, day/night (scrub `[` `]`).
 - **Photo booth** — 📷 downloads a branded, UI-free JPEG of your view (shareable).
 
 ## 05 · The Lab (built — a working launcher)
 
-Entrance is the **porta-potty**: warp inside a cramped stall, an old CRT boots "12matt3r LABS /
-DreamOS," click the screen → zoom → the Lab loads on its own page (`lab.html`). The Lab is now a
-**working DreamOS terminal** generated entirely from the canonical catalog (`data/catalog.js`): a folder
-dashboard — **Artist Profiles**, **DreamOS Ecosystem**, **Wake Up Series** (18), **Games** (18),
-**Stories & Experiences** (9), **Tools** (5), and an **off-site link wall** (27). Click a folder → a
-grid of launchable cards (external worlds open in a new tab; DreamOS TV routes internally; Deadnet gets
-its own accent). **Planned:** a fully 3D Lab interior to replace the terminal.
+THE LAB is its own **big screen-stage** (three screens labelled GAMES / WAKE UP / STORIES). Reaching it
+plays the green warp and loads the Lab on its own page (`lab.html`) — the porta-potty is no longer the
+entrance (it's a standalone gag now, §04). The Lab is a **working DreamOS terminal** generated from the
+canonical catalog (`data/catalog.js`), holding everything on the playable side: **Artist Profiles**,
+**DreamOS Ecosystem**, **Wake Up Series** (18), **Games** (18), **Stories & Experiences** (9), **Tools**,
+and an **off-site link wall**. Trippy Cam, DreamOS TV and Deadnet are **excluded here** — they already
+live out in the festival as their own destinations. Launches open in the in-site popup window (§04).
+**Planned:** a fully 3D Lab interior to replace the terminal.
 
 ## 06 · DreamOS TV — the movie theater (built)
 

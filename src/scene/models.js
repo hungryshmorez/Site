@@ -386,7 +386,7 @@ export function buildLabsStage(accent = '#39FF14') {
   // three experiment screens
   const screens = [];
   const shaders = [trippyFrag(), tvFrag(), deadnetFrag()];
-  const labels = ['TRIPPY CAM', 'DREAMOS TV', 'DEADNET'];
+  const labels = ['GAMES', 'WAKE UP', 'STORIES'];
   for (let i = 0; i < 3; i++) {
     const mat = new THREE.ShaderMaterial({
       uniforms: { t: { value: 0 }, pulse: { value: 0 } },

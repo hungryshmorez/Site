@@ -461,6 +461,7 @@ function enterLabPortal(dest) {
   playWarp(dest, () => {
     mode = 'porta';
     portaYaw = 0; portaPitch = -0.12;
+    gagDone = false;
     if (hud.close) hud.close();
     body.classList.add('inportal');
   });
@@ -494,7 +495,7 @@ function handlePortaTap(sx, sy) {
   if (raycaster.intersectObject(labPortal.screen, false)[0]) startZoom();
 }
 
-let zoomProg = 0;
+let zoomProg = 0, gagDone = false;
 const _zoomFrom = new THREE.Vector3();
 function startZoom() {
   if (mode === 'zoom') return;
@@ -507,8 +508,14 @@ function updateZoom(dt) {
   const e = zoomProg < 0.5 ? 2 * zoomProg * zoomProg : 1 - Math.pow(-2 * zoomProg + 2, 2) / 2; // easeInOutQuad
   camera.position.lerpVectors(_zoomFrom, labPortal.zoomEye, e);
   camera.lookAt(labPortal.lookAt);
-  if (zoomProg >= 1 && !warping) {
-    playWarp({ accent: '#39ff14', name: 'THE LAB' }, () => { window.location.href = 'lab.html'; });
+  // the porta-potty is a gag now — the CRT boots to nothing and spits you back
+  // out, pointing you at the real Lab (the big green stage).
+  if (zoomProg >= 1 && !warping && !gagDone) {
+    gagDone = true;
+    playWarp({ accent: '#39ff14', name: 'OUT OF ORDER' }, () => {
+      mode = 'festival'; body.classList.remove('inportal'); zoomProg = 0;
+      flash('busted CRT — nothing in here. the real LAB is the big green stage.');
+    });
   }
 }
 

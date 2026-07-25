@@ -99,9 +99,17 @@ export const DESTINATIONS = [
   {
     id: 'labs', name: 'THE LAB', model: 'labsstage',
     role: 'the side stage // experiments', accent: PALETTE.green,
-    pos: [-1, 0, 17], tag: 'trippy cam · dreamOS · deadnet',
-    portal: 'lab', url: 'lab.html',
-    blurb: 'The Lab gets its own side stage: live screens running the experiments — Trippy Cam (a browser feedback loop), DreamOS TV (a glitching virtual CRT), Deadnet (alternative web protocols), the Driftwave Vaporizer, 25+ games, Stories & Experiences, and the whole Dream OS ecosystem. The weird tools that prove what you can build.',
+    pos: [-1, 0, 17], tag: 'games · wake up · stories · tools',
+    page: 'lab.html',
+    blurb: 'The Lab is its own side stage: big screens over a deck loaded with the playable side of 12matt3r — 30+ games, the whole Wake Up saga, Stories & Experiences, apps, downloads, and the flash portal. (Trippy Cam, DreamOS TV and Deadnet roam the festival on their own.) Reach it to boot the Lab.',
     cta: 'Enter the Lab',
+  },
+  {
+    id: 'portapotty', name: 'PORTA-POTTY', model: 'bathroom',
+    role: 'the gag // out of order', accent: PALETTE.green,
+    pos: [20, 0, -2], tag: 'do not enter',
+    portal: 'lab',
+    blurb: 'A row of festival porta-potties, one glowing an unhealthy green. Step inside if you dare.',
+    cta: 'Step inside',
   },
 ];
