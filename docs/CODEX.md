@@ -36,9 +36,11 @@ stage on big bass spikes, with a short **camera shake**.
 12matt3r hub board (news + guest book) moved to the back-left corner at **[−18, 18]**.
 
 **The arena is closed by a 3-sided grandstand** (stadium seating on the left, right, and back — the
-stage is the 4th side) so you can't wander off the map; colored **light posts** ring the seating and
-**flare up at night** to keep the edge lit. Night is a touch brighter overall. Walking and click-to-walk
-are clamped to the arena.
+stage is the 4th side) and a **tall enclosing wall** behind it (the floor grid stops at the arena), so
+you can't see empty ground beyond the corners. Colored **light posts** ring the seating; **beat-reactive
+strips + lasers** run up the wall (flaring on the drop) and **speaker stacks** stand in the four corners.
+Night is a touch brighter overall. Walking and click-to-walk are clamped to the arena; **clicking the
+wall walks you toward it**.
 
 **World coordinates [x, z]** (stage north / −z):
 

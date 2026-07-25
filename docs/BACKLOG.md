@@ -37,10 +37,12 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
 - ⏳ Dealer's trip effect isn't trippy enough — beef it up.
 - ⏳ Turn the map FX pickups into **orbs**: the player finds orbs around the map, carries them to the dealer, which **unlocks that effect as a buyable "drug"** — and it's **time-limited** (wears off after a while).
 
-## Outer wall / arena
-- ⏳ Clicking the **outer wall** should walk you to that spot (currently doesn't).
-- ⏳ Fix seeing **outer areas beyond the map** (corners near the dumpster) — cull/hide out-of-bounds.
-- ⏳ Use the outer wall for **beat-reactive lights** (dim/brighten to the beat) + **lasers**; put **speaker stacks** (like the stage ones) in the open corner areas.
+## Outer wall / arena — done ✅
+- ✅ Clicking the **outer wall / above the horizon** now walks you toward that heading to the arena edge.
+- ✅ **Enclosed the map**: a tall rectangular wall behind the grandstands (north wall behind the stage) +
+  the floor grid shrunk to the arena, so you no longer see empty ground in the corners.
+- ✅ **Beat-reactive wall light strips** (dim/brighten to the beat) + **wall lasers** (flare on the drop,
+  hue-cycling) + **corner speaker stacks** in the four open corners (cones punch on the bass).
 
 ## New in-world areas / vendors
 - ⏳ **Curse of the Monkey Paw** → its own vendor area: a fortune-teller machine but a **monkey paw**, **5 wishes**, then it opens `https://wish.on.websim.com`.

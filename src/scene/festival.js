@@ -52,7 +52,7 @@ export function buildFestival(scene) {
   // ---- ground ----
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), new THREE.MeshStandardMaterial({ color: 0x080810, roughness: 1 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
-  const grid = new THREE.GridHelper(160, 80, 0x123038, 0x0a1016);
+  const grid = new THREE.GridHelper(54, 27, 0x123038, 0x0a1016); // only the arena floor is gridded
   grid.material.transparent = true; grid.material.opacity = 0.35; grid.position.y = 0.012; scene.add(grid);
 
   // ---- lights ----
@@ -152,6 +152,8 @@ export function buildFestival(scene) {
   // the 4th side), with colored light posts that shine inward and brighten at
   // night so the edge of the map is lit and obvious. ----
   const perimLights = [];
+  const wallStrips = [];
+  let wlasers = null;
   {
     const seatMat = new THREE.MeshStandardMaterial({ color: 0x0c0c16, roughness: 0.9, metalness: 0.2 });
     const R = 25, TIERS = 4;
@@ -171,6 +173,50 @@ export function buildFestival(scene) {
       const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), new THREE.MeshBasicMaterial({ color: col })); head.position.set(px, 7, pz); scene.add(head);
       const L = new THREE.PointLight(col, 4, 46, 2); L.position.set(px * 0.9, 7.2, pz * 0.9); scene.add(L); perimLights.push(L);
     });
+
+    // ---- tall rectangular enclosing wall so you can't see the ground beyond
+    // (north wall sits behind the stage deck) ----
+    const WX = 28, WSZ = 28, WNZ = -34, H = 20;
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x07070e, roughness: 0.95, metalness: 0.1, side: THREE.DoubleSide, emissive: c(PALETTE.cyan), emissiveIntensity: 0.02 });
+    const midZ = (WSZ + WNZ) / 2, lenZ = WSZ - WNZ, lenX = WX * 2;
+    const mkWall = (w, d, x, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, H, d), wallMat); m.position.set(x, H / 2, z); scene.add(m); };
+    mkWall(0.5, lenZ, -WX, midZ);  // left
+    mkWall(0.5, lenZ, WX, midZ);   // right
+    mkWall(lenX, 0.5, 0, WSZ);     // back (south / spawn side)
+    mkWall(lenX, 0.5, 0, WNZ);     // north (behind stage)
+
+    // ---- beat-reactive light strips up the interior of the walls ----
+    const stripCols = [PALETTE.cyan, PALETTE.magenta, PALETTE.purple, PALETTE.green, PALETTE.orange];
+    const stripAt = (x, z, i) => { const s = new THREE.Mesh(new THREE.BoxGeometry(0.16, 9, 0.16), new THREE.MeshStandardMaterial({ color: 0x05050a, emissive: c(stripCols[i % stripCols.length]), emissiveIntensity: 0.3 })); s.position.set(x, 4.8, z); scene.add(s); wallStrips.push(s); };
+    let si = 0;
+    for (let z = WNZ + 4; z < WSZ; z += 6) { stripAt(-WX + 0.3, z, si++); stripAt(WX - 0.3, z, si++); }
+    for (let x = -WX + 5; x < WX; x += 6) { stripAt(x, WSZ - 0.3, si++); }
+
+    // ---- wall lasers: beams from the wall-top toward center, sweeping ----
+    const lp = []; const edge = [];
+    for (let z = WNZ + 4; z < WSZ; z += 8) { edge.push([-WX, z], [WX, z]); }
+    for (let x = -WX + 6; x < WX; x += 8) edge.push([x, WSZ]);
+    edge.forEach(([x, z]) => lp.push(x, 9, z, 0, 0.6, 0));
+    const wlGeo = new THREE.BufferGeometry(); wlGeo.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3));
+    wlasers = new THREE.LineSegments(wlGeo, new THREE.LineBasicMaterial({ color: c(PALETTE.magenta), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+    scene.add(wlasers);
+
+    // ---- corner speaker stacks in the open corners ----
+    const cornerStack = (x, z, accent) => {
+      const grp = new THREE.Group();
+      const cab = new THREE.MeshStandardMaterial({ color: 0x08080d, roughness: 0.85, metalness: 0.2 });
+      let y = 0;
+      for (let i = 0; i < 5; i++) {
+        const h = 1.0; const box = new THREE.Mesh(new THREE.BoxGeometry(2.2, h, 1.6), cab); box.position.set(0, y + h / 2, 0); box.castShadow = true; grp.add(box);
+        const cn = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.08, 18), new THREE.MeshStandardMaterial({ color: 0x0a0a10, emissive: c(accent), emissiveIntensity: 0.06 }));
+        cn.rotation.x = Math.PI / 2; cn.position.set(0, y + h / 2, 0.82); grp.add(cn); speakerCones.push(cn); y += h;
+      }
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(0.06, y, 0.06), new THREE.MeshStandardMaterial({ color: 0x02121a, emissive: c(accent), emissiveIntensity: 0.6 }));
+      strip.position.set(1.2, y / 2, 0.8); grp.add(strip);
+      grp.position.set(x, 0, z); grp.rotation.y = Math.atan2(0 - x, -4 - z); scene.add(grp);
+    };
+    cornerStack(-23, 21, PALETTE.cyan); cornerStack(23, 21, PALETTE.magenta);
+    cornerStack(-23, -19, PALETTE.green); cornerStack(23, -19, PALETTE.purple);
   }
 
   // ---- haze ----
@@ -215,6 +261,9 @@ export function buildFestival(scene) {
 
     // perimeter light posts flare up at night so the arena edge stays lit
     for (const L of perimLights) L.intensity = 3 + darkness * 9 + pulse * 4;
+    // wall light strips dim/brighten to the beat; wall lasers sweep on the drop
+    for (const s of wallStrips) s.material.emissiveIntensity = 0.18 + pulse * 1.3 * (0.45 + darkness);
+    if (wlasers) { wlasers.material.opacity = Math.pow(pulse, 2) * 0.45 * darkness; wlasers.material.color.setHSL((time * 0.05) % 1, 1, 0.6); }
 
     // speaker cones glow + punch on the bass
     for (const cn of speakerCones) {

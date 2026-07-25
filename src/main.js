@@ -317,12 +317,15 @@ function handleTap(sx, sy) {
   }
   // otherwise walk to the point on the ground — clamped to the arena so a click
   // on the sky / outside the grandstands can't send you running off forever
-  const groundHit = raycaster.ray.intersectPlane(GROUND, new THREE.Vector3());
-  if (groundHit) {
-    groundHit.x = THREE.MathUtils.clamp(groundHit.x, -controls.bounds, controls.bounds);
-    groundHit.z = THREE.MathUtils.clamp(groundHit.z, controls.zMin, controls.bounds);
-    controls.walkTo(groundHit);
+  let groundHit = raycaster.ray.intersectPlane(GROUND, new THREE.Vector3());
+  if (!groundHit) {
+    // clicked the wall / above the horizon → walk toward that heading to the edge
+    const d = raycaster.ray.direction;
+    groundHit = new THREE.Vector3(controls.pos.x + d.x * 60, 0, controls.pos.z + d.z * 60);
   }
+  groundHit.x = THREE.MathUtils.clamp(groundHit.x, -controls.bounds, controls.bounds);
+  groundHit.z = THREE.MathUtils.clamp(groundHit.z, controls.zMin, controls.bounds);
+  controls.walkTo(groundHit);
 }
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 const STAGE_PT = new THREE.Vector3(0, 1.6, -18); // audio swells as you approach this
