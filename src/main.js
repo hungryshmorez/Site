@@ -100,9 +100,9 @@ const dealer = buildDealer(scene, {
 
 // Shmorez's campfire micro-scene (fire + roasting NPCs) out back by his spot,
 // with a tent pitched behind him.
-const CAMPFIRE_POS = [8, 14];
+const CAMPFIRE_POS = [9, 16];
 const campfire = buildCampfire(scene, { pos: CAMPFIRE_POS, roasters: 3 });
-buildTent(scene, { pos: [8, 17], accent: '#ff6b35' });
+buildTent(scene, { pos: [5, 20], accent: '#ff6b35' });
 
 // everything faces the center of the grounds (front = +Z toward [0,-4])
 const faceCenter = (x, z) => Math.atan2(0 - x, -4 - z);
@@ -243,9 +243,10 @@ function buildFw() {
 }
 buildFw();
 
-// DJ booth on the main stage → the TRIPPY CAM (your webcam becomes the sky)
+// PHOTO BOOTH in the back by the message board → the TRIPPY CAM (your webcam
+// becomes the sky). Moved off the stage so the DJ decks own the stage.
 const djbooth = buildDJBooth(scene, {
-  pos: [0, festival.deck.top, festival.stageZ + 2],
+  pos: [-13, 0, 17],
   onActivate: () => hitDJBooth(),
 });
 const trippycam = createTrippyCam(scene, { onState: (on, err) => onTrippyCamState(on, err) });

@@ -19,17 +19,18 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
 - ✅ Add the MiniMax app `https://fm10ff7jh3uf.space.minimax.io` as a card that opens in the Win95-style popup.
 - ⏳ Continue surfacing anything we build on the classic page.
 
-## 3D layout / spacing (needs a focused re-plot pass — do together)
-- ⏳ **No overlaps**: Shmorez's campsite currently sits on top of the Arcade + DreamOS TV. Space every station out; outer stations get their own area along the edge.
-- ⏳ **DreamOS TV** → between Sofa King and Tanky Johnson.
-- ⏳ **Deadnet portal** → beside the Arcade machine.
-- ⏳ **Porta-potties (Codex)** → beside the dumpster. Light **all three** stalls (not just the center) and **don't label** that one.
-- ⏳ **Dumpster** → light it up like the others (currently not visible).
-- ⏳ **Arcade** → all three cabinets lit.
+## 3D layout / spacing — done ✅ (re-plot pass)
+- ✅ **No overlaps**: whole map re-plotted; verified no station pair within 5 units.
+- ✅ **DreamOS TV** → between Sofa King and Tanky (20, −2).
+- ✅ **Deadnet portal** → beside the Arcade (15, 12 · arcade 20, 9).
+- ✅ **Porta-potties (Codex)** → beside the dumpster (−13, −16); **all three lit**; **no floating label**.
+- ✅ **Dumpster** → emissive + a light so it's visible at night.
+- ✅ **Arcade** → all three cabinets individually lit.
 
 ## Stage / DJ / photo booth
-- ⏳ Move **THE DECKS** DJ rig ONTO the stage (it's currently in the middle of the crowd).
-- ⏳ Move **Trippy Cam** off the stage into a **Photo Booth** in the back, next to the message board.
+- ✅ Move **THE DECKS** DJ rig ONTO the stage deck (−8, −24, lifted).
+- ✅ Move **Trippy Cam** trigger off the stage into a **Photo Booth** by the hub board (−13, 17). *(Visual
+  restyle to a dedicated photo-booth model still TODO — it currently reuses the booth mesh.)*
 - ⏳ **12matt3r Labs / stage VJ**: switch between trippy videos (list TBD) that play on the big stage screen — **visual only, no audio** — so you're VJ'ing the concert. Also a good home for the fireworks + laser show controls.
 
 ## Dealer / drugs / FX orbs

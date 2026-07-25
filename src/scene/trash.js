@@ -68,9 +68,11 @@ function buildDumpster() {
   const group = new THREE.Group();
   const body = new THREE.Mesh(
     new THREE.BoxGeometry(2.4, 1.4, 1.4),
-    new THREE.MeshStandardMaterial({ color: 0x2f7d3a, metalness: 0.3, roughness: 0.7 })
+    new THREE.MeshStandardMaterial({ color: 0x2f7d3a, metalness: 0.3, roughness: 0.7, emissive: new THREE.Color(0x39ff14), emissiveIntensity: 0.28 })
   );
   body.position.y = 0.72; body.castShadow = true; body.receiveShadow = true; group.add(body);
+  // a light so it's actually visible at night, like the other structures
+  const dl = new THREE.PointLight(0x39ff14, 3, 8, 2); dl.position.set(0, 1.6, 1); group.add(dl);
 
   const lidMat = new THREE.MeshStandardMaterial({ color: 0x24602c, metalness: 0.3, roughness: 0.6 });
   const lidL = new THREE.Mesh(new THREE.BoxGeometry(1.16, 0.08, 1.5), lidMat);

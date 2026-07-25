@@ -45,14 +45,14 @@ are clamped to the arena.
 | destination | [x, z] | | destination | [x, z] |
 |---|---|---|---|---|
 | Main stage | 0, −26 | | 12MATT3R (in crowd) | −5, −10 |
-| DJ booth (on deck) | 0, −24 | | Merch tent | −20, 4 |
+| **THE DECKS** (on stage) | −8, −24 | | Merch tent | −20, 4 |
 | Rave Charles (pit) | 0, −16 | | Sofa King (lounge) | 18, −8 |
-| Shmorez + fire + tent | 8, 11/14/17 | | THE LAB (big stage) | −1, 17 |
-| Tanky + tailgate | 15/18, 3/5 | | DreamOS TV (big CRT) | 15, 16 |
-| DriftWave | −2, −3 | | **THE ARCADE** (×3) | 8, 16 |
-| Spawn (inside) / hub | −4,6 / −18,18 | | **DEADNET** | −20, −10 |
-| dealer / dumpster | 16,−18 / −18,−16 | | **PORTA-POTTY** (Codex) | 21, 15 |
-| **THE DECKS** (DJ console) | −12, −8 | | | |
+| Shmorez + fire + tent | 9,19 · 9,16 · 5,20 | | THE LAB (big stage) | −1, 17 |
+| Tanky + tailgate | 15/18, 3/5 | | DreamOS TV (big CRT) | 20, −2 |
+| DriftWave | −2, −3 | | **THE ARCADE** (×3) | 20, 9 |
+| Spawn / hub board | −4,6 / −18,18 | | **DEADNET** (by arcade) | 15, 12 |
+| dealer / dumpster | 16,−18 / −18,−16 | | **PORTA-POTTY** (Codex) | −13, −16 |
+| Photo booth (Trippy Cam) | −13, 17 | | Basketball hoop | 11, 8 |
 
 *People (Rave, Shmorez, 12MATT3R, DriftWave) live in/around the crowd; structures (merch, deadnet,
 arcade, TV, lab, porta) sit on the sides/back, lined up with their neighbours. Everything is rotated to
@@ -71,25 +71,25 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
 - **12MATT3R** — a glitch figure somewhere in the crowd — glitch·code — cyan → the web-OS.
 - **THE MERCH TENT** — store/commissions — green. → planned: the camera-lock Etsy carousel.
 - **DREAMOS TV** — a big retro **CRT television** (wood cheeks, glowing scanline screen) whose screen
-  frames a doorway you walk into → the theater (§06). Sits beside the Arcade.
+  frames a doorway you walk into → the theater (§06). Sits on the right, between Sofa King and Tanky.
 - **THE LAB** — a big screen-stage — green → warps straight into the Lab terminal (§05).
 - **THE ARCADE** — a row of three arcade cabinets, side-by-side with the TV — magenta → the **Flash
   Games portal / games library**.
-- **DEADNET** — a broken flickering CRT monolith in a lonely corner — purple → *deadnet*, "the digital
-  afterlife," a self-generating non-real internet. New.
-- **THE CODEX (porta-potty)** — a row of porta-potties on the right edge. Step inside, boot the old CRT
-  → **this encyclopedia** (`codex.html`) loads. The in-world entrance to the Codex.
-- **THE DECKS** — a DJ booth (two platters + laptop) left of the pit — cyan → **$AUCELAB**, a real
-  two-deck DJ console (`dj.html`): upload your own tracks, EQ, filters, crossfader, tempo, cue, sync,
-  loops, jog wheels, waveforms, meters. Single-user (the battle/multiplayer layer was stripped out).
+- **DEADNET** — a broken flickering CRT monolith **beside the Arcade** — purple → *deadnet*, "the digital
+  afterlife," a self-generating non-real internet.
+- **THE CODEX (porta-potty)** — a row of three lit porta-potties **beside the dumpster** (no floating
+  label). Step inside, boot the old CRT → **this encyclopedia** (`codex.html`) loads.
+- **THE DECKS** — the DJ rig **up on the stage deck** — cyan → **$AUCELAB**, a real two-deck DJ console
+  (`dj.html`): upload your own tracks, EQ, filters, crossfader, tempo, cue, sync, loops, jog wheels,
+  waveforms, meters. Single-user (the battle/multiplayer layer was stripped out).
 
 ## 04 · Systems & Secrets (all built)
 
 - **Portal warp** — themed transition into a world (local page + portal home, or external new tab).
 - **Trash-hunt** — 10 hidden pieces → dumpster → secret download.
 - **Dealer → TRI-PPY** — hooded dealer in the crowd → rainbow hue over the world.
-- **DJ booth → TRIPPY CAM** — walk onto the stage, reach the booth → your live **webcam becomes the
-  sky** (getUserMedia → VideoTexture on a BackSide sphere). The feed is **zoomed out / tiled** so you
+- **Photo booth → TRIPPY CAM** — reach the photo booth in the back (by the hub board) → your live
+  **webcam becomes the sky** (getUserMedia → VideoTexture on a BackSide sphere). The feed is **zoomed out / tiled** so you
   can see yourself. **Hitting the booth again while it's live randomizes the effect** (mirror-hall
   tiling, hue tint, texture spin, additive blend); the HUD toggle turns it off. Opt-in.
 - **The hub board** — walk-up news Post-its + guest book (localStorage), bottom-left by spawn.

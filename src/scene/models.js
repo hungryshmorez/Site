@@ -374,19 +374,17 @@ function makeStripes(accent) {
 // green ("experiments happen in here").
 export function buildBathroom(accent = '#39FF14') {
   const g = new THREE.Group();
-  const shell = std({ color: 0x14301c, roughness: 0.9 });
   const glow = std({ color: 0x03210f, emissive: new THREE.Color(accent), emissiveIntensity: 0.5 });
-  for (let i = 0; i < 3; i++) {
-    const box = new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.1, 1.0), i === 1 ? glow : shell);
+  for (let i = 0; i < 3; i++) { // all three stalls glow now
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.1, 1.0), glow);
     box.position.set((i - 1) * 1.15, 1.05, 0); box.castShadow = true; g.add(box);
     const door = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.5, 0.03), std({ color: 0x0a1a10, roughness: 0.8 }));
     door.position.set((i - 1) * 1.15, 0.9, 0.52); g.add(door);
     const vent = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.02), std({ color: 0x0a1a10 })); vent.position.set((i - 1) * 1.15, 1.7, 0.52); g.add(vent);
+    const l = new THREE.PointLight(accent, 2.5, 6, 2); l.position.set((i - 1) * 1.15, 1.6, 1); g.add(l); // one light per stall
   }
   const roof = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.1, 1.2), std({ color: 0x0d200f })); roof.position.y = 2.15; g.add(roof);
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.4), glow); sign.position.set(0, 2.45, 0); g.add(sign);
-  const gl = new THREE.PointLight(accent, 4, 7, 2); gl.position.set(0, 1.6, 1); g.add(gl);
-  return { group: g, update: (t, pulse) => { g.children[3 * 0].material.emissiveIntensity = 0.4 + Math.sin(t * 3) * 0.2 + pulse * 0.3; } };
+  return { group: g, update: (t, pulse) => { glow.emissiveIntensity = 0.4 + Math.sin(t * 3) * 0.2 + pulse * 0.3; } };
 }
 
 // ---------------------------------------------------------------- LABS STAGE
@@ -487,10 +485,13 @@ export function buildArcade(accent = '#FF0055') {
   }
   // a row of three cabinets, the outer two angled inward like a little arcade nook
   const rowCols = ['#00F3FF', accent, '#b967ff'];
-  [-1.7, 0, 1.7].forEach((x, i) => { const cab = cabinet(rowCols[i]); cab.position.x = x; cab.rotation.y = -x * 0.14; g.add(cab); });
+  [-1.7, 0, 1.7].forEach((x, i) => {
+    const cab = cabinet(rowCols[i]); cab.position.x = x; cab.rotation.y = -x * 0.14; g.add(cab);
+    const cl = new THREE.PointLight(rowCols[i], 2.6, 6, 2); cl.position.set(x, 2.0, 1.1); g.add(cl); // each cabinet lit
+  });
   const marq = textPlane('ARCADE', accent); marq.position.set(0, 3.0, 0.6); marq.scale.set(3.2, 0.5, 1); g.add(marq);
-  const gl = new THREE.PointLight(accent, 4, 12, 2); gl.position.set(0, 2.2, 1.6); g.add(gl);
-  return { group: g, update: (t, pulse) => { screens.forEach((m) => { m.uniforms.t.value = t; m.uniforms.pulse.value = pulse; }); gl.intensity = 3 + pulse * 4; } };
+  const gl = new THREE.PointLight(accent, 3, 12, 2); gl.position.set(0, 2.6, 1.8); g.add(gl);
+  return { group: g, update: (t, pulse) => { screens.forEach((m) => { m.uniforms.t.value = t; m.uniforms.pulse.value = pulse; }); gl.intensity = 2.5 + pulse * 3; } };
 }
 
 // ---------------------------------------------------------------- TENT

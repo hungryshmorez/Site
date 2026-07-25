@@ -14,6 +14,7 @@ export class Hud {
     // name tags
     this.tags = new Map();
     for (const c of characters) {
+      if (c.dest.hideTag) continue; // no floating label for this one
       const el = document.createElement('div');
       el.className = 'tag';
       el.style.setProperty('--c', c.dest.accent);
@@ -53,6 +54,8 @@ export class Hud {
     let near = null, nearD = Infinity;
     for (const c of this.characters) {
       const el = this.tags.get(c.dest.id);
+      const d = playerPos.distanceTo(c.worldPos);
+      if (!el) { if (d < nearD) { nearD = d; near = c; } continue; } // hidden tag, still walk-up-able
       this._v.copy(c.worldPos); this._v.y += 0.9;
       this._v.project(this.cam);
       const behind = this._v.z > 1;
@@ -60,7 +63,6 @@ export class Hud {
       else {
         const x = (this._v.x * 0.5 + 0.5) * W;
         const y = (-this._v.y * 0.5 + 0.5) * H;
-        const d = playerPos.distanceTo(c.worldPos);
         const fade = THREE.MathUtils.clamp(1 - (d - 6) / 26, 0.15, 1);
         el.style.transform = `translate(-50%,-100%) translate(${x}px,${y}px)`;
         el.style.opacity = String(fade);
