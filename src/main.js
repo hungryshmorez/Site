@@ -110,7 +110,11 @@ const faceCenter = (x, z) => Math.atan2(0 - x, -4 - z);
 // Tanky's tailgate: lifted truck + beer pong + ping-pong tosses, by his spot.
 // The bed/tailgate (party side, +Z) faces center; the cab backs into the corner.
 const TAILGATE_POS = [18, 5];
-const tailgate = buildTailgate(scene, { pos: TAILGATE_POS, rot: faceCenter(TAILGATE_POS[0], TAILGATE_POS[1]) });
+const pongHudEl = document.getElementById('pongHud');
+const tailgate = buildTailgate(scene, {
+  pos: TAILGATE_POS, rot: faceCenter(TAILGATE_POS[0], TAILGATE_POS[1]),
+  onScore: (n, left) => { flash(left === 0 ? `🍺 RACK CLEARED! (${n})` : `🍺 in the cup! (${n})`); if (pongHudEl) pongHudEl.textContent = `🍺 sunk: ${n} · ${left} cups left`; },
+});
 
 // Sofa King's elevated lounge (riser + audience couches) at his spot. The
 // audience side (-Z) points at center, so the couches sit between him and it.
@@ -303,6 +307,8 @@ function handleTap(sx, sy) {
   { const got = fxchips.tryClick(raycaster); if (got) { unlockFx(got); return; } }
   // near the hoop — a click shoots a ball instead of walking
   if (hoop.near(controls.pos)) { hoop.throwBall(camera); return; }
+  // near the beer-pong table — a click tosses a ball at the cups
+  if (tailgate.near(controls.pos)) { tailgate.throwBall(camera); return; }
   // characters next
   const hitC = raycaster.intersectObjects(characters.proxies, false)[0];
   if (hitC) {
@@ -396,6 +402,7 @@ function frame() {
     fxchips.update(dt, time, pulse);
     hoop.update(dt, time);
     if (hoopHudEl) hoopHudEl.classList.toggle('on', hoop.near(controls.pos));
+    if (pongHudEl) pongHudEl.classList.toggle('on', tailgate.near(controls.pos));
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }

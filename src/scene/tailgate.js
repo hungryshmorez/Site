@@ -6,7 +6,7 @@ import * as THREE from 'three';
 
 const std = (o) => new THREE.MeshStandardMaterial(o);
 
-export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, accent = '#e6c04a' } = {}) {
+export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, accent = '#e6c04a', onScore } = {}) {
   const group = new THREE.Group();
   group.position.set(pos[0], 0, pos[1]);
   group.rotation.y = rot;
@@ -43,16 +43,23 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, accent = '#e6
   const top = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.08, 3.0), std({ color: 0x203040, roughness: 0.5, metalness: 0.3, emissive: col, emissiveIntensity: 0.06 }));
   top.position.set(0, 0.9, 0.7); top.castShadow = true; group.add(top);
   for (const [lx, lz] of [[-0.5, -0.6], [0.5, -0.6], [-0.5, 2.0], [0.5, 2.0]]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.9, 8), std({ color: 0x14141c, metalness: 0.6, roughness: 0.4 })); leg.position.set(lx, 0.45, lz); group.add(leg); }
-  const cupMat = std({ color: 0xd11e2a, roughness: 0.6 });
+  const cupMat = std({ color: 0xd11e2a, roughness: 0.6, emissive: new THREE.Color(0xd11e2a), emissiveIntensity: 0.25 });
   const rackRows = [[0], [-0.16, 0.16], [-0.32, 0, 0.32]];
+  const cups = []; // { mesh, sunk } — for the playable toss
   function rack(zBase, dir) {
     rackRows.forEach((row, ri) => row.forEach((cx) => {
       const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.05, 0.16, 12), cupMat);
       cup.position.set(cx, 0.98, zBase + dir * ri * 0.16); group.add(cup);
+      cups.push({ mesh: cup, sunk: false });
     }));
   }
   rack(-0.5, 1);  // near-truck end
   rack(1.9, -1);  // far end
+
+  // a glowing "play here" marker floating over the table
+  const marker = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.04, 10, 28), new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }));
+  marker.rotation.x = Math.PI / 2; marker.position.set(0, 2.2, 0.7); group.add(marker);
+  const markerLight = new THREE.PointLight(accent, 2.5, 7, 2); markerLight.position.set(0, 1.6, 0.7); group.add(markerLight);
 
   // ---- NPC players ----
   const npcMat = std({ color: 0x05050a, roughness: 1 });
@@ -87,8 +94,32 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, accent = '#e6
     k.v.set((0 - pl[0]) * 0.15, 2.9, dz / flight + (Math.random() - 0.5) * 0.3);
   }
 
+  // ---- the PLAYABLE toss: world-space balls you throw by aiming + clicking ----
+  group.updateWorldMatrix(true, true);
+  const tableCenter = group.localToWorld(new THREE.Vector3(0, 0.98, 0.7)); // world anchor
+  cups.forEach((c) => { c.world = c.mesh.getWorldPosition(new THREE.Vector3()); });
+  const PBALLS = 6, pBalls = [];
+  const pGeo = new THREE.SphereGeometry(0.06, 12, 10);
+  for (let i = 0; i < PBALLS; i++) {
+    const m = new THREE.Mesh(pGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x666666, emissiveIntensity: 0.4, roughness: 0.5 }));
+    m.visible = false; scene.add(m); pBalls.push({ mesh: m, v: new THREE.Vector3(), active: false, scored: false });
+  }
+  let made = 0;
+  const _fwd = new THREE.Vector3();
+  function near(playerPos) { return Math.hypot(playerPos.x - tableCenter.x, playerPos.z - tableCenter.z) < 8; }
+  function throwBall(camera) {
+    const b = pBalls.find((x) => !x.active); if (!b) return;
+    camera.getWorldDirection(_fwd);
+    b.mesh.position.copy(camera.position).addScaledVector(_fwd, 0.6);
+    b.v.copy(_fwd).multiplyScalar(8).add(new THREE.Vector3(0, 3.6, 0)); // soft arc toward the cups
+    b.active = true; b.mesh.visible = true; b.scored = false;
+  }
+  function resetCups() { cups.forEach((c) => { c.sunk = false; c.mesh.visible = true; }); }
+
   function update(dt, time, pulse) {
     underglow.intensity = 1.6 + pulse * 1.4;
+    marker.material.opacity = 0.55 + Math.sin(time * 3) * 0.25 + pulse * 0.2;
+    marker.position.y = 2.2 + Math.sin(time * 1.6) * 0.12;
     tmr -= dt; if (tmr <= 0) { toss(); tmr = 0.7 + Math.random() * 0.9; }
     let dirty = false;
     for (let i = 0; i < POOL; i++) {
@@ -98,7 +129,26 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, accent = '#e6
       dummy.position.copy(b.p); dummy.scale.setScalar(1); dummy.updateMatrix(); ballM.setMatrixAt(i, dummy.matrix); dirty = true;
     }
     if (dirty) ballM.instanceMatrix.needsUpdate = true;
+
+    // player toss physics + cup scoring
+    for (const b of pBalls) {
+      if (!b.active) continue;
+      const py = b.mesh.position.y;
+      b.v.y -= 11 * dt; b.mesh.position.addScaledVector(b.v, dt);
+      if (!b.scored && py > 1.06 && b.mesh.position.y <= 1.06) { // crossing cup-rim height, descending
+        for (const c of cups) {
+          if (c.sunk) continue;
+          if (Math.hypot(b.mesh.position.x - c.world.x, b.mesh.position.z - c.world.z) < 0.16) {
+            c.sunk = true; c.mesh.visible = false; b.scored = true; made++;
+            if (onScore) onScore(made, cups.filter((k) => !k.sunk).length);
+            if (cups.every((k) => k.sunk)) setTimeout(resetCups, 1200); // re-rack after a clear
+            break;
+          }
+        }
+      }
+      if (b.mesh.position.y < 0.5) { b.active = false; b.mesh.visible = false; } // missed / off the table
+    }
   }
 
-  return { update };
+  return { update, near, throwBall, made: () => made };
 }

@@ -141,8 +141,9 @@ back to the festival.
 ## 08 · The living grounds — micro-scenes (built)
 
 - 🔥 **Shmorez's campfire** — additive fire + logs + flickering firelight, NPCs roasting marshmallows.
-- 🛻 **Tanky's tailgate** — lifted low-poly truck (oversized tires, cooler in the bed, underglow),
-  beer-pong table with red-cup triangles, NPCs tossing ping-pong balls that arc across it.
+- 🛻 **Tanky's tailgate** — lifted low-poly truck (oversized tires, cooler in the bed, underglow) +
+  a **playable beer-pong table**: walk up (a glowing marker + 🍺 hint appear) and **click to toss** a
+  ball at the cups; sink one to score, clear the rack and it re-racks. NPCs also toss in the background.
 - 🛋️ **Sofa King's lounge** — an elevated riser (via a `lift` option), with beat-up couches of seated
   NPCs below nodding up at him.
 
