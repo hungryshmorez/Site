@@ -170,7 +170,7 @@ function unlockFx(mode) {
 }
 const fxToggleEl = document.getElementById('fxToggle');
 const fxPanelEl = document.getElementById('fxPanel');
-if (fxToggleEl) fxToggleEl.onclick = () => { buildFxMenu(); fxPanelEl.classList.toggle('open'); };
+if (fxToggleEl) fxToggleEl.onclick = () => { const tp = document.getElementById('todPanel'); if (tp) tp.classList.remove('open'); buildFxMenu(); fxPanelEl.classList.toggle('open'); };
 function buildFxMenu() {
   if (!fxPanelEl) return;
   const found = fxUnlocked.length, total = FX_MODES.length - 1;
@@ -186,6 +186,31 @@ function buildFxMenu() {
   });
 }
 buildFxMenu();
+
+// ---- time-of-day console: snap the sky/lighting to a preset (or auto cycle) --
+const TOD = [
+  { id: 'auto', name: 'AUTO CYCLE', v: null },
+  { id: 'day', name: 'DAY', v: 0.5 },
+  { id: 'dusk', name: 'DUSK', v: 0.78 },
+  { id: 'night', name: 'CYBER-NIGHT', v: 0.985 },
+  { id: 'dawn', name: 'NEON DAWN', v: 0.26 },
+];
+let dayLock = null, todSel = 'auto';
+const todPanelEl = document.getElementById('todPanel');
+const todToggleEl = document.getElementById('todToggle');
+if (todToggleEl) todToggleEl.onclick = () => { if (fxPanelEl) fxPanelEl.classList.remove('open'); buildTod(); todPanelEl.classList.toggle('open'); };
+function buildTod() {
+  if (!todPanelEl) return;
+  todPanelEl.innerHTML = '<div class="fxhead">TIME OF DAY</div>';
+  TOD.forEach((p) => {
+    const b = document.createElement('button');
+    b.className = 'fxrow' + (todSel === p.id ? ' on' : '');
+    b.textContent = p.name;
+    b.onclick = () => { dayLock = p.v; todSel = p.id; buildTod(); };
+    todPanelEl.appendChild(b);
+  });
+}
+buildTod();
 
 // DJ booth on the main stage → the TRIPPY CAM (your webcam becomes the sky)
 const djbooth = buildDJBooth(scene, {
@@ -283,8 +308,8 @@ let shake = 0, lastBurst = -10, burstGap = 4;   // beat-drop fireworks + camera 
 const clockEl = document.getElementById('clock');
 
 window.addEventListener('keydown', (e) => {           // [ and ] scrub time of day
-  if (e.key === '[') dayScrub -= 0.06;
-  else if (e.key === ']') dayScrub += 0.06;
+  if (e.key === '[') { dayScrub -= 0.06; dayLock = null; todSel = 'auto'; buildTod(); }
+  else if (e.key === ']') { dayScrub += 0.06; dayLock = null; todSel = 'auto'; buildTod(); }
 });
 
 function phaseName(d) {
@@ -306,7 +331,7 @@ function frame() {
   const audioPulse = reactor.pulse();                       // live bass energy, or null
   const pulse = reduceMotion ? 0.35 : (audioPulse != null ? Math.max(audioPulse, 0.05) : bpmPulse);
   if (mode === 'festival') {
-    const dayT = (((DAY_START + time / DAY_CYCLE + dayScrub) % 1) + 1) % 1;
+    const dayT = dayLock != null ? dayLock : (((DAY_START + time / DAY_CYCLE + dayScrub) % 1) + 1) % 1;
     controls.bobEnabled = !reduceMotion;
     controls.update(dt);
     // beat-drop fireworks + camera shake on big bass spikes

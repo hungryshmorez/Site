@@ -145,9 +145,9 @@ back to the festival.
 ## 09 · Controls & Accessibility
 
 WASD/arrows + Shift; drag to look; tap-to-walk / tap a name. Walk up the ramp onto the stage.
-`[` `]` scrub time. `◐ motion` (and OS reduced-motion) calms pulse/head-bob/trip and disables
-fireworks+shake. `🔊` sound · `📷` photo. Adaptive quality on phones (DPR 1.5, no MSAA, no bloom,
-thinner crowd).
+`[` `]` scrub time, or use the **🕑 time console** to snap to Auto / Day / Dusk / Cyber-Night / Neon
+Dawn. `◉ fx` switches camera modes (§04). `◐ motion` (and OS reduced-motion) calms pulse/head-bob/trip
+and disables fireworks+shake. `🔊` sound · `📷` photo. Adaptive quality on phones (DPR 1.5, no bloom).
 
 ## 10 · Design Language
 
