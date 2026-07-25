@@ -102,7 +102,10 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
   **orbs** scattered in out-of-the-way spots. Pick one up (click or walk into it), carry it to the
   **dealer**, and it goes **in stock**; then buy it from his menu to trip on that post-processing effect
   for a **limited time** (25–30s countdown, then it wears off). **TRIP** — a 6-fold kaleidoscope + swirl +
-  chroma + rolling-rainbow shader — is his always-in-stock signature. In-stock drugs persist (localStorage).
+  chroma + rolling-rainbow shader — is his always-in-stock signature. Deliver **every** orb and the final
+  unlock **EVERYTHING** appears: it turns on the **Trippy Cam** *and* a random fullscreen shader, with a
+  **🎲 RANDOMIZE** button that swaps through all the shaders (and re-randomizes the cam) each press,
+  applied over the whole level. In-stock drugs persist (localStorage).
 - **In-site popup window** — games/worlds/EPKs open in a draggable Windows-style window
   (title bar, min/max/close, live page in an iframe, no URL) over the site, so you never leave.
 - **Beat-drop fireworks + camera shake**, **spatial/enclosed audio**, day/night (scrub `[` `]`).

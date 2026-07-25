@@ -159,6 +159,8 @@ const hud = new Hud(document.getElementById('tags'), camera, characters.list, en
 // ---- the dealer's drugs: pick up effect ORBS around the map, carry them to
 // the dealer to put them "in stock", then buy one to trip on that camera effect
 // for a limited time. TRIP is the dealer's signature (always in stock). --------
+const BASE_ORBS = ['crt', 'vhs', 'ascii', 'gameboy', 'wireframe'];
+const SHADERS = ['crt', 'vhs', 'ascii', 'gameboy', 'wireframe', 'trip'];
 const DRUGS = [
   { id: 'trip', name: 'TRIP', mode: 'trip', dur: 30, stock: true },
   { id: 'crt', name: 'CRT', mode: 'crt', dur: 25 },
@@ -166,6 +168,7 @@ const DRUGS = [
   { id: 'ascii', name: 'ASCII', mode: 'ascii', dur: 25 },
   { id: 'gameboy', name: 'GAMEBOY', mode: 'gameboy', dur: 25 },
   { id: 'wireframe', name: 'WIREFRAME', mode: 'wireframe', dur: 25 },
+  { id: 'everything', name: 'EVERYTHING', dur: 90, final: true }, // unlocked once you deliver every orb
 ];
 const DRUG_STORE = 'drugsOwned';
 let owned = [];
@@ -173,9 +176,13 @@ try { owned = JSON.parse(localStorage.getItem(DRUG_STORE) || '[]'); } catch (e) 
 let carrying = null;             // drug id being carried to the dealer
 let activeDrug = null, drugTime = 0;  // currently tripping + seconds left
 let trippy = false;              // true while a drug is active (drives the dealer's glow)
-const inStock = (id) => DRUGS.find((d) => d.id === id)?.stock || owned.includes(id);
-// scatter orbs only for drugs you don't have in stock yet
-const orbs = buildOrbs(scene, { need: DRUGS.filter((d) => !inStock(d.id)).map((d) => d.id) });
+let lastShader = null, camByDrug = false;
+const hasAllOrbs = () => BASE_ORBS.every((id) => owned.includes(id));
+const inStock = (id) => id === 'everything' ? hasAllOrbs() : (DRUGS.find((d) => d.id === id)?.stock || owned.includes(id));
+// scatter orbs only for the base effects you don't have in stock yet
+const orbs = buildOrbs(scene, { need: BASE_ORBS.filter((id) => !owned.includes(id)) });
+const randBtnEl = document.getElementById('randBtn');
+if (randBtnEl) randBtnEl.onclick = () => { if (activeDrug === 'everything') { randomizeEverything(true); flash('🎲 remix — everything swaps'); } };
 
 const carryHudEl = document.getElementById('carryHud');
 const drugHudEl = document.getElementById('drugHud');
@@ -202,26 +209,53 @@ function openDealerMenu() {
   if (!dealerPanelEl) return;
   closeConsoles('dealerPanel');
   dealerPanelEl.innerHTML = '<div class="fxhead">THE DEALER <span>what you havin\'?</span></div>';
-  DRUGS.filter((d) => inStock(d.id)).forEach((d) => {
+  DRUGS.forEach((d) => {
+    if (d.id === 'everything' && !inStock('everything')) { // locked final unlock (teaser)
+      const need = BASE_ORBS.filter((id) => !owned.includes(id)).length;
+      const b = document.createElement('button'); b.className = 'fxrow locked';
+      b.textContent = '🔒 EVERYTHING';
+      const s = document.createElement('span'); s.className = 'fxhint'; s.textContent = `deliver all the orbs (${need} left) to unlock`; b.appendChild(s);
+      dealerPanelEl.appendChild(b); return;
+    }
+    if (!inStock(d.id)) return; // base effect still out there as an orb
     const b = document.createElement('button'); b.className = 'fxrow' + (activeDrug === d.id ? ' on' : '');
     b.textContent = `💊 ${d.name}`;
-    const s = document.createElement('span'); s.className = 'fxhint'; s.textContent = `${d.dur}s trip`; b.appendChild(s);
+    const s = document.createElement('span'); s.className = 'fxhint'; s.textContent = d.final ? 'trippy cam + random shaders' : `${d.dur}s trip`; b.appendChild(s);
     b.onclick = () => { buyDrug(d.id); };
     dealerPanelEl.appendChild(b);
   });
-  const missing = DRUGS.filter((d) => !inStock(d.id)).length;
-  if (missing) { const n = document.createElement('div'); n.className = 'fxhint'; n.style.padding = '6px'; n.textContent = `${missing} more effect${missing === 1 ? '' : 's'} hidden on the grounds — bring the orbs here`; dealerPanelEl.appendChild(n); }
+  const missing = BASE_ORBS.filter((id) => !owned.includes(id)).length;
+  if (missing) { const n = document.createElement('div'); n.className = 'fxhint'; n.style.padding = '6px'; n.textContent = `${missing} more orb${missing === 1 ? '' : 's'} hidden on the grounds`; dealerPanelEl.appendChild(n); }
   dealerPanelEl.classList.add('open');
 }
 function buyDrug(id) {
   const d = DRUGS.find((x) => x.id === id); if (!d) return;
-  activeDrug = id; drugTime = d.dur; fx.setMode(d.mode); trippy = true;
-  flash(`you take the ${d.name}${d.id === 'trip' ? ' — everything melts' : ''}`);
+  activeDrug = id; drugTime = d.dur; trippy = true;
+  if (id === 'everything') {
+    // the final unlock: turn the trippy cam on + a random fullscreen shader; hit
+    // RANDOMIZE to swap through all the shaders + re-randomize the cam
+    camByDrug = !trippycam.isActive();
+    if (camByDrug) trippycam.start();
+    randomizeEverything(false);
+    if (randBtnEl) randBtnEl.classList.add('shown');
+    flash('EVERYTHING — the whole level melts. hit 🎲 to swap');
+  } else {
+    fx.setMode(d.mode);
+    flash(`you take the ${d.name}${d.id === 'trip' ? ' — everything melts' : ''}`);
+  }
   if (dealerPanelEl) dealerPanelEl.classList.remove('open');
   if (drugHudEl) drugHudEl.classList.add('on');
 }
+function randomizeEverything(resetTimer = true) {
+  let m = lastShader; while (m === lastShader && SHADERS.length > 1) m = SHADERS[(Math.random() * SHADERS.length) | 0];
+  lastShader = m; fx.setMode(m);
+  if (trippycam.isActive()) trippycam.randomizeEffect();
+  if (resetTimer) drugTime = DRUGS.find((d) => d.id === 'everything').dur;
+}
 function endDrug() {
-  activeDrug = null; drugTime = 0; fx.setMode('normal'); trippy = false;
+  const wasEverything = activeDrug === 'everything';
+  activeDrug = null; drugTime = 0; fx.setMode('normal'); trippy = false; lastShader = null;
+  if (wasEverything) { if (randBtnEl) randBtnEl.classList.remove('shown'); if (camByDrug) { trippycam.stop(); camByDrug = false; } }
   if (drugHudEl) drugHudEl.classList.remove('on');
   flash('you come back down');
 }
