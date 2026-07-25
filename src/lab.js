@@ -5,6 +5,7 @@
 // src/data/catalog.js instead.
 
 import { ALIASES, LAB, LINKS } from './data/catalog.js';
+import { openWindow } from './ui/popup.js';
 
 const app = document.getElementById('app');
 const folderNames = Object.keys(LAB);
@@ -25,12 +26,12 @@ function el(tag, cls, html) {
   return n;
 }
 
-// A launchable item card. Internal pages navigate in-tab; everything else
-// opens in a new window (websim/minimax pages block being framed).
+// A launchable item card. Internal pages navigate in-tab; external worlds pop
+// open in a Windows-style window over the Lab (no URL, never leaves the site).
 function itemCard(item) {
   const a = el('a', 'card' + (item.special ? ' special' : '') + (item.internal ? '' : ' ext'));
   a.href = item.url;
-  if (!item.internal) { a.target = '_blank'; a.rel = 'noopener'; }
+  if (!item.internal) { a.onclick = (e) => { e.preventDefault(); openWindow(item.name, item.url); }; }
   a.appendChild(el('span', 'b', item.name));
   if (item.note) a.appendChild(el('span', 's', item.note));
   return a;

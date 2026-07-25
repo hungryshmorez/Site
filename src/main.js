@@ -14,6 +14,7 @@ import { buildCampfire } from './scene/campfire.js';
 import { buildTailgate } from './scene/tailgate.js';
 import { buildLounge } from './scene/lounge.js';
 import { buildFireworks } from './scene/fireworks.js';
+import { openWindow } from './ui/popup.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -438,8 +439,10 @@ function enterDestination(dest) {
   if (!target) { flash('// coming soon'); return; }
   const sameTab = !!dest.page || target.startsWith('/');
   playWarp(dest, () => {
+    // local pages load in-tab (each carries a portal home); external worlds
+    // pop open in a Windows-style window over the festival — you never leave.
     if (sameTab) window.location.href = target;
-    else window.open(target, '_blank', 'noopener');
+    else openWindow(dest.name, target);
   });
 }
 

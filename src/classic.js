@@ -3,6 +3,7 @@
 // canonical catalog the Lab uses, so the two experiences never drift apart.
 
 import { ALIASES, LAB, LINKS } from './data/catalog.js';
+import { openWindow } from './ui/popup.js';
 
 const navEl = document.getElementById('nav');
 const featEl = document.getElementById('features');
@@ -24,12 +25,14 @@ function el(tag, cls, html) {
 }
 function slug(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
 
-// external launcher card (websim/minimax pages can't be framed → new tab)
+// Launcher card. Internal pages navigate in-tab; external worlds pop open in a
+// Windows-style window over the site (no URL, never leaves the page).
 function card(name, url, sub, opts = {}) {
   const internal = opts.internal;
   const a = el('a', 'card' + (opts.special ? ' special' : '') + (internal ? '' : ' ext'));
   a.href = url;
-  if (!internal) { a.target = '_blank'; a.rel = 'noopener'; }
+  if (internal) { /* same-tab navigation */ }
+  else { a.onclick = (e) => { e.preventDefault(); openWindow(name, url); }; }
   a.appendChild(el('span', 'b', name));
   if (sub) a.appendChild(el('span', 's', sub));
   return a;
@@ -38,7 +41,8 @@ function card(name, url, sub, opts = {}) {
 // ── two featured cards up top: Trippy Cam + DreamOS TV ──────────────────────
 const trippy = (LAB['Tools'] || []).find((t) => /trippy cam/i.test(t.name));
 if (trippy) {
-  const f = el('a', 'feat'); f.href = trippy.url; f.target = '_blank'; f.rel = 'noopener';
+  const f = el('a', 'feat'); f.href = trippy.url;
+  f.onclick = (e) => { e.preventDefault(); openWindow('TRIPPY CAM', trippy.url); };
   f.appendChild(el('b', null, 'TRIPPY CAM ↗'));
   f.appendChild(el('span', null, 'Real-time psychedelic webcam glitch studio. Point it at yourself.'));
   featEl.appendChild(f);
