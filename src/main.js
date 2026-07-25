@@ -14,6 +14,7 @@ import { buildCampfire } from './scene/campfire.js';
 import { buildTailgate } from './scene/tailgate.js';
 import { buildLounge } from './scene/lounge.js';
 import { buildFireworks } from './scene/fireworks.js';
+import { buildTent } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -96,21 +97,23 @@ const dealer = buildDealer(scene, {
   onToggle: () => toggleTrippy(),
 });
 
-// Shmorez's campfire micro-scene (fire + roasting NPCs) next to his spot
-const CAMPFIRE_POS = [3, -14];
+// Shmorez's campfire micro-scene (fire + roasting NPCs) out back by his spot,
+// with a tent pitched behind him.
+const CAMPFIRE_POS = [8, 14];
 const campfire = buildCampfire(scene, { pos: CAMPFIRE_POS, roasters: 3 });
+buildTent(scene, { pos: [8, 17], accent: '#ff6b35' });
 
 // everything faces the center of the grounds (front = +Z toward [0,-4])
 const faceCenter = (x, z) => Math.atan2(0 - x, -4 - z);
 
 // Tanky's tailgate: lifted truck + beer pong + ping-pong tosses, by his spot.
 // The bed/tailgate (party side, +Z) faces center; the cab backs into the corner.
-const TAILGATE_POS = [18, 4];
+const TAILGATE_POS = [18, 5];
 const tailgate = buildTailgate(scene, { pos: TAILGATE_POS, rot: faceCenter(TAILGATE_POS[0], TAILGATE_POS[1]) });
 
 // Sofa King's elevated lounge (riser + audience couches) at his spot. The
 // audience side (-Z) points at center, so the couches sit between him and it.
-const LOUNGE_POS = [17, -8];
+const LOUNGE_POS = [18, -8];
 const lounge = buildLounge(scene, { pos: LOUNGE_POS, rot: faceCenter(LOUNGE_POS[0], LOUNGE_POS[1]) + Math.PI });
 
 // the 12matt3r hub board → walk up, read news, sign the guest book
@@ -123,7 +126,8 @@ const board = buildBoard(scene, {
 
 const BIG = new Set(['stall', 'labsstage', 'bathroom', 'sofaboi', 'doorway']);
 const crowd = buildCrowd(scene, {
-  count: isMobile ? 170 : 320,
+  count: isMobile ? 190 : 340,
+  rail: isMobile ? 40 : 70,
   stageZ: festival.stageZ,
   exclude: [
     // [x, z, clear-radius] — bigger clearing around structures, plus spawn
@@ -137,7 +141,7 @@ const crowd = buildCrowd(scene, {
     [LOUNGE_POS[0], LOUNGE_POS[1] - 3, 5],
   ],
 });
-const controls = new WalkControls(camera, { bounds: 42, eye: 1.6, zMin: -30 });
+const controls = new WalkControls(camera, { bounds: 24, eye: 1.6, zMin: -30 });
 // let the player walk up the ramp onto the stage deck
 controls.groundAt = (x, z) => {
   const d = festival.deck;
@@ -208,9 +212,14 @@ function handleTap(sx, sy) {
     const c = characters.list.find((x) => x.proxy === hitC.object);
     if (c) { controls.walkTo(c.worldPos); return; }
   }
-  // otherwise walk to the point on the ground
+  // otherwise walk to the point on the ground — clamped to the arena so a click
+  // on the sky / outside the grandstands can't send you running off forever
   const groundHit = raycaster.ray.intersectPlane(GROUND, new THREE.Vector3());
-  if (groundHit) controls.walkTo(groundHit);
+  if (groundHit) {
+    groundHit.x = THREE.MathUtils.clamp(groundHit.x, -controls.bounds, controls.bounds);
+    groundHit.z = THREE.MathUtils.clamp(groundHit.z, controls.zMin, controls.bounds);
+    controls.walkTo(groundHit);
+  }
 }
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 const STAGE_PT = new THREE.Vector3(0, 1.6, -18); // audio swells as you approach this

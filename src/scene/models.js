@@ -451,19 +451,44 @@ function textPlane(text, color) {
 export function buildArcade(accent = '#FF0055') {
   const g = new THREE.Group();
   const body = std({ color: 0x0d0d16, roughness: 0.6, metalness: 0.3 });
-  const cab = new THREE.Mesh(new THREE.BoxGeometry(1.3, 2.4, 1.1), body); cab.position.y = 1.2; cab.castShadow = true; g.add(cab);
   const side = std({ color: 0x120018, emissive: new THREE.Color(accent), emissiveIntensity: 0.25, roughness: 0.7 });
-  for (const sx of [-0.66, 0.66]) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.02, 2.4, 1.1), side); s.position.set(sx, 1.2, 0); g.add(s); }
-  const scrMat = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 }, pulse: { value: 0 } },
-    vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`, fragmentShader: arcadeFrag() });
-  const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.8), scrMat); scr.position.set(0, 1.78, 0.57); scr.rotation.x = -0.22; g.add(scr);
-  const marq = textPlane('ARCADE', accent); marq.position.set(0, 2.38, 0.5); marq.scale.set(1.4, 0.36, 1); g.add(marq);
-  const panel = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.1, 0.6), std({ color: 0x101018, roughness: 0.7 })); panel.position.set(0, 1.16, 0.62); panel.rotation.x = -0.5; g.add(panel);
-  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.22, 8), std({ color: 0x222230 })); stick.position.set(-0.32, 1.3, 0.72); g.add(stick);
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 10), new THREE.MeshBasicMaterial({ color: accent })); ball.position.set(-0.32, 1.42, 0.72); g.add(ball);
-  for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.04, 12), new THREE.MeshBasicMaterial({ color: i ? 0x33ffff : accent })); b.position.set(0.02 + i * 0.16, 1.3, 0.72); b.rotation.x = Math.PI / 2; g.add(b); }
-  const gl = new THREE.PointLight(accent, 4, 8, 2); gl.position.set(0, 1.8, 1.2); g.add(gl);
-  return { group: g, update: (t, pulse) => { scrMat.uniforms.t.value = t; scrMat.uniforms.pulse.value = pulse; gl.intensity = 3 + pulse * 4; } };
+  const screens = [];
+  // a single cabinet as a subgroup, so we can stand up a whole row of them
+  function cabinet(col) {
+    const cg = new THREE.Group();
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.3, 2.4, 1.1), body); cab.position.y = 1.2; cab.castShadow = true; cg.add(cab);
+    for (const sx of [-0.66, 0.66]) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.02, 2.4, 1.1), side); s.position.set(sx, 1.2, 0); cg.add(s); }
+    const scrMat = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 }, pulse: { value: 0 } },
+      vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`, fragmentShader: arcadeFrag() });
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.8), scrMat); scr.position.set(0, 1.78, 0.57); scr.rotation.x = -0.22; cg.add(scr); screens.push(scrMat);
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.1, 0.6), std({ color: 0x101018, roughness: 0.7 })); panel.position.set(0, 1.16, 0.62); panel.rotation.x = -0.5; cg.add(panel);
+    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.22, 8), std({ color: 0x222230 })); stick.position.set(-0.32, 1.3, 0.72); cg.add(stick);
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 10), new THREE.MeshBasicMaterial({ color: col })); ball.position.set(-0.32, 1.42, 0.72); cg.add(ball);
+    for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.04, 12), new THREE.MeshBasicMaterial({ color: i ? 0x33ffff : col })); b.position.set(0.02 + i * 0.16, 1.3, 0.72); b.rotation.x = Math.PI / 2; cg.add(b); }
+    return cg;
+  }
+  // a row of three cabinets, the outer two angled inward like a little arcade nook
+  const rowCols = ['#00F3FF', accent, '#b967ff'];
+  [-1.7, 0, 1.7].forEach((x, i) => { const cab = cabinet(rowCols[i]); cab.position.x = x; cab.rotation.y = -x * 0.14; g.add(cab); });
+  const marq = textPlane('ARCADE', accent); marq.position.set(0, 3.0, 0.6); marq.scale.set(3.2, 0.5, 1); g.add(marq);
+  const gl = new THREE.PointLight(accent, 4, 12, 2); gl.position.set(0, 2.2, 1.6); g.add(gl);
+  return { group: g, update: (t, pulse) => { screens.forEach((m) => { m.uniforms.t.value = t; m.uniforms.pulse.value = pulse; }); gl.intensity = 3 + pulse * 4; } };
+}
+
+// ---------------------------------------------------------------- TENT
+// A festival teepee tent — reads as a little camp; used behind Shmorez by the
+// fire. Faces the center of the grounds.
+export function buildTent(scene, { pos = [0, 0], accent = '#ff6b35' } = {}) {
+  const g = new THREE.Group(); g.position.set(pos[0], 0, pos[1]);
+  g.rotation.y = Math.atan2(0 - pos[0], -4 - pos[1]); // face center
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(2.0, 3.0, 8, 1, true),
+    std({ color: 0x2a3550, roughness: 0.95, emissive: new THREE.Color(accent), emissiveIntensity: 0.08, side: THREE.DoubleSide }));
+  cone.position.y = 1.5; cone.castShadow = true; g.add(cone);
+  for (let i = 0; i < 4; i++) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.2, 6), std({ color: 0x1a120c })); p.position.set((i - 1.5) * 0.12, 3.0, 0); p.rotation.z = (i - 1.5) * 0.12; g.add(p); }
+  const door = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.5), std({ color: 0x05050a, side: THREE.DoubleSide })); door.position.set(0, 0.75, 1.5); g.add(door);
+  const gl = new THREE.PointLight(accent, 2, 7, 2); gl.position.set(0, 1.1, 0); g.add(gl);
+  scene.add(g);
+  return { group: g };
 }
 function arcadeFrag() {
   return `varying vec2 vUv; uniform float t,pulse;

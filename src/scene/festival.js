@@ -15,7 +15,7 @@ export function buildFestival(scene) {
     amb:  [c(0x223046), c(0x7a4a5a), c(0x8aa2c2)],
     sun:  [c(0x8fa8ff), c(0xff9a5a), c(0xfff2d6)],
   };
-  const AMB_I = [0.35, 0.6, 0.95], SUN_I = [0.22, 0.75, 1.15];
+  const AMB_I = [0.52, 0.68, 0.95], SUN_I = [0.34, 0.78, 1.15];
 
   // ---- sky dome ----
   const skyMat = new THREE.ShaderMaterial({
@@ -148,6 +148,31 @@ export function buildFestival(scene) {
   // ---- spawn bench (where you start, facing the stage) ----
   buildBench(scene);
 
+  // ---- perimeter: 3-sided stadium seating that closes off the arena (stage is
+  // the 4th side), with colored light posts that shine inward and brighten at
+  // night so the edge of the map is lit and obvious. ----
+  const perimLights = [];
+  {
+    const seatMat = new THREE.MeshStandardMaterial({ color: 0x0c0c16, roughness: 0.9, metalness: 0.2 });
+    const R = 25, TIERS = 4;
+    const mkTier = (w, d, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 1.0, d), seatMat); m.position.set(x, y, z); m.receiveShadow = true; scene.add(m); };
+    for (let i = 0; i < TIERS; i++) {
+      const off = i * 1.3, y = 0.5 + i * 1.0;
+      mkTier(1.2, 56, -R - off, y, -2);   // left grandstand (runs along z)
+      mkTier(1.2, 56, R + off, y, -2);    // right grandstand
+      mkTier(56, 1.2, 0, y, R + off);     // back grandstand (runs along x)
+    }
+    const cols = [PALETTE.cyan, PALETTE.magenta, PALETTE.purple, PALETTE.green];
+    const posts = [[-26, -16], [-26, 0], [-26, 14], [26, -16], [26, 0], [26, 14], [-16, 26], [0, 26], [16, 26]];
+    posts.forEach(([px, pz], i) => {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 7, 8), new THREE.MeshStandardMaterial({ color: 0x14141c, metalness: 0.6, roughness: 0.5 }));
+      post.position.set(px, 3.5, pz); post.castShadow = true; scene.add(post);
+      const col = c(cols[i % cols.length]);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), new THREE.MeshBasicMaterial({ color: col })); head.position.set(px, 7, pz); scene.add(head);
+      const L = new THREE.PointLight(col, 4, 46, 2); L.position.set(px * 0.9, 7.2, pz * 0.9); scene.add(L); perimLights.push(L);
+    });
+  }
+
   // ---- haze ----
   const fog = new THREE.FogExp2(0x07071a, 0.016); scene.fog = fog;
 
@@ -187,6 +212,9 @@ export function buildFestival(scene) {
     }
     lasers.material.opacity = Math.pow(pulse, 2) * 0.5 * darkness;
     lasers.rotation.y = Math.sin(time * 0.4) * 0.15;
+
+    // perimeter light posts flare up at night so the arena edge stays lit
+    for (const L of perimLights) L.intensity = 3 + darkness * 9 + pulse * 4;
 
     // speaker cones glow + punch on the bass
     for (const cn of speakerCones) {

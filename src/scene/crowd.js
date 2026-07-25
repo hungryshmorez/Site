@@ -4,7 +4,7 @@ import { PALETTE } from '../data/destinations.js';
 // A dense crowd of instanced silhouettes facing the stage, bobbing on the
 // beat, each waving a glowing stick. Instanced for performance (one draw
 // call for all bodies, one for all glowsticks).
-export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [] } = {}) {
+export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [], rail = 0 } = {}) {
   // ---- bodies: a simple capsule silhouette ----
   const bodyGeo = new THREE.CapsuleGeometry(0.26, 0.72, 4, 8);
   const bodyMat = new THREE.MeshStandardMaterial({ color: 0x05050a, roughness: 1, metalness: 0 });
@@ -24,13 +24,21 @@ export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [] } = 
   const minZ = stageZ + 6, maxZ = 16, spanX = 44;
 
   let i = 0, guard = 0;
+  // a dense front rail packed against the stage, across the full width
+  while (i < rail && i < count) {
+    const x = -15 + (i / Math.max(1, rail - 1)) * 30 + (Math.random() - 0.5) * 0.8;
+    const z = stageZ + 5.4 + Math.random() * 1.6;
+    agents.push({ x, z, scale: 0.86 + Math.random() * 0.28, phase: Math.random() * Math.PI * 2, freq: 0.85 + Math.random() * 0.3 });
+    const c = glowColors[(Math.random() * glowColors.length) | 0];
+    gcol[i * 3] = c.r; gcol[i * 3 + 1] = c.g; gcol[i * 3 + 2] = c.b;
+    i++;
+  }
   while (i < count && guard < count * 40) {
     guard++;
     const x = (Math.random() - 0.5) * spanX;
     const z = minZ + Math.random() * (maxZ - minZ);
-    // keep a clear aisle down the middle-front and a clearing around each
-    // destination (exclude points carry their own radius in e[2])
-    if (Math.abs(x) < 2.4 && z < stageZ + 14) continue;
+    // keep a light clearing around each destination (exclude points carry their
+    // own radius in e[2]); the front rail above already fills the stage front
     if (exclude.some((e) => Math.hypot(x - e[0], z - e[1]) < (e[2] || 3.2))) continue;
 
     const scale = 0.82 + Math.random() * 0.32;

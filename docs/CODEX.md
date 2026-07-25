@@ -35,37 +35,43 @@ stage on big bass spikes, with a short **camera shake**.
 **Spawn + the hub are in the bottom-left corner.** You start on the bench at **[−18, 18]** facing the
 stage; the 12matt3r hub board sits beside you at **[−14, 16]**.
 
+**The arena is closed by a 3-sided grandstand** (stadium seating on the left, right, and back — the
+stage is the 4th side) so you can't wander off the map; colored **light posts** ring the seating and
+**flare up at night** to keep the edge lit. Night is a touch brighter overall. Walking and click-to-walk
+are clamped to the arena.
+
 **World coordinates [x, z]** (stage north / −z):
 
 | destination | [x, z] | | destination | [x, z] |
 |---|---|---|---|---|
-| Main stage | 0, −26 | | 12MATT3R (VJ) | −19, −7 |
-| DJ booth (on deck) | 0, −24 | | Merch tent | −19, 3 |
-| Rave Charles (pit) | −8, −13 | | Sofa King (lounge) | 17, −8 |
-| Shmorez + campfire | 4/3, −11/−14 | | THE LAB (big stage) | −1, 17 |
-| Tanky + tailgate | 14/18, 3/4 | | DreamOS TV doorway | 14, 16 |
-| DriftWave | −2, −3 | | **THE ARCADE** | 10, 11 |
-| Spawn + hub board | −18/−14, 18/16 | | **DEADNET** | −12, −18 |
-| dealer / dumpster | 16,−18 / −18,−16 | | **PORTA-POTTY** (gag) | 20, −2 |
+| Main stage | 0, −26 | | 12MATT3R (in crowd) | −5, −10 |
+| DJ booth (on deck) | 0, −24 | | Merch tent | −20, 4 |
+| Rave Charles (pit) | 0, −16 | | Sofa King (lounge) | 18, −8 |
+| Shmorez + fire + tent | 8, 11/14/17 | | THE LAB (big stage) | −1, 17 |
+| Tanky + tailgate | 15/18, 3/5 | | DreamOS TV doorway | 14, 16 |
+| DriftWave | −2, −3 | | **THE ARCADE** (×3) | 20, 10 |
+| Spawn + hub board | −18/−14, 18/16 | | **DEADNET** | −20, −10 |
+| dealer / dumpster | 16,−18 / −18,−16 | | **PORTA-POTTY** (gag) | 21, 15 |
 
-*Everything is rotated to face the **center** of the grounds ([0, −4]) so the whole
-build reads as pointing inward. THE LAB and 12MATT3R swapped corners — the Lab sits near spawn.*
+*People (Rave, Shmorez, 12MATT3R, DriftWave) live in/around the crowd; structures (merch, deadnet,
+arcade, TV, lab, porta) sit on the sides/back, lined up with their neighbours. Everything is rotated to
+face the **center** of the grounds ([0, −4]).*
 
 ## 03 · The Roster (12 destinations)
 
 Each a procedural model with its own neon accent, matching doesntmatter.us. Reaching one plays the warp
 and opens its info panel; the CTA opens the real place (EPK / world / portal).
 
-- **RAVE CHARLES** — down in the pit — rapper·DJ — magenta. Masked raver, glowing visor.
-- **SHMOREZ** — the pit, by his campfire — electronic·marshmallow — orange.
+- **RAVE CHARLES** — in the center pit, surrounded by the crowd — rapper·DJ — magenta. Masked raver.
+- **SHMOREZ** — out back by his campfire + tent — electronic·marshmallow — orange.
 - **SOFA KING SAD BOI** — up on his elevated lounge — dubstep·weird bass — indigo. → his EPK.
 - **DRIFTWAVE STATIC** — chill zone — slushwave·ambient·vaporwave — purple.
 - **TANKY JOHNSON** — by his tailgate — outlaw country — gold. Cowboy.
-- **12MATT3R** — VJ figure, back-left — glitch·code — cyan. RGB-splitting glitch figure → the web-OS.
+- **12MATT3R** — a glitch figure somewhere in the crowd — glitch·code — cyan → the web-OS.
 - **THE MERCH TENT** — store/commissions — green. → planned: the camera-lock Etsy carousel.
 - **DREAMOS TV** — a lit side doorway (magenta marquee, vendor-stand underglow) → the theater (§06).
 - **THE LAB** — a big screen-stage — green → warps straight into the Lab terminal (§05).
-- **THE ARCADE** — a lone arcade cabinet — magenta → the **Flash Games portal / games library**. New.
+- **THE ARCADE** — a row of three arcade cabinets — magenta → the **Flash Games portal / games library**.
 - **DEADNET** — a broken flickering CRT monolith in a lonely corner — purple → *deadnet*, "the digital
   afterlife," a self-generating non-real internet. New.
 - **PORTA-POTTY** — a standalone gag on the right edge. Step inside, click the busted CRT → it boots
