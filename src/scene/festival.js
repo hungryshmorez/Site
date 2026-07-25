@@ -200,7 +200,7 @@ export function buildFestival(scene) {
 
 // spawn bench (simple wooden slats + iron legs), at +Z facing the stage
 function buildBench(scene) {
-  const g = new THREE.Group(); g.position.set(0, 0, 12);
+  const g = new THREE.Group(); g.position.set(-2, 0, 7);
   const wood = new THREE.MeshStandardMaterial({ color: 0x2a1d16, roughness: 0.8, emissive: new THREE.Color(0x001a1f), emissiveIntensity: 0.3 });
   const iron = new THREE.MeshStandardMaterial({ color: 0x0a0a12, roughness: 0.5, metalness: 0.6 });
   const box = (w, h, d, m) => { const x = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); x.castShadow = true; x.receiveShadow = true; return x; };

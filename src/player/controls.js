@@ -12,7 +12,7 @@ export class WalkControls {
     this.groundAt = () => 0; // floor height under (x,z) — lets you walk up on stage
     this.yaw = 0;                // face -Z (the stage) on spawn
     this.pitch = -0.02;
-    this.pos = new THREE.Vector3(0, eye, 8);
+    this.pos = new THREE.Vector3(-2, eye, 7);
     this.walkTarget = null;      // THREE.Vector3 | null
     this.onArrive = null;
     this.speed = 7.2;

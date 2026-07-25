@@ -79,7 +79,7 @@ const characters = buildCharacters(scene, { stageZ: festival.stageZ });
 const fireworks = buildFireworks(scene, { origin: [0, 15, festival.stageZ] });
 
 // hidden trash-hunt → clean the grounds → secret download
-const DUMPSTER_POS = [-19, 15];
+const DUMPSTER_POS = [-18, -16];
 const trash = buildTrash(scene, {
   dumpsterPos: DUMPSTER_POS,
   onPickup: (label, s) => { flash(`picked up ${label}`); trashHudUpdate(s); },
@@ -88,7 +88,7 @@ const trash = buildTrash(scene, {
 });
 
 // a dealer hidden in the crowd → reach him to score the TRI-PPY (rainbow warp)
-const DEALER_POS = [-5, 5];
+const DEALER_POS = [16, -18];
 const dealer = buildDealer(scene, {
   pos: DEALER_POS,
   stageZ: festival.stageZ,
@@ -96,19 +96,19 @@ const dealer = buildDealer(scene, {
 });
 
 // Shmorez's campfire micro-scene (fire + roasting NPCs) next to his spot
-const CAMPFIRE_POS = [-10, -8];
+const CAMPFIRE_POS = [3, -14];
 const campfire = buildCampfire(scene, { pos: CAMPFIRE_POS, roasters: 3 });
 
 // Tanky's tailgate: lifted truck + beer pong + ping-pong tosses, by his spot
-const TAILGATE_POS = [16, -8];
+const TAILGATE_POS = [18, 4];
 const tailgate = buildTailgate(scene, { pos: TAILGATE_POS, rot: -1.1 });
 
 // Sofa King's elevated lounge (riser + audience couches) at his spot
-const LOUNGE_POS = [14, 17];
+const LOUNGE_POS = [17, -8];
 const lounge = buildLounge(scene, { pos: LOUNGE_POS });
 
 // the 12matt3r hub board → walk up, read news, sign the guest book
-const BOARD_POS = [3, 11];
+const BOARD_POS = [1, 10];
 const board = buildBoard(scene, {
   pos: BOARD_POS,
   stageZ: festival.stageZ,
@@ -122,7 +122,7 @@ const crowd = buildCrowd(scene, {
   exclude: [
     // [x, z, clear-radius] — bigger clearing around structures, plus spawn
     ...DESTINATIONS.map((d) => [d.pos[0], d.pos[2], BIG.has(d.model) ? 6.5 : 3.6]),
-    [0, 9, 4.5],
+    [-2, 7, 4.5],
     [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
     [DEALER_POS[0], DEALER_POS[1], 2.4],
     [BOARD_POS[0], BOARD_POS[1], 3],
