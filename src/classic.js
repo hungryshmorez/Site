@@ -57,6 +57,12 @@ fdj.appendChild(el('b', null, '$AUCELAB DJ CONSOLE'));
 fdj.appendChild(el('span', null, 'Two decks, EQ, filters, tempo, cue, sync, loops — upload your own tracks and mix.'));
 featEl.appendChild(fdj);
 
+const fapp = el('a', 'feat'); fapp.href = 'https://fm10ff7jh3uf.space.minimax.io';
+fapp.onclick = (e) => { e.preventDefault(); openWindow('12MATT3R APP', 'https://fm10ff7jh3uf.space.minimax.io'); };
+fapp.appendChild(el('b', null, '12MATT3R APP ↗'));
+fapp.appendChild(el('span', null, 'Opens in a window over the site.'));
+featEl.appendChild(fapp);
+
 const sections = []; // { id, label }
 
 // ── LINKS AT THE TOP: character tabs + a COLLECTIVE tab ─────────────────────
