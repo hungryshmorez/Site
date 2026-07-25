@@ -52,6 +52,11 @@ ftv.appendChild(el('b', null, 'DREAMOS TV'));
 ftv.appendChild(el('span', null, 'Walk-in CRT theater — the channel lineup, popcorn in the air.'));
 featEl.appendChild(ftv);
 
+const fdj = el('a', 'feat'); fdj.href = 'dj.html';
+fdj.appendChild(el('b', null, '$AUCELAB DJ CONSOLE'));
+fdj.appendChild(el('span', null, 'Two decks, EQ, filters, tempo, cue, sync, loops — upload your own tracks and mix.'));
+featEl.appendChild(fdj);
+
 const sections = []; // { id, label }
 
 // ── LINKS AT THE TOP: character tabs + a COLLECTIVE tab ─────────────────────

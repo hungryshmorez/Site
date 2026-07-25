@@ -18,6 +18,7 @@ export default defineConfig({
         codex: resolve(__dirname, 'codex.html'),
         lab: resolve(__dirname, 'lab.html'),
         tv: resolve(__dirname, 'tv.html'),
+        dj: resolve(__dirname, 'dj.html'),
       },
     },
   },

@@ -81,6 +81,14 @@ export const DESTINATIONS = [
     cta: 'Step through',
   },
   {
+    id: 'decks', name: 'THE DECKS', model: 'decks',
+    role: 'the DJ console // step up', accent: PALETTE.cyan,
+    pos: [-12, 0, -8], tag: 'two decks · upload · mix live',
+    page: 'dj.html',
+    blurb: 'A DJ booth open to anyone. Step up to $AUCELAB — two decks, EQ, filters, crossfader, tempo, cue, sync and loops. Upload your own tracks and mix live.',
+    cta: 'Take the decks',
+  },
+  {
     id: 'arcade', name: 'THE ARCADE', model: 'arcade',
     role: 'insert coin // the games', accent: PALETTE.magenta,
     pos: [8, 0, 16], tag: 'flash games · 30+ playable worlds',

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>$AUCELAB — 12matt3r DJ console</title>
+  <meta name="description" content="A two-deck DJ console — upload your own tracks, mix with EQ, filter, crossfader, tempo, cue, sync and loops." />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="brand">$AUCELAB <small>12matt3r DJ console</small></div>
+      <a class="back" href="index.html">◄ back to the festival</a>
+    </header>
+
+    <div id="decks-container">
+      <div id="deck-a" class="deck">
+        <div class="deck-header">
+          <h2>DECK A</h2>
+          <div class="track-info">
+            <span class="track-title" id="deck-a-title">No track loaded</span>
+            <span class="track-bpm" id="deck-a-bpm">-- BPM</span>
+          </div>
+          <div class="deck-controller" id="deck-a-controller"><div class="platter-dot"></div></div>
+        </div>
+        <div class="waveform-container" id="waveform-a"><div class="cue-marker-container" id="cue-markers-a"></div></div>
+        <div class="controls">
+          <div class="peak-meter" id="peak-meter-a"></div>
+          <div class="transport-controls">
+            <button class="cue-button" id="cue-a">CUE</button>
+            <button class="play-button" id="play-a">PLAY</button>
+            <button class="sync-button" id="sync-a">SYNC</button>
+            <button class="loop-button" id="loop-a">LOOP</button>
+          </div>
+          <div class="tempo-controls">
+            <div class="tap-tempo"><button id="tap-tempo-a" class="tap-button">TAP</button><span id="tap-bpm-a">--</span></div>
+            <div class="tempo-slider-container">
+              <label>TEMPO <span id="tempo-value-a">0%</span></label>
+              <input type="range" min="-8" max="8" value="0" class="tempo-slider" id="tempo-a">
+            </div>
+          </div>
+          <div class="eq-controls">
+            <div class="eq-control"><label>HIGH</label><input type="range" min="0" max="100" value="50" id="high-a"></div>
+            <div class="eq-control"><label>MID</label><input type="range" min="0" max="100" value="50" id="mid-a"></div>
+            <div class="eq-control"><label>LOW</label><input type="range" min="0" max="100" value="50" id="low-a"></div>
+            <div class="eq-control"><label>FILTER</label><input type="range" min="0" max="100" value="50" id="filter-a"></div>
+            <div class="eq-control"><label>VOL</label><input type="range" min="0" max="100" value="80" id="volume-a"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="mixer">
+        <label>CROSSFADER</label>
+        <input type="range" min="0" max="100" value="50" id="crossfader">
+        <div class="crossfader-display"><div class="crossfader-indicator"></div></div>
+      </div>
+
+      <div id="deck-b" class="deck">
+        <div class="deck-header">
+          <h2>DECK B</h2>
+          <div class="track-info">
+            <span class="track-title" id="deck-b-title">No track loaded</span>
+            <span class="track-bpm" id="deck-b-bpm">-- BPM</span>
+          </div>
+          <div class="deck-controller" id="deck-b-controller"><div class="platter-dot"></div></div>
+        </div>
+        <div class="waveform-container" id="waveform-b"><div class="cue-marker-container" id="cue-markers-b"></div></div>
+        <div class="controls">
+          <div class="peak-meter" id="peak-meter-b"></div>
+          <div class="transport-controls">
+            <button class="cue-button" id="cue-b">CUE</button>
+            <button class="play-button" id="play-b">PLAY</button>
+            <button class="sync-button" id="sync-b">SYNC</button>
+            <button class="loop-button" id="loop-b">LOOP</button>
+          </div>
+          <div class="tempo-controls">
+            <div class="tap-tempo"><button id="tap-tempo-b" class="tap-button">TAP</button><span id="tap-bpm-b">--</span></div>
+            <div class="tempo-slider-container">
+              <label>TEMPO <span id="tempo-value-b">0%</span></label>
+              <input type="range" min="-8" max="8" value="0" class="tempo-slider" id="tempo-b">
+            </div>
+          </div>
+          <div class="eq-controls">
+            <div class="eq-control"><label>HIGH</label><input type="range" min="0" max="100" value="50" id="high-b"></div>
+            <div class="eq-control"><label>MID</label><input type="range" min="0" max="100" value="50" id="mid-b"></div>
+            <div class="eq-control"><label>LOW</label><input type="range" min="0" max="100" value="50" id="low-b"></div>
+            <div class="eq-control"><label>FILTER</label><input type="range" min="0" max="100" value="50" id="filter-b"></div>
+            <div class="eq-control"><label>VOL</label><input type="range" min="0" max="100" value="80" id="volume-b"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="library-container">
+      <h2>MUSIC LIBRARY</h2>
+      <div id="library-filters">
+        <input type="text" id="library-search" placeholder="Search tracks...">
+        <select id="library-filter">
+          <option value="all">All Genres</option>
+          <option value="vaporwave">Vaporwave</option>
+          <option value="lofi">Lo-Fi</option>
+          <option value="dubstep">Dubstep</option>
+          <option value="surf">Surf</option>
+          <option value="other">Other</option>
+        </select>
+        <label class="upload-button">ADD TO LIBRARY
+          <input type="file" accept="audio/*" multiple id="library-upload" hidden>
+        </label>
+      </div>
+      <div id="library-tracks"></div>
+    </div>
+
+    <div class="shortcut-toggle" id="shortcut-toggle">?</div>
+    <div id="keyboard-shortcuts">
+      <h3>Shortcuts</h3>
+      <ul>
+        <li><b>Q</b> Play/Pause A</li><li><b>P</b> Play/Pause B</li>
+        <li><b>W</b> Cue A</li><li><b>O</b> Cue B</li>
+        <li><b>E</b> Sync A→B-match</li><li><b>I</b> Sync B→A-match</li>
+      </ul>
+    </div>
+  </div>
+  <script type="module" src="/src/dj/app.js"></script>
+</body>
+</html>

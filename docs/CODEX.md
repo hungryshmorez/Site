@@ -52,6 +52,7 @@ are clamped to the arena.
 | DriftWave | −2, −3 | | **THE ARCADE** (×3) | 8, 16 |
 | Spawn (inside) / hub | −4,6 / −18,18 | | **DEADNET** | −20, −10 |
 | dealer / dumpster | 16,−18 / −18,−16 | | **PORTA-POTTY** (Codex) | 21, 15 |
+| **THE DECKS** (DJ console) | −12, −8 | | | |
 
 *People (Rave, Shmorez, 12MATT3R, DriftWave) live in/around the crowd; structures (merch, deadnet,
 arcade, TV, lab, porta) sit on the sides/back, lined up with their neighbours. Everything is rotated to
@@ -78,6 +79,9 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
   afterlife," a self-generating non-real internet. New.
 - **THE CODEX (porta-potty)** — a row of porta-potties on the right edge. Step inside, boot the old CRT
   → **this encyclopedia** (`codex.html`) loads. The in-world entrance to the Codex.
+- **THE DECKS** — a DJ booth (two platters + laptop) left of the pit — cyan → **$AUCELAB**, a real
+  two-deck DJ console (`dj.html`): upload your own tracks, EQ, filters, crossfader, tempo, cue, sync,
+  loops, jog wheels, waveforms, meters. Single-user (the battle/multiplayer layer was stripped out).
 
 ## 04 · Systems & Secrets (all built)
 

@@ -541,6 +541,31 @@ export function buildDeadnet(accent = '#b967ff') {
   } };
 }
 
+// ---------------------------------------------------------------- THE DECKS
+// A DJ booth table: two spinning platters + a glowing laptop → the $AUCELAB
+// console (dj.html). Faces the center of the grounds.
+export function buildDecks(accent = '#00F3FF') {
+  const g = new THREE.Group();
+  const col = new THREE.Color(accent);
+  const table = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.0, 1.2), std({ color: 0x0d0d16, metalness: 0.4, roughness: 0.6 }));
+  table.position.y = 0.5; table.castShadow = true; g.add(table);
+  const facia = new THREE.Mesh(new THREE.PlaneGeometry(3.1, 0.55), std({ color: 0x02121a, emissive: col, emissiveIntensity: 0.7 }));
+  facia.position.set(0, 0.5, 0.61); g.add(facia);
+  const platters = [];
+  for (const sx of [-0.9, 0.9]) {
+    const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.08, 28), std({ color: 0x15151f, metalness: 0.6, roughness: 0.4 }));
+    plate.position.set(sx, 1.05, 0); g.add(plate);
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.02, 28), std({ color: 0x05050a, emissive: col, emissiveIntensity: 0.4 }));
+    disc.position.set(sx, 1.1, 0); g.add(disc); platters.push(disc);
+    const dot = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 8), new THREE.MeshBasicMaterial({ color: accent }));
+    dot.position.set(sx, 1.12, 0.28); g.add(dot); platters.push(dot);
+  }
+  const laptop = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.6, 0.03), std({ color: 0x02121a, emissive: col, emissiveIntensity: 1.0 }));
+  laptop.position.set(0, 1.35, -0.15); laptop.rotation.x = -0.5; g.add(laptop);
+  const gl = new THREE.PointLight(accent, 4, 9, 2); gl.position.set(0, 1.6, 1.0); g.add(gl);
+  return { group: g, update: (t, pulse) => { platters.forEach((d, i) => (d.rotation.y += 0.03 * (i % 2 ? -1 : 1))); facia.material.emissiveIntensity = 0.5 + pulse * 0.6; gl.intensity = 3 + pulse * 3; } };
+}
+
 export const MODELS = {
   marshmallow: buildMarshmallow,
   sofaboi: buildSofaBoi,
@@ -554,4 +579,5 @@ export const MODELS = {
   labsstage: buildLabsStage,
   arcade: buildArcade,
   deadnet: buildDeadnet,
+  decks: buildDecks,
 };
