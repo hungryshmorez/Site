@@ -3,8 +3,8 @@
 *A living reference for what the site is and what's planned. Rebuilt whenever the world changes.*
 
 **Live:** https://hungryshmorez.github.io/Site/ · **Stack:** Three.js r0.160 + Vite 5 → GitHub Pages
-This encyclopedia is also published **on the site itself** as a styled page (`codex.html`), linked from
-the 3D entry screen, the classic menu, and the Lab.
+This encyclopedia lives **on the site** as a styled page (`codex.html`) — reached **in-world by stepping
+into the porta-potty and booting its CRT**, and also linked from the 3D entry screen and the classic menu.
 
 ---
 
@@ -32,8 +32,8 @@ pit**, not on the stage.
 near the stage and muffles (low-pass) inside the porta-potty. **Beat-drop fireworks** burst over the
 stage on big bass spikes, with a short **camera shake**.
 
-**Spawn + the hub are in the bottom-left corner.** You start on the bench at **[−18, 18]** facing the
-stage; the 12matt3r hub board sits beside you at **[−14, 16]**.
+**You spawn inside the festival**, on a bench at **[−4, 6]** facing the stage, right in the grounds. The
+12matt3r hub board (news + guest book) moved to the back-left corner at **[−18, 18]**.
 
 **The arena is closed by a 3-sided grandstand** (stadium seating on the left, right, and back — the
 stage is the 4th side) so you can't wander off the map; colored **light posts** ring the seating and
@@ -48,10 +48,10 @@ are clamped to the arena.
 | DJ booth (on deck) | 0, −24 | | Merch tent | −20, 4 |
 | Rave Charles (pit) | 0, −16 | | Sofa King (lounge) | 18, −8 |
 | Shmorez + fire + tent | 8, 11/14/17 | | THE LAB (big stage) | −1, 17 |
-| Tanky + tailgate | 15/18, 3/5 | | DreamOS TV doorway | 14, 16 |
-| DriftWave | −2, −3 | | **THE ARCADE** (×3) | 20, 10 |
-| Spawn + hub board | −18/−14, 18/16 | | **DEADNET** | −20, −10 |
-| dealer / dumpster | 16,−18 / −18,−16 | | **PORTA-POTTY** (gag) | 21, 15 |
+| Tanky + tailgate | 15/18, 3/5 | | DreamOS TV (big CRT) | 15, 16 |
+| DriftWave | −2, −3 | | **THE ARCADE** (×3) | 8, 16 |
+| Spawn (inside) / hub | −4,6 / −18,18 | | **DEADNET** | −20, −10 |
+| dealer / dumpster | 16,−18 / −18,−16 | | **PORTA-POTTY** (Codex) | 21, 15 |
 
 *People (Rave, Shmorez, 12MATT3R, DriftWave) live in/around the crowd; structures (merch, deadnet,
 arcade, TV, lab, porta) sit on the sides/back, lined up with their neighbours. Everything is rotated to
@@ -69,13 +69,15 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
 - **TANKY JOHNSON** — by his tailgate — outlaw country — gold. Cowboy.
 - **12MATT3R** — a glitch figure somewhere in the crowd — glitch·code — cyan → the web-OS.
 - **THE MERCH TENT** — store/commissions — green. → planned: the camera-lock Etsy carousel.
-- **DREAMOS TV** — a lit side doorway (magenta marquee, vendor-stand underglow) → the theater (§06).
+- **DREAMOS TV** — a big retro **CRT television** (wood cheeks, glowing scanline screen) whose screen
+  frames a doorway you walk into → the theater (§06). Sits beside the Arcade.
 - **THE LAB** — a big screen-stage — green → warps straight into the Lab terminal (§05).
-- **THE ARCADE** — a row of three arcade cabinets — magenta → the **Flash Games portal / games library**.
+- **THE ARCADE** — a row of three arcade cabinets, side-by-side with the TV — magenta → the **Flash
+  Games portal / games library**.
 - **DEADNET** — a broken flickering CRT monolith in a lonely corner — purple → *deadnet*, "the digital
   afterlife," a self-generating non-real internet. New.
-- **PORTA-POTTY** — a standalone gag on the right edge. Step inside, click the busted CRT → it boots
-  to nothing and spits you back out, pointing you at the real Lab. New.
+- **THE CODEX (porta-potty)** — a row of porta-potties on the right edge. Step inside, boot the old CRT
+  → **this encyclopedia** (`codex.html`) loads. The in-world entrance to the Codex.
 
 ## 04 · Systems & Secrets (all built)
 
@@ -87,8 +89,8 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
   can see yourself. **Hitting the booth again while it's live randomizes the effect** (mirror-hall
   tiling, hue tint, texture spin, additive blend); the HUD toggle turns it off. Opt-in.
 - **The hub board** — walk-up news Post-its + guest book (localStorage), bottom-left by spawn.
-- **Porta-potty gag** — a standalone secret: step inside, click the busted CRT → it boots to nothing,
-  warps you back out, and points you at the real Lab. Reuses the old porta-potty interior machinery.
+- **Porta-potty → the Codex** — step inside the porta-potty, boot the old CRT → the encyclopedia
+  (`codex.html`) loads. Reuses the porta-potty interior + CRT-zoom machinery.
 - **In-site popup window** — games/worlds/EPKs open in a draggable Windows-style window
   (title bar, min/max/close, live page in an iframe, no URL) over the site, so you never leave.
 - **Beat-drop fireworks + camera shake**, **spatial/enclosed audio**, day/night (scrub `[` `]`).

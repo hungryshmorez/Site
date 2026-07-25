@@ -262,23 +262,47 @@ export function buildSofaBoi(accent = '#6a6cff') {
 }
 
 // ---------------------------------------------------------------- DREAMOS TV DOORWAY
-// A freestanding marquee doorway off to the side, glowing from underneath like
-// a vendor stand, with a shimmering portal void and chase bulbs. Walk through
-// → DreamOS TV (the movie theater).
+// A big retro CRT television sitting flat on the ground: dark cabinet, wood side
+// cheeks, dials, and a glowing scanline screen that lights up AROUND a central
+// doorway you walk into → DreamOS TV (the movie theater).
 export function buildDoorway(accent = '#FF0055') {
   const g = new THREE.Group();
   const col = new THREE.Color(accent);
-  const frameMat = std({ color: 0x14141c, metalness: 0.6, roughness: 0.5 });
-  const DW = 2.0, DH = 3.0, T = 0.22;
 
-  for (const sx of [-(DW / 2 + T / 2), (DW / 2 + T / 2)]) {
-    const p = new THREE.Mesh(new THREE.BoxGeometry(T, DH, T), frameMat);
-    p.position.set(sx, DH / 2, 0); p.castShadow = true; g.add(p);
+  const W = 4.6, H = 3.7, D = 1.6;                 // TV cabinet
+  const cabinet = std({ color: 0x16110c, roughness: 0.7, metalness: 0.2 });
+  const wood = std({ color: 0x5a3a1e, roughness: 0.85 });                 // wood-grain cheeks
+
+  // cabinet body, sitting flat on the ground
+  const body = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), cabinet);
+  body.position.y = H / 2; body.castShadow = body.receiveShadow = true; g.add(body);
+  // wood side panels
+  for (const sx of [-(W / 2 - 0.15), (W / 2 - 0.15)]) {
+    const cheek = new THREE.Mesh(new THREE.BoxGeometry(0.4, H, D + 0.06), wood);
+    cheek.position.set(sx, H / 2, 0); cheek.castShadow = true; g.add(cheek);
   }
-  const lintel = new THREE.Mesh(new THREE.BoxGeometry(DW + T * 2.4, T, T), frameMat);
-  lintel.position.set(0, DH + T / 2, 0); lintel.castShadow = true; g.add(lintel);
+  // dark bezel recess around the screen
+  const bezel = new THREE.Mesh(new THREE.BoxGeometry(W - 1.1, H - 0.8, 0.2), std({ color: 0x0a0a0f, roughness: 0.6 }));
+  bezel.position.set(-0.2, H / 2 + 0.15, D / 2); g.add(bezel);
 
-  // shimmering portal void inside the frame
+  // glowing scanline CRT screen (lights up around the doorway)
+  const screenMat = new THREE.ShaderMaterial({
+    uniforms: { t: { value: 0 }, c: { value: new THREE.Vector3(col.r, col.g, col.b) } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+    fragmentShader: `varying vec2 vUv; uniform float t; uniform vec3 c;
+      void main(){ vec2 u=vUv-0.5; float r=length(u);
+        float rings=0.5+0.5*sin(r*22.0 - t*3.0);
+        float scan=0.82+0.18*sin(vUv.y*150.0);
+        float vig=smoothstep(0.85,0.15,r);
+        float v=(0.35+0.5*rings)*scan*vig;
+        vec3 col=mix(vec3(0.02,0.0,0.05), c, v);
+        gl_FragColor=vec4(col,1.0); }`,
+  });
+  const screen = new THREE.Mesh(new THREE.PlaneGeometry(W - 1.3, H - 1.0), screenMat);
+  screen.position.set(-0.2, H / 2 + 0.15, D / 2 + 0.02); g.add(screen);
+
+  // the doorway — a shimmering void set into the screen, open to the ground
+  const DW = 1.7, DH = 2.5;
   const portalMat = new THREE.ShaderMaterial({
     transparent: true,
     uniforms: { t: { value: 0 }, c: { value: new THREE.Vector3(col.r, col.g, col.b) } },
@@ -287,39 +311,33 @@ export function buildDoorway(accent = '#FF0055') {
       void main(){ vec2 u=vUv-0.5; float r=length(u);
         float rings=0.5+0.5*sin(r*30.0 - t*3.0);
         float v=smoothstep(0.55,0.0,r)*(0.32+0.55*rings);
-        vec3 col=mix(vec3(0.02,0.0,0.04), c, v);
-        gl_FragColor=vec4(col, 0.92); }`,
+        vec3 col=mix(vec3(0.0,0.0,0.02), c, v);
+        gl_FragColor=vec4(col, 0.94); }`,
   });
   const portal = new THREE.Mesh(new THREE.PlaneGeometry(DW, DH), portalMat);
-  portal.position.set(0, DH / 2, 0); g.add(portal);
+  portal.position.set(-0.2, DH / 2 + 0.15, D / 2 + 0.05); g.add(portal);
+  // dark doorframe around the opening so it reads as a way in
+  const frameMat = std({ color: 0x05050a, roughness: 0.7 });
+  for (const sx of [-(DW / 2 + 0.09), (DW / 2 + 0.09)]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.16, DH + 0.2, 0.14), frameMat); p.position.set(-0.2 + sx, DH / 2 + 0.15, D / 2 + 0.06); g.add(p); }
+  const dtop = new THREE.Mesh(new THREE.BoxGeometry(DW + 0.34, 0.16, 0.14), frameMat); dtop.position.set(-0.2, DH + 0.23, D / 2 + 0.06); g.add(dtop);
 
-  // lit up underneath — the vendor-stand glow
-  const baseGlow = new THREE.Mesh(new THREE.BoxGeometry(DW + T * 2, 0.12, 1.0), std({ color: 0x120010, emissive: col, emissiveIntensity: 1.2 }));
-  baseGlow.position.set(0, 0.06, 0.1); g.add(baseGlow);
-  const up = new THREE.PointLight(accent, 4, 7, 2); up.position.set(0, 0.4, 0.5); g.add(up);
-  const pool = new THREE.Mesh(new THREE.CircleGeometry(1.7, 32),
-    new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false }));
-  pool.rotation.x = -Math.PI / 2; pool.position.y = 0.03; g.add(pool);
+  // control strip: dials + speaker grille on the right cheek's inner face
+  const knobs = [];
+  for (let i = 0; i < 3; i++) { const k = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.1, 16), std({ color: 0x1a1a20, metalness: 0.5, roughness: 0.4 })); k.rotation.x = Math.PI / 2; k.position.set(W / 2 - 0.7, H - 0.6 - i * 0.55, D / 2 + 0.02); g.add(k); knobs.push(k); }
 
-  // marquee sign + chase bulbs
-  const sign = textPlane('DREAMOS TV', accent);
-  sign.position.set(0, DH + 0.55, 0.06); sign.scale.set(2.6, 0.5, 1); g.add(sign);
-  const bulbs = [];
-  const addBulb = (x, y) => { const b = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), new THREE.MeshBasicMaterial({ color: col.clone() })); b.position.set(x, y, T / 2 + 0.02); g.add(b); bulbs.push(b); };
-  const N = 7;
-  for (let i = 0; i <= N; i++) { const yy = 0.2 + (DH - 0.2) * (i / N); addBulb(-(DW / 2 + T / 2), yy); addBulb((DW / 2 + T / 2), yy); }
-  for (let i = 1; i < N; i++) { addBulb(-DW / 2 + DW * (i / N), DH + T / 2); }
-
-  const gl = new THREE.PointLight(accent, 3, 8, 2); gl.position.set(0, DH / 2, 1.2); g.add(gl);
+  // marquee label on top + underglow
+  const sign = textPlane('DREAMOS TV', accent); sign.position.set(-0.2, H + 0.35, D / 2 - 0.2); sign.scale.set(2.8, 0.5, 1); g.add(sign);
+  const pool = new THREE.Mesh(new THREE.CircleGeometry(2.2, 32),
+    new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false }));
+  pool.rotation.x = -Math.PI / 2; pool.position.set(0, 0.03, 0.6); g.add(pool);
+  const gl = new THREE.PointLight(accent, 3, 10, 2); gl.position.set(0, H / 2, 2.0); g.add(gl);
 
   return {
     group: g,
     update: (t, pulse) => {
+      screenMat.uniforms.t.value = t;
       portalMat.uniforms.t.value = t;
-      up.intensity = 3 + pulse * 2 + Math.sin(t * 8) * 0.3;
-      baseGlow.material.emissiveIntensity = 1 + pulse * 0.8;
-      bulbs.forEach((b, i) => b.material.color.copy(col).multiplyScalar(0.55 + 0.45 * Math.sin(t * 5 + i * 0.6)));
-      gl.intensity = 2.5 + pulse * 2;
+      gl.intensity = 2.5 + pulse * 3;
     },
   };
 }

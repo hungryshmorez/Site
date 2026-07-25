@@ -74,8 +74,8 @@ export const DESTINATIONS = [
   },
   {
     id: 'dreamtv', name: 'DREAMOS TV', model: 'doorway',
-    role: 'the side doorway // theater', accent: PALETTE.magenta,
-    pos: [14, 0, 16], tag: 'walk-in cinema',
+    role: 'the big CRT // theater', accent: PALETTE.magenta,
+    pos: [15, 0, 16], tag: 'walk-in cinema',
     page: 'tv.html',
     blurb: 'A lit doorway off the side of the grounds, glowing from underneath like a vendor stand. Step through into DreamOS TV — a movie theater with a big screen, a crowd, and popcorn in the air.',
     cta: 'Step through',
@@ -83,7 +83,7 @@ export const DESTINATIONS = [
   {
     id: 'arcade', name: 'THE ARCADE', model: 'arcade',
     role: 'insert coin // the games', accent: PALETTE.magenta,
-    pos: [20, 0, 10], tag: 'flash games · 30+ playable worlds',
+    pos: [8, 0, 16], tag: 'flash games · 30+ playable worlds',
     url: 'https://flash-games-collection--sofakingsadboi.on.websim.com/',
     blurb: 'A lone arcade cabinet humming in the field — the door to the Flash Games portal and the whole playable library: racers, sims, backrooms, NPC therapy, the Wake Up saga. Walk up and insert a coin.',
     cta: 'Insert coin',
@@ -105,11 +105,11 @@ export const DESTINATIONS = [
     cta: 'Enter the Lab',
   },
   {
-    id: 'portapotty', name: 'PORTA-POTTY', model: 'bathroom',
-    role: 'the gag // out of order', accent: PALETTE.green,
-    pos: [21, 0, 15], tag: 'do not enter',
+    id: 'portapotty', name: 'THE CODEX', model: 'bathroom',
+    role: 'the archive // inside the potty', accent: PALETTE.green,
+    pos: [21, 0, 15], tag: 'the encyclopedia',
     portal: 'lab',
-    blurb: 'A row of festival porta-potties, one glowing an unhealthy green. Step inside if you dare.',
-    cta: 'Step inside',
+    blurb: 'A row of festival porta-potties, one glowing an unhealthy green. Step inside and boot the old screen to read the Codex — the full encyclopedia of the festival.',
+    cta: 'Read the Codex',
   },
 ];

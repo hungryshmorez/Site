@@ -117,7 +117,7 @@ const LOUNGE_POS = [18, -8];
 const lounge = buildLounge(scene, { pos: LOUNGE_POS, rot: faceCenter(LOUNGE_POS[0], LOUNGE_POS[1]) + Math.PI });
 
 // the 12matt3r hub board → walk up, read news, sign the guest book
-const BOARD_POS = [-14, 16];
+const BOARD_POS = [-18, 18];
 const board = buildBoard(scene, {
   pos: BOARD_POS,
   stageZ: festival.stageZ,
@@ -132,7 +132,7 @@ const crowd = buildCrowd(scene, {
   exclude: [
     // [x, z, clear-radius] — bigger clearing around structures, plus spawn
     ...DESTINATIONS.map((d) => [d.pos[0], d.pos[2], BIG.has(d.model) ? 6.5 : 3.6]),
-    [-18, 18, 4.5],
+    [-4, 6, 4.5],
     [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
     [DEALER_POS[0], DEALER_POS[1], 2.4],
     [BOARD_POS[0], BOARD_POS[1], 3],
@@ -517,14 +517,10 @@ function updateZoom(dt) {
   const e = zoomProg < 0.5 ? 2 * zoomProg * zoomProg : 1 - Math.pow(-2 * zoomProg + 2, 2) / 2; // easeInOutQuad
   camera.position.lerpVectors(_zoomFrom, labPortal.zoomEye, e);
   camera.lookAt(labPortal.lookAt);
-  // the porta-potty is a gag now — the CRT boots to nothing and spits you back
-  // out, pointing you at the real Lab (the big green stage).
+  // the porta-potty's old CRT boots the Codex — the festival's encyclopedia.
   if (zoomProg >= 1 && !warping && !gagDone) {
     gagDone = true;
-    playWarp({ accent: '#39ff14', name: 'OUT OF ORDER' }, () => {
-      mode = 'festival'; body.classList.remove('inportal'); zoomProg = 0;
-      flash('busted CRT — nothing in here. the real LAB is the big green stage.');
-    });
+    playWarp({ accent: '#39ff14', name: 'THE CODEX' }, () => { window.location.href = 'codex.html'; });
   }
 }
 
