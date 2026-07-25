@@ -16,6 +16,8 @@ import { buildLounge } from './scene/lounge.js';
 import { buildFireworks } from './scene/fireworks.js';
 import { buildTent } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
+import { createFXPass, FX_MODES } from './scene/fxpass.js';
+import { buildFxChips } from './scene/fxchips.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -60,20 +62,18 @@ const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 32
 
 // ---- post-processing: bloom makes the neon physically glow (desktop only) ----
 const useBloom = !isMobile;
-let composer = null, renderPass = null;
-if (useBloom) {
-  composer = new EffectComposer(renderer);
-  renderPass = new RenderPass(scene, camera);
-  composer.addPass(renderPass);
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.72, 0.5, 0.62)); // strength, radius, threshold
-  composer.addPass(new OutputPass());
-  composer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
-  composer.setSize(innerWidth, innerHeight);
-}
-function renderActive(s, cam) {
-  if (composer) { renderPass.scene = s; renderPass.camera = cam; composer.render(); }
-  else renderer.render(s, cam);
-}
+// composer always exists so the FX camera modes work everywhere; bloom is
+// desktop-only. FX pass runs last, on the final image.
+const composer = new EffectComposer(renderer);
+const renderPass = new RenderPass(scene, camera);
+composer.addPass(renderPass);
+if (useBloom) composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.72, 0.5, 0.62)); // strength, radius, threshold
+composer.addPass(new OutputPass());
+const fx = createFXPass();
+composer.addPass(fx.pass);
+composer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
+composer.setSize(innerWidth, innerHeight);
+function renderActive(s, cam) { renderPass.scene = s; renderPass.camera = cam; composer.render(); }
 
 // ---- world ----
 const festival = buildFestival(scene);
@@ -151,6 +151,42 @@ controls.groundAt = (x, z) => {
 };
 const hud = new Hud(document.getElementById('tags'), camera, characters.list, enterDestination);
 
+// ---- camera FX modes: a console to switch, hidden chips to unlock ----------
+const FX_STORE = 'fxUnlocked';
+let fxUnlocked = [];
+try { fxUnlocked = JSON.parse(localStorage.getItem(FX_STORE) || '[]'); } catch (e) { fxUnlocked = []; }
+let fxMode = 'normal';
+const fxchips = buildFxChips(scene, { unlocked: fxUnlocked });
+const FX_LABELS = { normal: 'NORMAL', crt: 'CRT', vhs: 'VHS', ascii: 'ASCII', gameboy: 'GAMEBOY', wireframe: 'WIREFRAME' };
+function applyFx(mode) { fxMode = mode; fx.setMode(mode); buildFxMenu(); }
+function unlockFx(mode) {
+  if (!fxUnlocked.includes(mode)) {
+    fxUnlocked.push(mode);
+    try { localStorage.setItem(FX_STORE, JSON.stringify(fxUnlocked)); } catch (e) { /* noop */ }
+    flash(`unlocked ${FX_LABELS[mode]} camera — open the FX menu (◉)`);
+  }
+  applyFx(mode);
+  if (fxPanelEl) fxPanelEl.classList.add('open');
+}
+const fxToggleEl = document.getElementById('fxToggle');
+const fxPanelEl = document.getElementById('fxPanel');
+if (fxToggleEl) fxToggleEl.onclick = () => { buildFxMenu(); fxPanelEl.classList.toggle('open'); };
+function buildFxMenu() {
+  if (!fxPanelEl) return;
+  const found = fxUnlocked.length, total = FX_MODES.length - 1;
+  fxPanelEl.innerHTML = `<div class="fxhead">CAMERA FX <span>${found}/${total} unlocked</span></div>`;
+  FX_MODES.forEach((m) => {
+    const locked = m !== 'normal' && !fxUnlocked.includes(m);
+    const b = document.createElement('button');
+    b.className = 'fxrow' + (fxMode === m ? ' on' : '') + (locked ? ' locked' : '');
+    b.textContent = locked ? `🔒 ${FX_LABELS[m]}` : FX_LABELS[m];
+    if (locked) { const s = document.createElement('span'); s.className = 'fxhint'; s.textContent = 'hidden on the grounds'; b.appendChild(s); }
+    else b.onclick = () => { applyFx(m); };
+    fxPanelEl.appendChild(b);
+  });
+}
+buildFxMenu();
+
 // DJ booth on the main stage → the TRIPPY CAM (your webcam becomes the sky)
 const djbooth = buildDJBooth(scene, {
   pos: [0, festival.deck.top, festival.stageZ + 2],
@@ -206,6 +242,8 @@ function handleTap(sx, sy) {
   if (board.tryClick(raycaster)) return;
   // the DJ booth on stage — toggles the trippy cam
   if (djbooth.tryClick(raycaster)) return;
+  // hidden FX chips — clicking one unlocks a camera mode
+  { const got = fxchips.tryClick(raycaster); if (got) { unlockFx(got); return; } }
   // characters next
   const hitC = raycaster.intersectObjects(characters.proxies, false)[0];
   if (hitC) {
@@ -230,7 +268,8 @@ addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
   renderer.setSize(innerWidth, innerHeight);
-  if (composer) composer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+  fx.resize(innerWidth, innerHeight);
 });
 renderer.setSize(innerWidth, innerHeight);
 
@@ -295,6 +334,7 @@ function frame() {
     board.update(dt, time, pulse);
     djbooth.update(dt, time, pulse, controls.pos);
     trippycam.update(dt);
+    fxchips.update(dt, time, pulse);
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
@@ -307,6 +347,7 @@ function frame() {
     else applyPortaCamera();
     renderActive(labPortal.scene, camera);
   }
+  fx.update(dt);
 }
 
 // ---- start ----

@@ -95,6 +95,10 @@ and opens its info panel; the CTA opens the real place (EPK / world / portal).
 - **The hub board** — walk-up news Post-its + guest book (localStorage), bottom-left by spawn.
 - **Porta-potty → the Codex** — step inside the porta-potty, boot the old CRT → the encyclopedia
   (`codex.html`) loads. Reuses the porta-potty interior + CRT-zoom machinery.
+- **Camera FX modes** — an ◉ fx console (bottom-right) switches the whole view between NORMAL, CRT, VHS,
+  ASCII, GAMEBOY, and WIREFRAME (a post-processing pass). Each non-normal mode is **locked until you find
+  its hidden shader chip** tucked around the grounds (behind the stage, against the grandstands, a back
+  corner) — click a chip to unlock it forever (saved in localStorage). Console + unlocks both.
 - **In-site popup window** — games/worlds/EPKs open in a draggable Windows-style window
   (title bar, min/max/close, live page in an iframe, no URL) over the site, so you never leave.
 - **Beat-drop fireworks + camera shake**, **spatial/enclosed audio**, day/night (scrub `[` `]`).

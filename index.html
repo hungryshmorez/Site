@@ -48,6 +48,17 @@
     .rmbtn{position:fixed;right:16px;bottom:14px;z-index:10;font-family:var(--mono);font-size:11px;color:var(--ink);
       background:rgba(10,10,20,.7);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:8px 11px;cursor:pointer;backdrop-filter:blur(6px)}
     .rmbtn:hover{border-color:var(--cyan)}
+    .fxpanel{position:fixed;right:16px;bottom:52px;z-index:11;width:210px;background:rgba(8,8,16,.92);border:1px solid rgba(255,255,255,.14);
+      border-radius:11px;padding:8px;backdrop-filter:blur(8px);display:none;flex-direction:column;gap:4px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+    .fxpanel.open{display:flex}
+    .fxhead{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--cyan);padding:4px 6px 6px;display:flex;justify-content:space-between}
+    .fxhead span{color:var(--muted)}
+    .fxrow{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink);text-align:left;background:rgba(255,255,255,.04);
+      border:1px solid transparent;border-radius:7px;padding:9px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+    .fxrow:hover{border-color:rgba(255,255,255,.25)}
+    .fxrow.on{color:#05050e;background:var(--cyan);font-weight:700}
+    .fxrow.locked{color:var(--muted);cursor:default;background:transparent}
+    .fxhint{font-size:9px;letter-spacing:.06em;color:#55555f}
 
     /* destination panel */
     .panel{position:fixed;z-index:11;left:50%;bottom:22px;transform:translate(-50%,14px);
@@ -229,9 +240,11 @@
   <div class="help">
     <kbd>W A S D</kbd> walk · <kbd>drag</kbd> look · <b>click a name</b> to walk to them · <kbd>[ ]</kbd> time of day
   </div>
+  <button class="rmbtn" id="fxToggle" style="right:298px" title="Camera FX modes">◉ fx</button>
   <button class="rmbtn" id="photobtn" style="right:210px" title="Save a snapshot">📷 photo</button>
   <button class="rmbtn" id="mutebtn" style="right:112px" title="Sound">🔊 sound</button>
   <button class="rmbtn" id="rmbtn" title="Reduced motion">◐ motion</button>
+  <div class="fxpanel" id="fxPanel"></div>
   <div class="nowplaying" id="nowplaying">♪ Static Drift Anthem</div>
 
   <div class="panel" id="panel" role="dialog" aria-labelledby="pTitle">
