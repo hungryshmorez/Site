@@ -272,7 +272,7 @@ export function buildFestival(scene) {
     }
   }
 
-  return { stageZ, deck: deckInfo, update };
+  return { stageZ, deck: deckInfo, screen, screenPos: [0, 6.2, stageZ - 4.9], screenSize: [22, 7], update };
 }
 
 // spawn bench (simple wooden slats + iron legs), at +Z facing the stage

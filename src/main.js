@@ -18,6 +18,7 @@ import { buildTent } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { createFXPass } from './scene/fxpass.js';
 import { buildOrbs } from './scene/orbs.js';
+import { buildVJ } from './scene/vjscreen.js';
 import { buildHoop } from './scene/hoop.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -80,6 +81,12 @@ function renderActive(s, cam) { renderPass.scene = s; renderPass.camera = cam; c
 const festival = buildFestival(scene);
 const characters = buildCharacters(scene, { stageZ: festival.stageZ });
 const fireworks = buildFireworks(scene, { origin: [0, 15, festival.stageZ] });
+
+// VJ screen — the stage video wall can play a muted, looping YouTube playlist
+// you flip through live (⏮ / ⏭). Rides on top of the canvas via CSS3D so it
+// tracks the stage screen's position/perspective as you walk.
+const VJ_PLAYLIST = 'PLTHYibH4Hb0Y';
+const vj = buildVJ({ container: document.body, pos: festival.screenPos, size: festival.screenSize, playlist: VJ_PLAYLIST });
 
 // hidden trash-hunt → clean the grounds → secret download
 const DUMPSTER_POS = [-18, -16];
@@ -183,6 +190,22 @@ const inStock = (id) => id === 'everything' ? hasAllOrbs() : (DRUGS.find((d) => 
 const orbs = buildOrbs(scene, { need: BASE_ORBS.filter((id) => !owned.includes(id)) });
 const randBtnEl = document.getElementById('randBtn');
 if (randBtnEl) randBtnEl.onclick = () => { if (activeDrug === 'everything') { randomizeEverything(true); flash('🎲 remix — everything swaps'); } };
+
+// ---- VJ controls: play the stage playlist, flip clips ----
+const vjBtnEl = document.getElementById('vjToggle');
+const vjBarEl = document.getElementById('vjBar');
+function toggleVJ() {
+  const on = vj.toggle();
+  if (vjBtnEl) vjBtnEl.classList.toggle('active', on);
+  if (vjBarEl) vjBarEl.classList.toggle('shown', on);
+  flash(on ? '🎬 you are the VJ — ⏮ ⏭ to switch clips' : 'VJ screen off');
+}
+if (vjBtnEl) vjBtnEl.onclick = toggleVJ;
+{
+  const p = document.getElementById('vjPrev'), n = document.getElementById('vjNext');
+  if (p) p.onclick = () => { vj.prev(); flash('⏮ previous clip'); };
+  if (n) n.onclick = () => { vj.next(); flash('⏭ next clip'); };
+}
 
 const carryHudEl = document.getElementById('carryHud');
 const drugHudEl = document.getElementById('drugHud');
@@ -371,6 +394,8 @@ function handleTap(sx, sy) {
   if (board.tryClick(raycaster)) return;
   // the DJ booth on stage — toggles the trippy cam
   if (djbooth.tryClick(raycaster)) return;
+  // the stage video wall — become the VJ (play / stop the playlist)
+  if (festival.screen && raycaster.intersectObject(festival.screen, false)[0]) { toggleVJ(); return; }
   // effect orbs — clicking one picks it up to carry to the dealer
   { const got = orbs.tryClick(raycaster); if (got) { pickupOrb(got); return; } }
   // near the hoop — a click shoots a ball instead of walking
@@ -406,6 +431,7 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
   composer.setSize(innerWidth, innerHeight);
   fx.resize(innerWidth, innerHeight);
+  vj.resize();
 });
 renderer.setSize(innerWidth, innerHeight);
 
@@ -480,8 +506,11 @@ function frame() {
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
     renderActive(scene, camera);
+    vj.setPaused(false);
+    vj.render(camera);
   } else {
     // inside the lab portal — festival is parked, the music muffles
+    vj.setPaused(true);
     reactor.setEnclosed(true);
     labPortal.update(dt, time);
     if (mode === 'zoom') updateZoom(dt);
