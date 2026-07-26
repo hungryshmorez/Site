@@ -50,9 +50,18 @@ export function buildFestival(scene) {
   orbGlow.scale.setScalar(16); orb.add(orbGlow);
 
   // ---- ground ----
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), new THREE.MeshStandardMaterial({ color: 0x080810, roughness: 1 }));
+  // a trampled-field texture (speckled dirt) instead of a flat colour
+  const gcvs = document.createElement('canvas'); gcvs.width = gcvs.height = 256; const gtx = gcvs.getContext('2d');
+  gtx.fillStyle = '#080810'; gtx.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 1400; i++) { const v = Math.random(); gtx.fillStyle = v > 0.5 ? 'rgba(30,30,44,0.5)' : 'rgba(2,2,6,0.6)'; const s = 1 + Math.random() * 2.5; gtx.fillRect(Math.random() * 256, Math.random() * 256, s, s); }
+  const gtex = new THREE.CanvasTexture(gcvs); gtex.wrapS = gtex.wrapT = THREE.RepeatWrapping; gtex.repeat.set(28, 28); gtex.colorSpace = THREE.SRGBColorSpace;
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), new THREE.MeshStandardMaterial({ map: gtex, roughness: 1, metalness: 0.05 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const grid = new THREE.GridHelper(54, 27, 0x123038, 0x0a1016); // only the arena floor is gridded
+  // a beat-reactive dancefloor glow spilling across the pit in front of the stage
+  const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); const r = x.createRadialGradient(64, 64, 0, 64, 64, 64); r.addColorStop(0, 'rgba(255,255,255,0.9)'); r.addColorStop(0.5, 'rgba(255,255,255,0.25)'); r.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = r; x.fillRect(0, 0, 128, 128); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+  const floorGlow = new THREE.Mesh(new THREE.PlaneGeometry(34, 34), new THREE.MeshBasicMaterial({ map: glowTex, color: 0xff2b8f, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false }));
+  floorGlow.rotation.x = -Math.PI / 2; floorGlow.position.set(0, 0.04, -14); scene.add(floorGlow);
   grid.material.transparent = true; grid.material.opacity = 0.35; grid.position.y = 0.012; scene.add(grid);
 
   // ---- lights ----
@@ -295,6 +304,10 @@ export function buildFestival(scene) {
       cn.material.emissiveIntensity = 0.05 + pulse * (0.5 + 0.7 * darkness);
       const s = 1 + pulse * 0.18; cn.scale.set(s, s, 1);
     }
+    // dancefloor glow breathes with the beat + hue-shifts, stronger at night
+    floorGlow.material.opacity = (0.12 + pulse * 0.4) * (0.5 + darkness);
+    floorGlow.material.color.setHSL((time * 0.04) % 1, 0.9, 0.55);
+    const fs = 1 + pulse * 0.12; floorGlow.scale.set(fs, fs, 1);
     // carnival bunting twinkles; brighter at night
     for (let i = 0; i < buntingBulbs.length; i++) {
       const b = buntingBulbs[i];
