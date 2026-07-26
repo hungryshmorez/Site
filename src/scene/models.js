@@ -608,9 +608,30 @@ export function buildMonkeyPaw(accent = '#b967ff') {
   } };
 }
 
+// ---------------------------------------------------------------- LAB KIOSK
+// A small digital vendor kiosk — a counter + an angled glowing terminal screen
+// under a thin canopy. Used for the lab-market aisles (each opens a Lab folder).
+// The floating name tag (drawn by the HUD) says which aisle it is.
+export function buildKiosk(accent = '#39FF14') {
+  const g = new THREE.Group();
+  const col = new THREE.Color(accent);
+  const frame = std({ color: 0x101018, metalness: 0.5, roughness: 0.55 });
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.0, 0.9), frame); base.position.y = 0.5; base.castShadow = true; g.add(base);
+  const facia = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.5), std({ color: 0x02121a, emissive: col, emissiveIntensity: 0.7 })); facia.position.set(0, 0.5, 0.46); g.add(facia);
+  // angled terminal screen
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.0), std({ color: 0x03060a, emissive: col, emissiveIntensity: 0.9, roughness: 0.4 }));
+  scr.position.set(0, 1.35, 0.28); scr.rotation.x = -0.5; g.add(scr);
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.0, 8), frame); post.position.set(0, 1.2, -0.1); g.add(post);
+  // thin canopy
+  const canopy = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.1, 1.2), std({ color: 0x0a0a12, emissive: col, emissiveIntensity: 0.1 })); canopy.position.set(0, 2.05, 0); canopy.castShadow = true; g.add(canopy);
+  const gl = new THREE.PointLight(col, 3, 7, 2); gl.position.set(0, 1.6, 0.8); g.add(gl);
+  return { group: g, update: (t, pulse) => { scr.material.emissiveIntensity = 0.7 + Math.sin(t * 3) * 0.2 + pulse * 0.4; facia.material.emissiveIntensity = 0.5 + pulse * 0.5; gl.intensity = 2.5 + pulse * 2; } };
+}
+
 export const MODELS = {
   marshmallow: buildMarshmallow,
   monkeypaw: buildMonkeyPaw,
+  kiosk: buildKiosk,
   sofaboi: buildSofaBoi,
   doorway: buildDoorway,
   cowboy: buildCowboy,

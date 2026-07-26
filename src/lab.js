@@ -130,4 +130,10 @@ function renderDashboard() {
   window.scrollTo(0, 0);
 }
 
-renderDashboard();
+// deep-link: lab.html?folder=Games (or ?folder=Artist%20Profiles) opens straight
+// to that section, so each in-world lab vendor can land on its own aisle.
+const wanted = new URLSearchParams(location.search).get('folder');
+if (wanted === 'Artist Profiles') renderAliases();
+else if (wanted === 'Off-site Links') renderLinks();
+else if (wanted && LAB[wanted]) renderFolder(wanted);
+else renderDashboard();
