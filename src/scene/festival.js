@@ -159,6 +159,23 @@ export function buildFestival(scene) {
   const lasers = new THREE.LineSegments(laserGeo, new THREE.LineBasicMaterial({ color: c(PALETTE.green), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   scene.add(lasers);
 
+  // ---- drifting stage haze so the light-shafts + lasers have something to
+  // catch (soft additive billboards; barely visible by day, glowy at night) ----
+  const hazeSprites = [];
+  {
+    const hc = document.createElement('canvas'); hc.width = hc.height = 128; const hx = hc.getContext('2d');
+    const r = hx.createRadialGradient(64, 64, 0, 64, 64, 64); r.addColorStop(0, 'rgba(200,210,255,0.5)'); r.addColorStop(0.5, 'rgba(160,180,255,0.16)'); r.addColorStop(1, 'rgba(160,180,255,0)');
+    hx.fillStyle = r; hx.fillRect(0, 0, 128, 128);
+    const htex = new THREE.CanvasTexture(hc); htex.colorSpace = THREE.SRGBColorSpace;
+    for (let i = 0; i < 12; i++) {
+      const mat = new THREE.SpriteMaterial({ map: htex, transparent: true, opacity: 0.05, blending: THREE.AdditiveBlending, depthWrite: false });
+      const s = new THREE.Sprite(mat); const sc = 7 + Math.random() * 6; s.scale.set(sc, sc, 1);
+      s.position.set((Math.random() - 0.5) * 26, 2 + Math.random() * 6, stageZ + 2 + Math.random() * 14);
+      s.userData.drift = 0.1 + Math.random() * 0.2; s.userData.sx = (Math.random() - 0.5) * 0.1;
+      scene.add(s); hazeSprites.push(s);
+    }
+  }
+
   // ---- park bench, over by the message board ----
   buildBench(scene, [-10, 20]);
 
@@ -301,6 +318,12 @@ export function buildFestival(scene) {
     }
     lasers.material.opacity = Math.pow(pulse, 2) * 0.5 * darkness;
     lasers.rotation.y = Math.sin(time * 0.4) * 0.15;
+    // haze drifts slowly + glows more at night / on the beat
+    for (const h of hazeSprites) {
+      h.position.y += h.userData.drift * dt; h.position.x += h.userData.sx * dt;
+      if (h.position.y > 9) h.position.y = 1.5;
+      h.material.opacity = (0.03 + pulse * 0.05) * (0.4 + darkness);
+    }
 
     // perimeter light posts flare up at night so the arena edge stays lit
     for (const L of perimLights) L.intensity = 3 + darkness * 9 + pulse * 4;
