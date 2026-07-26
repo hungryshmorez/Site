@@ -3,6 +3,8 @@ import { WalkControls } from './player/controls.js';
 import { buildMarshmallow } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
+import { createAmbience, AMBIENCE } from './audio/ambience.js';
+const ambience = createAmbience(AMBIENCE.shmorez);
 
 // SHMOREZ'S WORLD — a cozy-surreal campground where everything's a s'more. A
 // giant BONFIRE ringed with roasting marshmallows, a S'MORES LAND of chocolate
@@ -226,6 +228,7 @@ renderer.render(scene, camera);
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
   if (track) { track.volume = 0.5; track.play().catch(() => {}); }
+  ambience.start();
   if (!running) { running = true; clock.start(); frame(); }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });

@@ -3,6 +3,8 @@ import { WalkControls } from './player/controls.js';
 import { buildGlitch } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes } from './scene/ambientfx.js';
+import { createAmbience, AMBIENCE } from './audio/ambience.js';
+const ambience = createAmbience(AMBIENCE.studio);
 
 // 12MATT3R'S ROOM — a dark glitch-art studio built around a central MONUMENT of
 // stacked CRT televisions you circle. Trippy + glitch screens everywhere, a
@@ -280,6 +282,7 @@ renderer.render(scene, camera);
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
   if (track) { track.volume = 0.5; track.play().catch(() => {}); }
+  ambience.start();
   if (!running) { running = true; clock.start(); frame(); }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });

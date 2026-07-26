@@ -3,6 +3,8 @@ import { WalkControls } from './player/controls.js';
 import { buildCowboy } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
+import { createAmbience, AMBIENCE } from './audio/ambience.js';
+const ambience = createAmbience(AMBIENCE.tanky);
 
 // TANKY JOHNSON'S WORLD — a cosmic western at dusk. A honky-tonk SALOON (EPK on
 // the jukebox), a TAILGATE bonfire with his lifted truck + hay bales, and a
@@ -226,6 +228,7 @@ renderer.render(scene, camera);
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
   if (track) { track.volume = 0.5; track.play().catch(() => {}); }
+  ambience.start();
   if (!running) { running = true; clock.start(); frame(); }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });

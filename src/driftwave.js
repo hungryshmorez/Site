@@ -3,6 +3,8 @@ import { WalkControls } from './player/controls.js';
 import { buildVaporwave } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
+import { createAmbience, AMBIENCE } from './audio/ambience.js';
+const ambience = createAmbience(AMBIENCE.driftwave);
 
 // DRIFTWAVE STATIC'S WORLD — one big vaporwave dreamscape stitched from the
 // three VAPORSTUDIO rooms: a marble TEMPLE (with the EPK monolith), a dead
@@ -346,6 +348,7 @@ renderer.render(scene, camera); // one frame behind the overlay
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
   if (track) { track.volume = 0.55; track.play().catch(() => {}); }
+  ambience.start();
   if (!running) { running = true; clock.start(); frame(); }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });

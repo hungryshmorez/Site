@@ -3,6 +3,8 @@ import { WalkControls } from './player/controls.js';
 import { buildSofaBoi } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
+import { createAmbience, AMBIENCE } from './audio/ambience.js';
+const ambience = createAmbience(AMBIENCE.sofaboi);
 
 // SOFA KING SAD BOI'S WORLD — a rainy kingdom of couches. A giant sofa THRONE
 // under a personal storm cloud, a SEA of couches to roam, and a BASS PIT where
@@ -238,6 +240,7 @@ renderer.render(scene, camera);
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
   if (track) { track.volume = 0.5; track.play().catch(() => {}); }
+  ambience.start();
   if (!running) { running = true; clock.start(); frame(); }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
