@@ -143,7 +143,12 @@ export function buildFestival(scene) {
     const beam = new THREE.Mesh(new THREE.ConeGeometry(2.6, 20, 24, 1, true),
       new THREE.MeshBasicMaterial({ color: spotColors[i], transparent: true, opacity: 0.06, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
     beam.position.copy(s.position); stage.add(beam);
-    spots.push({ light: s, beam, phase: i * 1.7 });
+    // bright source halo at the emitter + a moving pool where the beam lands
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 12), new THREE.MeshBasicMaterial({ color: spotColors[i], transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+    halo.position.copy(s.position); stage.add(halo);
+    const pool = new THREE.Mesh(new THREE.CircleGeometry(2.4, 24), new THREE.MeshBasicMaterial({ color: spotColors[i], transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false }));
+    pool.rotation.x = -Math.PI / 2; pool.position.y = 0.05; scene.add(pool);
+    spots.push({ light: s, beam, halo, pool, phase: i * 1.7 });
   }
 
   // ---- lasers ----
@@ -287,8 +292,12 @@ export function buildFestival(scene) {
       const sweep = Math.sin(time * 0.7 + sp.phase);
       sp.light.target.position.set(sweep * 18, 0, 2 + Math.cos(time * 0.5 + sp.phase) * 6);
       sp.light.intensity = (20 + pulse * 90) * (0.25 + darkness);
-      sp.beam.material.opacity = (0.03 + pulse * 0.10) * darkness;
+      sp.beam.material.opacity = (0.05 + pulse * 0.16) * (0.35 + darkness); // fuller shaft
       sp.beam.lookAt(sp.light.target.position); sp.beam.rotateX(-Math.PI / 2);
+      // bright source flare + the pool of light where the beam lands
+      sp.halo.material.opacity = (0.3 + pulse * 0.5) * (0.4 + darkness); sp.halo.scale.setScalar(1 + pulse * 0.7);
+      sp.pool.position.set(sp.light.target.position.x, 0.05, sp.light.target.position.z);
+      sp.pool.material.opacity = (0.08 + pulse * 0.24) * darkness; sp.pool.scale.setScalar(1 + pulse * 0.35);
     }
     lasers.material.opacity = Math.pow(pulse, 2) * 0.5 * darkness;
     lasers.rotation.y = Math.sin(time * 0.4) * 0.15;
