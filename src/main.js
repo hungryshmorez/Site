@@ -936,3 +936,10 @@ if (import.meta.env.DEV) window.__dbg = {
   enterLabPortal, startZoom, exitPortal, portalState: () => ({ mode, zoomProg, warping }),
   openBoard, closeBoard, djbooth, trippycam, toggleTrippyCam, snapshot,
 };
+
+// __world hook — overhead-screenshot harness only (activated with ?shot in the
+// URL); exposes the scene so an offline top-down render can be captured. No-op
+// for normal visitors.
+if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('shot')) {
+  window.__world = { THREE, scene, camera, renderer };
+}
