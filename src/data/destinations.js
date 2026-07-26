@@ -113,6 +113,14 @@ export const DESTINATIONS = [
     cta: 'Enter the Lab',
   },
   {
+    id: 'monkeypaw', name: "THE MONKEY'S PAW", model: 'monkeypaw',
+    role: 'the fortune machine // left flank', accent: PALETTE.purple,
+    pos: [-20, 0, -8], tag: 'make a wish · 5 wishes',
+    url: 'https://3jnyhlyqkqq1e.space.minimax.io/',
+    blurb: "A carnival fortune machine on the edge of the grounds — but under the glass dome is a severed, glowing monkey's paw curled on velvet. Five wishes. Be careful what you wish for. Reach it to make yours.",
+    cta: 'Make a wish',
+  },
+  {
     id: 'portapotty', name: 'THE CODEX', model: 'bathroom',
     role: 'the archive // inside the potty', accent: PALETTE.green,
     pos: [-13, 0, -16], tag: 'the encyclopedia', hideTag: true,

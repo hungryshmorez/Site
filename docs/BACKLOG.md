@@ -31,7 +31,10 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
 - ✅ Move **THE DECKS** DJ rig ONTO the stage deck (−8, −24, lifted).
 - ✅ Move **Trippy Cam** trigger off the stage into a **Photo Booth** by the hub board (−13, 17). *(Visual
   restyle to a dedicated photo-booth model still TODO — it currently reuses the booth mesh.)*
-- ⏳ **12matt3r Labs / stage VJ**: switch between trippy videos (list TBD) that play on the big stage screen — **visual only, no audio** — so you're VJ'ing the concert. Also a good home for the fireworks + laser show controls.
+- ✅ **Stage VJ screen**: the stage video wall plays a muted, looping YouTube playlist mounted as a CSS3D
+  object locked to the screen plane (tracks perspective as you walk). Click the screen or the 🎬 vj button
+  to go live, ⏮/⏭ to switch clips — you VJ the concert, visual only. *(Playlist `PLTHYibH4Hb0Y` — the share
+  link's list id looked truncated, so swap in the full id if clips don't load.)*
 
 ## Dealer / drugs / FX orbs — done ✅
 - ✅ Beefed up the trip: a new **TRIP** shader (6-fold kaleidoscope + swirl + chroma + rolling rainbow),
@@ -49,7 +52,12 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
   hue-cycling) + **corner speaker stacks** in the four open corners (cones punch on the bass).
 
 ## New in-world areas / vendors
-- ⏳ **Curse of the Monkey Paw** → its own vendor area: a fortune-teller machine but a **monkey paw**, **5 wishes**, then it opens `https://wish.on.websim.com`.
+- ✅ **The Monkey's Paw** → its own vendor: a carnival fortune machine with a glowing severed monkey's paw
+  curled under a glass dome, left flank at (−20, −8). Reach it → opens `https://3jnyhlyqkqq1e.space.minimax.io/`
+  (SOFA KING SAD BOI's build) in the Win-style popup. Also added to the classic Stories list.
+- ✅ **VAPORSTUDIO** (generative lo-fi / vaporwave / mallsoft music studio) → added to Tools and to
+  DriftWave Static's links (`https://bl8ig28k7482x.space.minimax.io`). *(Could later become DriftWave's
+  main in-world portal if we want it to replace the EPK link.)*
 
 ## Contributed code (saved in `docs/contributed/`, reference only — wire in when we build these)
 - `enemy.js` — Goomba-like enemy (chase AI, jump, damage, death particles). For a future combat/bullet-hell or backrooms chase.

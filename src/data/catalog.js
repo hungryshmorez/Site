@@ -24,6 +24,7 @@ export const ALIASES = [
     name: 'DRIFTWAVE STATIC', genre: 'Slushwave / Ambient / Vaporwave',
     epk: 'https://staticcorp--sofakingsadboi.on.websim.com/',
     links: [
+      { name: 'VAPORSTUDIO (generative music studio)', url: 'https://bl8ig28k7482x.space.minimax.io' },
       { name: 'Bandcamp', url: 'https://driftwavestatic.bandcamp.com/' },
       { name: 'Slushwave Catalog (every band camp)', url: 'https://slushwave.on.websim.com' },
       { name: 'Booting DreamOS (Global Pattern)', url: 'https://globalpatterndigital.bandcamp.com/album/b-o-o-t-i-n-g-d-r-e-a-m-o-s-b-a-r-d-o-f-a-c-t-o-r-y-r-e-s-e-t' },
@@ -131,6 +132,7 @@ export const LAB = {
     { name: 'GTA VI: Leonida 360 (choose-your-story)', url: 'https://leonida-360-vice-city-crime-simulator--sofakingsadboi.on.websim.com' },
     { name: 'ChromaShift (Chroma Awards)', url: 'https://chromashift-hyper-surreal-dreamscape-3--sofakingsadboi.on.websim.com' },
     { name: 'ChrØmaShift (scary version)', url: 'https://chromashift-hyper-surreal-dreamscape-9--sofakingsadboi.on.websim.com/' },
+    { name: "The Monkey's Paw (SOFA KING SAD BOI)", url: 'https://3jnyhlyqkqq1e.space.minimax.io/' },
     { name: 'Curse of the Monkey Paw', url: 'https://wish.on.websim.com/' },
     { name: 'The Ultimate Guide to Thriving', url: 'https://the-ultimate-guide-to-thriving-in-life--sofakingsadboi.on.websim.com/' },
     { name: 'Back Rooms', url: 'https://aibackroomssimulator.on.websim.com/?v=432' },
@@ -146,6 +148,7 @@ export const LAB = {
     { name: 'Liminal Space Explorer', url: 'https://liminal-space-explorer-2--sofakingsadboi.on.websim.com/', special: true },
   ],
   'Tools': [
+    { name: 'VAPORSTUDIO (generative lo-fi / vaporwave / mallsoft studio)', url: 'https://bl8ig28k7482x.space.minimax.io' },
     { name: 'Simsplicer (fuse websims into a prompt)', url: 'https://fuse2.on.websim.com' },
     { name: 'Creative Idea Expander', url: 'https://creative-idea.on.websim.com' },
     { name: 'VJ Application', url: 'https://saucelab-vj-application--sofakingsadboi.on.websim.com' },

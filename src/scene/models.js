@@ -567,8 +567,48 @@ export function buildDecks(accent = '#00F3FF') {
   return { group: g, update: (t, pulse) => { platters.forEach((d, i) => (d.rotation.y += 0.03 * (i % 2 ? -1 : 1))); facia.material.emissiveIntensity = 0.5 + pulse * 0.6; gl.intensity = 3 + pulse * 3; } };
 }
 
+// ---------------------------------------------------------------- MONKEY'S PAW
+// A creepy carnival fortune machine — a wooden cabinet with a glass dome, a
+// glowing severed monkey's paw curled on velvet inside, and a marquee sign.
+// Walk up and it opens the wish app. "Be careful what you wish for."
+export function buildMonkeyPaw(accent = '#b967ff') {
+  const g = new THREE.Group();
+  const col = new THREE.Color(accent);
+  const wood = std({ color: 0x1a0f0a, roughness: 0.7, metalness: 0.2 });
+  // cabinet body
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.1), wood); body.position.y = 0.75; body.castShadow = true; g.add(body);
+  // glass dome housing on top
+  const housing = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.3, 1.1), wood); housing.position.y = 2.1; housing.castShadow = true; g.add(housing);
+  const glassMat = std({ color: 0x0a0812, emissive: col, emissiveIntensity: 0.15, metalness: 0.6, roughness: 0.1, transparent: true, opacity: 0.28 });
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.62, 20, 16, 0, Math.PI * 2, 0, Math.PI * 0.55), glassMat);
+  dome.position.set(0, 2.1, 0.15); g.add(dome);
+  const velvet = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.08, 20), std({ color: 0x2a0810, roughness: 0.9 }));
+  velvet.position.set(0, 1.7, 0.15); g.add(velvet);
+  // the paw: a palm + five curled clawed fingers, emissive so it glows in the dome
+  const paw = new THREE.Group(); paw.position.set(0, 1.78, 0.15); g.add(paw);
+  const flesh = std({ color: 0x1a120c, emissive: col, emissiveIntensity: 0.9, roughness: 0.6 });
+  const palm = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.1, 0.3), flesh); paw.add(palm);
+  for (let i = 0; i < 5; i++) {
+    const fg = new THREE.Group(); fg.position.set(-0.1 + i * 0.05, 0.02, 0.15); paw.add(fg);
+    const seg = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.03, 0.16, 6), flesh);
+    seg.position.set(0, 0.02, 0.02); seg.rotation.x = 1.1 + i * 0.06; fg.add(seg); // curled inward
+    const claw = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.06, 6), std({ color: 0x0a0806, roughness: 0.5 }));
+    claw.position.set(0, -0.04, 0.11); claw.rotation.x = 2.2; fg.add(claw);
+  }
+  // marquee sign
+  const cap = textPlane("MONKEY'S PAW", accent); cap.position.set(0, 2.95, 0.3); cap.scale.set(2.2, 0.44, 1); g.add(cap);
+  const coin = textPlane('make a wish', accent); coin.position.set(0, 0.5, 0.56); coin.scale.set(1.1, 0.26, 1); g.add(coin);
+  const gl = new THREE.PointLight(accent, 4, 8, 2); gl.position.set(0, 2.0, 0.6); g.add(gl);
+  return { group: g, update: (t, pulse) => {
+    flesh.emissiveIntensity = 0.7 + Math.sin(t * 2.3) * 0.3 + pulse * 0.4; // the paw pulses like it's breathing
+    gl.intensity = 3 + Math.sin(t * 1.7) * 1.2 + pulse * 2;
+    paw.rotation.y = Math.sin(t * 0.4) * 0.25;
+  } };
+}
+
 export const MODELS = {
   marshmallow: buildMarshmallow,
+  monkeypaw: buildMonkeyPaw,
   sofaboi: buildSofaBoi,
   doorway: buildDoorway,
   cowboy: buildCowboy,
