@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { buildMarshmallow } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
+import { addMotes, addHaze } from './scene/ambientfx.js';
 
 // SHMOREZ'S WORLD — a cozy-surreal campground where everything's a s'more. A
 // giant BONFIRE ringed with roasting marshmallows, a S'MORES LAND of chocolate
@@ -155,6 +156,10 @@ function textPlane(text, color) {
 }
 
 buildBonfire(); buildVisuals(); buildSmoresLand(); buildCamp();
+
+// ambient: warm ember motes drifting across the whole camp + soft smoke haze
+updaters.push(addMotes(scene, { color: 0xffa64a, count: 220, area: [56, 15, 56], rise: 0.6, opacity: 0.5 }));
+updaters.push(addHaze(scene, { color: 0xff8a3c, count: 8, center: [0, 3, -2], area: [22, 6, 20], scale: 9, opacity: 0.05 }));
 
 // Shmorez himself, bouncing by the fire
 const sh = buildMarshmallow('#ff6b35'); sh.group.position.set(4, 0, 2); sh.group.scale.setScalar(1.3); scene.add(sh.group);

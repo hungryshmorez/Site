@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { buildRaver } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
+import { addMotes, addHaze } from './scene/ambientfx.js';
 
 // RAVE CHARLES'S WORLD — the masked headliner, down in the pit with the crowd.
 // A raging neon MOSH PIT with a stage (EPK on the screen), a coast-to-coast
@@ -140,6 +141,10 @@ function textPlane(text, color) {
 }
 
 buildPit(); buildTour(); buildMask();
+
+// ambient: thick magenta haze in the pit for the strobes to cut through + motes
+updaters.push(addHaze(scene, { color: 0xff2b8f, count: 12, center: [0, 3, -14], area: [24, 7, 16], scale: 9, opacity: 0.07 }));
+updaters.push(addMotes(scene, { color: 0xff9ecb, count: 200, area: [56, 16, 60], opacity: 0.4 }));
 
 // Rave Charles himself, down in the pit with the crowd
 const rc = buildRaver('#ff0055'); rc.group.position.set(0, 0, -8); rc.group.scale.setScalar(1.15); scene.add(rc.group);

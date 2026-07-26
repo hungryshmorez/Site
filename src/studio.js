@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { buildGlitch } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
+import { addMotes } from './scene/ambientfx.js';
 
 // 12MATT3R'S ROOM — a dark glitch-art studio built around a central MONUMENT of
 // stacked CRT televisions you circle. Trippy + glitch screens everywhere, a
@@ -171,6 +172,9 @@ function textPlane(text, color) {
 }
 
 buildMonument(); buildInstalls();
+
+// ambient: cyan data-bit motes floating through the dark room
+updaters.push(addMotes(scene, { color: 0x00f3ff, count: 160, area: [30, 8, 30], rise: 0.3, size: 0.07, opacity: 0.45 }));
 
 // 12matt3r himself, glitching by the workstation
 const fig = buildGlitch('#00f3ff'); fig.group.position.set(9, 0, 8); fig.group.rotation.y = -2.2; scene.add(fig.group);

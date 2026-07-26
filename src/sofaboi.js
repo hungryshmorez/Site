@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { buildSofaBoi } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
+import { addMotes, addHaze } from './scene/ambientfx.js';
 
 // SOFA KING SAD BOI'S WORLD — a rainy kingdom of couches. A giant sofa THRONE
 // under a personal storm cloud, a SEA of couches to roam, and a BASS PIT where
@@ -169,6 +170,10 @@ function textPlane(text, color) {
 }
 
 buildThrone(); buildCouchField(); buildBassPit();
+
+// ambient: cool indigo motes drifting in the rain + haze in the bass pit
+updaters.push(addMotes(scene, { color: 0x9aa0ff, count: 200, area: [56, 16, 56], opacity: 0.4 }));
+updaters.push(addHaze(scene, { color: 0x6a6cff, count: 8, center: [18, 3, 0], area: [14, 6, 18], scale: 8, opacity: 0.06 }));
 
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: 28, eye: 1.6, zMin: -28 });

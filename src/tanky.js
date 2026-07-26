@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { buildCowboy } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
+import { addMotes, addHaze } from './scene/ambientfx.js';
 
 // TANKY JOHNSON'S WORLD — a cosmic western at dusk. A honky-tonk SALOON (EPK on
 // the jukebox), a TAILGATE bonfire with his lifted truck + hay bales, and a
@@ -155,6 +156,10 @@ function textPlane(text, color) {
 }
 
 buildSaloon(); buildTailgate(); buildDesert();
+
+// ambient: golden desert dust drifting + warm haze over the tailgate fire
+updaters.push(addMotes(scene, { color: 0xffd9a0, count: 200, area: [58, 14, 58], rise: 0.3, opacity: 0.4 }));
+updaters.push(addHaze(scene, { color: 0xff8a3c, count: 8, center: [17, 3, 6], area: [14, 6, 14], scale: 8, opacity: 0.06 }));
 
 // Tanky himself, out by the tailgate fire
 const tj = buildCowboy('#e6c04a'); tj.group.position.set(12, 0, 8); tj.group.rotation.y = -1.4; tj.group.scale.setScalar(1.1); scene.add(tj.group);

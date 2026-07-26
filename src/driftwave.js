@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { buildVaporwave } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
+import { addMotes, addHaze } from './scene/ambientfx.js';
 
 // DRIFTWAVE STATIC'S WORLD — one big vaporwave dreamscape stitched from the
 // three VAPORSTUDIO rooms: a marble TEMPLE (with the EPK monolith), a dead
@@ -264,6 +265,10 @@ function buildRings(scene, controls) {
 }
 
 buildTemple(); buildMonolith(); buildMall(); buildLoFi();
+
+// ambient drift: warm motes across the dream + soft pink haze in the temple
+updaters.push(addMotes(scene, { color: 0xffd27a, count: 220, area: [56, 16, 60], opacity: 0.45 }));
+updaters.push(addHaze(scene, { color: 0xff9ecb, count: 9, center: [0, 3, -16], area: [22, 6, 16], scale: 9, opacity: 0.05 }));
 
 // DriftWave himself in the central plaza, facing the spawn
 const dw = buildVaporwave('#b967ff'); dw.group.position.set(0, 0, 1); dw.group.rotation.y = Math.PI; scene.add(dw.group);
