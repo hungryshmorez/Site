@@ -20,6 +20,7 @@ export default defineConfig({
         ravecharles: resolve(__dirname, 'ravecharles.html'),
         studio: resolve(__dirname, 'studio.html'),
         tanky: resolve(__dirname, 'tanky.html'),
+        shmorez: resolve(__dirname, 'shmorez.html'),
         lab: resolve(__dirname, 'lab.html'),
         tv: resolve(__dirname, 'tv.html'),
         dj: resolve(__dirname, 'dj.html'),

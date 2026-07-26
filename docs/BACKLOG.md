@@ -91,5 +91,16 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
   keycard (behind the dumpster, [-22,-23]), click the vault to slide the fake wall open, claim the backstage
   pass → opens the Discord.
 
+## Character worlds — DONE ✅
+Each character's festival destination now enters their own walkable world page (EPK inside), instead of
+opening the external EPK link directly.
+- ✅ **DriftWave Static** → `driftwave.html` — vaporwave dreamscape (temple / mallsoft / lo-fi nook); EPK on the temple monolith.
+- ✅ **Sofa King Sad Boi** → `sofaboi.html` — rainy couch kingdom (sofa throne / couch sea / bass pit); EPK on the throne-room TV.
+- ✅ **Rave Charles** → `ravecharles.html` — neon mosh pit / tour road / LED-visor mask; EPK (tour timeline) on the stage screen.
+- ✅ **12matt3r** → `studio.html` — glitch room around a stacked-CRT monument; EPK (web-OS) on the big CRT.
+- ✅ **Tanky Johnson** → `tanky.html` — cosmic western (saloon / tailgate / void desert); EPK on the saloon jukebox.
+- ✅ **Shmorez** → `shmorez.html` — s'mores campground (bonfire / s'mores land / camp); EPK on the visuals screen.
+- Pattern: standalone Vite page, reuses WalkControls + the in-site popup; each has zone labels + a back-portal to the festival.
+
 ## Tier 3 (disregarded for now — need a jump/flight or physics loop)
 - Parkour ascent, glide/ring fly-through, bullet-hell, laser-grid, pinball, dunk tank.

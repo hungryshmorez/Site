@@ -28,9 +28,9 @@ export const DESTINATIONS = [
     id: 'shmorez', name: 'SHMOREZ', model: 'marshmallow',
     role: 'the campfire // out back', accent: PALETTE.orange,
     pos: [13, 0, 18], tag: 'electronic · marshmallow',
-    url: 'https://shmorez-official-epk--sofakingsadboi.on.websim.com/',
-    blurb: 'A toasted marshmallow man squishing to the bass in the pit — an animated electronic marshmallow squish of fire. His EPK (custom player, press assets, the drops) opens when you reach him.',
-    cta: 'Enter SHMOREZ EPK',
+    page: 'shmorez.html',
+    blurb: 'A toasted marshmallow man squishing to the bass — an animated electronic marshmallow squish of fire. Reach him to roast into his world: a cozy-surreal campground with a giant bonfire, a s\'mores land of chocolate walls and marshmallow boulders, and a tent camp under the embers. His EPK is on the visuals screen.',
+    cta: 'Roast at the s\'mores fire',
   },
   {
     id: 'sofaboi', name: 'SOFA KING SAD BOI', model: 'sofaboi',
