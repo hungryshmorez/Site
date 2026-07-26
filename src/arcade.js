@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { buildHoop } from './scene/hoop.js';
 import { buildGallery } from './scene/gallery.js';
+import { buildMonkeyPaw } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 
 // THE MIDWAY — a carnival arcade tent holding every game: portal cabinets
@@ -96,7 +97,15 @@ buildCabinet(-9, -13, 'FLASH GAMES', '#ff0055', () => openWindow('FLASH GAMES PO
 buildCabinet(-4.5, -14.5, 'WAKE UP', '#b967ff', () => openWindow('WAKE UP SERIES', 'lab.html?folder=Wake%20Up%20Series'));
 buildCabinet(0, -15, 'GAMES', '#00f3ff', () => openWindow('GAMES', 'lab.html?folder=Games'));
 buildCabinet(4.5, -14.5, 'STORIES', '#39ff14', () => openWindow('STORIES & EXPERIENCES', 'lab.html?folder=Stories%20%26%20Experiences'));
-buildCabinet(9, -13, "MONKEY'S PAW", '#ffd24a', () => openWindow("THE MONKEY'S PAW", 'https://3jnyhlyqkqq1e.space.minimax.io/'));
+
+// the real Monkey's Paw fortune machine (moved in from the festival)
+const paw = buildMonkeyPaw('#b967ff'); paw.group.position.set(10, 0, -12.5); paw.group.rotation.y = -0.5; scene.add(paw.group);
+updaters.push((dt, t, p) => { if (paw.update) paw.update(t, p); });
+{
+  const proxy = new THREE.Mesh(new THREE.BoxGeometry(2.2, 3.4, 2.2), new THREE.MeshBasicMaterial({ visible: false }));
+  proxy.position.set(10, 1.7, -12.5); scene.add(proxy);
+  clickables.push({ proxy, onClick: () => openWindow("THE MONKEY'S PAW", 'https://3jnyhlyqkqq1e.space.minimax.io/') });
+}
 
 // ---------- the physical games (reused, now under the tent) ----------
 const pillEl = document.getElementById('pill');

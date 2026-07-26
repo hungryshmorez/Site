@@ -628,10 +628,45 @@ export function buildKiosk(accent = '#39FF14') {
   return { group: g, update: (t, pulse) => { scr.material.emissiveIntensity = 0.7 + Math.sin(t * 3) * 0.2 + pulse * 0.4; facia.material.emissiveIntensity = 0.5 + pulse * 0.5; gl.intensity = 2.5 + pulse * 2; } };
 }
 
+// ---------------------------------------------------------------- CIRCUS TENT
+// The MIDWAY entrance — a striped big-top built into the wall with an open front
+// you walk into. Reaching it loads the arcade world. Front (+Z) faces center.
+export function buildCircusTent(accent = '#FF0055') {
+  const g = new THREE.Group();
+  const col = new THREE.Color(accent);
+  // stripe texture (red/cream)
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 32; const cx = cv.getContext('2d');
+  for (let i = 0; i < 16; i++) { cx.fillStyle = i % 2 ? '#ff0055' : '#fff0f6'; cx.fillRect(i * 16, 0, 16, 32); }
+  const stex = new THREE.CanvasTexture(cv); stex.wrapS = THREE.RepeatWrapping; stex.repeat.set(5, 1); stex.colorSpace = THREE.SRGBColorSpace;
+  const stripe = std({ map: stex, side: THREE.DoubleSide, roughness: 0.85, emissive: col, emissiveIntensity: 0.06 });
+  // three-quarter wall, open toward +Z (the front / center)
+  const wall = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 5, 24, 1, true, 2.356, 4.712), stripe);
+  wall.position.y = 2.5; wall.castShadow = true; g.add(wall);
+  // roof cone (overhangs)
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(6, 5, 24, 1, true), stripe); roof.position.y = 7.4; roof.castShadow = true; g.add(roof);
+  // dark interior backdrop + warm glow (reads as "inside")
+  const inside = new THREE.Mesh(new THREE.CylinderGeometry(4.7, 4.7, 4.8, 24, 1, true, 2.356, 4.712), std({ color: 0x1a0510, side: THREE.BackSide, emissive: col, emissiveIntensity: 0.15 }));
+  inside.position.y = 2.5; g.add(inside);
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(4.8, 24), std({ color: 0x120410, roughness: 0.6, metalness: 0.3 })); floor.rotation.x = -Math.PI / 2; floor.position.y = 0.05; g.add(floor);
+  const glow = new THREE.PointLight(0xffd24a, 6, 14, 2); glow.position.set(0, 2.4, 1); g.add(glow);
+  // entrance frame: two poles + a striped valance across the front (z≈+3.5)
+  const poleMat = std({ color: 0x2a1020, metalness: 0.4, roughness: 0.6 });
+  for (const px of [-3.5, 3.5]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.18, 5.6, 8), poleMat); p.position.set(px, 2.8, 3.5); p.castShadow = true; g.add(p); }
+  const valance = new THREE.Mesh(new THREE.BoxGeometry(7.4, 0.9, 0.2), stripe); valance.position.set(0, 5.2, 3.5); g.add(valance);
+  // scalloped bunting bulbs across the entrance
+  const bulbs = [];
+  for (let i = 0; i < 9; i++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffd88a })); b.position.set(-3.2 + i * 0.8, 4.7 - Math.sin(i / 8 * Math.PI) * 0.5, 3.6); g.add(b); bulbs.push(b); }
+  // pennant flag on the tip
+  const flag = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.5, 4), new THREE.MeshBasicMaterial({ color: 0xffd24a })); flag.position.y = 10.1; g.add(flag);
+  const marquee = textPlane('▸ ENTER ◂', accent); marquee.position.set(0, 3, 3.7); marquee.scale.set(3, 0.6, 1); g.add(marquee);
+  return { group: g, update: (t, pulse) => { glow.intensity = 5 + Math.sin(t * 3) * 1 + pulse * 2; bulbs.forEach((b, i) => b.material.color.setHSL((i / 9 + t * 0.15) % 1, 0.85, 0.6)); flag.rotation.y = t * 2; } };
+}
+
 export const MODELS = {
   marshmallow: buildMarshmallow,
   monkeypaw: buildMonkeyPaw,
   kiosk: buildKiosk,
+  circustent: buildCircusTent,
   sofaboi: buildSofaBoi,
   doorway: buildDoorway,
   cowboy: buildCowboy,
