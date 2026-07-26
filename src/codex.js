@@ -81,18 +81,54 @@ function mapSvg(w) {
   // compass
   g += `<text x="${IW / 2}" y="${PAD - 12}" fill="var(--muted)" font-size="10" text-anchor="middle" font-family="var(--mono)">N ↑ (stage side)</text>`;
 
-  // items — dot + label; label flips to the left near the right edge
-  for (const item of w.items) {
+  // items — one labeled dot per item/person. Compute the true screen position
+  // for each, then relax any that land on top of each other so every dot stays
+  // individually visible (two things at one spot → two separate dots). A faint
+  // leader line ties a nudged dot back to its true position.
+  const nodes = w.items.map((item) => {
     const k = MAP_KINDS[item.kind] || MAP_KINDS.prop;
-    const px = sx(item.x), py = sy(item.z);
-    const left = px > IW * 0.62;
-    const tx = left ? px - 9 : px + 9;
+    const tx0 = sx(item.x), ty0 = sy(item.z);
+    const r = item.kind === 'person' || item.kind === 'spawn' ? 6 : 4.5;
+    return { item, k, r, tx0, ty0, x: tx0, y: ty0 };
+  });
+  const MIN = 15; // px of breathing room between dot centers
+  for (let iter = 0; iter < 60; iter++) {
+    let moved = false;
+    for (let a = 0; a < nodes.length; a++) {
+      for (let b = a + 1; b < nodes.length; b++) {
+        const na = nodes[a], nb = nodes[b];
+        let dx = nb.x - na.x, dy = nb.y - na.y;
+        let d = Math.hypot(dx, dy);
+        if (d < MIN) {
+          if (d < 0.01) { dx = (Math.random() - 0.5); dy = (Math.random() - 0.5); d = Math.hypot(dx, dy) || 1; }
+          const push = (MIN - d) / 2;
+          const ux = dx / d, uy = dy / d;
+          na.x -= ux * push; na.y -= uy * push;
+          nb.x += ux * push; nb.y += uy * push;
+          moved = true;
+        }
+      }
+    }
+    for (const n of nodes) { // keep inside the frame
+      n.x = Math.max(PAD + n.r, Math.min(IW - PAD - n.r, n.x));
+      n.y = Math.max(PAD + n.r, Math.min(IH - PAD - n.r, n.y));
+    }
+    if (!moved) break;
+  }
+  for (const n of nodes) {
+    const { item, k, r } = n;
+    const left = n.x > IW * 0.62;
+    const tx = left ? n.x - 9 : n.x + 9;
     const anchor = left ? 'end' : 'start';
-    const r = item.kind === 'person' ? 6 : item.kind === 'spawn' ? 6 : 4.5;
+    // leader from nudged dot back to true position, if it drifted
+    if (Math.hypot(n.x - n.tx0, n.y - n.ty0) > 3) {
+      g += `<line x1="${n.tx0.toFixed(1)}" y1="${n.ty0.toFixed(1)}" x2="${n.x.toFixed(1)}" y2="${n.y.toFixed(1)}" stroke="${k.color}" stroke-opacity=".35" stroke-width="1"/>`;
+      g += `<circle cx="${n.tx0.toFixed(1)}" cy="${n.ty0.toFixed(1)}" r="1.6" fill="${k.color}" fill-opacity=".55"/>`;
+    }
     g += `<g>`;
-    if (item.kind === 'spawn') g += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="11" fill="none" stroke="${k.color}" stroke-opacity=".5"/>`;
-    g += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${r}" fill="${k.color}" stroke="#05060f" stroke-width="1"/>`;
-    g += `<text x="${tx.toFixed(1)}" y="${(py + 3.5).toFixed(1)}" fill="#d7d7e4" font-size="11" text-anchor="${anchor}" font-family="var(--mono)">${esc(item.label)}</text>`;
+    if (item.kind === 'spawn') g += `<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="11" fill="none" stroke="${k.color}" stroke-opacity=".5"/>`;
+    g += `<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${r}" fill="${k.color}" stroke="#05060f" stroke-width="1"/>`;
+    g += `<text x="${tx.toFixed(1)}" y="${(n.y + 3.5).toFixed(1)}" fill="#d7d7e4" font-size="11" text-anchor="${anchor}" font-family="var(--mono)">${esc(item.label)}</text>`;
     g += `</g>`;
   }
   return `<svg class="wmap" viewBox="0 0 ${IW} ${IH}" role="img" aria-label="${esc(w.name)} map">${g}</svg>`;
