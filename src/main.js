@@ -380,7 +380,7 @@ const FW_COLORS = ['#00F3FF', '#FF0055', '#39FF14', '#e6c04a', '#b967ff', '#ff6b
 let fwColor = FW_COLORS[0];
 const fwPanelEl = document.getElementById('fwPanel');
 const fwToggleEl = document.getElementById('fwToggle');
-function closeConsoles(keepId) { ['dealerPanel', 'todPanel', 'fwPanel'].forEach((id) => { if (id !== keepId) { const e = document.getElementById(id); if (e) e.classList.remove('open'); } }); }
+function closeConsoles(keepId) { ['dealerPanel', 'todPanel', 'fwPanel', 'sizePanel'].forEach((id) => { if (id !== keepId) { const e = document.getElementById(id); if (e) e.classList.remove('open'); } }); }
 if (fwToggleEl) fwToggleEl.onclick = () => { closeConsoles('fwPanel'); buildFw(); fwPanelEl.classList.toggle('open'); };
 function buildFw() {
   if (!fwPanelEl) return;
@@ -393,6 +393,38 @@ function buildFw() {
   fwPanelEl.appendChild(fire);
 }
 buildFw();
+
+// ---- world resize: scale the player so the whole festival feels tiny or huge --
+const SIZES = [
+  { id: 'ant', name: '🐜 ANT', s: 0.35 },
+  { id: 'small', name: 'SHRUNK', s: 0.62 },
+  { id: 'normal', name: 'NORMAL', s: 1 },
+  { id: 'tall', name: 'TOWERING', s: 2.4 },
+  { id: 'giant', name: '🗼 GIANT', s: 5 },
+];
+let sizeSel = 'normal';
+const BASE_EYE = controls.eye, BASE_SPEED = controls.speed;
+const sizePanelEl = document.getElementById('sizePanel');
+const sizeToggleEl = document.getElementById('sizeToggle');
+if (sizeToggleEl) sizeToggleEl.onclick = () => { closeConsoles('sizePanel'); buildSize(); sizePanelEl.classList.toggle('open'); };
+function setSize(s, id) {
+  sizeSel = id;
+  controls.eye = BASE_EYE * s;
+  controls.speed = BASE_SPEED * THREE.MathUtils.clamp(s, 0.55, 3.2); // bigger strides, but capped
+  flash(s === 1 ? 'back to normal size' : s < 1 ? 'the festival looms huge around you' : 'you tower over the whole festival');
+}
+function buildSize() {
+  if (!sizePanelEl) return;
+  sizePanelEl.innerHTML = '<div class="fxhead">WORLD SIZE <span>resize yourself</span></div>';
+  SIZES.forEach((p) => {
+    const b = document.createElement('button');
+    b.className = 'fxrow' + (sizeSel === p.id ? ' on' : '');
+    b.textContent = p.name;
+    b.onclick = () => { setSize(p.s, p.id); buildSize(); };
+    sizePanelEl.appendChild(b);
+  });
+}
+buildSize();
 
 // PHOTO BOOTH in the back by the message board → the TRIPPY CAM (your webcam
 // becomes the sky). Moved off the stage so the DJ decks own the stage.
