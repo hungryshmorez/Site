@@ -107,8 +107,16 @@ opening the external EPK link directly.
 - ✅ **Shmorez** → `shmorez.html` — s'mores campground (bonfire / s'mores land / camp); EPK on the visuals screen.
 - Pattern: standalone Vite page, reuses WalkControls + the in-site popup; each has zone labels + a back-portal to the festival.
 
-## Tier 3 (unblocked — jump now exists)
-- ✅ **Jump** (space) added to the shared walk controls → works in the festival and every world.
-- ✅ **Parkour ascent** — a spiral of floating islands in DriftWave's world (right of the temple); land on
-  the slabs, climb to the summit crystal ("the endless summer"). Platform collision via a custom groundAt.
-- ⬜ Glide / ring fly-through, bullet-hell, laser-grid, pinball, dunk tank (still want more physics/flight).
+## Tier 3 (mostly done)
+- ✅ **Jump** (space) + **Glide** (hold space while falling) on the shared controls → festival + every world.
+- ✅ **Parkour ascent** — spiral of floating islands in DriftWave's world up to the summit crystal.
+- ✅ **Ring fly-through** — glide off the DriftWave summit through six descending rings → "RING RUNNER".
+- ✅ **Dunk tank** — Midway carnival game: hit the bullseye to drop the dunkee (splash).
+- ✅ **Laser grid** — sweeping security beams guard the portal in 12matt3r's glitch room → "SYSTEM BREACHED".
+- ⬜ **Pinball** — deserves its own fixed-cam flipper-physics mini-mode; deferred so it plays well.
+- ⬜ **Bullet-hell** — needs a combat/health loop (the contributed `enemy.js` is the seed); deferred as its own mode.
+
+## The arcade / Midway
+- ✅ Consolidated all games into **THE MIDWAY** — a circus tent built into the wall (walk in to play).
+  Cabinets: flash portal / Wake Up / Games / Stories; the Monkey's Paw machine; basketball (banks off the
+  backboard); shooting gallery; dunk tank. Removed the standalone festival games + game kiosks + wall monkey-paw.
