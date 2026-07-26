@@ -19,6 +19,7 @@ export default defineConfig({
         sofaboi: resolve(__dirname, 'sofaboi.html'),
         ravecharles: resolve(__dirname, 'ravecharles.html'),
         studio: resolve(__dirname, 'studio.html'),
+        tanky: resolve(__dirname, 'tanky.html'),
         lab: resolve(__dirname, 'lab.html'),
         tv: resolve(__dirname, 'tv.html'),
         dj: resolve(__dirname, 'dj.html'),

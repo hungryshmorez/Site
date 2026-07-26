@@ -52,9 +52,9 @@ export const DESTINATIONS = [
     id: 'tanky', name: 'TANKY JOHNSON', model: 'cowboy',
     role: 'the tailgate // right', accent: PALETTE.gold,
     pos: [10, 0, 7], tag: 'outlaw country',
-    url: 'https://tanky-johnson-epk--sofakingsadboi.on.websim.com/',
-    blurb: 'The outlaw of the void — a cowboy in a brown hat, white tee and blue jeans, holding the right flank. Gold-on-black EPK: bio, latest tracks, and a booking desk.',
-    cta: 'Enter Tanky EPK',
+    page: 'tanky.html',
+    blurb: 'The outlaw of the void — a cowboy in a brown hat, white tee and blue jeans. Reach him to ride into his world: a cosmic western with a neon honky-tonk saloon, a tailgate bonfire and his lifted truck, and a void desert of mesas and neon cacti under a giant moon. His EPK is on the saloon jukebox.',
+    cta: 'Ride into the void',
   },
   {
     id: 'studio', name: '12MATT3R', model: 'glitch',
