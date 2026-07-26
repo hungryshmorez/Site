@@ -145,8 +145,8 @@ export function buildFestival(scene) {
   const lasers = new THREE.LineSegments(laserGeo, new THREE.LineBasicMaterial({ color: c(PALETTE.green), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
   scene.add(lasers);
 
-  // ---- spawn bench (where you start, facing the stage) ----
-  buildBench(scene);
+  // ---- park bench, over by the message board ----
+  buildBench(scene, [-16, 14]);
 
   // ---- perimeter: 3-sided stadium seating that closes off the arena (stage is
   // the 4th side), with colored light posts that shine inward and brighten at
@@ -174,20 +174,24 @@ export function buildFestival(scene) {
       const L = new THREE.PointLight(col, 4, 46, 2); L.position.set(px * 0.9, 7.2, pz * 0.9); scene.add(L); perimLights.push(L);
     });
 
-    // ---- tall rectangular enclosing wall so you can't see the ground beyond
-    // (north wall sits behind the stage deck) ----
-    const WX = 28, WSZ = 28, WNZ = -34, H = 20;
+    // ---- enclosing wall, only as tall as the light posts so you can see the
+    // sky beyond; the back (south) side is a see-through fence. ----
+    const WX = 28, WSZ = 28, WNZ = -34, H = 8;
     const wallMat = new THREE.MeshStandardMaterial({ color: 0x07070e, roughness: 0.95, metalness: 0.1, side: THREE.DoubleSide, emissive: c(PALETTE.cyan), emissiveIntensity: 0.02 });
     const midZ = (WSZ + WNZ) / 2, lenZ = WSZ - WNZ, lenX = WX * 2;
     const mkWall = (w, d, x, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, H, d), wallMat); m.position.set(x, H / 2, z); scene.add(m); };
     mkWall(0.5, lenZ, -WX, midZ);  // left
     mkWall(0.5, lenZ, WX, midZ);   // right
-    mkWall(lenX, 0.5, 0, WSZ);     // back (south / spawn side)
     mkWall(lenX, 0.5, 0, WNZ);     // north (behind stage)
+    // back (south) side is a chain-link-style fence — vertical pickets + two
+    // rails — so you can still see the outside beyond the grandstands.
+    const fenceMat = new THREE.MeshStandardMaterial({ color: 0x16161f, metalness: 0.6, roughness: 0.5, emissive: c(PALETTE.cyan), emissiveIntensity: 0.04 });
+    for (let x = -WX; x <= WX + 0.01; x += 2) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.12, H, 0.12), fenceMat); p.position.set(x, H / 2, WSZ); scene.add(p); }
+    for (const ry of [H * 0.32, H * 0.7, H - 0.15]) { const rail = new THREE.Mesh(new THREE.BoxGeometry(lenX, 0.1, 0.1), fenceMat); rail.position.set(0, ry, WSZ); scene.add(rail); }
 
     // ---- beat-reactive light strips up the interior of the walls ----
     const stripCols = [PALETTE.cyan, PALETTE.magenta, PALETTE.purple, PALETTE.green, PALETTE.orange];
-    const stripAt = (x, z, i) => { const s = new THREE.Mesh(new THREE.BoxGeometry(0.16, 9, 0.16), new THREE.MeshStandardMaterial({ color: 0x05050a, emissive: c(stripCols[i % stripCols.length]), emissiveIntensity: 0.3 })); s.position.set(x, 4.8, z); scene.add(s); wallStrips.push(s); };
+    const stripAt = (x, z, i) => { const s = new THREE.Mesh(new THREE.BoxGeometry(0.16, 7, 0.16), new THREE.MeshStandardMaterial({ color: 0x05050a, emissive: c(stripCols[i % stripCols.length]), emissiveIntensity: 0.3 })); s.position.set(x, 3.6, z); scene.add(s); wallStrips.push(s); };
     let si = 0;
     for (let z = WNZ + 4; z < WSZ; z += 6) { stripAt(-WX + 0.3, z, si++); stripAt(WX - 0.3, z, si++); }
     for (let x = -WX + 5; x < WX; x += 6) { stripAt(x, WSZ - 0.3, si++); }
@@ -196,7 +200,7 @@ export function buildFestival(scene) {
     const lp = []; const edge = [];
     for (let z = WNZ + 4; z < WSZ; z += 8) { edge.push([-WX, z], [WX, z]); }
     for (let x = -WX + 6; x < WX; x += 8) edge.push([x, WSZ]);
-    edge.forEach(([x, z]) => lp.push(x, 9, z, 0, 0.6, 0));
+    edge.forEach(([x, z]) => lp.push(x, 7.5, z, 0, 0.6, 0));
     const wlGeo = new THREE.BufferGeometry(); wlGeo.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3));
     wlasers = new THREE.LineSegments(wlGeo, new THREE.LineBasicMaterial({ color: c(PALETTE.magenta), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
     scene.add(wlasers);
@@ -275,10 +279,10 @@ export function buildFestival(scene) {
   return { stageZ, deck: deckInfo, screen, screenPos: [0, 6.2, stageZ - 4.9], screenSize: [22, 7], update };
 }
 
-// spawn bench (simple wooden slats + iron legs), at +Z facing the stage
-function buildBench(scene) {
-  const g = new THREE.Group(); g.position.set(-4, 0, 6);
-  g.rotation.y = Math.atan2(0 - (-4), -4 - 6); // face the center of the grounds
+// park bench (simple wooden slats + iron legs), sits by the message board
+function buildBench(scene, pos = [-16, 14]) {
+  const g = new THREE.Group(); g.position.set(pos[0], 0, pos[1]);
+  g.rotation.y = Math.atan2(0 - pos[0], -4 - pos[1]); // face the center of the grounds
   const wood = new THREE.MeshStandardMaterial({ color: 0x2a1d16, roughness: 0.8, emissive: new THREE.Color(0x001a1f), emissiveIntensity: 0.3 });
   const iron = new THREE.MeshStandardMaterial({ color: 0x0a0a12, roughness: 0.5, metalness: 0.6 });
   const box = (w, h, d, m) => { const x = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); x.castShadow = true; x.receiveShadow = true; return x; };

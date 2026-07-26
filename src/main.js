@@ -96,6 +96,13 @@ const trash = buildTrash(scene, {
   onDeposit: (n, s) => { flash(n === 1 ? 'tossed it in the dumpster' : `dumped ${n} pieces`); trashHudUpdate(s); },
   onComplete: (s) => { trashHudUpdate(s); unlockReward(); },
 });
+// a wall-mounted work light angled down onto the dumpster so it reads at night
+const dumpPole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 8, 8), new THREE.MeshStandardMaterial({ color: 0x14141c, metalness: 0.6, roughness: 0.5 }));
+dumpPole.position.set(DUMPSTER_POS[0] - 3, 4, DUMPSTER_POS[1]); scene.add(dumpPole);
+const dumpLight = new THREE.SpotLight(0xfff0d0, 60, 22, Math.PI / 7, 0.55, 1.4);
+dumpLight.position.set(DUMPSTER_POS[0] - 3, 7.6, DUMPSTER_POS[1]);
+dumpLight.target.position.set(DUMPSTER_POS[0], 1, DUMPSTER_POS[1]);
+scene.add(dumpLight); scene.add(dumpLight.target);
 
 // a dealer hidden in the crowd → reach him to score the TRI-PPY (rainbow warp)
 const DEALER_POS = [16, -18];
@@ -144,7 +151,8 @@ const crowd = buildCrowd(scene, {
   exclude: [
     // [x, z, clear-radius] — bigger clearing around structures, plus spawn
     ...DESTINATIONS.map((d) => [d.pos[0], d.pos[2], BIG.has(d.model) ? 6.5 : 3.6]),
-    [-4, 6, 4.5],
+    [-4, 6, 4.5],           // spawn
+    [-16, 14, 2.8],         // park bench by the board
     [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
     [DEALER_POS[0], DEALER_POS[1], 2.4],
     [BOARD_POS[0], BOARD_POS[1], 3],

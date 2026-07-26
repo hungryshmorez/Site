@@ -67,7 +67,7 @@ export const DESTINATIONS = [
   {
     id: 'store', name: 'THE MERCH TENT', model: 'stall',
     role: 'the vendor // commissions', accent: PALETTE.green,
-    pos: [-20, 0, 4], tag: 'high-ticket commissions',
+    pos: [-23, 0, -11], tag: 'high-ticket commissions',
     url: 'https://www.etsy.com/shop/12matt3r',
     blurb: 'The vendor working the merch tent. Productized packages — visual identity, audio branding, a web-OS build like this one — with pricing, a tip jar, and an intake + NDA flow. Where the experience converts.',
     cta: 'Browse commissions',
@@ -82,8 +82,8 @@ export const DESTINATIONS = [
   },
   {
     id: 'decks', name: 'THE DECKS', model: 'decks',
-    role: 'the DJ rig // up on stage', accent: PALETTE.cyan,
-    pos: [-8, 0, -24], lift: 1.6, tag: 'two decks · upload · mix live',
+    role: 'the DJ rig // center stage', accent: PALETTE.cyan,
+    pos: [0, 0, -24], lift: 1.6, tag: 'two decks · upload · mix live',
     page: 'dj.html',
     blurb: 'A DJ booth open to anyone. Step up to $AUCELAB — two decks, EQ, filters, crossfader, tempo, cue, sync and loops. Upload your own tracks and mix live.',
     cta: 'Take the decks',
@@ -91,7 +91,7 @@ export const DESTINATIONS = [
   {
     id: 'arcade', name: 'THE ARCADE', model: 'arcade',
     role: 'insert coin // the games', accent: PALETTE.magenta,
-    pos: [20, 0, 9], tag: 'flash games · 30+ playable worlds',
+    pos: [-23, 0, -2], tag: 'flash games · 30+ playable worlds',
     url: 'https://flash-games-collection--sofakingsadboi.on.websim.com/',
     blurb: 'A lone arcade cabinet humming in the field — the door to the Flash Games portal and the whole playable library: racers, sims, backrooms, NPC therapy, the Wake Up saga. Walk up and insert a coin.',
     cta: 'Insert coin',
@@ -99,7 +99,7 @@ export const DESTINATIONS = [
   {
     id: 'deadnet', name: 'DEADNET', model: 'deadnet',
     role: 'the digital afterlife // by the arcade', accent: PALETTE.purple,
-    pos: [15, 0, 12], tag: 'alt web · a self-generating dead internet',
+    pos: [-23, 0, 7], tag: 'alt web · a self-generating dead internet',
     url: 'https://deadnet.on.websim.com/',
     blurb: 'Off in a lonely corner, a broken CRT monolith flickers with a web that never really existed — Deadnet, the digital afterlife. A self-generating, non-real internet you can wander into. Nobody comes back the same.',
     cta: 'Log into the afterlife',
@@ -115,7 +115,7 @@ export const DESTINATIONS = [
   {
     id: 'monkeypaw', name: "THE MONKEY'S PAW", model: 'monkeypaw',
     role: 'the fortune machine // left flank', accent: PALETTE.purple,
-    pos: [-20, 0, -8], tag: 'make a wish · 5 wishes',
+    pos: [-23, 0, -20], tag: 'make a wish · 5 wishes',
     url: 'https://3jnyhlyqkqq1e.space.minimax.io/',
     blurb: "A carnival fortune machine on the edge of the grounds — but under the glass dome is a severed, glowing monkey's paw curled on velvet. Five wishes. Be careful what you wish for. Reach it to make yours.",
     cta: 'Make a wish',
@@ -123,7 +123,7 @@ export const DESTINATIONS = [
   {
     id: 'portapotty', name: 'THE CODEX', model: 'bathroom',
     role: 'the archive // inside the potty', accent: PALETTE.green,
-    pos: [-13, 0, -16], tag: 'the encyclopedia', hideTag: true,
+    pos: [-23, 0, 16], tag: 'the encyclopedia', hideTag: true,
     portal: 'lab',
     blurb: 'A row of festival porta-potties, one glowing an unhealthy green. Step inside and boot the old screen to read the Codex — the full encyclopedia of the festival.',
     cta: 'Read the Codex',

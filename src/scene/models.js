@@ -375,15 +375,17 @@ function makeStripes(accent) {
 export function buildBathroom(accent = '#39FF14') {
   const g = new THREE.Group();
   const glow = std({ color: 0x03210f, emissive: new THREE.Color(accent), emissiveIntensity: 0.5 });
-  for (let i = 0; i < 3; i++) { // all three stalls glow now
-    const box = new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.1, 1.0), glow);
-    box.position.set((i - 1) * 1.15, 1.05, 0); box.castShadow = true; g.add(box);
-    const door = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.5, 0.03), std({ color: 0x0a1a10, roughness: 0.8 }));
-    door.position.set((i - 1) * 1.15, 0.9, 0.52); g.add(door);
-    const vent = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.02), std({ color: 0x0a1a10 })); vent.position.set((i - 1) * 1.15, 1.7, 0.52); g.add(vent);
-    const l = new THREE.PointLight(accent, 2.5, 6, 2); l.position.set((i - 1) * 1.15, 1.6, 1); g.add(l); // one light per stall
+  const W = 1.5, H = 2.9, D = 1.5, GAP = 1.7; // bigger, taller porta-johns
+  for (let i = 0; i < 3; i++) { // all three stalls glow
+    const box = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), glow);
+    box.position.set((i - 1) * GAP, H / 2, 0); box.castShadow = true; g.add(box);
+    const door = new THREE.Mesh(new THREE.BoxGeometry(W * 0.8, H * 0.72, 0.04), std({ color: 0x0a1a10, roughness: 0.8 }));
+    door.position.set((i - 1) * GAP, H * 0.44, D / 2 + 0.02); g.add(door);
+    const handle = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.06), std({ color: 0x0a1a10, metalness: 0.5 })); handle.position.set((i - 1) * GAP + W * 0.28, H * 0.44, D / 2 + 0.05); g.add(handle);
+    const vent = new THREE.Mesh(new THREE.BoxGeometry(W * 0.5, 0.1, 0.03), std({ color: 0x0a1a10 })); vent.position.set((i - 1) * GAP, H * 0.82, D / 2 + 0.02); g.add(vent);
+    const l = new THREE.PointLight(accent, 3.2, 8, 2); l.position.set((i - 1) * GAP, H * 0.78, 1.3); g.add(l); // one light per stall
   }
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.1, 1.2), std({ color: 0x0d200f })); roof.position.y = 2.15; g.add(roof);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(GAP * 3 + 0.4, 0.14, D + 0.3), std({ color: 0x0d200f })); roof.position.y = H + 0.07; g.add(roof);
   return { group: g, update: (t, pulse) => { glow.emissiveIntensity = 0.4 + Math.sin(t * 3) * 0.2 + pulse * 0.3; } };
 }
 
