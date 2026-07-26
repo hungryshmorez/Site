@@ -22,10 +22,8 @@ import { buildOrbs } from './scene/orbs.js';
 import { buildVJ } from './scene/vjscreen.js';
 import { buildVJBoard } from './scene/vjboard.js';
 import { buildLaserShow } from './scene/laser.js';
-import { buildGallery } from './scene/gallery.js';
 import { buildDistortion } from './scene/distortion.js';
 import { buildSecret } from './scene/secret.js';
-import { buildHoop } from './scene/hoop.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -111,12 +109,7 @@ const laserShow = buildLaserShow(scene, {
   emitters: [[-11, 10.4, -30.2], [-6.6, 10.4, -30.2], [-2.2, 10.4, -30.2], [2.2, 10.4, -30.2], [6.6, 10.4, -30.2], [11, 10.4, -30.2]],
 });
 
-// target shooting gallery (front-left) — aim with your gaze, click to fire
-const galleryHudEl = document.getElementById('galleryHud');
-const gallery = buildGallery(scene, {
-  pos: [-16, 10],
-  onHit: (n) => { flash(`🎯 hit! (${n})`); if (galleryHudEl) galleryHudEl.textContent = `🎯 aim & click · hits: ${n}`; },
-});
+// (basketball + shooting gallery moved into the arcade tent — arcade.html)
 
 // spatial distortion fields — walk through one and space bends
 const distortion = buildDistortion(scene, {
@@ -202,7 +195,6 @@ const crowd = buildCrowd(scene, {
     [-4, 6, 4.5],           // spawn
     [-10, 20, 2.8],         // park bench by the board
     [5, 18, 3],             // VJ board by the lab
-    [-16, 10, 5],           // shooting gallery booth
     [-15, -20, 4],          // secret backstage vault
     [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
     [DEALER_POS[0], DEALER_POS[1], 2.4],
@@ -393,10 +385,6 @@ const MORTAR = [-3, -20];
   for (let i = 0; i < 5; i++) { const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.9, 10), tubeMat); tube.position.set((i - 2) * 0.5, 0.45, 0); tube.castShadow = true; m.add(tube); }
   scene.add(m);
 }
-// a neon basketball hoop — walk near, click to shoot
-const hoopHudEl = document.getElementById('hoopHud');
-const hoop = buildHoop(scene, { pos: [6, 11], onScore: (n) => { flash(`🏀 SCORE! (${n})`); if (hoopHudEl) hoopHudEl.textContent = `🏀 made: ${n} · click to shoot`; } });
-
 const FW_COLORS = ['#00F3FF', '#FF0055', '#39FF14', '#e6c04a', '#b967ff', '#ff6b35'];
 let fwColor = FW_COLORS[0];
 const fwPanelEl = document.getElementById('fwPanel');
@@ -507,12 +495,8 @@ function handleTap(sx, sy) {
   if (vjboard.tryClick(raycaster)) return;
   // effect orbs — clicking one picks it up to carry to the dealer
   { const got = orbs.tryClick(raycaster); if (got) { pickupOrb(got); return; } }
-  // near the hoop — a click shoots a ball instead of walking
-  if (hoop.near(controls.pos)) { hoop.throwBall(camera); return; }
   // near the beer-pong table — a click tosses a ball at the cups
   if (tailgate.near(controls.pos)) { tailgate.throwBall(camera); return; }
-  // near the shooting gallery — a click fires at what you're aiming at
-  if (gallery.near(controls.pos)) { gallery.shoot(camera); return; }
   // the secret keycard / backstage vault
   if (secret.tryClick(raycaster)) return;
   // characters next
@@ -611,8 +595,6 @@ function frame() {
     vjboard.update(dt, time, pulse);
     if (vjHudEl) vjHudEl.classList.toggle('on', vjboard.near(controls.pos));
     if (laserShow.isActive()) { aimLasers(); laserShow.update(dt, time, pulse); }
-    gallery.update(dt, time, pulse);
-    if (galleryHudEl) galleryHudEl.classList.toggle('on', gallery.near(controls.pos));
     // spatial distortion fields: space bends while you stand inside one
     const warpId = distortion.update(dt, time, pulse, controls.pos);
     if (warpId && !inWarp) { inWarp = true; body.classList.add('warp'); flash('◈ space bends around you'); }
@@ -623,8 +605,6 @@ function frame() {
     orbs.update(dt, time, pulse);
     { const grabbed = orbs.pickNear(controls.pos); if (grabbed) pickupOrb(grabbed); } // walk into an orb to grab it
     if (activeDrug) { drugTime -= dt; if (drugHudEl) drugHudEl.textContent = `💊 ${DRUGS.find((d) => d.id === activeDrug).name} · ${Math.ceil(drugTime)}s`; if (drugTime <= 0) endDrug(); }
-    hoop.update(dt, time);
-    if (hoopHudEl) hoopHudEl.classList.toggle('on', hoop.near(controls.pos));
     if (pongHudEl) pongHudEl.classList.toggle('on', tailgate.near(controls.pos));
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);

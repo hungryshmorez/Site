@@ -21,6 +21,7 @@ export default defineConfig({
         studio: resolve(__dirname, 'studio.html'),
         tanky: resolve(__dirname, 'tanky.html'),
         shmorez: resolve(__dirname, 'shmorez.html'),
+        arcade: resolve(__dirname, 'arcade.html'),
         lab: resolve(__dirname, 'lab.html'),
         tv: resolve(__dirname, 'tv.html'),
         dj: resolve(__dirname, 'dj.html'),

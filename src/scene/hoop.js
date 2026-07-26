@@ -29,6 +29,11 @@ export function buildHoop(scene, { pos = [11, 8], accent = '#ff6b35', onScore } 
 
   g.updateWorldMatrix(true, true);
   const hoopCenter = new THREE.Vector3(); ring.getWorldPosition(hoopCenter);
+  // backboard collision frame: reflect the ball in the group's local space, where
+  // the board is axis-aligned (plane z≈-0.51, rect x∈[-0.95,0.95], y∈[2.88,4.12]).
+  const invMat = new THREE.Matrix4().copy(g.matrixWorld).invert();
+  const quat = g.quaternion.clone(), quatInv = quat.clone().invert();
+  const _lp = new THREE.Vector3(), _lv = new THREE.Vector3();
 
   const BALLS = 6, balls = [];
   const ballGeo = new THREE.SphereGeometry(0.22, 16, 12);
@@ -56,6 +61,14 @@ export function buildHoop(scene, { pos = [11, 8], accent = '#ff6b35', onScore } 
       b.prevY = b.mesh.position.y;
       b.v.y -= 12 * dt; b.mesh.position.addScaledVector(b.v, dt);
       b.mesh.rotation.x += dt * 4;
+      // backboard bounce (in local space): if the ball is crossing the board
+      // plane within the board rectangle, reflect its z-velocity and push it out.
+      _lp.copy(b.mesh.position).applyMatrix4(invMat);
+      if (_lp.z < -0.43 && _lp.z > -0.9 && Math.abs(_lp.x) < 0.98 && _lp.y > 2.85 && _lp.y < 4.15) {
+        _lv.copy(b.v).applyQuaternion(quatInv);
+        if (_lv.z < 0) { _lv.z = -_lv.z * 0.55; b.v.copy(_lv).applyQuaternion(quat); }
+        _lp.z = -0.43; b.mesh.position.copy(_lp).applyMatrix4(g.matrixWorld);
+      }
       if (!b.scored && b.prevY > hoopCenter.y && b.mesh.position.y <= hoopCenter.y) {
         if (Math.hypot(b.mesh.position.x - hoopCenter.x, b.mesh.position.z - hoopCenter.z) < ringR * 0.92) {
           b.scored = true; made++; if (onScore) onScore(made);

@@ -89,12 +89,12 @@ export const DESTINATIONS = [
     cta: 'Take the decks',
   },
   {
-    id: 'arcade', name: 'THE ARCADE', model: 'arcade',
-    role: 'insert coin // the games', accent: PALETTE.magenta,
-    pos: [22, 0, -14], tag: 'flash games · 30+ playable worlds',
-    url: 'https://flash-games-collection--sofakingsadboi.on.websim.com/',
-    blurb: 'A lone arcade cabinet humming in the field — the door to the Flash Games portal and the whole playable library: racers, sims, backrooms, NPC therapy, the Wake Up saga. Walk up and insert a coin.',
-    cta: 'Insert coin',
+    id: 'arcade', name: 'THE MIDWAY', model: 'arcade',
+    role: 'the arcade tent // all the games', accent: PALETTE.magenta,
+    pos: [22, 0, -14], tag: 'the carnival arcade · every game',
+    page: 'arcade.html',
+    blurb: 'A striped carnival tent built into the wall, humming with attract-mode neon — the entrance to THE MIDWAY. Every game lives inside under one big top: cabinets for the flash portal, the Wake Up saga, the games library and the stories, a Monkey\'s Paw machine, a basketball hoop you bank off the backboard, and a shooting gallery. Step right up.',
+    cta: 'Step into the midway',
   },
   {
     id: 'deadnet', name: 'DEADNET', model: 'deadnet',
