@@ -20,9 +20,9 @@ export const DESTINATIONS = [
     id: 'ravecharles', name: 'RAVE CHARLES', model: 'raver',
     role: 'headliner // in the pit', accent: PALETTE.magenta,
     pos: [0, 0, -16], tag: 'rapper · DJ · founder',
-    url: 'https://express.adobe.com/page/s43NCJty7DfTO/',
-    blurb: 'The masked headliner, down in the mosh pit with the crowd instead of above it — glowing LED visor, nearly 400 shows across America, 2014–2020. Reach him and his live-history timeline opens.',
-    cta: 'Open the tour timeline',
+    page: 'ravecharles.html',
+    blurb: 'The masked headliner, down in the mosh pit with the crowd instead of above it — glowing LED visor, nearly 400 shows across America, 2014–2020. Reach him to enter his world: a raging neon pit, a coast-to-coast tour road, and a giant LED-visor mask. The tour timeline is on the stage screen.',
+    cta: 'Dive into the pit',
   },
   {
     id: 'shmorez', name: 'SHMOREZ', model: 'marshmallow',

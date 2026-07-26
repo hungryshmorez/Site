@@ -17,6 +17,7 @@ export default defineConfig({
         codex: resolve(__dirname, 'codex.html'),
         driftwave: resolve(__dirname, 'driftwave.html'),
         sofaboi: resolve(__dirname, 'sofaboi.html'),
+        ravecharles: resolve(__dirname, 'ravecharles.html'),
         lab: resolve(__dirname, 'lab.html'),
         tv: resolve(__dirname, 'tv.html'),
         dj: resolve(__dirname, 'dj.html'),
