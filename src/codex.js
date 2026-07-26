@@ -108,6 +108,13 @@ function mapsSection() {
     h += `<h3>${esc(w.name)}</h3>`;
     h += `<p>${esc(w.blurb)}</p>`;
     h += `<div class="wmapwrap">${mapSvg(w)}</div>`;
+    // cut-out label sheet: every item as a dot+name chip, separate from the
+    // plotted map, so you can screenshot these and paste them where you want.
+    const chips = w.items.map((item) => {
+      const k = MAP_KINDS[item.kind] || MAP_KINDS.prop;
+      return `<span class="chip"><i style="background:${k.color}"></i>${esc(item.label)}</span>`;
+    }).join('');
+    h += `<details class="cutouts"><summary>✂ cut-out labels — ${w.items.length} pins</summary><div class="chipsheet">${chips}</div></details>`;
   }
   return h;
 }
