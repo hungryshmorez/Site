@@ -48,8 +48,8 @@ scene.add(new THREE.HemisphereLight(0x5a2a4a, 0x120416, 0.7));
   for (let i = 0; i < 16; i++) { x.fillStyle = i % 2 ? '#ff0055' : '#fff0f6'; x.fillRect(i * 16, 0, 16, 64); }
   const tex = new THREE.CanvasTexture(c); tex.wrapS = THREE.RepeatWrapping; tex.repeat.set(6, 1); tex.colorSpace = THREE.SRGBColorSpace;
   const roof = new THREE.Mesh(new THREE.ConeGeometry(23, 9, 24, 1, true), std({ map: tex, side: THREE.DoubleSide, roughness: 0.85, emissive: C(0xff0055), emissiveIntensity: 0.06 }));
-  roof.position.y = 12.5; scene.add(roof);
-  const topper = new THREE.Mesh(new THREE.SphereGeometry(0.6, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffd24a })); topper.position.y = 17.3; scene.add(topper);
+  roof.position.y = 12.5; roof.userData.hideForShot = true; scene.add(roof);
+  const topper = new THREE.Mesh(new THREE.SphereGeometry(0.6, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffd24a })); topper.position.y = 17.3; topper.userData.hideForShot = true; scene.add(topper);
   // perimeter poles + scalloped valance + string lights
   const poleMat = std({ color: 0x2a1020, metalness: 0.4, roughness: 0.6 });
   const bulbs = [];
