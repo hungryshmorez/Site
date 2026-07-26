@@ -60,9 +60,9 @@ export const DESTINATIONS = [
     id: 'studio', name: '12MATT3R', model: 'glitch',
     role: 'somewhere in the crowd', accent: PALETTE.cyan,
     pos: [-5, 0, -10], tag: 'glitch art · code · the collective',
-    url: 'https://12matt3r.univer.se/',
-    blurb: 'A glitching, RGB-splitting figure at the VJ booth driving every screen at the festival — the web-OS and glitch-art engine that houses all of this. The studio itself.',
-    cta: 'Open the web-OS',
+    page: 'studio.html',
+    blurb: 'A glitching, RGB-splitting figure driving every screen at the festival — the web-OS and glitch-art engine that houses all of this. Reach him to step into the glitch room: a dark studio built around a monument of stacked CRT TVs, datamosh walls, and a code workstation. The big CRT boots the web-OS.',
+    cta: 'Enter the glitch room',
   },
   {
     id: 'store', name: 'THE MERCH TENT', model: 'stall',

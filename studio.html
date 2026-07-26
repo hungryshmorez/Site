@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>12MATT3R // the glitch room</title>
+  <meta name="description" content="12matt3r's room — a dark glitch-art lab built around a central monument of stacked CRT televisions. Trippy installations, datamosh, and the web-OS." />
+  <style>
+    :root{--cyan:#00f3ff;--magenta:#ff0055;--green:#39ff14;--purple:#b967ff;--ink:#e9fbff;--muted:#89a6b0;
+      --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;background:#03060a;overflow:hidden;color:var(--ink);font-family:var(--sans);touch-action:none}
+    canvas{display:block;position:fixed;inset:0;cursor:grab}
+    canvas.drag{cursor:grabbing}
+    .vig{position:fixed;inset:0;pointer-events:none;z-index:3;background:radial-gradient(125% 100% at 50% 45%,transparent 46%,rgba(0,4,8,.85) 100%)}
+    .scan{position:fixed;inset:0;pointer-events:none;z-index:3;opacity:.14;mix-blend-mode:overlay;
+      background:repeating-linear-gradient(0deg,rgba(255,255,255,.06),rgba(255,255,255,.06) 1px,transparent 1px,transparent 3px)}
+    .rgb{position:fixed;inset:0;pointer-events:none;z-index:4;mix-blend-mode:screen;opacity:.05;
+      background:linear-gradient(90deg,rgba(255,0,60,.6),transparent 8%,transparent 92%,rgba(0,243,255,.6))}
+    .hud{position:fixed;z-index:6;font-family:var(--mono)}
+    .brand{top:15px;left:18px;font-size:13px;letter-spacing:.16em}
+    .brand b{text-shadow:1.5px 0 var(--magenta),-1.5px 0 var(--cyan)}
+    .brand span{display:block;font-size:9px;color:var(--muted);letter-spacing:.26em;margin-top:3px}
+    .zone{top:50%;left:50%;transform:translate(-50%,-50%);font-size:15px;letter-spacing:.4em;color:var(--cyan);
+      text-shadow:0 0 18px rgba(0,243,255,.7);opacity:0;transition:opacity .6s;text-align:center;pointer-events:none}
+    .zone.show{opacity:.9}
+    .hint{left:50%;bottom:78px;transform:translateX(-50%);font-size:11px;letter-spacing:.12em;color:var(--muted);
+      background:rgba(4,10,16,.55);border:1px solid rgba(0,243,255,.35);border-radius:9px;padding:7px 13px;opacity:0;transition:opacity .3s}
+    .hint.show{opacity:1}
+    .back{right:16px;bottom:14px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink);cursor:pointer;
+      background:rgba(4,10,16,.7);border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:9px 14px;backdrop-filter:blur(6px)}
+    .back:hover{border-color:var(--cyan);color:#fff}
+    .help{left:50%;bottom:16px;transform:translateX(-50%);font-size:10.5px;letter-spacing:.1em;color:var(--muted);opacity:.72;text-align:center}
+    .help kbd{font-family:var(--mono);background:rgba(255,255,255,.08);border-radius:4px;padding:1px 5px;margin:0 1px}
+    .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+      text-align:center;padding:24px;background:radial-gradient(70% 60% at 50% 45%,rgba(10,40,54,.6),rgba(2,6,10,.97));transition:opacity .8s}
+    .start.gone{opacity:0;pointer-events:none}
+    .start .g{font-family:var(--mono);font-size:38px;letter-spacing:.05em;color:var(--cyan);text-shadow:2px 0 var(--magenta),-2px 0 var(--green)}
+    .start .s{max-width:530px;font-size:14px;color:var(--muted);line-height:1.6}
+    .start .e{margin-top:8px;font-family:var(--mono);font-size:14px;letter-spacing:.14em;color:#02060a;background:var(--cyan);
+      border:none;border-radius:10px;padding:13px 30px;cursor:pointer}
+    .start .e:hover{background:#fff}
+    .warp{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(0,243,255,.9),rgba(2,6,10,.98));transition:opacity .48s}
+    .warp.go{opacity:1}
+  </style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <audio id="track" loop preload="auto" src="static-drift-anthem.mp3"></audio>
+  <div class="vig"></div>
+  <div class="scan"></div>
+  <div class="rgb"></div>
+
+  <div class="hud brand"><b>12MATT3R</b><span>THE GLITCH ROOM // DIGITAL·ANALOG·ALGORITHMIC</span></div>
+  <div class="hud zone" id="zone"></div>
+  <div class="hud hint" id="hint">click the big CRT to open the web-OS</div>
+  <div class="hud help">
+    <kbd>W A S D</kbd> walk · <kbd>drag</kbd> look · circle the TV monument, poke around the installations · click the big CRT for the web-OS
+  </div>
+  <button class="back" id="backBtn">← back to the festival</button>
+
+  <div class="start" id="start">
+    <div class="g">THE GLITCH ROOM</div>
+    <div class="s">12matt3r's room — a dark studio built around a central <b>monument of stacked CRT televisions</b>, every one glitching and swimming with its own signal. Trippy screens, datamosh walls, a code workstation, and cables everywhere. Circle the pile. The big CRT boots the <b>web-OS</b>.</div>
+    <button class="e" id="enterBtn">boot the room</button>
+  </div>
+  <div class="warp" id="warp"></div>
+
+  <script type="module" src="/src/studio.js"></script>
+</body>
+</html>

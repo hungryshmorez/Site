@@ -18,6 +18,7 @@ export default defineConfig({
         driftwave: resolve(__dirname, 'driftwave.html'),
         sofaboi: resolve(__dirname, 'sofaboi.html'),
         ravecharles: resolve(__dirname, 'ravecharles.html'),
+        studio: resolve(__dirname, 'studio.html'),
         lab: resolve(__dirname, 'lab.html'),
         tv: resolve(__dirname, 'tv.html'),
         dj: resolve(__dirname, 'dj.html'),
