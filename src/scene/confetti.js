@@ -6,6 +6,7 @@ import * as THREE from 'three';
 const COLORS = [0x00f3ff, 0xff0055, 0x39ff14, 0xffd24a, 0xb967ff, 0xff6b35];
 
 export function buildConfetti(scene, { count = 180 } = {}) {
+  if (matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600) count = 80; // fewer bits on phones
   const geo = new THREE.PlaneGeometry(0.16, 0.26);
   const bits = [];
   for (let i = 0; i < count; i++) {

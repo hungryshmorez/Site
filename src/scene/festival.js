@@ -167,7 +167,8 @@ export function buildFestival(scene) {
     const r = hx.createRadialGradient(64, 64, 0, 64, 64, 64); r.addColorStop(0, 'rgba(200,210,255,0.5)'); r.addColorStop(0.5, 'rgba(160,180,255,0.16)'); r.addColorStop(1, 'rgba(160,180,255,0)');
     hx.fillStyle = r; hx.fillRect(0, 0, 128, 128);
     const htex = new THREE.CanvasTexture(hc); htex.colorSpace = THREE.SRGBColorSpace;
-    for (let i = 0; i < 12; i++) {
+    const HAZE_N = (matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600) ? 6 : 12;
+    for (let i = 0; i < HAZE_N; i++) {
       const mat = new THREE.SpriteMaterial({ map: htex, transparent: true, opacity: 0.05, blending: THREE.AdditiveBlending, depthWrite: false });
       const s = new THREE.Sprite(mat); const sc = 7 + Math.random() * 6; s.scale.set(sc, sc, 1);
       s.position.set((Math.random() - 0.5) * 26, 2 + Math.random() * 6, stageZ + 2 + Math.random() * 14);
@@ -220,7 +221,8 @@ export function buildFestival(scene) {
     bunting(-16, 26, 0, 26); bunting(0, 26, 16, 26);
 
     // ---- floating light motes drifting through the air (atmosphere) ----
-    const MN = 240, mp = new Float32Array(MN * 3), mrise = [];
+    const MOBILE = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
+    const MN = MOBILE ? 120 : 240, mp = new Float32Array(MN * 3), mrise = [];
     for (let i = 0; i < MN; i++) { mp[i * 3] = (Math.random() - 0.5) * 54; mp[i * 3 + 1] = Math.random() * 15; mp[i * 3 + 2] = -32 + Math.random() * 60; mrise.push(0.15 + Math.random() * 0.5); }
     const mg = new THREE.BufferGeometry(); mg.setAttribute('position', new THREE.BufferAttribute(mp, 3));
     motes = new THREE.Points(mg, new THREE.PointsMaterial({ color: 0xffe6b0, size: 0.09, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));

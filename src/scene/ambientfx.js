@@ -4,7 +4,10 @@ import * as THREE from 'three';
 // motes and soft haze billboards. Each returns an update(dt, t) you push into
 // the world's updater list. Cheap: one Points cloud / a handful of sprites.
 
+const MOBILE = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
+
 export function addMotes(scene, { count = 200, color = 0xffe6b0, area = [54, 15, 60], center = [0, 0, -2], rise = 0.4, size = 0.09, opacity = 0.5 } = {}) {
+  if (MOBILE) count = Math.round(count * 0.5); // keep phones smooth
   const pos = new Float32Array(count * 3), rs = [];
   for (let i = 0; i < count; i++) {
     pos[i * 3] = center[0] + (Math.random() - 0.5) * area[0];
@@ -23,6 +26,7 @@ export function addMotes(scene, { count = 200, color = 0xffe6b0, area = [54, 15,
 }
 
 export function addHaze(scene, { count = 10, color = 0xaab4ff, area = [26, 6, 20], center = [0, 3, -10], scale = 8, opacity = 0.05 } = {}) {
+  if (MOBILE) count = Math.max(4, Math.round(count * 0.5)); // fewer sprites on phones
   const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
   const cc = new THREE.Color(color), rgb = `${(cc.r * 255) | 0},${(cc.g * 255) | 0},${(cc.b * 255) | 0}`;
   const r = x.createRadialGradient(64, 64, 0, 64, 64, 64);
