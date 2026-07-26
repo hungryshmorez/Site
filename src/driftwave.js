@@ -238,6 +238,31 @@ function buildParkour(scene, controls) {
   return { groundAt, update };
 }
 
+// ---------- RING RUN: glide off the summit through descending rings ----------
+let ringsDone = false;
+function buildRings(scene, controls) {
+  const g = new THREE.Group(); scene.add(g);
+  const spots = [[15, 9, -1], [12, 8, 2.5], [9, 7, 5.5], [6, 6, 8], [3, 5.2, 10.5], [0, 4.6, 12.5]];
+  const RINGS = [];
+  spots.forEach(([x, y, z], i) => {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.7, 0.16, 12, 32), std({ color: 0x120a20, emissive: C(0xff2b8f), emissiveIntensity: 0.9, metalness: 0.5, roughness: 0.3 }));
+    ring.position.set(x, y, z); ring.rotation.y = Math.PI / 2; g.add(ring);
+    RINGS.push({ ring, c: new THREE.Vector3(x, y, z), passed: false });
+  });
+  const sign = textPlane('GLIDE THE RINGS ▸ hold space', '#ff9ecb'); sign.position.set(15, 11, 1); sign.scale.set(6, 0.7, 1); g.add(sign);
+  let count = 0;
+  function update(dt, t) {
+    for (const r of RINGS) {
+      if (!r.passed) { r.ring.material.emissiveIntensity = 0.7 + Math.sin(t * 3 + r.c.x) * 0.3; r.ring.rotation.z += dt * 0.6;
+        if (controls.pos.distanceTo(r.c) < 1.7) { r.passed = true; r.ring.material.emissive = C(0x39ff14); r.ring.material.emissiveIntensity = 1.6; count++;
+          if (count === RINGS.length && !ringsDone) { ringsDone = true; if (zoneEl) { zoneEl.textContent = '✦ RING RUNNER ✦'; zoneEl.classList.add('show'); } }
+        }
+      } else { r.ring.material.emissiveIntensity = 1.2 + Math.sin(t * 6) * 0.3; }
+    }
+  }
+  return { update };
+}
+
 buildTemple(); buildMonolith(); buildMall(); buildLoFi();
 
 // DriftWave himself in the central plaza, facing the spawn
@@ -248,6 +273,7 @@ const controls = new WalkControls(camera, { bounds: 28, eye: 1.6, zMin: -28 });
 controls.pos.set(0, 1.6, 15); controls.yaw = 0;
 const parkour = buildParkour(scene, controls);
 controls.groundAt = parkour.groundAt; // land on the floating islands
+const rings = buildRings(scene, controls); // glide from the summit through them
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -305,6 +331,7 @@ function frame() {
   if (dw.update) dw.update(t, beat);
   for (const u of updaters) u(dt, t, beat);
   parkour.update(dt, t);
+  rings.update(dt, t);
   updateZone(controls.pos);
   renderer.render(scene, camera);
 }

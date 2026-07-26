@@ -19,6 +19,7 @@ export class WalkControls {
     // jump / gravity (space to hop; works in the festival and every world)
     this.vy = 0;
     this.airborne = false;
+    this.spaceHeld = false;
     this.gravity = 26;
     this.jumpV = 8.6;
     this.keys = new Set();
@@ -35,10 +36,11 @@ export class WalkControls {
         this.keys.add(k); this.walkTarget = null; // manual move cancels auto-walk
       } else if (k === ' ' || e.code === 'Space') {
         e.preventDefault();
+        this.spaceHeld = true;
         if (!this.airborne) { this.vy = this.jumpV; this.airborne = true; } // hop
       }
     });
-    window.addEventListener('keyup', (e) => this.keys.delete(e.key.toLowerCase()));
+    window.addEventListener('keyup', (e) => { const k = e.key.toLowerCase(); this.keys.delete(k); if (k === ' ' || e.code === 'Space') this.spaceHeld = false; });
     this._apply();
   }
 
@@ -99,7 +101,10 @@ export class WalkControls {
     // vertical: rest on the ground, or arc through a jump under gravity
     const groundY = this.groundAt(this.pos.x, this.pos.z) + this.eye;
     if (this.airborne || this.pos.y > groundY + 0.001) {
-      this.vy -= this.gravity * dt;
+      // hold space while falling to GLIDE — gentler gravity + a capped fall speed
+      const gliding = this.airborne && this.vy < 0 && this.spaceHeld;
+      this.vy -= (gliding ? this.gravity * 0.25 : this.gravity) * dt;
+      if (gliding && this.vy < -3.2) this.vy = -3.2;
       this.pos.y += this.vy * dt;
       if (this.pos.y <= groundY) { this.pos.y = groundY; this.vy = 0; this.airborne = false; }
       else { this.airborne = true; }
