@@ -44,9 +44,9 @@ export const DESTINATIONS = [
     id: 'driftwave', name: 'DRIFTWAVE STATIC', model: 'vaporwave',
     role: 'chill zone // left', accent: PALETTE.purple,
     pos: [-9, 0, -3], tag: 'slushwave · ambient · vaporwave',
-    url: 'https://staticcorp--sofakingsadboi.on.websim.com/',
-    blurb: 'A chrome vaporwave figure in shades, haloed by a retro striped sun, holding down the slushwave chill zone. The calm counterweight to the main stage.',
-    cta: 'Enter DriftWave EPK',
+    page: 'driftwave.html',
+    blurb: 'A chrome vaporwave figure in shades, haloed by a retro striped sun. Reach him to step into STATIC CORP — his own vaporwave dreamscape of a marble temple, a dead mallsoft arcade, and a rainy late-night lo-fi nook. His EPK lives on the temple monolith.',
+    cta: 'Enter DriftWave’s world',
   },
   {
     id: 'tanky', name: 'TANKY JOHNSON', model: 'cowboy',
