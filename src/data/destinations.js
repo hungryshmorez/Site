@@ -36,9 +36,9 @@ export const DESTINATIONS = [
     id: 'sofaboi', name: 'SOFA KING SAD BOI', model: 'sofaboi',
     role: 'the lounge // up on his own stage', accent: PALETTE.indigo,
     pos: [11, 0, -6], lift: 1.0, tag: 'dubstep · weird bass',
-    url: 'https://sofa-king-sad-boi-official-epk--sofakingsadboi.on.websim.com/',
-    blurb: 'Hood up, slumped on a beat-up couch under his own little rain cloud, watching the whole thing from the back — dubstep and weird bass. Reach him to drop into his world.',
-    cta: 'Sit with the sad boi',
+    page: 'sofaboi.html',
+    blurb: 'Hood up, slumped on a beat-up couch under his own little rain cloud — dubstep and weird bass. Reach him to enter SO FA KING: a rainy kingdom of couches with a giant sofa throne, a sea of couches, and a bass pit where the subs wobble. His EPK is on the throne-room TV.',
+    cta: 'Enter the couch kingdom',
   },
   {
     id: 'driftwave', name: 'DRIFTWAVE STATIC', model: 'vaporwave',
