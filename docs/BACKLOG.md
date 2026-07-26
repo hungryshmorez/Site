@@ -107,5 +107,8 @@ opening the external EPK link directly.
 - ✅ **Shmorez** → `shmorez.html` — s'mores campground (bonfire / s'mores land / camp); EPK on the visuals screen.
 - Pattern: standalone Vite page, reuses WalkControls + the in-site popup; each has zone labels + a back-portal to the festival.
 
-## Tier 3 (disregarded for now — need a jump/flight or physics loop)
-- Parkour ascent, glide/ring fly-through, bullet-hell, laser-grid, pinball, dunk tank.
+## Tier 3 (unblocked — jump now exists)
+- ✅ **Jump** (space) added to the shared walk controls → works in the festival and every world.
+- ✅ **Parkour ascent** — a spiral of floating islands in DriftWave's world (right of the temple); land on
+  the slabs, climb to the summit crystal ("the endless summer"). Platform collision via a custom groundAt.
+- ⬜ Glide / ring fly-through, bullet-hell, laser-grid, pinball, dunk tank (still want more physics/flight).

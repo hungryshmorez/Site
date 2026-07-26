@@ -198,6 +198,46 @@ function textPlane(text, color) {
   return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, fog: false }));
 }
 
+// ---------- PARKOUR ASCENT: floating islands rising into the sunset ----------
+let summitReached = false;
+function buildParkour(scene, controls) {
+  const g = new THREE.Group(); scene.add(g);
+  const PLAT = []; const cx = 16, cz = -6, R = 5, N = 11;
+  for (let i = 0; i < N; i++) {
+    const ang = i * 0.85;
+    const x = cx + Math.cos(ang) * R, z = cz + Math.sin(ang) * R, top = 1.5 + i * 1.1, hw = 1.4, hd = 1.4;
+    const slab = new THREE.Mesh(new THREE.BoxGeometry(hw * 2, 0.4, hd * 2), std({ color: 0x2a1846, roughness: 0.4, metalness: 0.4, emissive: C(0xb967ff), emissiveIntensity: 0.5 }));
+    slab.position.set(x, top - 0.2, z); slab.castShadow = true; g.add(slab);
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(hw * 2 + 0.1, 0.06, hd * 2 + 0.1), new THREE.MeshBasicMaterial({ color: 0xff2b8f, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+    edge.position.set(x, top + 0.03, z); g.add(edge);
+    PLAT.push({ x, z, top, hw, hd });
+  }
+  const topP = PLAT[N - 1];
+  const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.7, 0), std({ color: 0x120a20, emissive: C(0xffd27a), emissiveIntensity: 1.2, metalness: 0.6, roughness: 0.2 }));
+  crystal.position.set(topP.x, topP.top + 1.6, topP.z); g.add(crystal);
+  const beacon = new THREE.PointLight(0xffd27a, 0, 34, 2); beacon.position.set(topP.x, topP.top + 2, topP.z); g.add(beacon);
+  const sign = textPlane('▲ JUMP THE ISLANDS TO THE TOP', '#ff9ecb'); sign.position.set(cx + 4, 2.4, cz + 5); sign.scale.set(6.5, 0.7, 1); g.add(sign);
+
+  // land on a platform top when you're at/above it (and not jumping up through it)
+  function groundAt(x, z) {
+    const feet = controls.pos.y - controls.eye; let gg = 0;
+    for (const p of PLAT) if (Math.abs(x - p.x) < p.hw && Math.abs(z - p.z) < p.hd && p.top <= feet + 0.35 && p.top > gg) gg = p.top;
+    return gg;
+  }
+  function update(dt, t) {
+    crystal.rotation.y += dt * 1.4; crystal.position.y = topP.top + 1.6 + Math.sin(t * 2) * 0.15;
+    beacon.intensity = summitReached ? 12 + Math.sin(t * 6) * 4 : 0;
+    if (!summitReached) {
+      const feet = controls.pos.y - controls.eye;
+      if (feet > topP.top - 0.5 && Math.abs(controls.pos.x - topP.x) < 2 && Math.abs(controls.pos.z - topP.z) < 2) {
+        summitReached = true; crystal.material.emissiveIntensity = 2.4;
+        if (zoneEl) { zoneEl.textContent = '✦ THE ENDLESS SUMMER ✦'; zoneEl.classList.add('show'); }
+      }
+    }
+  }
+  return { groundAt, update };
+}
+
 buildTemple(); buildMonolith(); buildMall(); buildLoFi();
 
 // DriftWave himself in the central plaza, facing the spawn
@@ -206,6 +246,8 @@ const dw = buildVaporwave('#b967ff'); dw.group.position.set(0, 0, 1); dw.group.r
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: 28, eye: 1.6, zMin: -28 });
 controls.pos.set(0, 1.6, 15); controls.yaw = 0;
+const parkour = buildParkour(scene, controls);
+controls.groundAt = parkour.groundAt; // land on the floating islands
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -262,6 +304,7 @@ function frame() {
   controls.update(dt);
   if (dw.update) dw.update(t, beat);
   for (const u of updaters) u(dt, t, beat);
+  parkour.update(dt, t);
   updateZone(controls.pos);
   renderer.render(scene, camera);
 }
