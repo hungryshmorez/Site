@@ -1,6 +1,6 @@
 import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
-import { WORLD_MAPS } from '../src/data/worldmaps.js';
+import { WORLD_MAPS, MAP_KINDS } from '../src/data/worldmaps.js';
 import fs from 'fs';
 
 // Overhead layout renders + blank grid overlays for every world.
@@ -125,6 +125,39 @@ for (const w of WORLD_MAPS) {
   if (overlayUrl) {
     fs.writeFileSync(`${outDir}${w.id}-overlay.png`, Buffer.from(overlayUrl.split(',')[1], 'base64'));
     console.log(w.id, 'overlay saved');
+  }
+
+  // labeled-dot sheet — every item as a color-coded dot with its name above it,
+  // laid out in cut-out cells so they can be placed onto the empty map.
+  const labelItems = w.items.map((it) => ({ label: it.label, color: (MAP_KINDS[it.kind] || MAP_KINDS.prop).color }));
+  const labelsUrl = await p.evaluate(({ items, title }) => {
+    const cols = items.length > 18 ? 4 : items.length > 8 ? 3 : 2;
+    const rows = Math.ceil(items.length / cols);
+    const cellW = 360, cellH = 84, top = 64;
+    const W = cols * cellW, H = top + rows * cellH + 16;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    g.fillStyle = '#0a0b16'; g.fillRect(0, 0, W, H);
+    g.fillStyle = 'rgba(255,255,255,.92)'; g.textBaseline = 'top'; g.textAlign = 'left';
+    g.font = 'bold 24px ui-monospace, monospace';
+    g.fillText('LABELED DOTS · ' + title, 16, 20);
+    const fit = (text, max) => { let s = 16; g.font = s + 'px ui-monospace, monospace'; while (s > 9 && g.measureText(text).width > max) { s -= 1; g.font = s + 'px ui-monospace, monospace'; } return s; };
+    items.forEach((it, i) => {
+      const col = i % cols, row = (i / cols) | 0;
+      const x0 = col * cellW, cx = x0 + cellW / 2, cy = top + row * cellH;
+      g.setLineDash([5, 6]); g.lineWidth = 1; g.strokeStyle = 'rgba(255,255,255,.10)';
+      g.strokeRect(x0 + 7, cy + 5, cellW - 14, cellH - 10); g.setLineDash([]);
+      g.textAlign = 'center'; g.fillStyle = '#ececf4';
+      fit(it.label, cellW - 30);
+      g.fillText(it.label, cx, cy + 16);
+      g.beginPath(); g.arc(cx, cy + 56, 10, 0, Math.PI * 2);
+      g.fillStyle = it.color; g.fill(); g.lineWidth = 1.5; g.strokeStyle = 'rgba(0,0,0,.65)'; g.stroke();
+    });
+    return c.toDataURL('image/png');
+  }, { items: labelItems, title: w.name });
+  if (labelsUrl) {
+    fs.writeFileSync(`${outDir}${w.id}-labels.png`, Buffer.from(labelsUrl.split(',')[1], 'base64'));
+    console.log(w.id, 'labels saved');
   }
   await p.close();
 }
