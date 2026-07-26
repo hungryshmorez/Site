@@ -80,6 +80,14 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
 - `parkour-world.js` — floating platforms + trippy skybox + crystals + ripple ground. For the Skyline/Vertical Ascent parkour (Tier 3) or a Lab interior.
 - `vice-city-room.js` — detailed first-person room (furniture, neon, PointerLock + mobile joystick, AI D&D chat, interactables). Reference for the Leonida/GTA-style room and interactable props.
 
-## Deferred Tier 2 / Tier 3 (from earlier)
-- Secret rooms / fake walls, keycard access, target shooting gallery, spatial distortion fields, world resize, aimable laser show.
-- Jump/flight-dependent: parkour ascent, glide/ring fly-through. Physics-loop-dependent: bullet-hell, laser-grid, pinball, dunk tank.
+## Tier 2 (in progress)
+- ✅ **Aimable laser show** — six emitters on the stage truss; toggle 🔦 and the beam fan tracks your gaze,
+  beat-reactive with a rolling hue + aim spot.
+- ✅ **Target shooting gallery** — front-left carnival booth, five sliding targets, aim-and-click hitscan,
+  knockdown + respawn + score.
+- ⬜ Secret rooms / fake walls + keycard access.
+- ⬜ Spatial distortion fields (shader/FX zones).
+- ⬜ World resize.
+
+## Tier 3 (disregarded for now — need a jump/flight or physics loop)
+- Parkour ascent, glide/ring fly-through, bullet-hell, laser-grid, pinball, dunk tank.
