@@ -208,6 +208,17 @@
       border:none;border-radius:8px;padding:10px 20px;cursor:pointer}
     .gform button:hover{background:#fff}
     .gempty{font-family:var(--mono);font-size:11px;color:var(--muted);opacity:.7}
+    /* artist directory cards */
+    .acards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+    .acard{border:1px solid var(--edge);border-radius:12px;padding:13px 14px;background:linear-gradient(160deg,rgba(255,255,255,.04),rgba(255,255,255,.01))}
+    .acard .an{font-family:var(--mono);font-size:14px;letter-spacing:.04em;color:var(--ink)}
+    .acard .ag{font-size:11px;color:var(--muted);margin:3px 0 10px}
+    .acard .alnks{display:flex;flex-wrap:wrap;gap:6px}
+    .acard .alnks button{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--cyan);cursor:pointer;
+      background:rgba(0,243,255,.07);border:1px solid rgba(0,243,255,.3);border-radius:7px;padding:5px 9px}
+    .acard .alnks button:hover{color:#05050e;background:var(--cyan);border-color:var(--cyan)}
+    .acard .alnks button.epk{color:#05050e;background:var(--cyan);font-weight:700}
+    .acard .alnks button.epk:hover{background:#fff}
 
     /* start overlay */
     .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
@@ -303,7 +314,11 @@
     <div class="bcard">
       <button class="bclose" id="boardClose" aria-label="Close">✕</button>
       <div class="bk">12matt3r // the board</div>
-      <h2 id="boardTitle">news · guest book</h2>
+      <h2 id="boardTitle">artists · news · guest book</h2>
+      <div class="bsection">
+        <div class="blabel">🎤 the artists — tap one to open their EPK &amp; links</div>
+        <div class="acards" id="artistCards"></div>
+      </div>
       <div class="bsection">
         <div class="blabel">📌 news &amp; updates</div>
         <div class="notes" id="newsNotes"></div>

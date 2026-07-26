@@ -7,6 +7,7 @@ import { buildTrash } from './scene/trash.js';
 import { buildDealer } from './scene/dealer.js';
 import { buildBoard } from './scene/board.js';
 import { NEWS } from './data/news.js';
+import { ALIASES } from './data/catalog.js';
 import { buildLabPortal } from './scene/labPortal.js';
 import { buildPhotoBooth } from './scene/photobooth.js';
 import { createTrippyCam } from './scene/trippycam.js';
@@ -606,6 +607,7 @@ const boardHintEl = document.getElementById('boardHint');
 let boardOpen = false;
 
 function openBoard() {
+  renderArtists();
   renderNews();
   renderGuests();
   boardOpen = true;
@@ -625,6 +627,29 @@ function makeNote(colorClass, dateStr, name, text) {
   if (name) { const n = document.createElement('div'); n.className = 'nn'; n.textContent = name; note.appendChild(n); }
   const t = document.createElement('div'); t.textContent = text; note.appendChild(t);   // textContent = no HTML injection
   return note;
+}
+
+// the artist directory — each card opens the artist's EPK + links in the
+// in-site Windows-style popup (you never leave the festival)
+function renderArtists() {
+  const wrap = document.getElementById('artistCards');
+  if (!wrap) return;
+  wrap.textContent = '';
+  for (const a of ALIASES) {
+    const card = document.createElement('div'); card.className = 'acard';
+    const n = document.createElement('div'); n.className = 'an'; n.textContent = a.name; card.appendChild(n);
+    const g = document.createElement('div'); g.className = 'ag'; g.textContent = a.genre || ''; card.appendChild(g);
+    const links = document.createElement('div'); links.className = 'alnks';
+    if (a.epk) {
+      const b = document.createElement('button'); b.className = 'epk'; b.textContent = 'EPK';
+      b.onclick = () => openWindow(a.name, a.epk); links.appendChild(b);
+    }
+    for (const l of (a.links || [])) {
+      const b = document.createElement('button'); b.textContent = l.name;
+      b.onclick = () => openWindow(`${a.name} · ${l.name}`, l.url); links.appendChild(b);
+    }
+    card.appendChild(links); wrap.appendChild(card);
+  }
 }
 
 function renderNews() {

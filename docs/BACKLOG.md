@@ -16,8 +16,24 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
 - ⏳ 12matt3r EPK (`glitch-portfolio…`) reported **not loading** — user's site issue; revisit if a new URL comes.
 
 ## Classic site (user prefers the classic site)
-- ✅ Add the MiniMax app `https://fm10ff7jh3uf.space.minimax.io` as a card that opens in the Win95-style popup.
-- ⏳ Continue surfacing anything we build on the classic page.
+- ✅ **The 'classic site' link now opens the REAL classic website** (the self-contained static portfolio
+  build, hosted at `/classic/`), not the catalog-generated remake. Removed the remake (`classic.html` +
+  `src/classic.js`).
+
+## The message board
+- ✅ **Artist directory added to the hub board**: walk up to the message board → an "artists" section lists
+  every persona; tap one to open their EPK + links in the in-site Windows popup. (Plus the existing news +
+  guest book.)
+
+## VJ / stage
+- ✅ **Dual 16:9 VJ panels** on the stage (no black bars from the ultra-wide screen; video shows twice),
+  centered on the north wall with the DJ decks in the gap between them.
+- ✅ **In-world VJ board** by the lab runs the screens (start/stop + ⏮/⏭); moved off the HUD.
+
+## Layout
+- ✅ **Even perimeter distribution**: 3 vendors per side wall (L: DreamOS TV/Merch/Monkey's Paw · R:
+  Arcade/Deadnet/Codex), Lab centered on the back wall, characters spread through the central crowd.
+- ✅ LoRAs folded into the Tools folder.
 
 ## 3D layout / spacing — done ✅ (re-plot pass)
 - ✅ **No overlaps**: whole map re-plotted; verified no station pair within 5 units.

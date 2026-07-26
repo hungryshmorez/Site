@@ -43,7 +43,7 @@ export function buildBoard(scene, { pos = [3, 11], stageZ = -24, accent = '#00F3
   }
 
   // glowing header sign
-  const sign = makeSign('12matt3r  //  NEWS · GUEST BOOK', accent);
+  const sign = makeSign('12matt3r  //  ARTISTS · NEWS · GUEST BOOK', accent);
   sign.position.set(0, 2.62, 0.1); sign.scale.set(2.5, 0.3, 1); group.add(sign);
   const gl = new THREE.PointLight(accent, 3, 6, 2); gl.position.set(0, 2.4, 1); group.add(gl);
 
