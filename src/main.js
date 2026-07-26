@@ -15,6 +15,7 @@ import { buildCampfire } from './scene/campfire.js';
 import { buildTailgate } from './scene/tailgate.js';
 import { buildLounge } from './scene/lounge.js';
 import { buildFireworks } from './scene/fireworks.js';
+import { buildConfetti } from './scene/confetti.js';
 import { buildTent } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { createFXPass } from './scene/fxpass.js';
@@ -85,6 +86,8 @@ function renderActive(s, cam) { renderPass.scene = s; renderPass.camera = cam; c
 const festival = buildFestival(scene);
 const characters = buildCharacters(scene, { stageZ: festival.stageZ });
 const fireworks = buildFireworks(scene, { origin: [0, 15, festival.stageZ] });
+const confetti = buildConfetti(scene);
+const CONFETTI_AT = new THREE.Vector3(0, 13, festival.stageZ + 8); // over the pit
 
 // VJ screen — the stage video wall can play a muted, looping YouTube playlist
 // you flip through live (⏮ / ⏭). Rides on top of the canvas via CSS3D so it
@@ -570,7 +573,7 @@ function frame() {
     controls.update(dt);
     // beat-drop fireworks + camera shake on big bass spikes
     if (!reduceMotion && pulse > 0.85 && time - lastBurst > burstGap) {
-      fireworks.burst(); shake = Math.max(shake, 0.4); lastBurst = time; burstGap = 3.5 + Math.random() * 3.5;
+      fireworks.burst(); confetti.burst(CONFETTI_AT); shake = Math.max(shake, 0.4); lastBurst = time; burstGap = 3.5 + Math.random() * 3.5;
     }
     if (shake > 0.002) {
       camera.position.x += (Math.random() - 0.5) * shake;
@@ -581,7 +584,7 @@ function frame() {
     festival.update(dt, time, pulse, dayT);
     crowd.update(dt, time, pulse);
     characters.update(dt, time, pulse);
-    fireworks.update(dt);
+    fireworks.update(dt); confetti.update(dt);
     campfire.update(dt, time, pulse);
     tailgate.update(dt, time, pulse);
     lounge.update(dt, time, pulse);

@@ -153,7 +153,8 @@ export function buildFestival(scene) {
   // night so the edge of the map is lit and obvious. ----
   const perimLights = [];
   const wallStrips = [];
-  let wlasers = null;
+  const buntingBulbs = [];
+  let wlasers = null, motes = null;
   {
     const seatMat = new THREE.MeshStandardMaterial({ color: 0x0c0c16, roughness: 0.9, metalness: 0.2 });
     const R = 25, TIERS = 4;
@@ -173,6 +174,26 @@ export function buildFestival(scene) {
       const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), new THREE.MeshBasicMaterial({ color: col })); head.position.set(px, 7, pz); scene.add(head);
       const L = new THREE.PointLight(col, 4, 46, 2); L.position.set(px * 0.9, 7.2, pz * 0.9); scene.add(L); perimLights.push(L);
     });
+
+    // ---- carnival string-light bunting sagging between the light posts ----
+    const bunting = (ax, az, bx, bz) => {
+      const N = 10;
+      for (let i = 1; i < N; i++) {
+        const u = i / N, x = ax + (bx - ax) * u, z = az + (bz - az) * u, sag = Math.sin(u * Math.PI) * 2.4;
+        const b = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffd88a }));
+        b.position.set(x, 6.9 - sag, z); scene.add(b); buntingBulbs.push(b);
+      }
+    };
+    bunting(-26, -16, -26, 0); bunting(-26, 0, -26, 14);
+    bunting(26, -16, 26, 0); bunting(26, 0, 26, 14);
+    bunting(-16, 26, 0, 26); bunting(0, 26, 16, 26);
+
+    // ---- floating light motes drifting through the air (atmosphere) ----
+    const MN = 240, mp = new Float32Array(MN * 3), mrise = [];
+    for (let i = 0; i < MN; i++) { mp[i * 3] = (Math.random() - 0.5) * 54; mp[i * 3 + 1] = Math.random() * 15; mp[i * 3 + 2] = -32 + Math.random() * 60; mrise.push(0.15 + Math.random() * 0.5); }
+    const mg = new THREE.BufferGeometry(); mg.setAttribute('position', new THREE.BufferAttribute(mp, 3));
+    motes = new THREE.Points(mg, new THREE.PointsMaterial({ color: 0xffe6b0, size: 0.09, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+    motes.frustumCulled = false; motes.userData.rise = mrise; scene.add(motes);
 
     // ---- enclosing wall, only as tall as the light posts so you can see the
     // sky beyond; the back (south) side is a see-through fence. ----
@@ -273,6 +294,21 @@ export function buildFestival(scene) {
     for (const cn of speakerCones) {
       cn.material.emissiveIntensity = 0.05 + pulse * (0.5 + 0.7 * darkness);
       const s = 1 + pulse * 0.18; cn.scale.set(s, s, 1);
+    }
+    // carnival bunting twinkles; brighter at night
+    for (let i = 0; i < buntingBulbs.length; i++) {
+      const b = buntingBulbs[i];
+      b.material.color.setHSL(((i * 0.06) + time * 0.08) % 1, 0.75, 0.5 + 0.12 * Math.sin(time * 3 + i) + darkness * 0.12);
+    }
+    // floating motes drift up + recycle; fade out by day
+    if (motes) {
+      const a = motes.geometry.attributes.position.array, rise = motes.userData.rise;
+      for (let i = 0; i < rise.length; i++) {
+        a[i * 3 + 1] += rise[i] * dt; a[i * 3] += Math.sin(time * 0.3 + i) * dt * 0.15;
+        if (a[i * 3 + 1] > 15) a[i * 3 + 1] = 0;
+      }
+      motes.geometry.attributes.position.needsUpdate = true;
+      motes.material.opacity = 0.2 + darkness * 0.45;
     }
   }
 
