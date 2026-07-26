@@ -22,6 +22,7 @@ import { buildOrbs } from './scene/orbs.js';
 import { buildVJ } from './scene/vjscreen.js';
 import { buildVJBoard } from './scene/vjboard.js';
 import { buildLaserShow } from './scene/laser.js';
+import { buildGallery } from './scene/gallery.js';
 import { buildHoop } from './scene/hoop.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -108,6 +109,13 @@ const laserShow = buildLaserShow(scene, {
   emitters: [[-11, 10.4, -30.2], [-6.6, 10.4, -30.2], [-2.2, 10.4, -30.2], [2.2, 10.4, -30.2], [6.6, 10.4, -30.2], [11, 10.4, -30.2]],
 });
 
+// target shooting gallery (front-left) — aim with your gaze, click to fire
+const galleryHudEl = document.getElementById('galleryHud');
+const gallery = buildGallery(scene, {
+  pos: [-16, 10],
+  onHit: (n) => { flash(`🎯 hit! (${n})`); if (galleryHudEl) galleryHudEl.textContent = `🎯 aim & click · hits: ${n}`; },
+});
+
 // hidden trash-hunt → clean the grounds → secret download
 const DUMPSTER_POS = [-22, -20];
 const trash = buildTrash(scene, {
@@ -174,6 +182,7 @@ const crowd = buildCrowd(scene, {
     [-4, 6, 4.5],           // spawn
     [-10, 20, 2.8],         // park bench by the board
     [5, 18, 3],             // VJ board by the lab
+    [-16, 10, 5],           // shooting gallery booth
     [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
     [DEALER_POS[0], DEALER_POS[1], 2.4],
     [BOARD_POS[0], BOARD_POS[1], 3],
@@ -449,6 +458,8 @@ function handleTap(sx, sy) {
   if (hoop.near(controls.pos)) { hoop.throwBall(camera); return; }
   // near the beer-pong table — a click tosses a ball at the cups
   if (tailgate.near(controls.pos)) { tailgate.throwBall(camera); return; }
+  // near the shooting gallery — a click fires at what you're aiming at
+  if (gallery.near(controls.pos)) { gallery.shoot(camera); return; }
   // characters next
   const hitC = raycaster.intersectObjects(characters.proxies, false)[0];
   if (hitC) {
@@ -545,6 +556,8 @@ function frame() {
     vjboard.update(dt, time, pulse);
     if (vjHudEl) vjHudEl.classList.toggle('on', vjboard.near(controls.pos));
     if (laserShow.isActive()) { aimLasers(); laserShow.update(dt, time, pulse); }
+    gallery.update(dt, time, pulse);
+    if (galleryHudEl) galleryHudEl.classList.toggle('on', gallery.near(controls.pos));
     trippycam.update(dt);
     orbs.update(dt, time, pulse);
     { const grabbed = orbs.pickNear(controls.pos); if (grabbed) pickupOrb(grabbed); } // walk into an orb to grab it
