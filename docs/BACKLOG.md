@@ -49,8 +49,8 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
   its own dedicated model: a curtained booth, stool, glowing lens, PHOTO marquee, and a flash bulb.
 - ✅ **Stage VJ screen**: the stage video wall plays a muted, looping YouTube playlist mounted as a CSS3D
   object locked to the screen plane (tracks perspective as you walk). Click the screen or the 🎬 vj button
-  to go live, ⏮/⏭ to switch clips — you VJ the concert, visual only. *(Playlist `PLTHYibH4Hb0Y` — the share
-  link's list id looked truncated, so swap in the full id if clips don't load.)*
+  to go live, ⏮/⏭ to switch clips — you VJ the concert, visual only. *(Playlist `PLTHYibH4Hb0Y` — "Website
+  visuals" by sofa king sad boi; confirmed valid/embeddable.)*
 
 ## Dealer / drugs / FX orbs — done ✅
 - ✅ Beefed up the trip: a new **TRIP** shader (6-fold kaleidoscope + swirl + chroma + rolling rainbow),
