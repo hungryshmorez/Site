@@ -80,14 +80,16 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
 - `parkour-world.js` — floating platforms + trippy skybox + crystals + ripple ground. For the Skyline/Vertical Ascent parkour (Tier 3) or a Lab interior.
 - `vice-city-room.js` — detailed first-person room (furniture, neon, PointerLock + mobile joystick, AI D&D chat, interactables). Reference for the Leonida/GTA-style room and interactable props.
 
-## Tier 2 (in progress)
+## Tier 2 — DONE ✅
 - ✅ **Aimable laser show** — six emitters on the stage truss; toggle 🔦 and the beam fan tracks your gaze,
   beat-reactive with a rolling hue + aim spot.
 - ✅ **Target shooting gallery** — front-left carnival booth, five sliding targets, aim-and-click hitscan,
   knockdown + respawn + score.
-- ⬜ Secret rooms / fake walls + keycard access.
-- ⬜ Spatial distortion fields (shader/FX zones).
-- ⬜ World resize.
+- ✅ **World resize** — 📐 size console scales the player from ANT (0.35x) to GIANT (5x).
+- ✅ **Spatial distortion fields** — three rippling warp bubbles; inside one, the FOV breathes + screen wobbles.
+- ✅ **Secret room / fake wall + keycard** — a sealed backstage vault (left-back, [-15,-20]); find the hidden
+  keycard (behind the dumpster, [-22,-23]), click the vault to slide the fake wall open, claim the backstage
+  pass → opens the Discord.
 
 ## Tier 3 (disregarded for now — need a jump/flight or physics loop)
 - Parkour ascent, glide/ring fly-through, bullet-hell, laser-grid, pinball, dunk tank.

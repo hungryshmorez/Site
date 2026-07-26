@@ -24,6 +24,7 @@ import { buildVJBoard } from './scene/vjboard.js';
 import { buildLaserShow } from './scene/laser.js';
 import { buildGallery } from './scene/gallery.js';
 import { buildDistortion } from './scene/distortion.js';
+import { buildSecret } from './scene/secret.js';
 import { buildHoop } from './scene/hoop.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -128,6 +129,13 @@ const distortion = buildDistortion(scene, {
 const BASE_FOV = camera.fov;
 let inWarp = false;
 
+// secret backstage vault — find the hidden keycard, then open the fake wall
+const secret = buildSecret(scene, {
+  vaultPos: [-15, -20], cardPos: [-22, -23],
+  onFlash: (m) => flash(m),
+  onReward: () => { flash('🎟 BACKSTAGE PASS — welcome to the inner circle'); openWindow('BACKSTAGE PASS', 'https://discord.gg/cxMW3aSmKX'); },
+});
+
 // hidden trash-hunt → clean the grounds → secret download
 const DUMPSTER_POS = [-22, -20];
 const trash = buildTrash(scene, {
@@ -195,6 +203,7 @@ const crowd = buildCrowd(scene, {
     [-10, 20, 2.8],         // park bench by the board
     [5, 18, 3],             // VJ board by the lab
     [-16, 10, 5],           // shooting gallery booth
+    [-15, -20, 4],          // secret backstage vault
     [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
     [DEALER_POS[0], DEALER_POS[1], 2.4],
     [BOARD_POS[0], BOARD_POS[1], 3],
@@ -504,6 +513,8 @@ function handleTap(sx, sy) {
   if (tailgate.near(controls.pos)) { tailgate.throwBall(camera); return; }
   // near the shooting gallery — a click fires at what you're aiming at
   if (gallery.near(controls.pos)) { gallery.shoot(camera); return; }
+  // the secret keycard / backstage vault
+  if (secret.tryClick(raycaster)) return;
   // characters next
   const hitC = raycaster.intersectObjects(characters.proxies, false)[0];
   if (hitC) {
@@ -607,6 +618,7 @@ function frame() {
     if (warpId && !inWarp) { inWarp = true; body.classList.add('warp'); flash('◈ space bends around you'); }
     else if (!warpId && inWarp) { inWarp = false; body.classList.remove('warp'); camera.fov = BASE_FOV; camera.updateProjectionMatrix(); }
     if (inWarp && !reduceMotion) { camera.fov = BASE_FOV + Math.sin(time * 3) * 7; camera.updateProjectionMatrix(); }
+    secret.update(dt, time, pulse, controls.pos);
     trippycam.update(dt);
     orbs.update(dt, time, pulse);
     { const grabbed = orbs.pickNear(controls.pos); if (grabbed) pickupOrb(grabbed); } // walk into an orb to grab it
