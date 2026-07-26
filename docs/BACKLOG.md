@@ -113,8 +113,10 @@ opening the external EPK link directly.
 - ✅ **Ring fly-through** — glide off the DriftWave summit through six descending rings → "RING RUNNER".
 - ✅ **Dunk tank** — Midway carnival game: hit the bullseye to drop the dunkee (splash).
 - ✅ **Laser grid** — sweeping security beams guard the portal in 12matt3r's glitch room → "SYSTEM BREACHED".
+- ✅ **Bullet-hell** — DODGE HELL: a standalone first-person survival (bullethell.html, reached from a Midway
+  cabinet). Telegraphed emitters ring the arena and fire aimed shots at varied heights that ramp up; strafe/
+  jump/glide to survive, health bar + timer + local best.
 - ⬜ **Pinball** — deserves its own fixed-cam flipper-physics mini-mode; deferred so it plays well.
-- ⬜ **Bullet-hell** — needs a combat/health loop (the contributed `enemy.js` is the seed); deferred as its own mode.
 
 ## The arcade / Midway
 - ✅ Consolidated all games into **THE MIDWAY** — a circus tent built into the wall (walk in to play).

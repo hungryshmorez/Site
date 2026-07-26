@@ -98,6 +98,7 @@ buildCabinet(-9, -13, 'FLASH GAMES', '#ff0055', () => openWindow('FLASH GAMES PO
 buildCabinet(-4.5, -14.5, 'WAKE UP', '#b967ff', () => openWindow('WAKE UP SERIES', 'lab.html?folder=Wake%20Up%20Series'));
 buildCabinet(0, -15, 'GAMES', '#00f3ff', () => openWindow('GAMES', 'lab.html?folder=Games'));
 buildCabinet(4.5, -14.5, 'STORIES', '#39ff14', () => openWindow('STORIES & EXPERIENCES', 'lab.html?folder=Stories%20%26%20Experiences'));
+buildCabinet(-13, -8, 'DODGE HELL', '#ff0055', () => { window.location.href = 'bullethell.html'; }); // full-screen survival game
 
 // the real Monkey's Paw fortune machine (moved in from the festival)
 const paw = buildMonkeyPaw('#b967ff'); paw.group.position.set(10, 0, -12.5); paw.group.rotation.y = -0.5; scene.add(paw.group);
