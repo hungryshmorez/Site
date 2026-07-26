@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { buildHoop } from './scene/hoop.js';
 import { buildGallery } from './scene/gallery.js';
+import { buildDunkTank } from './scene/dunktank.js';
 import { buildMonkeyPaw } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 
@@ -109,10 +110,11 @@ updaters.push((dt, t, p) => { if (paw.update) paw.update(t, p); });
 
 // ---------- the physical games (reused, now under the tent) ----------
 const pillEl = document.getElementById('pill');
-let hits = 0, made = 0;
-const setPill = () => { if (pillEl) pillEl.textContent = `🎯 hits: ${hits} · 🏀 made: ${made}`; };
+let hits = 0, made = 0, dunks = 0;
+const setPill = () => { if (pillEl) pillEl.textContent = `🎯 ${hits} · 🏀 ${made} · 💦 ${dunks}`; };
 const hoop = buildHoop(scene, { pos: [-12, 2], onScore: (n) => { made = n; setPill(); } });
 const gallery = buildGallery(scene, { pos: [12, 2], onHit: (n) => { hits = n; setPill(); } });
+const dunktank = buildDunkTank(scene, { pos: [5, 8], onDunk: (n) => { dunks = n; setPill(); } });
 
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: 19, eye: 1.6, zMin: -17 });
@@ -135,8 +137,9 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   for (const c of clickables) if (ray.intersectObject(c.proxy, false)[0]) { c.onClick(); return; }
-  if (hoop.near(controls.pos)) { hoop.throwBall(camera); return; }
   if (gallery.near(controls.pos)) { gallery.shoot(camera); return; }
+  if (hoop.near(controls.pos) && controls.pos.x < -2) { hoop.throwBall(camera); return; }
+  if (dunktank.near(controls.pos)) { dunktank.throwBall(camera); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -18, 18); g.z = THREE.MathUtils.clamp(g.z, -16, 18); controls.walkTo(g); }
 }
@@ -149,12 +152,14 @@ function updateHint(p) {
   let z = 'THE MIDWAY';
   if (hoop.near(p) && p.x < -4) z = 'BASKETBALL';
   else if (gallery.near(p) && p.x > 4) z = 'SHOOTING GALLERY';
+  else if (dunktank.near(p) && p.z > 2 && Math.abs(p.x - 6) < 6) z = 'DUNK TANK';
   else if (p.z < -9) z = 'THE CABINETS';
   if (z !== curZone) { curZone = z; if (zoneEl) { zoneEl.textContent = z; zoneEl.classList.add('show'); } }
   if (hintEl) {
-    const near = (hoop.near(p) && p.x < -4) || (gallery.near(p) && p.x > 4) || p.z < -9;
-    hintEl.textContent = p.x < -4 ? '🏀 aim & click to shoot — bank it off the board' : p.x > 4 ? '🎯 aim & click to hit a target' : 'click a cabinet to play';
-    hintEl.classList.toggle('show', near);
+    const atHoop = hoop.near(p) && p.x < -4, atGal = gallery.near(p) && p.x > 4;
+    const atDunk = dunktank.near(p) && p.z > 2 && Math.abs(p.x - 6) < 6 && !atGal;
+    hintEl.textContent = atHoop ? '🏀 aim & click to shoot — bank it off the board' : atGal ? '🎯 aim & click to hit a target' : atDunk ? '💦 aim & click to hit the bullseye — dunk him!' : 'click a cabinet to play';
+    hintEl.classList.toggle('show', atHoop || atGal || atDunk || p.z < -9);
   }
 }
 
@@ -175,7 +180,7 @@ function frame() {
   controls.update(dt);
   for (const m of screenMats) m.uniforms.t.value = t;
   for (const u of updaters) u(dt, t, p);
-  hoop.update(dt, t); gallery.update(dt, t, p);
+  hoop.update(dt, t); gallery.update(dt, t, p); dunktank.update(dt, t);
   updateHint(controls.pos);
   renderer.render(scene, camera);
 }
