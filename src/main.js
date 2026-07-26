@@ -21,6 +21,7 @@ import { createFXPass } from './scene/fxpass.js';
 import { buildOrbs } from './scene/orbs.js';
 import { buildVJ } from './scene/vjscreen.js';
 import { buildVJBoard } from './scene/vjboard.js';
+import { buildLaserShow } from './scene/laser.js';
 import { buildHoop } from './scene/hoop.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -100,6 +101,12 @@ const vj = buildVJ({
 });
 // the VJ board (by the lab) is where you run the stage screens
 const vjboard = buildVJBoard(scene, { pos: [5, 0, 18], onActivate: () => toggleVJ() });
+
+// aimable laser show — emitters across the top of the stage truss; beams track
+// where you look while the show is on.
+const laserShow = buildLaserShow(scene, {
+  emitters: [[-11, 10.4, -30.2], [-6.6, 10.4, -30.2], [-2.2, 10.4, -30.2], [2.2, 10.4, -30.2], [6.6, 10.4, -30.2], [11, 10.4, -30.2]],
+});
 
 // hidden trash-hunt → clean the grounds → secret download
 const DUMPSTER_POS = [-22, -20];
@@ -225,6 +232,26 @@ function toggleVJ() {
   const p = document.getElementById('vjPrev'), n = document.getElementById('vjNext');
   if (p) p.onclick = () => { vj.prev(); flash('⏮ previous clip'); };
   if (n) n.onclick = () => { vj.next(); flash('⏭ next clip'); };
+}
+
+// ---- aimable laser show: toggle, then the beams follow your gaze ----
+const laserBtnEl = document.getElementById('laserToggle');
+function toggleLasers() {
+  const on = laserShow.toggle();
+  if (laserBtnEl) laserBtnEl.classList.toggle('active', on);
+  flash(on ? '🔦 lasers on — look around to aim the beams' : 'lasers off');
+}
+if (laserBtnEl) laserBtnEl.onclick = toggleLasers;
+const LASER_AIM = new THREE.Vector3();
+const SCREEN_CENTER = new THREE.Vector2(0, 0);
+function aimLasers() {
+  raycaster.setFromCamera(SCREEN_CENTER, camera);
+  const hit = raycaster.ray.intersectPlane(GROUND, LASER_AIM);
+  if (!hit || LASER_AIM.distanceTo(camera.position) > 90) {
+    // looking up / past the floor → send the beams far along the gaze into the sky
+    LASER_AIM.copy(camera.position).addScaledVector(raycaster.ray.direction, 55);
+  }
+  laserShow.setAim(LASER_AIM);
 }
 
 const carryHudEl = document.getElementById('carryHud');
@@ -517,6 +544,7 @@ function frame() {
     djbooth.update(dt, time, pulse, controls.pos);
     vjboard.update(dt, time, pulse);
     if (vjHudEl) vjHudEl.classList.toggle('on', vjboard.near(controls.pos));
+    if (laserShow.isActive()) { aimLasers(); laserShow.update(dt, time, pulse); }
     trippycam.update(dt);
     orbs.update(dt, time, pulse);
     { const grabbed = orbs.pickNear(controls.pos); if (grabbed) pickupOrb(grabbed); } // walk into an orb to grab it

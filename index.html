@@ -48,6 +48,7 @@
     .rmbtn{position:fixed;right:16px;bottom:14px;z-index:10;font-family:var(--mono);font-size:11px;color:var(--ink);
       background:rgba(10,10,20,.7);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:8px 11px;cursor:pointer;backdrop-filter:blur(6px)}
     .rmbtn:hover{border-color:var(--cyan)}
+    .rmbtn.active{color:#ff71ce;border-color:#ff71ce;text-shadow:0 0 10px rgba(255,113,206,.6)}
     .fxpanel{position:fixed;right:16px;bottom:52px;z-index:11;width:210px;background:rgba(8,8,16,.92);border:1px solid rgba(255,255,255,.14);
       border-radius:11px;padding:8px;backdrop-filter:blur(8px);display:none;flex-direction:column;gap:4px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
     .fxpanel.open{display:flex}
@@ -275,6 +276,7 @@
   <div class="vjbar" id="vjBar">
     <button id="vjPrev" title="Previous clip">⏮</button><span>VJ · STAGE</span><button id="vjNext" title="Next clip">⏭</button>
   </div>
+  <button class="rmbtn" id="laserToggle" style="right:478px" title="Aimable laser show — look to aim">🔦 laser</button>
   <button class="rmbtn" id="fwToggle" style="right:388px" title="Fireworks launcher">🎆 fw</button>
   <button class="rmbtn" id="todToggle" style="right:298px" title="Time of day">🕑 time</button>
   <button class="rmbtn" id="photobtn" style="right:210px" title="Save a snapshot">📷 photo</button>
