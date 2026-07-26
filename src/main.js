@@ -19,6 +19,7 @@ import { openWindow } from './ui/popup.js';
 import { createFXPass } from './scene/fxpass.js';
 import { buildOrbs } from './scene/orbs.js';
 import { buildVJ } from './scene/vjscreen.js';
+import { buildVJBoard } from './scene/vjboard.js';
 import { buildHoop } from './scene/hoop.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -86,7 +87,18 @@ const fireworks = buildFireworks(scene, { origin: [0, 15, festival.stageZ] });
 // you flip through live (⏮ / ⏭). Rides on top of the canvas via CSS3D so it
 // tracks the stage screen's position/perspective as you walk.
 const VJ_PLAYLIST = 'PLTHYibH4Hb0Y';
-const vj = buildVJ({ container: document.body, pos: festival.screenPos, size: festival.screenSize, playlist: VJ_PLAYLIST });
+// two 16:9 panels flanking the stage (no black bars); the centered DJ booth
+// sits in the open gap between them, so the video reads as behind/around it.
+const vj = buildVJ({
+  container: document.body,
+  playlist: VJ_PLAYLIST,
+  panels: [
+    { pos: [-6.6, 6.6, -30.7], size: [8.8, 4.95] },
+    { pos: [6.6, 6.6, -30.7], size: [8.8, 4.95] },
+  ],
+});
+// the VJ board (by the lab) is where you run the stage screens
+const vjboard = buildVJBoard(scene, { pos: [4, 0, 13], onActivate: () => toggleVJ() });
 
 // hidden trash-hunt → clean the grounds → secret download
 const DUMPSTER_POS = [-18, -16];
@@ -153,6 +165,7 @@ const crowd = buildCrowd(scene, {
     ...DESTINATIONS.map((d) => [d.pos[0], d.pos[2], BIG.has(d.model) ? 6.5 : 3.6]),
     [-4, 6, 4.5],           // spawn
     [-16, 14, 2.8],         // park bench by the board
+    [4, 13, 3],             // VJ board by the lab
     [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
     [DEALER_POS[0], DEALER_POS[1], 2.4],
     [BOARD_POS[0], BOARD_POS[1], 3],
@@ -199,16 +212,14 @@ const orbs = buildOrbs(scene, { need: BASE_ORBS.filter((id) => !owned.includes(i
 const randBtnEl = document.getElementById('randBtn');
 if (randBtnEl) randBtnEl.onclick = () => { if (activeDrug === 'everything') { randomizeEverything(true); flash('🎲 remix — everything swaps'); } };
 
-// ---- VJ controls: play the stage playlist, flip clips ----
-const vjBtnEl = document.getElementById('vjToggle');
+// ---- VJ controls: run from the in-world VJ board by the lab ----
 const vjBarEl = document.getElementById('vjBar');
+const vjHudEl = document.getElementById('vjHud');
 function toggleVJ() {
   const on = vj.toggle();
-  if (vjBtnEl) vjBtnEl.classList.toggle('active', on);
   if (vjBarEl) vjBarEl.classList.toggle('shown', on);
-  flash(on ? '🎬 you are the VJ — ⏮ ⏭ to switch clips' : 'VJ screen off');
+  flash(on ? '🎬 screens live — ⏮ ⏭ to switch clips' : 'VJ screens off');
 }
-if (vjBtnEl) vjBtnEl.onclick = toggleVJ;
 {
   const p = document.getElementById('vjPrev'), n = document.getElementById('vjNext');
   if (p) p.onclick = () => { vj.prev(); flash('⏮ previous clip'); };
@@ -402,8 +413,8 @@ function handleTap(sx, sy) {
   if (board.tryClick(raycaster)) return;
   // the photo booth by the board — toggles the trippy cam
   if (djbooth.tryClick(raycaster)) return;
-  // the stage video wall — become the VJ (play / stop the playlist)
-  if (festival.screen && raycaster.intersectObject(festival.screen, false)[0]) { toggleVJ(); return; }
+  // the VJ board by the lab — runs the stage screens
+  if (vjboard.tryClick(raycaster)) return;
   // effect orbs — clicking one picks it up to carry to the dealer
   { const got = orbs.tryClick(raycaster); if (got) { pickupOrb(got); return; } }
   // near the hoop — a click shoots a ball instead of walking
@@ -503,6 +514,8 @@ function frame() {
     dealer.update(dt, time, pulse, controls.pos, trippy);
     board.update(dt, time, pulse);
     djbooth.update(dt, time, pulse, controls.pos);
+    vjboard.update(dt, time, pulse);
+    if (vjHudEl) vjHudEl.classList.toggle('on', vjboard.near(controls.pos));
     trippycam.update(dt);
     orbs.update(dt, time, pulse);
     { const grabbed = orbs.pickNear(controls.pos); if (grabbed) pickupOrb(grabbed); } // walk into an orb to grab it
