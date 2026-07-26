@@ -29,8 +29,8 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
 
 ## Stage / DJ / photo booth
 - ✅ Move **THE DECKS** DJ rig ONTO the stage deck (−8, −24, lifted).
-- ✅ Move **Trippy Cam** trigger off the stage into a **Photo Booth** by the hub board (−13, 17). *(Visual
-  restyle to a dedicated photo-booth model still TODO — it currently reuses the booth mesh.)*
+- ✅ Move **Trippy Cam** trigger off the stage into a **Photo Booth** by the hub board (−13, 17), now with
+  its own dedicated model: a curtained booth, stool, glowing lens, PHOTO marquee, and a flash bulb.
 - ✅ **Stage VJ screen**: the stage video wall plays a muted, looping YouTube playlist mounted as a CSS3D
   object locked to the screen plane (tracks perspective as you walk). Click the screen or the 🎬 vj button
   to go live, ⏮/⏭ to switch clips — you VJ the concert, visual only. *(Playlist `PLTHYibH4Hb0Y` — the share
