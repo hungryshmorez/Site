@@ -8,7 +8,7 @@ import { buildDealer } from './scene/dealer.js';
 import { buildBoard } from './scene/board.js';
 import { NEWS } from './data/news.js';
 import { buildLabPortal } from './scene/labPortal.js';
-import { buildDJBooth } from './scene/djbooth.js';
+import { buildPhotoBooth } from './scene/photobooth.js';
 import { createTrippyCam } from './scene/trippycam.js';
 import { buildCampfire } from './scene/campfire.js';
 import { buildTailgate } from './scene/tailgate.js';
@@ -340,7 +340,7 @@ buildFw();
 
 // PHOTO BOOTH in the back by the message board → the TRIPPY CAM (your webcam
 // becomes the sky). Moved off the stage so the DJ decks own the stage.
-const djbooth = buildDJBooth(scene, {
+const djbooth = buildPhotoBooth(scene, {
   pos: [-13, 0, 17],
   onActivate: () => hitDJBooth(),
 });
@@ -392,7 +392,7 @@ function handleTap(sx, sy) {
   if (dealer.tryClick(raycaster)) return;
   // the hub board — clicking it opens news + guest book
   if (board.tryClick(raycaster)) return;
-  // the DJ booth on stage — toggles the trippy cam
+  // the photo booth by the board — toggles the trippy cam
   if (djbooth.tryClick(raycaster)) return;
   // the stage video wall — become the VJ (play / stop the playlist)
   if (festival.screen && raycaster.intersectObject(festival.screen, false)[0]) { toggleVJ(); return; }
@@ -751,12 +751,12 @@ function playWarp(dest, atPeak) {
   setTimeout(() => { el.classList.remove('go'); warping = false; }, peak + 550);
 }
 
-// ---- TRIPPY CAM (scored at the DJ booth) -----------------------------------
+// ---- TRIPPY CAM (flipped at the photo booth) -------------------------------
 const tripcamToggleEl = document.getElementById('tripcamToggle');
 if (tripcamToggleEl) tripcamToggleEl.onclick = () => toggleTrippyCam();
 function toggleTrippyCam() { trippycam.toggle(); }
-// Hitting the DJ booth turns the cam on; once it's live, hitting it again
-// randomizes the effect instead of shutting it off (use the HUD toggle for off).
+// Stepping into the photo booth turns the cam on; once it's live, hitting it
+// again randomizes the effect instead of shutting it off (HUD toggle for off).
 function hitDJBooth() {
   if (trippycam.isActive()) { trippycam.randomizeEffect(); flash('remix the trippy cam'); }
   else trippycam.toggle();
