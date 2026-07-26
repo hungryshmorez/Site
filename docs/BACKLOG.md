@@ -20,6 +20,11 @@ Captured from the big idea dump. Grouped by area. ✅ = done this pass · ⏳ = 
   build, hosted at `/classic/`), not the catalog-generated remake. Removed the remake (`classic.html` +
   `src/classic.js`).
 
+## Separate lab vendors — DONE ✅
+- ✅ Broke the Lab into in-world **lab-market kiosks** on the left flank (kept the right decluttered):
+  **DreamOS · Wake Up · Stories · Tools** aisles. Each deep-links straight to its Lab folder
+  (`lab.html?folder=<name>`, added to lab.js). THE LAB side-stage remains the full launcher hub.
+
 ## The message board
 - ✅ **Artist directory added to the hub board**: walk up to the message board → an "artists" section lists
   every persona; tap one to open their EPK + links in the in-site Windows popup. (Plus the existing news +
