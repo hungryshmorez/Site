@@ -181,6 +181,38 @@ const controls = new WalkControls(camera, { bounds: RW - 1.5, eye: 1.6, zMin: -(
 controls.pos.set(0, 1.6, 12); controls.yaw = 0;
 const KEEP = 4.2; // can't walk into the TV pile
 
+// ---------- LASER SECURITY GRID guarding the portal (west) ----------
+let breached = false;
+const laserGrid = (function () {
+  const gx = -10; // the grid plane (cross it going west to the portal)
+  const beams = [];
+  for (let i = 0; i < 6; i++) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 8), new THREE.MeshBasicMaterial({ color: 0xff0033 }));
+    b.position.set(gx, 0.5 + i * 0.55, 0); scene.add(b);
+    beams.push({ m: b, base: 0.6 + i * 0.5, ph: i * 1.1, amp: 1.3 });
+  }
+  for (const pz of [-4, 4]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 4, 8), std({ color: 0x14141c, metalness: 0.6 })); p.position.set(gx, 2, pz); scene.add(p); }
+  // prize past the grid, by the portal
+  const shard = new THREE.Mesh(new THREE.OctahedronGeometry(0.6, 0), std({ color: 0x0a1020, emissive: C(0x39ff14), emissiveIntensity: 0.6, metalness: 0.6, roughness: 0.2 }));
+  shard.position.set(-14.5, 1.6, 0); scene.add(shard);
+  const shardL = new THREE.PointLight(0x39ff14, 0, 12, 2); shardL.position.set(-14.5, 2, 0); scene.add(shardL);
+  let zap = 0;
+  function update(dt, t) {
+    shard.rotation.y += dt * 1.5;
+    for (const b of beams) { b.m.position.y = b.base + Math.sin(t * 1.6 + b.ph) * b.amp; b.m.material.color.setHex(breached ? 0x39ff14 : 0xff0033); }
+    if (zap > 0) zap -= dt;
+    if (!breached) {
+      const p = controls.pos;
+      if (Math.abs(p.x - gx) < 0.6 && Math.abs(p.z) < 4 && zap <= 0) {
+        for (const b of beams) { if (Math.abs(b.m.position.y - (p.y - 0.8)) < 0.95) { // beam hits the body
+          p.x = gx + 1.2; controls.vy = 0; zap = 0.6; if (zoneEl) { zoneEl.textContent = '⚠ SECURITY GRID'; zoneEl.classList.add('show'); } break; } }
+      }
+      if (p.x < gx - 1) { breached = true; shardL.intensity = 6; if (zoneEl) { zoneEl.textContent = '✦ SYSTEM BREACHED ✦'; zoneEl.classList.add('show'); } }
+    } else { shardL.intensity = 5 + Math.sin(t * 5) * 2; }
+  }
+  return { update };
+})();
+
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let down = null, dragged = false;
@@ -234,6 +266,7 @@ function frame() {
   if (d < KEEP && d > 0.001) { const s = KEEP / d; controls.pos.x *= s; controls.pos.z *= s; }
   for (const m of screenMats) m.uniforms.t.value = t;
   for (const u of updaters) u(dt, t, p);
+  laserGrid.update(dt, t);
   updateZone(controls.pos);
   renderer.render(scene, camera);
 }
