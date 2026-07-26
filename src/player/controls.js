@@ -16,6 +16,11 @@ export class WalkControls {
     this.walkTarget = null;      // THREE.Vector3 | null
     this.onArrive = null;
     this.speed = 7.2;
+    // jump / gravity (space to hop; works in the festival and every world)
+    this.vy = 0;
+    this.airborne = false;
+    this.gravity = 26;
+    this.jumpV = 8.6;
     this.keys = new Set();
     this._tmp = new THREE.Vector3();
     // subtle walking head-bob (disabled under reduced motion)
@@ -28,6 +33,9 @@ export class WalkControls {
       const k = e.key.toLowerCase();
       if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
         this.keys.add(k); this.walkTarget = null; // manual move cancels auto-walk
+      } else if (k === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        if (!this.airborne) { this.vy = this.jumpV; this.airborne = true; } // hop
       }
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.key.toLowerCase()));
@@ -88,7 +96,16 @@ export class WalkControls {
     // clamp to field; zMin lets you reach the stage
     this.pos.x = THREE.MathUtils.clamp(this.pos.x, -this.bounds, this.bounds);
     this.pos.z = THREE.MathUtils.clamp(this.pos.z, this.zMin, this.bounds);
-    this.pos.y = this.groundAt(this.pos.x, this.pos.z) + this.eye;
+    // vertical: rest on the ground, or arc through a jump under gravity
+    const groundY = this.groundAt(this.pos.x, this.pos.z) + this.eye;
+    if (this.airborne || this.pos.y > groundY + 0.001) {
+      this.vy -= this.gravity * dt;
+      this.pos.y += this.vy * dt;
+      if (this.pos.y <= groundY) { this.pos.y = groundY; this.vy = 0; this.airborne = false; }
+      else { this.airborne = true; }
+    } else {
+      this.pos.y = groundY;
+    }
     this._apply();
   }
 
