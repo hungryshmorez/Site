@@ -98,10 +98,10 @@ const vj = buildVJ({
   ],
 });
 // the VJ board (by the lab) is where you run the stage screens
-const vjboard = buildVJBoard(scene, { pos: [4, 0, 13], onActivate: () => toggleVJ() });
+const vjboard = buildVJBoard(scene, { pos: [5, 0, 18], onActivate: () => toggleVJ() });
 
 // hidden trash-hunt → clean the grounds → secret download
-const DUMPSTER_POS = [-18, -16];
+const DUMPSTER_POS = [-22, -20];
 const trash = buildTrash(scene, {
   dumpsterPos: DUMPSTER_POS,
   onPickup: (label, s) => { flash(`picked up ${label}`); trashHudUpdate(s); },
@@ -117,7 +117,7 @@ dumpLight.target.position.set(DUMPSTER_POS[0], 1, DUMPSTER_POS[1]);
 scene.add(dumpLight); scene.add(dumpLight.target);
 
 // a dealer hidden in the crowd → reach him to score the TRI-PPY (rainbow warp)
-const DEALER_POS = [16, -18];
+const DEALER_POS = [-13, -13];
 const dealer = buildDealer(scene, {
   pos: DEALER_POS,
   stageZ: festival.stageZ,
@@ -126,16 +126,16 @@ const dealer = buildDealer(scene, {
 
 // Shmorez's campfire micro-scene (fire + roasting NPCs) out back by his spot,
 // with a tent pitched behind him.
-const CAMPFIRE_POS = [9, 16];
+const CAMPFIRE_POS = [13, 15];
 const campfire = buildCampfire(scene, { pos: CAMPFIRE_POS, roasters: 3 });
-buildTent(scene, { pos: [5, 20], accent: '#ff6b35' });
+buildTent(scene, { pos: [16, 21], accent: '#ff6b35' });
 
 // everything faces the center of the grounds (front = +Z toward [0,-4])
 const faceCenter = (x, z) => Math.atan2(0 - x, -4 - z);
 
 // Tanky's tailgate: lifted truck + beer pong + ping-pong tosses, by his spot.
 // The bed/tailgate (party side, +Z) faces center; the cab backs into the corner.
-const TAILGATE_POS = [18, 5];
+const TAILGATE_POS = [10, 7];
 const pongHudEl = document.getElementById('pongHud');
 const tailgate = buildTailgate(scene, {
   pos: TAILGATE_POS, rot: faceCenter(TAILGATE_POS[0], TAILGATE_POS[1]),
@@ -144,11 +144,11 @@ const tailgate = buildTailgate(scene, {
 
 // Sofa King's elevated lounge (riser + audience couches) at his spot. The
 // audience side (-Z) points at center, so the couches sit between him and it.
-const LOUNGE_POS = [18, -8];
+const LOUNGE_POS = [11, -6];
 const lounge = buildLounge(scene, { pos: LOUNGE_POS, rot: faceCenter(LOUNGE_POS[0], LOUNGE_POS[1]) + Math.PI });
 
 // the 12matt3r hub board → walk up, read news, sign the guest book
-const BOARD_POS = [-18, 18];
+const BOARD_POS = [-14, 20];
 const board = buildBoard(scene, {
   pos: BOARD_POS,
   stageZ: festival.stageZ,
@@ -164,8 +164,8 @@ const crowd = buildCrowd(scene, {
     // [x, z, clear-radius] — bigger clearing around structures, plus spawn
     ...DESTINATIONS.map((d) => [d.pos[0], d.pos[2], BIG.has(d.model) ? 6.5 : 3.6]),
     [-4, 6, 4.5],           // spawn
-    [-16, 14, 2.8],         // park bench by the board
-    [4, 13, 3],             // VJ board by the lab
+    [-10, 20, 2.8],         // park bench by the board
+    [5, 18, 3],             // VJ board by the lab
     [DUMPSTER_POS[0], DUMPSTER_POS[1], 4],
     [DEALER_POS[0], DEALER_POS[1], 2.4],
     [BOARD_POS[0], BOARD_POS[1], 3],
@@ -337,7 +337,7 @@ const MORTAR = [-3, -20];
 }
 // a neon basketball hoop — walk near, click to shoot
 const hoopHudEl = document.getElementById('hoopHud');
-const hoop = buildHoop(scene, { pos: [11, 8], onScore: (n) => { flash(`🏀 SCORE! (${n})`); if (hoopHudEl) hoopHudEl.textContent = `🏀 made: ${n} · click to shoot`; } });
+const hoop = buildHoop(scene, { pos: [6, 11], onScore: (n) => { flash(`🏀 SCORE! (${n})`); if (hoopHudEl) hoopHudEl.textContent = `🏀 made: ${n} · click to shoot`; } });
 
 const FW_COLORS = ['#00F3FF', '#FF0055', '#39FF14', '#e6c04a', '#b967ff', '#ff6b35'];
 let fwColor = FW_COLORS[0];

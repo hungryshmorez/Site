@@ -146,7 +146,7 @@ export function buildFestival(scene) {
   scene.add(lasers);
 
   // ---- park bench, over by the message board ----
-  buildBench(scene, [-16, 14]);
+  buildBench(scene, [-10, 20]);
 
   // ---- perimeter: 3-sided stadium seating that closes off the arena (stage is
   // the 4th side), with colored light posts that shine inward and brighten at

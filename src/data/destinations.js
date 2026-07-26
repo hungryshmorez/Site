@@ -27,7 +27,7 @@ export const DESTINATIONS = [
   {
     id: 'shmorez', name: 'SHMOREZ', model: 'marshmallow',
     role: 'the campfire // out back', accent: PALETTE.orange,
-    pos: [9, 0, 19], tag: 'electronic · marshmallow',
+    pos: [13, 0, 18], tag: 'electronic · marshmallow',
     url: 'https://shmorez-official-epk--sofakingsadboi.on.websim.com/',
     blurb: 'A toasted marshmallow man squishing to the bass in the pit — an animated electronic marshmallow squish of fire. His EPK (custom player, press assets, the drops) opens when you reach him.',
     cta: 'Enter SHMOREZ EPK',
@@ -35,7 +35,7 @@ export const DESTINATIONS = [
   {
     id: 'sofaboi', name: 'SOFA KING SAD BOI', model: 'sofaboi',
     role: 'the lounge // up on his own stage', accent: PALETTE.indigo,
-    pos: [18, 0, -8], lift: 1.0, tag: 'dubstep · weird bass',
+    pos: [11, 0, -6], lift: 1.0, tag: 'dubstep · weird bass',
     url: 'https://sofa-king-sad-boi-official-epk--sofakingsadboi.on.websim.com/',
     blurb: 'Hood up, slumped on a beat-up couch under his own little rain cloud, watching the whole thing from the back — dubstep and weird bass. Reach him to drop into his world.',
     cta: 'Sit with the sad boi',
@@ -43,7 +43,7 @@ export const DESTINATIONS = [
   {
     id: 'driftwave', name: 'DRIFTWAVE STATIC', model: 'vaporwave',
     role: 'chill zone // left', accent: PALETTE.purple,
-    pos: [-2, 0, -3], tag: 'slushwave · ambient · vaporwave',
+    pos: [-9, 0, -3], tag: 'slushwave · ambient · vaporwave',
     url: 'https://staticcorp--sofakingsadboi.on.websim.com/',
     blurb: 'A chrome vaporwave figure in shades, haloed by a retro striped sun, holding down the slushwave chill zone. The calm counterweight to the main stage.',
     cta: 'Enter DriftWave EPK',
@@ -51,7 +51,7 @@ export const DESTINATIONS = [
   {
     id: 'tanky', name: 'TANKY JOHNSON', model: 'cowboy',
     role: 'the tailgate // right', accent: PALETTE.gold,
-    pos: [15, 0, 3], tag: 'outlaw country',
+    pos: [10, 0, 7], tag: 'outlaw country',
     url: 'https://tanky-johnson-epk--sofakingsadboi.on.websim.com/',
     blurb: 'The outlaw of the void — a cowboy in a brown hat, white tee and blue jeans, holding the right flank. Gold-on-black EPK: bio, latest tracks, and a booking desk.',
     cta: 'Enter Tanky EPK',
@@ -67,7 +67,7 @@ export const DESTINATIONS = [
   {
     id: 'store', name: 'THE MERCH TENT', model: 'stall',
     role: 'the vendor // commissions', accent: PALETTE.green,
-    pos: [-23, 0, -11], tag: 'high-ticket commissions',
+    pos: [-22, 0, 2], tag: 'high-ticket commissions',
     url: 'https://www.etsy.com/shop/12matt3r',
     blurb: 'The vendor working the merch tent. Productized packages — visual identity, audio branding, a web-OS build like this one — with pricing, a tip jar, and an intake + NDA flow. Where the experience converts.',
     cta: 'Browse commissions',
@@ -75,7 +75,7 @@ export const DESTINATIONS = [
   {
     id: 'dreamtv', name: 'DREAMOS TV', model: 'doorway',
     role: 'the big CRT // theater', accent: PALETTE.magenta,
-    pos: [20, 0, -2], tag: 'walk-in cinema',
+    pos: [-22, 0, -14], tag: 'walk-in cinema',
     page: 'tv.html',
     blurb: 'A lit doorway off the side of the grounds, glowing from underneath like a vendor stand. Step through into DreamOS TV — a movie theater with a big screen, a crowd, and popcorn in the air.',
     cta: 'Step through',
@@ -91,7 +91,7 @@ export const DESTINATIONS = [
   {
     id: 'arcade', name: 'THE ARCADE', model: 'arcade',
     role: 'insert coin // the games', accent: PALETTE.magenta,
-    pos: [-23, 0, -2], tag: 'flash games · 30+ playable worlds',
+    pos: [22, 0, -14], tag: 'flash games · 30+ playable worlds',
     url: 'https://flash-games-collection--sofakingsadboi.on.websim.com/',
     blurb: 'A lone arcade cabinet humming in the field — the door to the Flash Games portal and the whole playable library: racers, sims, backrooms, NPC therapy, the Wake Up saga. Walk up and insert a coin.',
     cta: 'Insert coin',
@@ -99,7 +99,7 @@ export const DESTINATIONS = [
   {
     id: 'deadnet', name: 'DEADNET', model: 'deadnet',
     role: 'the digital afterlife // by the arcade', accent: PALETTE.purple,
-    pos: [-23, 0, 7], tag: 'alt web · a self-generating dead internet',
+    pos: [22, 0, 2], tag: 'alt web · a self-generating dead internet',
     url: 'https://deadnet.on.websim.com/',
     blurb: 'Off in a lonely corner, a broken CRT monolith flickers with a web that never really existed — Deadnet, the digital afterlife. A self-generating, non-real internet you can wander into. Nobody comes back the same.',
     cta: 'Log into the afterlife',
@@ -107,7 +107,7 @@ export const DESTINATIONS = [
   {
     id: 'labs', name: 'THE LAB', model: 'labsstage',
     role: 'the side stage // experiments', accent: PALETTE.green,
-    pos: [-1, 0, 17], tag: 'games · wake up · stories · tools',
+    pos: [0, 0, 22], tag: 'games · wake up · stories · tools',
     page: 'lab.html',
     blurb: 'The Lab is its own side stage: big screens over a deck loaded with the playable side of 12matt3r — 30+ games, the whole Wake Up saga, Stories & Experiences, apps, downloads, and the flash portal. (Trippy Cam, DreamOS TV and Deadnet roam the festival on their own.) Reach it to boot the Lab.',
     cta: 'Enter the Lab',
@@ -115,7 +115,7 @@ export const DESTINATIONS = [
   {
     id: 'monkeypaw', name: "THE MONKEY'S PAW", model: 'monkeypaw',
     role: 'the fortune machine // left flank', accent: PALETTE.purple,
-    pos: [-23, 0, -20], tag: 'make a wish · 5 wishes',
+    pos: [-22, 0, 18], tag: 'make a wish · 5 wishes',
     url: 'https://3jnyhlyqkqq1e.space.minimax.io/',
     blurb: "A carnival fortune machine on the edge of the grounds — but under the glass dome is a severed, glowing monkey's paw curled on velvet. Five wishes. Be careful what you wish for. Reach it to make yours.",
     cta: 'Make a wish',
@@ -123,7 +123,7 @@ export const DESTINATIONS = [
   {
     id: 'portapotty', name: 'THE CODEX', model: 'bathroom',
     role: 'the archive // inside the potty', accent: PALETTE.green,
-    pos: [-23, 0, 16], tag: 'the encyclopedia', hideTag: true,
+    pos: [22, 0, 18], tag: 'the encyclopedia', hideTag: true,
     portal: 'lab',
     blurb: 'A row of festival porta-potties, one glowing an unhealthy green. Step inside and boot the old screen to read the Codex — the full encyclopedia of the festival.',
     cta: 'Read the Codex',
