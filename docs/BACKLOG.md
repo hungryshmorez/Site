@@ -118,6 +118,14 @@ opening the external EPK link directly.
   jump/glide to survive, health bar + timer + local best.
 - ⬜ **Pinball** — deserves its own fixed-cam flipper-physics mini-mode; deferred so it plays well.
 
+## Encyclopedia / Codex — world maps ✅
+- ✅ **Top-down atlas of every world** added to the Codex: `src/data/worldmaps.js` plots every notable
+  thing (each structure, the person/figure, their EPK, every game, and landmark props — Tanky's truck, the
+  hay bales, the jukebox, couches, cacti, rings, etc.) at its real world-space `[x,z]`. `codex.js` renders
+  each as a labeled SVG floor-plan with a color-coded legend (person / EPK / structure / game / prop /
+  landmark / spawn), a faint 10-unit grid, an origin cross-hair and a compass. 124 items across 8 maps
+  (festival + 6 character worlds + THE MIDWAY). New `🗺 world maps` nav anchor.
+
 ## The arcade / Midway
 - ✅ Consolidated all games into **THE MIDWAY** — a circus tent built into the wall (walk in to play).
   Cabinets: flash portal / Wake Up / Games / Stories; the Monkey's Paw machine; basketball (banks off the
