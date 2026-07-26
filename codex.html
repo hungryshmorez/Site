@@ -47,18 +47,18 @@
     .wlegend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:12px 0 4px;font-family:var(--mono);font-size:11px;letter-spacing:.04em}
     .wlegend .lg{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
     .wlegend .lg i{width:11px;height:11px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.5)}
-    .wmapwrap{overflow-x:auto;margin:8px 0 6px;border:1px solid var(--edge);border-radius:12px;
+    .maprow{display:flex;gap:18px;align-items:flex-start;margin:8px 0 24px;flex-wrap:wrap}
+    .maprow .wmapwrap{flex:1 1 420px}
+    .wmapwrap{overflow-x:auto;margin:0;border:1px solid var(--edge);border-radius:12px;
       background:radial-gradient(120% 80% at 50% 0%,rgba(45,20,80,.22),rgba(5,6,15,.6));padding:6px}
-    .wmap{display:block;width:100%;min-width:520px;height:auto}
-    .cutouts{margin:6px 0 20px}
-    .cutouts>summary{font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--muted);
-      cursor:pointer;list-style:none;padding:6px 0}
-    .cutouts>summary::-webkit-details-marker{display:none}
-    .cutouts>summary:hover{color:var(--cyan)}
-    .chipsheet{display:flex;flex-wrap:wrap;gap:10px;padding:8px 2px}
-    .chip{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--edge);
-      border-radius:999px;padding:6px 13px 6px 10px;font-family:var(--mono);font-size:12px;color:#d7d7e4;white-space:nowrap}
-    .chip i{width:11px;height:11px;border-radius:50%;flex:0 0 auto;border:1px solid rgba(0,0,0,.5)}
+    .wmap{display:block;width:100%;min-width:360px;height:auto}
+    .wkey{flex:1 1 230px;min-width:210px;margin:0!important;padding:0;list-style:none;
+      columns:2;column-gap:20px;font-family:var(--mono);font-size:12px}
+    .wkey .keyitem{break-inside:avoid;display:flex;align-items:baseline;gap:7px;padding:3px 0!important;color:#d7d7e4}
+    .wkey .keyitem::before{content:none!important}
+    .wkey .keynum{flex:0 0 auto;font-weight:700;min-width:16px;text-align:right}
+    .wkey .keydot{flex:0 0 auto;width:9px;height:9px;border-radius:50%;transform:translateY(1px);border:1px solid rgba(0,0,0,.5)}
+    @media(max-width:640px){.wkey{columns:1}}
     @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
   </style>
 </head>

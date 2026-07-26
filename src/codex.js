@@ -85,11 +85,11 @@ function mapSvg(w) {
   // for each, then relax any that land on top of each other so every dot stays
   // individually visible (two things at one spot → two separate dots). A faint
   // leader line ties a nudged dot back to its true position.
-  const nodes = w.items.map((item) => {
+  const nodes = w.items.map((item, idx) => {
     const k = MAP_KINDS[item.kind] || MAP_KINDS.prop;
     const tx0 = sx(item.x), ty0 = sy(item.z);
-    const r = item.kind === 'person' || item.kind === 'spawn' ? 6 : 4.5;
-    return { item, k, r, tx0, ty0, x: tx0, y: ty0 };
+    const r = item.kind === 'person' || item.kind === 'spawn' ? 6.5 : 5.5;
+    return { item, k, r, n: idx + 1, tx0, ty0, x: tx0, y: ty0 };
   });
   const MIN = 15; // px of breathing room between dot centers
   for (let iter = 0; iter < 60; iter++) {
@@ -117,40 +117,36 @@ function mapSvg(w) {
   }
   for (const n of nodes) {
     const { item, k, r } = n;
-    const left = n.x > IW * 0.62;
-    const tx = left ? n.x - 9 : n.x + 9;
-    const anchor = left ? 'end' : 'start';
     // leader from nudged dot back to true position, if it drifted
     if (Math.hypot(n.x - n.tx0, n.y - n.ty0) > 3) {
       g += `<line x1="${n.tx0.toFixed(1)}" y1="${n.ty0.toFixed(1)}" x2="${n.x.toFixed(1)}" y2="${n.y.toFixed(1)}" stroke="${k.color}" stroke-opacity=".35" stroke-width="1"/>`;
       g += `<circle cx="${n.tx0.toFixed(1)}" cy="${n.ty0.toFixed(1)}" r="1.6" fill="${k.color}" fill-opacity=".55"/>`;
     }
     g += `<g>`;
-    if (item.kind === 'spawn') g += `<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="11" fill="none" stroke="${k.color}" stroke-opacity=".5"/>`;
+    if (item.kind === 'spawn') g += `<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="12" fill="none" stroke="${k.color}" stroke-opacity=".5"/>`;
     g += `<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${r}" fill="${k.color}" stroke="#05060f" stroke-width="1"/>`;
-    g += `<text x="${tx.toFixed(1)}" y="${(n.y + 3.5).toFixed(1)}" fill="#d7d7e4" font-size="11" text-anchor="${anchor}" font-family="var(--mono)">${esc(item.label)}</text>`;
+    // number only (no name) — the blank map; names live in the key beside it
+    g += `<text x="${n.x.toFixed(1)}" y="${(n.y + 3).toFixed(1)}" fill="#05060f" font-size="8.5" font-weight="700" text-anchor="middle" font-family="var(--mono)">${n.n}</text>`;
     g += `</g>`;
   }
-  return `<svg class="wmap" viewBox="0 0 ${IW} ${IH}" role="img" aria-label="${esc(w.name)} map">${g}</svg>`;
+  return `<svg class="wmap" viewBox="0 0 ${IW} ${IH}" role="img" aria-label="${esc(w.name)} blank map">${g}</svg>`;
 }
 
 function mapsSection() {
   const kinds = Object.values(MAP_KINDS);
   const legend = kinds.map((k) => `<span class="lg"><i style="background:${k.color}"></i>${esc(k.label)}</span>`).join('');
   let h = `<h2 id="maps">World maps</h2>`;
-  h += `<p>Top-down floor-plans of every walkable world — each structure, person, EPK, game and landmark plotted at its real position. +x is east, +z is south (toward where you spawn); the stage/EPK side is north (top).</p>`;
+  h += `<p>A blank top-down map of every walkable world, with each item shown as a numbered dot at its real position. The names live in the numbered key beside each map — match a number on the map to its name in the list. +x is east, +z is south (toward where you spawn); the stage/EPK side is north (top).</p>`;
   h += `<div class="wlegend">${legend}</div>`;
   for (const w of WORLD_MAPS) {
     h += `<h3>${esc(w.name)}</h3>`;
     h += `<p>${esc(w.blurb)}</p>`;
-    h += `<div class="wmapwrap">${mapSvg(w)}</div>`;
-    // cut-out label sheet: every item as a dot+name chip, separate from the
-    // plotted map, so you can screenshot these and paste them where you want.
-    const chips = w.items.map((item) => {
+    // numbered key OUTSIDE the map: every dot's number → its correct name
+    const key = w.items.map((item, i) => {
       const k = MAP_KINDS[item.kind] || MAP_KINDS.prop;
-      return `<span class="chip"><i style="background:${k.color}"></i>${esc(item.label)}</span>`;
+      return `<li class="keyitem"><b class="keynum" style="color:${k.color}">${i + 1}</b><i class="keydot" style="background:${k.color}"></i><span>${esc(item.label)}</span></li>`;
     }).join('');
-    h += `<details class="cutouts"><summary>✂ cut-out labels — ${w.items.length} pins</summary><div class="chipsheet">${chips}</div></details>`;
+    h += `<div class="maprow"><div class="wmapwrap">${mapSvg(w)}</div><ol class="wkey">${key}</ol></div>`;
   }
   return h;
 }
