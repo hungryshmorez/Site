@@ -23,6 +23,7 @@ import { buildVJ } from './scene/vjscreen.js';
 import { buildVJBoard } from './scene/vjboard.js';
 import { buildLaserShow } from './scene/laser.js';
 import { buildGallery } from './scene/gallery.js';
+import { buildDistortion } from './scene/distortion.js';
 import { buildHoop } from './scene/hoop.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -115,6 +116,17 @@ const gallery = buildGallery(scene, {
   pos: [-16, 10],
   onHit: (n) => { flash(`🎯 hit! (${n})`); if (galleryHudEl) galleryHudEl.textContent = `🎯 aim & click · hits: ${n}`; },
 });
+
+// spatial distortion fields — walk through one and space bends
+const distortion = buildDistortion(scene, {
+  fields: [
+    { id: 'a', pos: [3, 4], r: 3.4, color: '#00f3ff' },
+    { id: 'b', pos: [-4, 13], r: 3.2, color: '#b967ff' },
+    { id: 'c', pos: [14, 0], r: 3.6, color: '#39ff14' },
+  ],
+});
+const BASE_FOV = camera.fov;
+let inWarp = false;
 
 // hidden trash-hunt → clean the grounds → secret download
 const DUMPSTER_POS = [-22, -20];
@@ -590,6 +602,11 @@ function frame() {
     if (laserShow.isActive()) { aimLasers(); laserShow.update(dt, time, pulse); }
     gallery.update(dt, time, pulse);
     if (galleryHudEl) galleryHudEl.classList.toggle('on', gallery.near(controls.pos));
+    // spatial distortion fields: space bends while you stand inside one
+    const warpId = distortion.update(dt, time, pulse, controls.pos);
+    if (warpId && !inWarp) { inWarp = true; body.classList.add('warp'); flash('◈ space bends around you'); }
+    else if (!warpId && inWarp) { inWarp = false; body.classList.remove('warp'); camera.fov = BASE_FOV; camera.updateProjectionMatrix(); }
+    if (inWarp && !reduceMotion) { camera.fov = BASE_FOV + Math.sin(time * 3) * 7; camera.updateProjectionMatrix(); }
     trippycam.update(dt);
     orbs.update(dt, time, pulse);
     { const grabbed = orbs.pickNear(controls.pos); if (grabbed) pickupOrb(grabbed); } // walk into an orb to grab it
