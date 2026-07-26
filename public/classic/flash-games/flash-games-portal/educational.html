@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educational Games - FlashVault Arcade</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FFA500;
+            --dark-orange: #CC8400;
+            --bg-dark: #1a1a1a;
+            --bg-darker: #0f0f0f;
+            --text-light: #f0f0f0;
+            --text-dim: #888;
+            --border-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* CRT Scanline Effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+            border-right: 2px solid var(--border-color);
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            padding: 0 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-orange);
+            text-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .logo-sub {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 4px;
+            margin-top: 5px;
+        }
+
+        .nav-section {
+            margin-bottom: 15px;
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            padding: 0 20px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin: 2px 10px;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            color: var(--text-light);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            font-size: 13px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 165, 0, 0.1);
+            color: var(--primary-orange);
+            transform: translateX(5px);
+        }
+
+        .nav-links a.active {
+            background: linear-gradient(90deg, var(--primary-orange), var(--dark-orange));
+            color: #000;
+            font-weight: bold;
+        }
+
+        .nav-icon {
+            width: 20px;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 30px;
+        }
+
+        /* Header */
+        .page-header {
+            background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-orange), var(--dark-orange), var(--primary-orange));
+        }
+
+        .category-title {
+            font-size: 32px;
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 165, 0, 0.3);
+        }
+
+        .category-description {
+            color: var(--text-dim);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .game-count {
+            display: inline-block;
+            background: var(--primary-orange);
+            color: #000;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        /* Tank Button Style */
+        .tank-button {
+            background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 50%, #1a1a1a 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: var(--text-light);
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            box-shadow: 
+                0 4px 0 #0a0a0a,
+                0 6px 10px rgba(0,0,0,0.5);
+            margin: 5px;
+        }
+
+        .tank-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0 #0a0a0a,
+                0 8px 15px rgba(0,0,0,0.5);
+            color: var(--primary-orange);
+        }
+
+        .tank-button:active {
+            transform: translateY(2px);
+            box-shadow: 
+                0 2px 0 #0a0a0a,
+                0 3px 5px rgba(0,0,0,0.5);
+        }
+
+        .tank-button.primary {
+            background: linear-gradient(180deg, var(--primary-orange) 0%, var(--dark-orange) 50%, #996600 100%);
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* Game Grid */
+        .games-section {
+            margin-top: 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background: var(--bg-darker);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 165, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 135px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::before {
+            content: "▶";
+            font-size: 40px;
+            color: var(--primary-orange);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .game-card:hover .game-thumbnail::before {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .game-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .game-info {
+            padding: 12px;
+        }
+
+        .game-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .game-category {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 5px;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-darker);
+            border: 3px solid var(--primary-orange);
+            border-radius: 15px;
+            width: 100%;
+            max-width: 850px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(255, 165, 0, 0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(90deg, var(--primary-orange), var(--dark-orange));
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .close-button {
+            background: #000;
+            color: var(--primary-orange);
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-button:hover {
+            background: #fff;
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 0;
+        }
+
+        .game-frame {
+            width: 100%;
+            height: 600px;
+            border: none;
+            background: #000;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .container {
+                flex-direction: column;
+            }
+
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+
+            .game-frame {
+                height: 400px;
+            }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(255, 165, 0, 0); }
+        }
+
+        .game-card::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 10px;
+            height: 10px;
+            background: var(--primary-orange);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">FLASHVAULT</div>
+                <div class="logo-sub">ARCADE COLLECTION</div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="nav-icon">🏠</a><a href="index.html">Home</a></li>
+                    <li><a href="all-games.html" class="nav-icon">🎮</a><a href="all-games.html">All Games</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Categories</div>
+                <ul class="nav-links">
+                    <li><a href="adventure.html" class="nav-icon">🗺️</a><a href="adventure.html">Adventure</a></li>
+                    <li><a href="arcade.html" class="nav-icon">🕹️</a><a href="arcade.html">Arcade</a></li>
+                    <li><a href="puzzle.html" class="nav-icon">🧩</a><a href="puzzle.html">Puzzle</a></li>
+                    <li><a href="action.html" class="nav-icon">⚡</a><a href="action.html">Action</a></li>
+                    <li><a href="shooter.html" class="nav-icon">🎯</a><a href="shooter.html">Shooter</a></li>
+                    <li><a href="sports.html" class="nav-icon">⚽</a><a href="sports.html">Sports</a></li>
+                    <li><a href="strategy.html" class="nav-icon">♟️</a><a href="strategy.html">Strategy</a></li>
+                    <li><a href="fighting.html" class="nav-icon">🥊</a><a href="fighting.html">Fighting</a></li>
+                    <li><a href="educational.html" class="nav-icon active">📚</a><a href="educational.html" class="active">Educational</a></li>
+                    <li><a href="cooking.html" class="nav-icon">👨‍🍳</a><a href="cooking.html">Cooking</a></li>
+                    <li><a href="dress-up.html" class="nav-icon">👗</a><a href="dress-up.html">Dress Up</a></li>
+                    <li><a href="driving.html" class="nav-icon">🚗</a><a href="driving.html">Driving</a></li>
+                    <li><a href="racing.html" class="nav-icon">🏎️</a><a href="racing.html">Racing</a></li>
+                    <li><a href="hidden-objects.html" class="nav-icon">🔍</a><a href="hidden-objects.html">Hidden Objects</a></li>
+                    <li><a href="jigsaw.html" class="nav-icon">🧩</a><a href="jigsaw.html">Jigsaw</a></li>
+                    <li><a href="make-up.html" class="nav-icon">💄</a><a href="make-up.html">Make Up</a></li>
+                    <li><a href="halloween.html" class="nav-icon">🎃</a><a href="halloween.html">Halloween</a></li>
+                    <li><a href="christmas.html" class="nav-icon">🎄</a><a href="christmas.html">Christmas</a></li>
+                    <li><a href="memory.html" class="nav-icon">🧠</a><a href="memory.html">Memory</a></li>
+                    <li><a href="fantasy.html" class="nav-icon">🐉</a><a href="fantasy.html">Fantasy</a></li>
+                    <li><a href="space.html" class="nav-icon">🚀</a><a href="space.html">Space</a></li>
+                    <li><a href="running.html" class="nav-icon">🏃</a><a href="running.html">Running</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="category-title">📚 Educational Games</h1>
+                <p class="category-description">Learn while you play! These educational games cover various subjects including geography, mathematics, science, and more. Perfect for students of all ages.</p>
+                <span class="game-count">50 Games Available</span>
+            </header>
+
+            <section class="games-section">
+                <div class="games-grid" id="gamesGrid">
+                    <!-- Games will be populated by JavaScript -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Game Modal -->
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="close-button" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <iframe class="game-frame" id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Educational Games Data
+        const educationalGames = [
+            { title: "看图猜水果", iframe: "<iframe src=\"https://flashgames.cx/game/看图猜水果\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Aquatic Food Chains", iframe: "<iframe src=\"https://flashgames.cx/game/aquatic-food-chains\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Beach Detectives", iframe: "<iframe src=\"https://flashgames.cx/game/beach-detectives\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Life and Times of a Humpback Whale", iframe: "<iframe src=\"https://flashgames.cx/game/life-and-times-of-a-humpback-whale\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Ocean Geography and Geology", iframe: "<iframe src=\"https://flashgames.cx/game/ocean-geography-and-geology\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Life in the Open Ocean", iframe: "<iframe src=\"https://flashgames.cx/game/life-in-the-open-ocean\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Open Ocean Habitats", iframe: "<iframe src=\"https://flashgames.cx/game/open-ocean-habitats\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Shoreline Habitats", iframe: "<iframe src=\"https://flashgames.cx/game/shoreline-habitats\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Weather and Wave Patterns", iframe: "<iframe src=\"https://flashgames.cx/game/weather-and-wave-patterns\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "שומרי הפארק", iframe: "<iframe src=\"https://flashgames.cx/game/שומרי הפארק\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "מכסחי היתושים", iframe: "<iframe src=\"https://flashgames.cx/game/מכסחי היתושים\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Bike Racing Math Rounding", iframe: "<iframe src=\"https://flashgames.cx/game/bike-racing-math-rounding\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "MoonMaths", iframe: "<iframe src=\"https://flashgames.cx/game/moonmaths\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Match-A-Brain", iframe: "<iframe src=\"https://flashgames.cx/game/match-a-brain\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Binary Game", iframe: "<iframe src=\"https://flashgames.cx/game/binary-game\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Bob the Builder Project", iframe: "<iframe src=\"https://flashgames.cx/game/bob-the-builder-project-build-it-sunflower-park\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Tec's Challenges", iframe: "<iframe src=\"https://flashgames.cx/game/tec-s-challenges\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "小火车爱写字", iframe: "<iframe src=\"https://flashgames.cx/game/小火车爱写字\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Make a Solar System", iframe: "<iframe src=\"https://flashgames.cx/game/make-a-solar-system\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "The Nanny McPhee Trivia Game", iframe: "<iframe src=\"https://flashgames.cx/game/the-nanny-mcphee-trivia-game\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Mind Game", iframe: "<iframe src=\"https://flashgames.cx/game/mind-game\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Fruits Catching", iframe: "<iframe src=\"https://flashgames.cx/game/fruits-catching\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Maths Nightmare 2", iframe: "<iframe src=\"https://flashgames.cx/game/maths-nightmare-2\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "As Esferas do Conhecimento 4", iframe: "<iframe src=\"https://flashgames.cx/game/as-esferas-do-conhecimento-4\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "State of Debate", iframe: "<iframe src=\"https://flashgames.cx/game/state-of-debate\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "eHike String Lake", iframe: "<iframe src=\"https://flashgames.cx/game/ehike-string-lake\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "RU Revising Science 2", iframe: "<iframe src=\"https://flashgames.cx/game/ru-revising-science-2\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Methamphetamine In The Forests", iframe: "<iframe src=\"https://flashgames.cx/game/methamphetamine-in-the-forests-safety-and-awareness-trainig\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Wirtualny spacer po Sądzie", iframe: "<iframe src=\"https://flashgames.cx/game/wirtualny-spacer-po-s-dzie-s-d-rejonowy-w-mielcu\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "לעוף על המיליון", iframe: "<iframe src=\"https://flashgames.cx/game/לעוף על המיליון\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Geometry Toolbox", iframe: "<iframe src=\"https://flashgames.cx/game/geometry-toolbox\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Do You Know Flash Games?", iframe: "<iframe src=\"https://flashgames.cx/game/do-you-know-flash-games\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Proke", iframe: "<iframe src=\"https://flashgames.cx/game/proke\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Barbie A+ Art Teacher", iframe: "<iframe src=\"https://flashgames.cx/game/barbie-a-art-teacher\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Sesame Street - Rosita's Fiesta", iframe: "<iframe src=\"https://flashgames.cx/game/sesame-street-rosita-s-fiesta\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Sesame Street - Bumper Cars", iframe: "<iframe src=\"https://flashgames.cx/game/sesame-street-bumper-cars\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "The Great Sperm Race", iframe: "<iframe src=\"https://flashgames.cx/game/the-great-sperm-race\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Exploration Earth", iframe: "<iframe src=\"https://flashgames.cx/game/exploration-earth\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "都道府県名テスト", iframe: "<iframe src=\"https://flashgames.cx/game/都道府県名テスト\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Flags Of All Countries", iframe: "<iframe src=\"https://flashgames.cx/game/flags-of-all-countries\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Target Words", iframe: "<iframe src=\"https://flashgames.cx/game/target-words\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Bill's Panwapa Movie Play-Along", iframe: "<iframe src=\"https://flashgames.cx/game/bill-s-panwapa-movie-play-along\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Go Diego Go! Field Journal", iframe: "<iframe src=\"https://flashgames.cx/game/go-diego-go-field-journal\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Bucky's Halloween Haunt", iframe: "<iframe src=\"https://flashgames.cx/game/bucky-s-halloween-haunt\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Paw Pilot's 3 Special Steps Scramble", iframe: "<iframe src=\"https://flashgames.cx/game/paw-pilot-s-3-special-steps-scramble\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "The Great Nocturnal Hat Hunt", iframe: "<iframe src=\"https://flashgames.cx/game/the-great-nocturnal-hat-hunt\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "15 Fun Facts About Easter", iframe: "<iframe src=\"https://flashgames.cx/game/15-fun-facts-about-easter\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "A Conversation with Sir Ian McKellen", iframe: "<iframe src=\"https://flashgames.cx/game/a-conversation-with-sir-ian-mckellen\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Jungle Brain", iframe: "<iframe src=\"https://flashgames.cx/game/jungle-brain\" width=\"800\" height=\"600\"></iframe>" }
+        ];
+
+        // Populate games grid
+        function populateGames() {
+            const grid = document.getElementById('gamesGrid');
+            
+            educationalGames.forEach((game, index) => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.onclick = () => openGame(index);
+                
+                card.innerHTML = `
+                    <div class="game-thumbnail">
+                        <span style="font-size: 40px;">📚</span>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-title">${game.title}</div>
+                        <div class="game-category">Educational</div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // Open game modal
+        function openGame(index) {
+            const game = educationalGames[index];
+            const modal = document.getElementById('gameModal');
+            const title = document.getElementById('modalTitle');
+            const frame = document.getElementById('gameFrame');
+            
+            title.textContent = game.title;
+            frame.srcdoc = game.iframe;
+            modal.classList.add('active');
+            
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal
+        function closeModal() {
+            const modal = document.getElementById('gameModal');
+            modal.classList.remove('active');
+            document.getElementById('gameFrame').srcdoc = '';
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('gameModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('gameModal')) {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        populateGames();
+    </script>
+</body>
+</html>

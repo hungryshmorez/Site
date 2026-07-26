@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hidden Objects Games - Retro Flash Portal</title>
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --secondary: #f7c59f;
+            --bg-dark: #1a1a2e;
+            --bg-medium: #16213e;
+            --bg-light: #0f3460;
+            --text-light: #e8e8e8;
+            --accent-green: #4ecca3;
+            --accent-pink: #ff2e63;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Scanline effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1) 0px,
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(180deg, var(--bg-medium) 0%, var(--bg-dark) 100%);
+            padding: 20px;
+            border-bottom: 3px solid var(--primary);
+            position: relative;
+        }
+        
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-pink), var(--accent-green));
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+            letter-spacing: 2px;
+        }
+        
+        nav ul {
+            display: flex;
+            gap: 15px;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 8px 16px;
+            background: var(--bg-light);
+            border: 2px solid var(--accent-green);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        nav a:hover {
+            background: var(--accent-green);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--accent-green);
+        }
+        
+        /* Main content */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .category-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .category-header h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .category-header p {
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+        
+        /* Games grid */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .game-card {
+            background: var(--bg-medium);
+            border: 2px solid var(--bg-light);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,107,53,0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .game-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255,107,53,0.3);
+        }
+        
+        .game-card:hover::before {
+            opacity: 1;
+        }
+        
+        .game-card h3 {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .game-card .play-btn {
+            display: inline-block;
+            padding: 8px 20px;
+            background: var(--accent-green);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .game-card .play-btn:hover {
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--bg-medium);
+            border: 3px solid var(--primary);
+            border-radius: 10px;
+            max-width: 850px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--bg-light);
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .modal-header h2 {
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+        
+        .close-btn {
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            background: #cc2450;
+            transform: scale(1.1);
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: calc(90vh - 150px);
+            overflow-y: auto;
+        }
+        
+        .modal-body iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+            border-radius: 5px;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            background: var(--bg-medium);
+            border-top: 2px solid var(--accent-green);
+            margin-top: 50px;
+        }
+        
+        footer p {
+            color: var(--secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav ul {
+                justify-content: center;
+            }
+            
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .modal-body iframe {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">&lt;RETRO FLASH&gt;</div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="adventure.html">Adventure</a></li>
+                    <li><a href="arcade.html">Arcade</a></li>
+                    <li><a href="puzzle.html">Puzzle</a></li>
+                    <li><a href="action.html">Action</a></li>
+                    <li><a href="shooter.html">Shooter</a></li>
+                    <li><a href="sports.html">Sports</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <main>
+        <div class="category-header">
+            <h1>HIDDEN OBJECTS GAMES</h1>
+            <p>Find hidden objects in challenging scenes!</p>
+        </div>
+        
+        <div class="games-grid">
+            
+            <div class="game-card" onclick="openGame('Donkey Kong Hidden Stars', 'https://flashgames.cx/game/donkey-kong-hidden-stars')">
+                <h3>Donkey Kong Hidden Stars</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Pucca Hidden Stars', 'https://flashgames.cx/game/pucca-hidden-stars')">
+                <h3>Pucca Hidden Stars</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Luigi Hidden Stars', 'https://flashgames.cx/game/luigi-hidden-stars')">
+                <h3>Luigi Hidden Stars</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Yoshi Hidden Stars', 'https://flashgames.cx/game/yoshi-hidden-stars')">
+                <h3>Yoshi Hidden Stars</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Angry Birds Hidden Stars', 'https://flashgames.cx/game/angry-birds-hidden-stars')">
+                <h3>Angry Birds Hidden Stars</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Can You See What I See?', 'https://flashgames.cx/game/can-you-see-what-i-see')">
+                <h3>Can You See What I See?</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Herod\'s Lost Tomb', 'https://flashgames.cx/game/herod-s-lost-tomb')">
+                <h3>Herod's Lost Tomb</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('The Emoji Movie Find Objects', 'https://flashgames.cx/game/the-emoji-movie-find-objects')">
+                <h3>The Emoji Movie Find Objects</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Phineas and Ferb Spot the Numbers', 'https://flashgames.cx/game/phineas-and-ferb-spot-the-numbers')">
+                <h3>Phineas and Ferb Spot the Numbers</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Kim Possible Hidden Letters', 'https://flashgames.cx/game/kim-possible-hidden-letters')">
+                <h3>Kim Possible Hidden Letters</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Ben & Holly\'s Little Kingdom Hidden Stars', 'https://flashgames.cx/game/ben-holly-s-little-kingdom-hidden-stars')">
+                <h3>Ben & Holly's Little Kingdom Hidden Stars</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Perdidos em Lyoko', 'https://flashgames.cx/game/perdidos-em-lyoko')">
+                <h3>Perdidos em Lyoko</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Moana Pokémon Go', 'https://flashgames.cx/game/moana-pok-mon-go')">
+                <h3>Moana Pokémon Go</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Coffee Factory', 'https://flashgames.cx/game/coffee-factory')">
+                <h3>Coffee Factory</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Rum\'s Luggage Rummage', 'https://flashgames.cx/game/rum-s-luggage-rummage')">
+                <h3>Rum's Luggage Rummage</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('The Ant Bully: Ant & Seek', 'https://flashgames.cx/game/the-ant-bully-ant-seek')">
+                <h3>The Ant Bully: Ant & Seek</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Looking For Word', 'https://flashgames.cx/game/looking-for-word')">
+                <h3>Looking For Word</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Sunday Morning at the Playground', 'https://flashgames.cx/game/sunday-morning-at-the-playground')">
+                <h3>Sunday Morning at the Playground</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Super Wings Hidden Stars', 'https://flashgames.cx/game/super-wings-hidden-stars')">
+                <h3>Super Wings Hidden Stars</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Hidden Star Angry Bird 2', 'https://flashgames.cx/game/hidden-star-angry-bird-2')">
+                <h3>Hidden Star Angry Bird 2</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('What a mess!', 'https://flashgames.cx/game/what-a-mess-2')">
+                <h3>What a mess!</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Explore Rio to Find the Hiding Characters', 'https://flashgames.cx/game/explore-rio-to-find-the-hiding-characters')">
+                <h3>Explore Rio to Find the Hiding Characters</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Disney Villains Hidden Stars', 'https://flashgames.cx/game/disney-villains-hidden-stars')">
+                <h3>Disney Villains Hidden Stars</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Promise Keepers', 'https://flashgames.cx/game/promise-keepers')">
+                <h3>Promise Keepers</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Find Perry', 'https://flashgames.cx/game/find-perry')">
+                <h3>Find Perry</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Tahiti Hidden Pearls', 'https://flashgames.cx/game/tahiti-hidden-pearls')">
+                <h3>Tahiti Hidden Pearls</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Super Sneaky Spy Guy: Crystal Hunter: Disneyland 1', 'https://flashgames.cx/game/super-sneaky-spy-guy-crystal-hunter-disneyland-1')">
+                <h3>Super Sneaky Spy Guy: Crystal Hunter: Disneyland 1</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Super Sneaky Spy Guy: Disney Land Crystal Hunter', 'https://flashgames.cx/game/super-sneaky-spy-guy-disney-land-crystal-hunter')">
+                <h3>Super Sneaky Spy Guy: Disney Land Crystal Hunter</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Cult Classic', 'https://flashgames.cx/game/cult-classic')">
+                <h3>Cult Classic</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Dynamic Hidden Objects Noah\'s Ark', 'https://flashgames.cx/game/dynamic-hidden-objects-noah-s-ark')">
+                <h3>Dynamic Hidden Objects Noah's Ark</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Where is cat?', 'https://flashgames.cx/game/where-is-cat')">
+                <h3>Where is cat?</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Mechanical Commando 2 Minigame', 'https://flashgames.cx/game/mechanical-commando-2-minigame')">
+                <h3>Mechanical Commando 2 Minigame</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Sneaky\'s Road Trip: Chicago', 'https://flashgames.cx/game/sneaky-s-road-trip-chicago')">
+                <h3>Sneaky's Road Trip: Chicago</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Sneaky\'s Road Trip: Sydney', 'https://flashgames.cx/game/sneaky-s-road-trip-sydney')">
+                <h3>Sneaky's Road Trip: Sydney</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Popsicle Find It!', 'https://flashgames.cx/game/popsicle-find-it')">
+                <h3>Popsicle Find It!</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Sneaky Search: Ladybugs', 'https://flashgames.cx/game/sneaky-search-ladybugs')">
+                <h3>Sneaky Search: Ladybugs</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Sneaky\'s World Tour: Ireland', 'https://flashgames.cx/game/sneaky-s-world-tour-ireland')">
+                <h3>Sneaky's World Tour: Ireland</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Spongebob Play Pokemon Go', 'https://flashgames.cx/game/spongebob-play-pokemon-go')">
+                <h3>Spongebob Play Pokemon Go</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Minnie Explores The Land of Dizz', 'https://flashgames.cx/game/minnie-explores-the-land-of-dizz')">
+                <h3>Minnie Explores The Land of Dizz</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('白雪姫と七人の小人', 'https://flashgames.cx/game/白雪姫と七人の小人')">
+                <h3>白雪姫と七人の小人</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Rooms of Art 5', 'https://flashgames.cx/game/rooms-of-art-5')">
+                <h3>Rooms of Art 5</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Rooms of Art 6', 'https://flashgames.cx/game/rooms-of-art-6')">
+                <h3>Rooms of Art 6</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Rooms of Art 3', 'https://flashgames.cx/game/rooms-of-art-3')">
+                <h3>Rooms of Art 3</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Alice in Wonderland: Wonderland\'s Hidden Secrets', 'https://flashgames.cx/game/alice-in-wonderland-wonderland-s-hidden-secrets')">
+                <h3>Alice in Wonderland: Wonderland's Hidden Secrets</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Koko\'s Hide and Seek', 'https://flashgames.cx/game/koko-s-hide-and-seek')">
+                <h3>Koko's Hide and Seek</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Maryoku Yummy: Wish & Go Seek', 'https://flashgames.cx/game/maryoku-yummy-wish-go-seek')">
+                <h3>Maryoku Yummy: Wish & Go Seek</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Hook\'s Merry Winter Treasure Hunt', 'https://flashgames.cx/game/hook-s-merry-winter-treasure-hunt')">
+                <h3>Hook's Merry Winter Treasure Hunt</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Special Agent Oso: License to Dive', 'https://flashgames.cx/game/special-agent-oso-license-to-dive')">
+                <h3>Special Agent Oso: License to Dive</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Kermit\'s Look a Pond', 'https://flashgames.cx/game/kermit-s-look-a-pond')">
+                <h3>Kermit's Look a Pond</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Where\'s Humf', 'https://flashgames.cx/game/where-s-humf')">
+                <h3>Where's Humf</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 Retro Flash Portal - Preserving the Classics</p>
+    </footer>
+    
+    <!-- Modal for game playing -->
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Game Title</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function openGame(title, url) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('gameFrame').src = url;
+            document.getElementById('gameModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+        
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

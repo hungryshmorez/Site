@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driving Games - Retro Flash Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF9900;
+            --secondary-orange: #FFB84D;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1a;
+            --card-bg: #16213e;
+            --text-light: #eaeaea;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--card-bg) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary-orange);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            color: var(--primary-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--darker-bg);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 26, 46, 0.9), rgba(26, 26, 46, 0.9)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="road" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M0 50 L100 50" stroke="%23ffffff10" stroke-width="2"/><path d="M20 0 L20 100 M80 0 L80 100" stroke="%23ffffff05" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23road)"/></svg>');
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            color: var(--text-dim);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-bg);
+        }
+
+        .game-count {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, var(--darker-bg), var(--card-bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::before {
+            content: '▶';
+            font-size: 3rem;
+            color: var(--primary-orange);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .game-thumbnail:hover::before {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .game-info {
+            padding: 1rem;
+        }
+
+        .game-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .game-category-tag {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--primary-orange);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow: hidden;
+            border: 3px solid var(--primary-orange);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--darker-bg);
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .close-btn {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--secondary-orange);
+        }
+
+        .modal-body {
+            padding: 0;
+            height: calc(90vh - 80px);
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-orange);
+        }
+
+        footer p {
+            color: var(--text-dim);
+        }
+
+        footer a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">RF</div>
+            <h1>RetroFlash</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="action.html">Action</a></li>
+                <li><a href="adventure.html">Adventure</a></li>
+                <li><a href="puzzle.html">Puzzle</a></li>
+                <li><a href="sports.html">Sports</a></li>
+                <li><a href="more.html">More »</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h2>🚗 Driving Games</h2>
+        <p>Master vehicle control, racing, and driving challenges in these exciting driving games!</p>
+    </div>
+
+    <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <a href="more.html">More Categories</a>
+        <span>›</span>
+        <span>Driving</span>
+    </div>
+
+    <main>
+        <div class="category-header">
+            <h3>All Driving Games</h3>
+            <span class="game-count">50 Games</span>
+        </div>
+
+        <div class="game-grid">
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Valet Parking 3D"></div>
+                <div class="game-info">
+                    <div class="game-title">Valet Parking 3D</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Wheelie King"></div>
+                <div class="game-info">
+                    <div class="game-title">Wheelie King</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Rubbery Racers"></div>
+                <div class="game-info">
+                    <div class="game-title">Rubbery Racers</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Zoo Transport"></div>
+                <div class="game-info">
+                    <div class="game-title">Zoo Transport</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Silverado Apocalypse Blaster"></div>
+                <div class="game-info">
+                    <div class="game-title">Silverado Apocalypse Blaster</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Volvo World's Strongest Truck"></div>
+                <div class="game-info">
+                    <div class="game-title">Volvo World's Strongest Truck</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Max Dirt Truck"></div>
+                <div class="game-info">
+                    <div class="game-title">Max Dirt Truck</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Dream Car Racing Evo"></div>
+                <div class="game-info">
+                    <div class="game-title">Dream Car Racing Evo</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Warp Forest"></div>
+                <div class="game-info">
+                    <div class="game-title">Warp Forest</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Rodent Racer"></div>
+                <div class="game-info">
+                    <div class="game-title">Rodent Racer</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Turbo Drifters"></div>
+                <div class="game-info">
+                    <div class="game-title">Turbo Drifters</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Total Drama Action: Krappy Karts"></div>
+                <div class="game-info">
+                    <div class="game-title">Total Drama Action: Krappy Karts</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Offroad Tricky Racer"></div>
+                <div class="game-info">
+                    <div class="game-title">Offroad Tricky Racer</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="VXR Racer"></div>
+                <div class="game-info">
+                    <div class="game-title">VXR Racer</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Audi Quattro Challenge"></div>
+                <div class="game-info">
+                    <div class="game-title">Audi Quattro Challenge</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Ultimate Rally Challenge"></div>
+                <div class="game-info">
+                    <div class="game-title">Ultimate Rally Challenge</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Drift Battle"></div>
+                <div class="game-info">
+                    <div class="game-title">Drift Battle</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pro Rally 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Pro Rally 2</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Championship"></div>
+                <div class="game-info">
+                    <div class="game-title">Championship</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Retro Rally"></div>
+                <div class="game-info">
+                    <div class="game-title">Retro Rally</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="BurnRubber: Unlimited"></div>
+                <div class="game-info">
+                    <div class="game-title">BurnRubber: Unlimited</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Easter Truck"></div>
+                <div class="game-info">
+                    <div class="game-title">Easter Truck</div>
+                    <spanspan class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Rocket Racers"></div>
+                <div class="game-info">
+                    <div class="game-title">Rocket Racers</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Polar Patrol"></div>
+                <div class="game-info">
+                    <div class="game-title">Polar Patrol</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Ace Gangster Taxi"></div>
+                <div class="game-info">
+                    <div class="game-title">Ace Gangster Taxi</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="THUMP!"></div>
+                <div class="game-info">
+                    <div class="game-title">THUMP!</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Spongebob's School Bus"></div>
+                <div class="game-info">
+                    <div class="game-title">Spongebob's School Bus</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Rocky Rider 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Rocky Rider 2</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Spider-Man Dangerous Journey"></div>
+                <div class="game-info">
+                    <div class="game-title">Spider-Man Dangerous Journey</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Rickshaw City Parking Game"></div>
+                <div class="game-info">
+                    <div class="game-title">Rickshaw City Parking Game</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Kick Buttowski: Wreckreation Rift Demolition Derby"></div>
+                <div class="game-info">
+                    <div class="game-title">Kick Buttowski: Wreckreation Rift Demolition Derby</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Austin and Ally: Hype Cart"></div>
+                <div class="game-info">
+                    <div class="game-title">Austin and Ally: Hype Cart</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Crazy Valet"></div>
+                <div class="game-info">
+                    <div class="game-title">Crazy Valet</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Zeke and Luther: Riot Skate Adventures"></div>
+                <div class="game-info">
+                    <div class="game-title">Zeke and Luther: Riot Skate Adventures</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Gangster's Way Premium Edition"></div>
+                <div class="game-info">
+                    <div class="game-title">Gangster's Way Premium Edition</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Busman Parking"></div>
+                <div class="game-info">
+                    <div class="game-title">Busman Parking</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Spy Car"></div>
+                <div class="game-info">
+                    <div class="game-title">Spy Car</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Angry Birds Cross Country"></div>
+                <div class="game-info">
+                    <div class="game-title">Angry Birds Cross Country</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="3D Maze"></div>
+                <div class="game-info">
+                    <div class="game-title">3D Maze</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Thunder Cars"></div>
+                <div class="game-info">
+                    <div class="game-title">Thunder Cars</div>
+                    <span class="game-category-tag">Driving</span>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="close-btn" onclick="closeModal()">✕ Close</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>RetroFlash Portal - Preserving the Best of Flash Gaming</p>
+        <p><a href="index.html">Home</a> | <a href="about.html">About</a> | <a href="contact.html">Contact</a></p>
+    </footer>
+
+    <script>
+        // Game URLs mapping
+        const gameUrls = {
+            "Valet Parking 3D": "https://flashgames.cx/game/valet-parking-3d",
+            "Wheelie King": "https://flashgames.cx/game/wheelie-king",
+            "Rubbery Racers": "https://flashgames.cx/game/rubbery-racers",
+            "Zoo Transport": "https://flashgames.cx/game/zoo-transport",
+            "Silverado Apocalypse Blaster": "https://flashgames.cx/game/silverado-apocalypse-blaster",
+            "Volvo World's Strongest Truck": "https://flashgames.cx/game/volvo-world-s-strongest-truck",
+            "Max Dirt Truck": "https://flashgames.cx/game/max-dirt-truck",
+            "Dream Car Racing Evo": "https://flashgames.cx/game/dream-car-racing-evo",
+            "Warp Forest": "https://flashgames.cx/game/warp-forest",
+            "Rodent Racer": "https://flashgames.cx/game/rodent-racer",
+            "Turbo Drifters": "https://flashgames.cx/game/turbo-drifters",
+            "Total Drama Action: Krappy Karts": "https://flashgames.cx/game/total-drama-action-krappy-karts",
+            "Offroad Tricky Racer": "https://flashgames.cx/game/offroad-tricky-racer",
+            "VXR Racer": "https://flashgames.cx/game/vxr-racer",
+            "Audi Quattro Challenge": "https://flashgames.cx/game/audi-quattro-challenge",
+            "Ultimate Rally Challenge": "https://flashgames.cx/game/ultimate-rally-challenge",
+            "Drift Battle": "https://flashgames.cx/game/drift-battle",
+            "Pro Rally 2": "https://flashgames.cx/game/pro-rally-2",
+            "Championship": "https://flashgames.cx/game/championship",
+            "Retro Rally": "https://flashgames.cx/game/retro-rally",
+            "BurnRubber: Unlimited": "https://flashgames.cx/game/burnrubber-unlimited",
+            "Easter Truck": "https://flashgames.cx/game/easter-truck",
+            "Rocket Racers": "https://flashgames.cx/game/rocket-racers",
+            "Polar Patrol": "https://flashgames.cx/game/polar-patrol",
+            "Ace Gangster Taxi": "https://flashgames.cx/game/ace-gangster-taxi",
+            "THUMP!": "https://flashgames.cx/game/thump",
+            "Spongebob's School Bus": "https://flashgames.cx/game/spongebob-s-school-bus",
+            "Rocky Rider 2": "https://flashgames.cx/game/rocky-rider-2",
+            "Spider-Man Dangerous Journey": "https://flashgames.cx/game/spider-man-dangerous-journey",
+            "Rickshaw City Parking Game": "https://flashgames.cx/game/rickshaw-city-parking-game",
+            "Kick Buttowski: Wreckreation Rift Demolition Derby": "https://flashgames.cx/game/kick-buttowski-wreckreation-rift-demolition-derby",
+            "Austin and Ally: Hype Cart": "https://flashgames.cx/game/austin-and-ally-hype-cart",
+            "Crazy Valet": "https://flashgames.cx/game/crazy-valet",
+            "Zeke and Luther: Riot Skate Adventures": "https://flashgames.cx/game/zeke-and-luther-riot-skate-adventures",
+            "Gangster's Way Premium Edition": "https://flashgames.cx/game/gangster-s-way-premium-edition",
+            "Busman Parking": "https://flashgames.cx/game/busman-parking",
+            "Spy Car": "https://flashgames.cx/game/spy-car",
+            "Angry Birds Cross Country": "https://flashgames.cx/game/angry-birds-cross-country",
+            "3D Maze": "https://flashgames.cx/game/3d-maze-4",
+            "Thunder Cars": "https://flashgames.cx/game/thunder-cars"
+        };
+
+        // Open game modal
+        document.querySelectorAll('.game-thumbnail').forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                const gameName = this.getAttribute('data-game');
+                const gameUrl = gameUrls[gameName];
+                
+                if (gameUrl) {
+                    document.getElementById('modalTitle').textContent = gameName;
+                    document.getElementById('gameFrame').src = gameUrl;
+                    document.getElementById('gameModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        });
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

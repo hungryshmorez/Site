@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Games - Retro Flash Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF9900;
+            --secondary-orange: #FFB84D;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1a;
+            --card-bg: #16213e;
+            --text-light: #eaeaea;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--card-bg) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary-orange);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            color: var(--primary-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--darker-bg);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 26, 46, 0.9), rgba(26, 26, 46, 0.9)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="splat" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="30" cy="40" r="15" fill="%23ffffff05"/><circle cx="70" cy="60" r="20" fill="%23ffffff05"/></pattern></defs><rect width="100" height="100" fill="url(%23splat)"/></svg>');
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            color: var(--text-dim);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-bg);
+        }
+
+        .game-count {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, var(--darker-bg), var(--card-bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::before {
+            content: '▶';
+            font-size: 3rem;
+            color: var(--primary-orange);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .game-thumbnail:hover::before {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .game-info {
+            padding: 1rem;
+        }
+
+        .game-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .game-category-tag {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--primary-orange);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow: hidden;
+            border: 3px solid var(--primary-orange);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--darker-bg);
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .close-btn {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--secondary-orange);
+        }
+
+        .modal-body {
+            padding: 0;
+            height: calc(90vh - 80px);
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-orange);
+        }
+
+        footer p {
+            color: var(--text-dim);
+        }
+
+        footer a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">RF</div>
+            <h1>RetroFlash</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="action.html">Action</a></li>
+                <li><a href="adventure.html">Adventure</a></li>
+                <li><a href="puzzle.html">Puzzle</a></li>
+                <li><a href="sports.html">Sports</a></li>
+                <li><a href="more.html">More »</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h2>💀 Blood Games</h2>
+        <p>Experience intense combat and action games with mature themes!</p>
+    </div>
+
+    <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <a href="more.html">More Categories</a>
+        <span>›</span>
+        <span>Blood</span>
+    </div>
+
+    <main>
+        <div class="category-header">
+            <h3>All Blood Games</h3>
+            <span class="game-count">50 Games</span>
+        </div>
+
+        <div class="game-grid">
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Urban Sniper 3"></div>
+                <div class="game-info">
+                    <div class="game-title">Urban Sniper 3</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Urban Sniper 4"></div>
+                <div class="game-info">
+                    <div class="game-title">Urban Sniper 4</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Darkbase 2 The Hive"></div>
+                <div class="game-info">
+                    <div class="game-title">Darkbase 2 The Hive</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Ambush!"></div>
+                <div class="game-info">
+                    <div class="game-title">Ambush!</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Gibbets 3"></div>
+                <div class="game-info">
+                    <div class="game-title">Gibbets 3</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="GunMaster Onslaught 2.0"></div>
+                <div class="game-info">
+                    <div class="game-title">GunMaster Onslaught 2.0</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Boxhead: The Nightmare"></div>
+                <div class="game-info">
+                    <div class="game-title">Boxhead: The Nightmare</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Crazy Shuttle"></div>
+                <div class="game-info">
+                    <div class="game-title">Crazy Shuttle</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Segway Of The Dead"></div>
+                <div class="game-info">
+                    <div class="game-title">Segway Of The Dead</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Tactical Assassin Mobile"></div>
+                <div class="game-info">
+                    <div class="game-title">Tactical Assassin Mobile</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Killing Spree VI"></div>
+                <div class="game-info">
+                    <div class="game-title">Killing Spree VI</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Vise Head"></div>
+                <div class="game-info">
+                    <div class="game-title">Vise Head</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Zombies in the Shadow"></div>
+                <div class="game-info">
+                    <div class="game-title">Zombies in the Shadow</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Colony Defenders 2: Swarm Resistance"></div>
+                <div class="game-info">
+                    <div class="game-title">Colony Defenders 2: Swarm Resistance</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Gibbets 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Gibbets 2</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Hold The Line - Zombie Invasion"></div>
+                <div class="game-info">
+                    <div class="game-title">Hold The Line - Zombie Invasion</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Madness Combat 6.5"></div>
+                <div class="game-info">
+                    <div class="game-title">Madness Combat 6.5</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Zombie World"></div>
+                <div class="game-info">
+                    <div class="game-title">Zombie World</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Intruder Combat Training 2X"></div>
+                <div class="game-info">
+                    <div class="game-title">Intruder Combat Training 2X</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Fallen Empire"></div>
+                <div class="game-info">
+                    <div class="game-title">Fallen Empire</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Troll's Rage"></div>
+                <div class="game-info">
+                    <div class="game-title">Troll's Rage</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Arch Nemesis"></div>
+                <div class="game-info">
+                    <div class="game-title">Arch Nemesis</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Rayman Randimation 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Rayman Randimation 2</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Red Dragon Rampage"></div>
+                <div class="game-info">
+                    <div class="game-title">Red Dragon Rampage</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Gibbets 2 Level Pack"></div>
+                <div class="game-info">
+                    <div class="game-title">Gibbets 2 Level Pack</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Cold Crime"></div>
+                <div class="game-info">
+                    <div class="game-title">Cold Crime</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Littlest Penguin"></div>
+                <div class="game-info">
+                    <div class="game-title">The Littlest Penguin</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Territory War Online"></div>
+                <div class="game-info">
+                    <div class="game-title">Territory War Online</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Girlchan in Paradise Episode 3"></div>
+                <div class="game-info">
+                    <div class="game-title">Girlchan in Paradise Episode 3</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Bang! Bang! Undead!"></div>
+                <div class="game-info">
+                    <div class="game-title">Bang! Bang! Undead!</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Micmadness"></div>
+                <div class="game-info">
+                    <div class="game-title">Micmadness</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Roly-Poly Cannon: Bloody Monsters Pack 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Roly-Poly Cannon: Bloody Monsters Pack 2</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Zombie Warrior Man"></div>
+                <div class="game-info">
+                    <div class="game-title">Zombie Warrior Man</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Hunting with Palin"></div>
+                <div class="game-info">
+                    <div class="game-title">Hunting with Palin</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="MLP: Pinkie's Cupcakes"></div>
+                <div class="game-info">
+                    <div class="game-title">MLP: Pinkie's Cupcakes</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Whack Your Boss 2: Fantasy Edition"></div>
+                <div class="game-info">
+                    <div class="game-title">Whack Your Boss 2: Fantasy Edition</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Days of Blood"></div>
+                <div class="game-info">
+                    <div class="game-title">Days of Blood</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Grand Adventure"></div>
+                <div class="game-info">
+                    <div class="game-title">Grand Adventure</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Minion Darts"></div>
+                <div class="game-info">
+                    <div class="game-title">Minion Darts</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="PETA's New Super Chick Sisters"></div>
+                <div class="game-info">
+                    <div class="game-title">PETA's New Super Chick Sisters</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Katpow Express"></div>
+                <div class="game-info">
+                    <div class="game-title">Katpow Express</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Run, Darnell, Run!"></div>
+                <div class="game-info">
+                    <div class="game-title">Run, Darnell, Run!</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Crank Deathmatch"></div>
+                <div class="game-info">
+                    <div class="game-title">Crank Deathmatch</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Brain Buffet"></div>
+                <div class="game-info">
+                    <div class="game-title">Brain Buffet</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Punished Gypsy"></div>
+                <div class="game-info">
+                    <div class="game-title">Punished Gypsy</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Cubi Kill 3"></div>
+                <div class="game-info">
+                    <div class="game-title">Cubi Kill 3</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Boxhead: Biever & Baby"></div>
+                <div class="game-info">
+                    <div class="game-title">Boxhead: Biever & Baby</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Hand Killer Ca$h"></div>
+                <div class="game-info">
+                    <div class="game-title">Hand Killer Ca$h</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pico's Nightmare"></div>
+                <div class="game-info">
+                    <div class="game-title">Pico's Nightmare</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Miami Rex"></div>
+                <div class="game-info">
+                    <div class="game-title">Miami Rex</div>
+                    <span class="game-category-tag">Blood</span>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="close-btn" onclick="closeModal()">✕ Close</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>RetroFlash Portal - Preserving the Best of Flash Gaming</p>
+        <p><a href="index.html">Home</a> | <a href="about.html">About</a> | <a href="contact.html">Contact</a></p>
+    </footer>
+
+    <script>
+        // Game URLs mapping
+        const gameUrls = {
+            "Urban Sniper 3": "https://flashgames.cx/game/urban-sniper-3",
+            "Urban Sniper 4": "https://flashgames.cx/game/urban-sniper-4",
+            "Darkbase 2 The Hive": "https://flashgames.cx/game/darkbase-2-the-hive",
+            "Ambush!": "https://flashgames.cx/game/ambush",
+            "Gibbets 3": "https://flashgames.cx/game/gibbets-3",
+            "GunMaster Onslaught 2.0": "https://flashgames.cx/game/gunmaster-onslaught-2-0",
+            "Boxhead: The Nightmare": "https://flashgames.cx/game/boxhead-the-nightmare",
+            "Crazy Shuttle": "https://flashgames.cx/game/crazy-shuttle",
+            "Segway Of The Dead": "https://flashgames.cx/game/segway-of-the-dead",
+            "Tactical Assassin Mobile": "https://flashgames.cx/game/tactical-assassin-mobile",
+            "Killing Spree VI": "https://flashgames.cx/game/killing-spree-vi",
+            "Vise Head": "https://flashgames.cx/game/vise-head",
+            "Zombies in the Shadow": "https://flashgames.cx/game/zombies-in-the-shadow",
+            "Colony Defenders 2: Swarm Resistance": "https://flashgames.cx/game/colony-defenders-2-swarm-resistance",
+            "Gibbets 2": "https://flashgames.cx/game/gibbets-2",
+            "Hold The Line - Zombie Invasion": "https://flashgames.cx/game/hold-the-line-zombie-invasion",
+            "Madness Combat 6.5": "https://flashgames.cx/game/madness-combat-6-5",
+            "Zombie World": "https://flashgames.cx/game/zombie-world-2",
+            "Intruder Combat Training 2X": "https://flashgames.cx/game/intruder-combat-training-2x",
+            "Fallen Empire": "https://flashgames.cx/game/fallen-empire",
+            "Troll's Rage": "https://flashgames.cx/game/troll-s-rage",
+            "Arch Nemesis": "https://flashgames.cx/game/arch-nemesis",
+            "Rayman Randimation 2": "https://flashgames.cx/game/rayman-randimation-2",
+            "Red Dragon Rampage": "https://flashgames.cx/game/red-dragon-rampage",
+            "Gibbets 2 Level Pack": "https://flashgames.cx/game/gibbets-2-level-pack",
+            "Cold Crime": "https://flashgames.cx/game/cold-crime",
+            "The Littlest Penguin": "https://flashgames.cx/game/the-littlest-penguin",
+            "Territory War Online": "https://flashgames.cx/game/territory-war-online",
+            "Girlchan in Paradise Episode 3": "https://flashgames.cx/game/girlchan-in-paradise-episode-3",
+            "Bang! Bang! Undead!": "https://flashgames.cx/game/bang-bang-undead",
+            "Micmadness": "https://flashgames.cx/game/micmadness",
+            "Roly-Poly Cannon: Bloody Monsters Pack 2": "https://flashgames.cx/game/roly-poly-cannon-bloody-monsters-pack-2",
+            "Zombie Warrior Man": "https://flashgames.cx/game/zombie-warrior-man",
+            "Hunting with Palin": "https://flashgames.cx/game/hunting-with-palin",
+            "MLP: Pinkie's Cupcakes": "https://flashgames.cx/game/mlp-pinkie-s-cupcakes",
+            "Whack Your Boss 2: Fantasy Edition": "https://flashgames.cx/game/whack-your-boss-2-fantasy-edition",
+            "Days of Blood": "https://flashgames.cx/game/days-of-blood",
+            "Grand Adventure": "https://flashgames.cx/game/grand-adventure",
+            "Minion Darts": "https://flashgames.cx/game/minion-darts",
+            "PETA's New Super Chick Sisters": "https://flashgames.cx/game/peta-s-new-super-chick-sisters",
+            "Katpow Express": "https://flashgames.cx/game/katpow-express",
+            "Run, Darnell, Run!": "https://flashgames.cx/game/run-darnell-run",
+            "Crank Deathmatch": "https://flashgames.cx/game/crank-deathmatch",
+            "Brain Buffet": "https://flashgames.cx/game/brain-buffet",
+            "Punished Gypsy": "https://flashgames.cx/game/punished-gypsy",
+            "Cubi Kill 3": "https://flashgames.cx/game/cubi-kill-3",
+            "Boxhead: Biever & Baby": "https://flashgames.cx/game/boxhead-biever-baby",
+            "Hand Killer Ca$h": "https://flashgames.cx/game/hand-killer-ca-h",
+            "Pico's Nightmare": "https://flashgames.cx/game/pico-s-nightmare",
+            "Miami Rex": "https://flashgames.cx/game/miami-rex"
+        };
+
+        // Open game modal
+        document.querySelectorAll('.game-thumbnail').forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                const gameName = this.getAttribute('data-game');
+                const gameUrl = gameUrls[gameName];
+                
+                if (gameUrl) {
+                    document.getElementById('modalTitle').textContent = gameName;
+                    document.getElementById('gameFrame').src = gameUrl;
+                    document.getElementById('gameModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        });
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

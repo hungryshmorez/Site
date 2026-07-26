@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategy Games - Flash Archive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF9900;
+            --primary-orange-hover: #FFB84D;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1a;
+            --card-bg: #16213e;
+            --card-hover: #1f2b4d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --border-color: #2a2a4a;
+            --glow-color: rgba(255, 153, 0, 0.5);
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Verdana&display=swap');
+
+        body {
+            font-family: 'Verdana', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1) 0px,
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 10000;
+        }
+
+        header {
+            background: linear-gradient(180deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+            border-bottom: 3px solid var(--primary-orange);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(255, 153, 0, 0.3);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 20px;
+            color: var(--primary-orange);
+            text-shadow: 0 0 10px var(--primary-orange);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+            text-shadow: 0 0 20px var(--primary-orange);
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--primary-orange-hover);
+        }
+
+        .breadcrumb span {
+            color: var(--text-secondary);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 25px;
+            color: var(--text-primary);
+            font-family: 'Verdana', sans-serif;
+            font-size: 14px;
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 15px rgba(255, 153, 0, 0.3);
+        }
+
+        .home-btn {
+            background: linear-gradient(180deg, var(--primary-orange) 0%, #cc7a00 100%);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: var(--darker-bg);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 3px 0 #995c00;
+        }
+
+        .home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 #995c00;
+        }
+
+        .home-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #995c00;
+        }
+
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .category-header {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--darker-bg) 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 2px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-orange), transparent);
+        }
+
+        .category-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: var(--primary-orange);
+            text-shadow: 0 0 10px var(--primary-orange);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .category-icon {
+            font-size: 36px;
+        }
+
+        .category-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 800px;
+        }
+
+        .games-count {
+            display: inline-block;
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .games-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-title::after {
+            content: "";
+            flex: 1;
+            height: 3px;
+            background: linear-gradient(90deg, var(--border-color), transparent);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 153, 0, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: var(--primary-orange);
+            box-shadow: 0 15px 40px rgba(255, 153, 0, 0.25);
+        }
+
+        .game-card:hover::before {
+            opacity: 1;
+        }
+
+        .game-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .game-card:hover .game-icon {
+            transform: scale(1.1);
+        }
+
+        .game-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            transition: color 0.3s ease;
+        }
+
+        .game-card:hover .game-title {
+            color: var(--primary-orange);
+        }
+
+        .game-category-badge {
+            display: inline-block;
+            background: var(--darker-bg);
+            color: var(--primary-orange);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 10px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .content-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+
+        .sidebar {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid var(--border-color);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            margin-bottom: 20px;
+            color: var(--primary-orange);
+        }
+
+        .category-list {
+            list-style: none;
+        }
+
+        .category-list li {
+            margin-bottom: 10px;
+        }
+
+        .category-list a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: var(--darker-bg);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .category-list a:hover {
+            background: var(--card-hover);
+            border-color: var(--primary-orange);
+            color: var(--primary-orange);
+            transform: translateX(5px);
+        }
+
+        .category-list .active {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            font-weight: bold;
+        }
+
+        .category-list .active:hover {
+            transform: none;
+        }
+
+        .random-game-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .random-btn {
+            width: 100%;
+            background: linear-gradient(180deg, var(--primary-orange) 0%, #cc7a00 100%);
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            color: var(--darker-bg);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 0 #995c00;
+        }
+
+        .random-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 0 #995c00;
+        }
+
+        .random-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #995c00;
+        }
+
+        footer {
+            background: var(--darker-bg);
+            border-top: 3px solid var(--primary-orange);
+            padding: 30px 20px;
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .footer-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .game-card {
+            animation: slideUp 0.5s ease forwards;
+        }
+
+        .game-card:nth-child(1) { animation-delay: 0.05s; }
+        .game-card:nth-child(2) { animation-delay: 0.1s; }
+        .game-card:nth-child(3) { animation-delay: 0.15s; }
+        .game-card:nth-child(4) { animation-delay: 0.2s; }
+        .game-card:nth-child(5) { animation-delay: 0.25s; }
+        .game-card:nth-child(6) { animation-delay: 0.3s; }
+        .game-card:nth-child(7) { animation-delay: 0.35s; }
+        .game-card:nth-child(8) { animation-delay: 0.4s; }
+        .game-card:nth-child(9) { animation-delay: 0.45s; }
+        .game-card:nth-child(10) { animation-delay: 0.5s; }
+        .game-card:nth-child(11) { animation-delay: 0.55s; }
+        .game-card:nth-child(12) { animation-delay: 0.6s; }
+        .game-card:nth-child(13) { animation-delay: 0.65s; }
+        .game-card:nth-child(14) { animation-delay: 0.7s; }
+        .game-card:nth-child(15) { animation-delay: 0.75s; }
+        .game-card:nth-child(16) { animation-delay: 0.8s; }
+        .game-card:nth-child(17) { animation-delay: 0.85s; }
+        .game-card:nth-child(18) { animation-delay: 0.9s; }
+        .game-card:nth-child(19) { animation-delay: 0.95s; }
+        .game-card:nth-child(20) { animation-delay: 1.0s; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 15px;
+            max-width: 900px;
+            width: 100%;
+            border: 3px solid var(--primary-orange);
+            box-shadow: 0 0 30px rgba(255, 153, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(90deg, var(--darker-bg), var(--card-bg));
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            color: var(--primary-orange);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 30px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--primary-orange);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 10px;
+            background: var(--darker-bg);
+        }
+
+        @media (max-width: 1024px) {
+            .content-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+
+            .category-title {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo" onclick="location.href='index.html'">FLASH ARCHIVE</div>
+            <div class="nav-controls">
+                <div class="breadcrumb">
+                    <a href="index.html">Home</a>
+                    <span>›</span>
+                    <span>Strategy</span>
+                </div>
+                <button class="home-btn" onclick="location.href='index.html'">← BACK</button>
+                <div class="search-box">
+                    <input type="text" placeholder="Search games..." id="gameSearch" oninput="searchGames()">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="content-layout">
+            <div class="main-content">
+                <section class="category-header">
+                    <h1 class="category-title">
+                        <span class="category-icon">♟️</span>
+                        Strategy Games
+                    </h1>
+                    <p class="category-description">
+                        Command your forces to victory! Our Strategy category features tower defense, 
+                        turn-based tactics, and real-time strategy games. Build your army, defend your 
+                        base, and outsmart your opponents in these brain-teasing challenges!
+                    </p>
+                    <span class="games-count">50 Games Available</span>
+                </section>
+
+                <section class="games-section">
+                    <h2 class="section-title">ALL STRATEGY GAMES</h2>
+                    <div class="games-grid" id="gamesGrid">
+                        <!-- Games will be populated by JavaScript -->
+                    </div>
+                </section>
+            </div>
+
+            <aside class="sidebar">
+                <h3 class="sidebar-title">CATEGORIES</h3>
+                <ul class="category-list">
+                    <li><a href="adventure.html">🗺️ Adventure</a></li>
+                    <li><a href="arcade.html">🎮 Arcade</a></li>
+                    <li><a href="puzzle.html">🧩 Puzzle</a></li>
+                    <li><a href="action.html">⚡ Action</a></li>
+                    <li><a href="shooter.html">🎯 Shooter</a></li>
+                    <li><a href="sports.html">⚽ Sports</a></li>
+                    <li><a href="strategy.html" class="active">♟️ Strategy</a></li>
+                    <li><a href="fighting.html">🥊 Fighting</a></li>
+                    <li><a href="driving.html">🚗 Driving</a></li>
+                    <li><a href="cooking.html">👨‍🍳 Cooking</a></li>
+                    <li><a href="dress-up.html">👗 Dress Up</a></li>
+                    <li><a href="hidden-objects.html">🔍 Hidden Objects</a></li>
+                    <li><a href="escape-the-room.html">🚪 Escape Room</a></li>
+                    <li><a href="time-attack.html">⏱️ Time Attack</a></li>
+                    <li><a href="tower-defense.html">🏰 Tower Defense</a></li>
+                </ul>
+
+                <div class="random-game-section">
+                    <button class="random-btn" onclick="playRandomGame()">🎲 RANDOM GAME</button>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Game Modal -->
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <iframe class="modal-iframe" id="modalIframe" src=""></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p class="footer-text">Flash Archive - Preserving the Golden Age of Browser Gaming</p>
+    </footer>
+
+    <script>
+        // Strategy Games Data (50 games)
+        const strategyGames = [
+            { title: "Age of War", slug: "age-of-war" },
+            { title: "Age of War 2", slug: "age-of-war-2" },
+            { title: "Desktop Tower Defense", slug: "desktop-tower-defense" },
+            { title: "Desktop Tower Defense 2", slug: "desktop-tower-defense-2" },
+            { title: "Donut Tower Defense", slug: "donut-tower-defense" },
+            { title: "Defend Your Castle", slug: "defend-your-castle" },
+            { title: "Epic War 5", slug: "epic-war-5" },
+            { title: "Burrito Bison", slug: "burrito-bison" },
+            { title: "Burrito Bison Revenge", slug: "burrito-bison-revenge" },
+            { title: "Storm Ops", slug: "storm-ops" },
+            { title: "Age of Defense 4", slug: "age-of-defense-4" },
+            { title: "Age of Giant", slug: "age-of-giant" },
+            { title: "Age of Apes", slug: "age-of-apes" },
+            { title: "Battle Gear", slug: "battle-gear" },
+            { title: "Battle Gear 2", slug: "battle-gear-2" },
+            { title: "Warfare 1944", slug: "warfare-1944" },
+            { title: "Warfare 1917", slug: "warfare-1917" },
+            { title: "Commander Wars", slug: "commander-wars" },
+            { title: "Warlords: Call to Arms", slug: "warlords-call-to-arms" },
+            { title: "Warlords 2: Rise of the Ancients", slug: "warlords-2-rise-of-the-ancients" },
+            { title: "Battle for Rondo", slug: "battle-for-rondo" },
+            { title: "Epic Battle Fantasy", slug: "epic-battle-fantasy" },
+            { title: "Epic Battle Fantasy 2", slug: "epic-battle-fantasy-2" },
+            { title: "Epic Battle Fantasy 3", slug: "epic-battle-fantasy-3" },
+            { title: "Kingdom Rush", slug: "kingdom-rush" },
+            { title: "Kingdom Rush Frontiers", slug: "kingdom-rush-frontiers" },
+            { title: "Kingdom Rush Origins", slug: "kingdom-rush-origins" },
+            { title: "Bloons Tower Defense", slug: "bloons-tower-defense" },
+            { title: "Bloons Tower Defense 2", slug: "bloons-tower-defense-2" },
+            { title: "Bloons Tower Defense 3", slug: "bloons-tower-defense-3" },
+            { title: "Bloons Tower Defense 4", slug: "bloons-tower-defense-4" },
+            { title: "Bloons Tower Defense 5", slug: "bloons-tower-defense-5" },
+            { title: "Bloons Super Monkey", slug: "bloons-super-monkey" },
+            { title: "Bloons TD 6", slug: "bloons-td-6" },
+            { title: "GemCraft", slug: "gemcraft" },
+            { title: "GemCraft Chapter 0", slug: "gemcraft-chapter-0" },
+            { title: "GemCraft Chapter 2", slug: "gemcraft-chapter-2" },
+            { title: "Horde of Enemies", slug: "horde-of-enemies" },
+            { title: "Enemy Nations", slug: "enemy-nations" },
+            { title: "Civilizations Wars", slug: "civilizations-wars" },
+            { title: "Civilizations Wars 2: Elemental", slug: "civilizations-wars-2-elemental" },
+            { title: "Shop Empire", slug: "shop-empire" },
+            { title: "Factory Town", slug: "factory-town" },
+            { title: "Idle Tower Builder", slug: "idle-tower-builder" },
+            { title: "Tiny Tower", slug: "tiny-tower" },
+            { title: "Diner Dash", slug: "diner-dash" },
+            { title: "Diner Dash 2", slug: "diner-dash-2" },
+            { title: "Diner Dash 3", slug: "diner-dash-3" },
+            { title: "Diner Dash 4", slug: "diner-dash-4" },
+            { title: "Diner Dash 5", slug: "diner-dash-5" }
+        ];
+
+        const gameIcons = ["⚔️", "⚔️", "🏰", "🏰", "🍩", "🏰", "⚔️", "🌯", "🌯", "🛡️", "🛡️", "👹", "🦍", "🎖️", "🎖️", "💣", "💣", "🗡️", "🗡️", "🗡️", "⚔️", "⚔️", "⚔️", "⚔️", "🏰", "🏰", "🏰", "🎈", "🎈", "🎈", "🎈", "🎈", "🦸", "🎈", "💎", "💎", "💎", "💀", "🌍", "🏛️", "🏛️", "🏪", "🏭", "🏗️", "🏢", "👩‍🍳", "👩‍🍳", "👩‍🍳", "👩‍🍳", "👩‍🍳"];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderGames();
+        });
+
+        function renderGames() {
+            const grid = document.getElementById('gamesGrid');
+            grid.innerHTML = strategyGames.map((game, index) => `
+                <div class="game-card" onclick="openGame('${game.slug}', '${game.title}')">
+                    <span class="game-icon">${gameIcons[index] || "♟️"}</span>
+                    <p class="game-title">${game.title}</p>
+                    <span class="game-category-badge">Strategy</span>
+                </div>
+            `).join('');
+        }
+
+        function searchGames() {
+            const query = document.getElementById('gameSearch').value.toLowerCase();
+            const cards = document.querySelectorAll('.game-card');
+            
+            cards.forEach((card, index) => {
+                const title = strategyGames[index].title.toLowerCase();
+                if (title.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = query.length > 0 ? 'none' : 'block';
+                }
+            });
+        }
+
+        function openGame(slug, title) {
+            const modal = document.getElementById('gameModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalIframe = document.getElementById('modalIframe');
+
+            modalTitle.textContent = title;
+            modalIframe.src = `https://flashgames.cx/game/${slug}`;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('gameModal');
+            modal.classList.remove('active');
+            document.getElementById('modalIframe').src = '';
+        }
+
+        function playRandomGame() {
+            const randomIndex = Math.floor(Math.random() * strategyGames.length);
+            const game = strategyGames[randomIndex];
+            openGame(game.slug, game.title);
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+</body>
+</html>
