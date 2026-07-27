@@ -460,14 +460,20 @@ const labelById = {};
 function makeLabel(text, x, z, y = 3.4, color = '#eaeaf5') {
   const c = document.createElement('canvas'); c.width = 512; c.height = 96;
   const g = c.getContext('2d');
-  g.font = '600 46px ui-monospace, "JetBrains Mono", monospace';
-  g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.lineWidth = 8; g.strokeStyle = 'rgba(0,0,0,.85)'; g.strokeText(text, 256, 52);
-  g.shadowColor = color; g.shadowBlur = 12; g.fillStyle = color; g.fillText(text, 256, 52);
+  const draw = (t) => {
+    g.clearRect(0, 0, 512, 96);
+    g.font = '600 46px ui-monospace, "JetBrains Mono", monospace';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.lineWidth = 8; g.strokeStyle = 'rgba(0,0,0,.85)'; g.strokeText(t, 256, 52);
+    g.shadowColor = color; g.shadowBlur = 12; g.fillStyle = color; g.fillText(t, 256, 52);
+  };
+  draw(text);
   const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
   const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: true });
   const s = new THREE.Sprite(mat); s.position.set(x, y, z);
   const w = 6.2; s.scale.set(w, w * 96 / 512, 1); s.renderOrder = 5;
+  // let the editor rename it live
+  s.userData.setText = (t) => { draw(t || ' '); tex.needsUpdate = true; };
   scene.add(s); sceneLabels.push(s);
   return s;
 }
@@ -490,7 +496,7 @@ labelById.dealer = makeLabel('DEALER', DEALER_POS[0], DEALER_POS[1], 2.8, '#ff00
 // ---- admin / layout editor: register every movable thing (destinations +
 // props) so it can be dragged and its position exported. ----
 const adminItems = [];
-for (const c of characters.list) adminItems.push({ id: 'dest_' + c.dest.id, label: c.dest.name, obj: c.group, worldPos: c.worldPos, sprite: labelById['dest_' + c.dest.id] });
+for (const c of characters.list) adminItems.push({ id: 'dest_' + c.dest.id, label: c.dest.name, obj: c.group, worldPos: c.worldPos, sprite: labelById['dest_' + c.dest.id], dest: c.dest });
 const addProp = (id, obj, sprite) => { if (obj) adminItems.push({ id, label: id.toUpperCase(), obj, sprite }); };
 addProp('dumpster', trash.group, labelById.dumpster);
 addProp('dealer', dealer.group, labelById.dealer);
@@ -526,7 +532,8 @@ canvas.addEventListener('pointermove', (e) => {
   const dx = e.clientX - down.x, dy = e.clientY - down.y;
   if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
   const mx = e.movementX || dx * 0.2, my = e.movementY || dy * 0.2;
-  if (mode === 'festival') controls.look(mx, my);
+  if (admin.active) { /* overhead editor: no first-person look */ }
+  else if (mode === 'festival') controls.look(mx, my);
   else if (mode === 'porta') portaLook(mx, my);
   down.x = e.clientX; down.y = e.clientY;
 });
@@ -673,9 +680,9 @@ function frame() {
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
-    renderActive(scene, camera);
+    renderActive(scene, admin.active ? admin.cam : camera);
     vj.setPaused(false);
-    vj.render(camera);
+    vj.render(admin.active ? admin.cam : camera);
   } else {
     // inside the lab portal — festival is parked, the music muffles
     vj.setPaused(true);
