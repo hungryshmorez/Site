@@ -171,6 +171,7 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items,
     toggleBtn.style.display = on ? 'none' : 'block';
     selected = null; updateSel();
     if (controls) controls.enabled = !on; // freeze first-person; overhead cam takes over
+    for (const it of items) if (it.sprite) it.sprite.visible = on; // name tags: editor only
     if (on) { fit(); lightsOn(); } else { lightsOff(); }
   }
   function updateSel() {

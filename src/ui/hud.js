@@ -4,16 +4,16 @@ import * as THREE from 'three';
 // (projected each frame), a "walk closer" prompt, and the destination panel
 // that opens when you reach someone.
 export class Hud {
-  constructor(root, camera, characters, onEnter = null) {
+  constructor(root, camera, characters, onEnter = null, showTags = false) {
     this.cam = camera;
     this.characters = characters;
     this.onEnter = onEnter;
     this._v = new THREE.Vector3();
     this.activeId = null;
 
-    // name tags
+    // floating name tags — off by default (walk-up still auto-opens the panel).
     this.tags = new Map();
-    for (const c of characters) {
+    if (showTags) for (const c of characters) {
       if (c.dest.hideTag) continue; // no floating label for this one
       const el = document.createElement('div');
       el.className = 'tag';

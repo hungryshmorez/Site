@@ -15,7 +15,7 @@ export function buildFestival(scene) {
     amb:  [c(0x223046), c(0x7a4a5a), c(0x8aa2c2)],
     sun:  [c(0x8fa8ff), c(0xff9a5a), c(0xfff2d6)],
   };
-  const AMB_I = [0.52, 0.68, 0.95], SUN_I = [0.34, 0.78, 1.15];
+  const AMB_I = [0.95, 1.05, 1.25], SUN_I = [0.75, 0.95, 1.3];
 
   // ---- sky dome ----
   const skyMat = new THREE.ShaderMaterial({

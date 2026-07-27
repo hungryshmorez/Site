@@ -511,6 +511,8 @@ addProp('vjboard', vjboard.group, labelById.vjboard);
 addProp('photobooth', djbooth.group, labelById.photo);
 addProp('vault', secret.group, null);
 addProp('tent', tent.group, labelById.tent);
+// name tags are for the editor only — hidden during normal play
+for (const s of sceneLabels) s.visible = false;
 const admin = createAdmin({ scene, camera, renderer, controls, worldId: 'festival', items: adminItems });
 
 // ---- lab portal: a porta-potty interior you step into; click the old CRT to
