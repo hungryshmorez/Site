@@ -73,7 +73,7 @@ export const DESTINATIONS = [
     cta: 'Browse commissions',
   },
   {
-    id: 'dreamtv', name: 'DREAMOS TV', model: 'doorway',
+    id: 'dreamtv', name: 'TV', model: 'doorway',
     role: 'the big CRT // theater', accent: PALETTE.magenta,
     pos: [-22, 0, -14], tag: 'walk-in cinema',
     page: 'tv.html',
@@ -89,7 +89,7 @@ export const DESTINATIONS = [
     cta: 'Take the decks',
   },
   {
-    id: 'arcade', name: 'THE MIDWAY', model: 'circustent',
+    id: 'arcade', name: 'ARCADE', model: 'circustent',
     role: 'the arcade tent // all the games', accent: PALETTE.magenta,
     pos: [24, 0, -10], tag: 'the carnival arcade · every game',
     page: 'arcade.html',
@@ -129,7 +129,7 @@ export const DESTINATIONS = [
     cta: 'Open the Tools aisle',
   },
   {
-    id: 'portapotty', name: 'THE CODEX', model: 'bathroom',
+    id: 'portapotty', name: "PORTA JOHN'S", model: 'bathroom',
     role: 'the archive // inside the potty', accent: PALETTE.green,
     pos: [22, 0, 18], tag: 'the encyclopedia', hideTag: true,
     portal: 'lab',
