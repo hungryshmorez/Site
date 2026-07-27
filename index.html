@@ -50,13 +50,14 @@
     .rmbtn:hover{border-color:var(--cyan)}
     .rmbtn.active{color:#ff71ce;border-color:#ff71ce;text-shadow:0 0 10px rgba(255,113,206,.6)}
     /* spatial distortion: screen bends while inside a field.
-       NB: never CSS-`filter` the #scene WebGL canvas — iOS Safari blanks it to
-       black. Use a pointer-through overlay tint instead. */
+       NB1: never CSS-`filter` the #scene WebGL canvas — iOS Safari blanks it.
+       NB2: the class is `bending`, NOT `warp` — `.warp` is the portal overlay
+       (opacity:0) and would match `body.warp`, turning the whole page black. */
     @keyframes warpwob{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}}
-    body.warp::after{content:'';position:fixed;inset:0;z-index:6;pointer-events:none;mix-blend-mode:screen;
+    body.bending::after{content:'';position:fixed;inset:0;z-index:6;pointer-events:none;mix-blend-mode:screen;
       background:radial-gradient(circle at 50% 50%,transparent 34%,rgba(120,40,190,.22) 72%,rgba(30,0,60,.42) 100%);
       animation:warpwob 1.5s ease-in-out infinite}
-    body.rm.warp::after{animation:none;opacity:.5}
+    body.rm.bending::after{animation:none;opacity:.5}
     .fxpanel{position:fixed;right:16px;bottom:52px;z-index:11;width:210px;background:rgba(8,8,16,.92);border:1px solid rgba(255,255,255,.14);
       border-radius:11px;padding:8px;backdrop-filter:blur(8px);display:none;flex-direction:column;gap:4px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
     .fxpanel.open{display:flex}

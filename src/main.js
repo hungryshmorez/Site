@@ -671,8 +671,8 @@ function frame() {
     if (laserShow.isActive()) { aimLasers(); laserShow.update(dt, time, pulse); }
     // spatial distortion fields: space bends while you stand inside one
     const warpId = distortion.update(dt, time, pulse, controls.pos);
-    if (warpId && !inWarp) { inWarp = true; body.classList.add('warp'); flash('◈ space bends around you'); }
-    else if (!warpId && inWarp) { inWarp = false; body.classList.remove('warp'); camera.fov = BASE_FOV; camera.updateProjectionMatrix(); }
+    if (warpId && !inWarp) { inWarp = true; body.classList.add('bending'); flash('◈ space bends around you'); }
+    else if (!warpId && inWarp) { inWarp = false; body.classList.remove('bending'); camera.fov = BASE_FOV; camera.updateProjectionMatrix(); }
     if (inWarp && !reduceMotion) { camera.fov = BASE_FOV + Math.sin(time * 3) * 7; camera.updateProjectionMatrix(); }
     secret.update(dt, time, pulse, controls.pos);
     trippycam.update(dt);
