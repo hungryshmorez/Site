@@ -104,7 +104,7 @@ const vj = buildVJ({
   ],
 });
 // the VJ board (by the lab) is where you run the stage screens
-const vjboard = buildVJBoard(scene, { pos: [6, 0, 19], onActivate: () => toggleVJ() });
+const vjboard = buildVJBoard(scene, { pos: [4, 0, 19], onActivate: () => toggleVJ() });
 
 // aimable laser show — emitters across the top of the stage truss; beams track
 // where you look while the show is on.
@@ -127,13 +127,13 @@ let inWarp = false;
 
 // secret backstage vault — find the hidden keycard, then open the fake wall
 const secret = buildSecret(scene, {
-  vaultPos: [-24, -22], cardPos: [26, -23],
+  vaultPos: [-25, -23], cardPos: [22, -23],
   onFlash: (m) => flash(m),
   onReward: () => { flash('🎟 BACKSTAGE PASS — welcome to the inner circle'); openWindow('BACKSTAGE PASS', 'https://discord.gg/cxMW3aSmKX'); },
 });
 
 // hidden trash-hunt → clean the grounds → secret download
-const DUMPSTER_POS = [24, -22];
+const DUMPSTER_POS = [25, -24];
 const trash = buildTrash(scene, {
   dumpsterPos: DUMPSTER_POS,
   onPickup: (label, s) => { flash(`picked up ${label}`); trashHudUpdate(s); },
@@ -149,7 +149,7 @@ dumpLight.target.position.set(DUMPSTER_POS[0], 1, DUMPSTER_POS[1]);
 scene.add(dumpLight); scene.add(dumpLight.target);
 
 // a dealer hidden in the crowd → reach him to score the TRI-PPY (rainbow warp)
-const DEALER_POS = [-13, -13];
+const DEALER_POS = [25, -1];
 const dealer = buildDealer(scene, {
   pos: DEALER_POS,
   stageZ: festival.stageZ,
@@ -158,7 +158,7 @@ const dealer = buildDealer(scene, {
 
 // Shmorez's campfire micro-scene (fire + roasting NPCs) out back by his spot,
 // with a tent pitched behind him.
-const CAMPFIRE_POS = [12, 13];
+const CAMPFIRE_POS = [-6, 12];
 const campfire = buildCampfire(scene, { pos: CAMPFIRE_POS, roasters: 3 });
 buildTent(scene, { pos: [16, 21], accent: '#ff6b35' });
 
@@ -167,7 +167,7 @@ const faceCenter = (x, z) => Math.atan2(0 - x, -4 - z);
 
 // Tanky's tailgate: lifted truck + beer pong + ping-pong tosses, by his spot.
 // The bed/tailgate (party side, +Z) faces center; the cab backs into the corner.
-const TAILGATE_POS = [21, 16];
+const TAILGATE_POS = [23, 20];
 const pongHudEl = document.getElementById('pongHud');
 const tailgate = buildTailgate(scene, {
   pos: TAILGATE_POS, rot: faceCenter(TAILGATE_POS[0], TAILGATE_POS[1]),
@@ -176,11 +176,11 @@ const tailgate = buildTailgate(scene, {
 
 // Sofa King's elevated lounge (riser + audience couches) at his spot. The
 // audience side (-Z) points at center, so the couches sit between him and it.
-const LOUNGE_POS = [8, -11];
+const LOUNGE_POS = [-25, 15];
 const lounge = buildLounge(scene, { pos: LOUNGE_POS, rot: faceCenter(LOUNGE_POS[0], LOUNGE_POS[1]) + Math.PI });
 
 // the 12matt3r hub board → walk up, read news, sign the guest book
-const BOARD_POS = [-14, 20];
+const BOARD_POS = [-21, 22];
 const board = buildBoard(scene, {
   pos: BOARD_POS,
   stageZ: festival.stageZ,
@@ -441,7 +441,7 @@ buildSize();
 // PHOTO BOOTH in the back by the message board → the TRIPPY CAM (your webcam
 // becomes the sky). Moved off the stage so the DJ decks own the stage.
 const djbooth = buildPhotoBooth(scene, {
-  pos: [-18, 0, 20],
+  pos: [-9, 0, 23],
   onActivate: () => hitDJBooth(),
 });
 const trippycam = createTrippyCam(scene, { onState: (on, err) => onTrippyCamState(on, err) });

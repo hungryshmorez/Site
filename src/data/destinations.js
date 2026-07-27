@@ -19,7 +19,7 @@ export const DESTINATIONS = [
   {
     id: 'ravecharles', name: 'RAVE CHARLES', model: 'raver',
     role: 'headliner // in the pit', accent: PALETTE.magenta,
-    pos: [-6, 0, -15], tag: 'rapper · DJ · founder',
+    pos: [0, 0, -15], tag: 'rapper · DJ · founder',
     page: 'ravecharles.html',
     blurb: 'The masked headliner, down in the mosh pit with the crowd instead of above it — glowing LED visor, nearly 400 shows across America, 2014–2020. Reach him to enter his world: a raging neon pit, a coast-to-coast tour road, and a giant LED-visor mask. The tour timeline is on the stage screen.',
     cta: 'Dive into the pit',
@@ -27,7 +27,7 @@ export const DESTINATIONS = [
   {
     id: 'shmorez', name: 'SHMOREZ', model: 'marshmallow',
     role: 'the campfire // out back', accent: PALETTE.orange,
-    pos: [10, 0, 16], tag: 'electronic · marshmallow',
+    pos: [-3, 0, 9], tag: 'electronic · marshmallow',
     page: 'shmorez.html',
     blurb: 'A toasted marshmallow man squishing to the bass — an animated electronic marshmallow squish of fire. Reach him to roast into his world: a cozy-surreal campground with a giant bonfire, a s\'mores land of chocolate walls and marshmallow boulders, and a tent camp under the embers. His EPK is on the visuals screen.',
     cta: 'Roast at the s\'mores fire',
@@ -35,7 +35,7 @@ export const DESTINATIONS = [
   {
     id: 'sofaboi', name: 'SOFA KING SAD BOI', model: 'sofaboi',
     role: 'the lounge // up on his own stage', accent: PALETTE.indigo,
-    pos: [8, 0, -14], lift: 1.0, tag: 'dubstep · weird bass',
+    pos: [22, 0, -15], lift: 1.0, tag: 'dubstep · weird bass',
     page: 'sofaboi.html',
     blurb: 'Hood up, slumped on a beat-up couch under his own little rain cloud — dubstep and weird bass. Reach him to enter SO FA KING: a rainy kingdom of couches with a giant sofa throne, a sea of couches, and a bass pit where the subs wobble. His EPK is on the throne-room TV.',
     cta: 'Enter the couch kingdom',
@@ -43,7 +43,7 @@ export const DESTINATIONS = [
   {
     id: 'driftwave', name: 'DRIFTWAVE STATIC', model: 'vaporwave',
     role: 'chill zone // left', accent: PALETTE.purple,
-    pos: [-14, 0, 6], tag: 'slushwave · ambient · vaporwave',
+    pos: [-11, 0, 0], tag: 'slushwave · ambient · vaporwave',
     page: 'driftwave.html',
     blurb: 'A chrome vaporwave figure in shades, haloed by a retro striped sun. Reach him to step into STATIC CORP — his own vaporwave dreamscape of a marble temple, a dead mallsoft arcade, and a rainy late-night lo-fi nook. His EPK lives on the temple monolith.',
     cta: 'Enter DriftWave’s world',
@@ -51,7 +51,7 @@ export const DESTINATIONS = [
   {
     id: 'tanky', name: 'TANKY JOHNSON', model: 'cowboy',
     role: 'the tailgate // right', accent: PALETTE.gold,
-    pos: [17, 0, 12], tag: 'outlaw country',
+    pos: [19, 0, 15], tag: 'outlaw country',
     page: 'tanky.html',
     blurb: 'The outlaw of the void — a cowboy in a brown hat, white tee and blue jeans. Reach him to ride into his world: a cosmic western with a neon honky-tonk saloon, a tailgate bonfire and his lifted truck, and a void desert of mesas and neon cacti under a giant moon. His EPK is on the saloon jukebox.',
     cta: 'Ride into the void',
@@ -59,7 +59,7 @@ export const DESTINATIONS = [
   {
     id: 'studio', name: '12MATT3R', model: 'glitch',
     role: 'somewhere in the crowd', accent: PALETTE.cyan,
-    pos: [-13, 0, -5], tag: 'glitch art · code · the collective',
+    pos: [-7, 0, -8], tag: 'glitch art · code · the collective',
     page: 'studio.html',
     blurb: 'A glitching, RGB-splitting figure driving every screen at the festival — the web-OS and glitch-art engine that houses all of this. Reach him to step into the glitch room: a dark studio built around a monument of stacked CRT TVs, datamosh walls, and a code workstation. The big CRT boots the web-OS.',
     cta: 'Enter the glitch room',
@@ -67,7 +67,7 @@ export const DESTINATIONS = [
   {
     id: 'store', name: 'THE MERCH TENT', model: 'stall',
     role: 'the vendor // commissions', accent: PALETTE.green,
-    pos: [-24, 0, -3], tag: 'high-ticket commissions',
+    pos: [-25, 0, 1], tag: 'high-ticket commissions',
     url: 'https://www.etsy.com/shop/12matt3r',
     blurb: 'The vendor working the merch tent. Productized packages — visual identity, audio branding, a web-OS build like this one — with pricing, a tip jar, and an intake + NDA flow. Where the experience converts.',
     cta: 'Browse commissions',
@@ -75,7 +75,7 @@ export const DESTINATIONS = [
   {
     id: 'dreamtv', name: 'TV', model: 'doorway',
     role: 'the big CRT // theater', accent: PALETTE.magenta,
-    pos: [-24, 0, -13], tag: 'walk-in cinema',
+    pos: [-25, 0, -13], tag: 'walk-in cinema',
     page: 'tv.html',
     blurb: 'A lit doorway off the side of the grounds, glowing from underneath like a vendor stand. Step through into DreamOS TV — a movie theater with a big screen, a crowd, and popcorn in the air.',
     cta: 'Step through',
@@ -99,7 +99,7 @@ export const DESTINATIONS = [
   {
     id: 'deadnet', name: 'DEADNET', model: 'deadnet',
     role: 'the digital afterlife // by the arcade', accent: PALETTE.purple,
-    pos: [24, 0, 4], tag: 'alt web · a self-generating dead internet',
+    pos: [-25, 0, 8], tag: 'alt web · a self-generating dead internet',
     url: 'https://deadnet.on.websim.com/',
     blurb: 'Off in a lonely corner, a broken CRT monolith flickers with a web that never really existed — Deadnet, the digital afterlife. A self-generating, non-real internet you can wander into. Nobody comes back the same.',
     cta: 'Log into the afterlife',
@@ -115,7 +115,7 @@ export const DESTINATIONS = [
   {
     id: 'lab_dreamos', name: 'DREAMOS AISLE', model: 'kiosk',
     role: 'lab market // OS builds', accent: PALETTE.cyan,
-    pos: [-24, 0, 9], tag: 'wake-up nodes · OS builds',
+    pos: [25, 0, 11], tag: 'wake-up nodes · OS builds',
     page: 'lab.html?folder=DreamOS%20Ecosystem',
     blurb: 'A lab-market kiosk. Boots straight to the DreamOS Ecosystem aisle — every wake-up node and OS build in the catalog.',
     cta: 'Open the DreamOS aisle',
@@ -123,7 +123,7 @@ export const DESTINATIONS = [
   {
     id: 'lab_tools', name: 'TOOLS AISLE', model: 'kiosk',
     role: 'lab market // apps + effects', accent: PALETTE.green,
-    pos: [-24, 0, 15], tag: 'effects · studios · LoRAs',
+    pos: [25, 0, 5], tag: 'effects · studios · LoRAs',
     page: 'lab.html?folder=Tools',
     blurb: 'A lab-market kiosk. Boots straight to the Tools aisle — effects apps, the synth + vapor studios, the flash portal, and the LoRA model packs.',
     cta: 'Open the Tools aisle',
@@ -131,7 +131,7 @@ export const DESTINATIONS = [
   {
     id: 'portapotty', name: "PORTA JOHN'S", model: 'bathroom',
     role: 'the archive // inside the potty', accent: PALETTE.green,
-    pos: [-24, 0, 3], tag: 'the encyclopedia', hideTag: true,
+    pos: [-25, 0, -6], tag: 'the encyclopedia', hideTag: true,
     portal: 'lab',
     blurb: 'A row of festival porta-potties, one glowing an unhealthy green. Step inside and boot the old screen to read the Codex — the full encyclopedia of the festival.',
     cta: 'Read the Codex',
