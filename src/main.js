@@ -104,7 +104,7 @@ const vj = buildVJ({
   ],
 });
 // the VJ board (by the lab) is where you run the stage screens
-const vjboard = buildVJBoard(scene, { pos: [4, 0, 19], onActivate: () => toggleVJ() });
+const vjboard = buildVJBoard(scene, { pos: [5, 0, 18], onActivate: () => toggleVJ() });
 
 // aimable laser show — emitters across the top of the stage truss; beams track
 // where you look while the show is on.
@@ -127,13 +127,13 @@ let inWarp = false;
 
 // secret backstage vault — find the hidden keycard, then open the fake wall
 const secret = buildSecret(scene, {
-  vaultPos: [-25, -23], cardPos: [22, -23],
+  vaultPos: [-15, -20], cardPos: [22, 20],
   onFlash: (m) => flash(m),
   onReward: () => { flash('🎟 BACKSTAGE PASS — welcome to the inner circle'); openWindow('BACKSTAGE PASS', 'https://discord.gg/cxMW3aSmKX'); },
 });
 
 // hidden trash-hunt → clean the grounds → secret download
-const DUMPSTER_POS = [25, -24];
+const DUMPSTER_POS = [-22, -20];
 const trash = buildTrash(scene, {
   dumpsterPos: DUMPSTER_POS,
   onPickup: (label, s) => { flash(`picked up ${label}`); trashHudUpdate(s); },
@@ -149,7 +149,7 @@ dumpLight.target.position.set(DUMPSTER_POS[0], 1, DUMPSTER_POS[1]);
 scene.add(dumpLight); scene.add(dumpLight.target);
 
 // a dealer hidden in the crowd → reach him to score the TRI-PPY (rainbow warp)
-const DEALER_POS = [25, -1];
+const DEALER_POS = [-13, -13];
 const dealer = buildDealer(scene, {
   pos: DEALER_POS,
   stageZ: festival.stageZ,
@@ -158,7 +158,7 @@ const dealer = buildDealer(scene, {
 
 // Shmorez's campfire micro-scene (fire + roasting NPCs) out back by his spot,
 // with a tent pitched behind him.
-const CAMPFIRE_POS = [-6, 12];
+const CAMPFIRE_POS = [12, 16];
 const campfire = buildCampfire(scene, { pos: CAMPFIRE_POS, roasters: 3 });
 buildTent(scene, { pos: [16, 21], accent: '#ff6b35' });
 
@@ -167,7 +167,7 @@ const faceCenter = (x, z) => Math.atan2(0 - x, -4 - z);
 
 // Tanky's tailgate: lifted truck + beer pong + ping-pong tosses, by his spot.
 // The bed/tailgate (party side, +Z) faces center; the cab backs into the corner.
-const TAILGATE_POS = [23, 20];
+const TAILGATE_POS = [19, 15];
 const pongHudEl = document.getElementById('pongHud');
 const tailgate = buildTailgate(scene, {
   pos: TAILGATE_POS, rot: faceCenter(TAILGATE_POS[0], TAILGATE_POS[1]),
@@ -176,11 +176,11 @@ const tailgate = buildTailgate(scene, {
 
 // Sofa King's elevated lounge (riser + audience couches) at his spot. The
 // audience side (-Z) points at center, so the couches sit between him and it.
-const LOUNGE_POS = [-25, 15];
+const LOUNGE_POS = [-25, 11];
 const lounge = buildLounge(scene, { pos: LOUNGE_POS, rot: faceCenter(LOUNGE_POS[0], LOUNGE_POS[1]) + Math.PI });
 
 // the 12matt3r hub board → walk up, read news, sign the guest book
-const BOARD_POS = [-21, 22];
+const BOARD_POS = [-14, 20];
 const board = buildBoard(scene, {
   pos: BOARD_POS,
   stageZ: festival.stageZ,
@@ -195,7 +195,7 @@ const crowd = buildCrowd(scene, {
   exclude: [
     // [x, z, clear-radius] — bigger clearing around structures, plus spawn
     ...DESTINATIONS.map((d) => [d.pos[0], d.pos[2], BIG.has(d.model) ? 6.5 : 3.6]),
-    [-4, 6, 4.5],           // spawn
+    [-18, 18, 4.5],         // spawn (bottom-left corner)
     [-10, 20, 2.8],         // park bench by the board
     [5, 18, 3],             // VJ board by the lab
     [-15, -20, 4],          // secret backstage vault
@@ -208,6 +208,9 @@ const crowd = buildCrowd(scene, {
   ],
 });
 const controls = new WalkControls(camera, { bounds: 24, eye: 1.6, zMin: -30 });
+// spawn in the bottom-left corner for a diagonal entry toward the dancefloor
+controls.pos.set(-18, 1.6, 18);
+if (controls.yaw !== undefined) controls.yaw = -Math.PI * 0.75; // face into the grounds
 // let the player walk up the ramp onto the stage deck
 controls.groundAt = (x, z) => {
   const d = festival.deck;
@@ -441,10 +444,43 @@ buildSize();
 // PHOTO BOOTH in the back by the message board → the TRIPPY CAM (your webcam
 // becomes the sky). Moved off the stage so the DJ decks own the stage.
 const djbooth = buildPhotoBooth(scene, {
-  pos: [-9, 0, 23],
+  pos: [-6, 0, 21],
   onActivate: () => hitDJBooth(),
 });
 const trippycam = createTrippyCam(scene, { onState: (on, err) => onTrippyCamState(on, err) });
+
+// ---- in-scene labels: a floating billboard name over every station + prop,
+// so the whole map reads as an annotated space (not an abstract sandbox). Each
+// is a camera-facing sprite; they fade with distance so nearby ones stand out.
+const sceneLabels = [];
+function makeLabel(text, x, z, y = 3.4, color = '#eaeaf5') {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 96;
+  const g = c.getContext('2d');
+  g.font = '600 46px ui-monospace, "JetBrains Mono", monospace';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.lineWidth = 8; g.strokeStyle = 'rgba(0,0,0,.85)'; g.strokeText(text, 256, 52);
+  g.shadowColor = color; g.shadowBlur = 12; g.fillStyle = color; g.fillText(text, 256, 52);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: true });
+  const s = new THREE.Sprite(mat); s.position.set(x, y, z);
+  const w = 6.2; s.scale.set(w, w * 96 / 512, 1); s.renderOrder = 5;
+  scene.add(s); sceneLabels.push(s);
+  return s;
+}
+// every destination gets a persistent name label
+for (const d of DESTINATIONS) makeLabel(d.name, d.pos[0], d.pos[2], 3.6, d.accent || '#eaeaf5');
+// props + points of interest
+makeLabel('MAIN STAGE', 0, festival.stageZ + 2, 6.2, '#00f3ff');
+makeLabel('YOU SPAWN HERE', -18, 18, 2.6, '#ff8a1e');
+makeLabel('PARK BENCH', -10, 20, 2.2, '#39ff14');
+makeLabel('MESSAGE BOARD', BOARD_POS[0], BOARD_POS[1], 3.4, '#00f3ff');
+makeLabel('PHOTO BOOTH', -6, 21, 3.2, '#ff0055');
+makeLabel('VJ BOARD', 5, 18, 2.8, '#b967ff');
+makeLabel('CAMPFIRE', CAMPFIRE_POS[0], CAMPFIRE_POS[1], 3.0, '#ff6b35');
+makeLabel('TRUCK · BEER PONG', TAILGATE_POS[0], TAILGATE_POS[1], 4.4, '#e6c04a');
+makeLabel('LOUNGE', LOUNGE_POS[0], LOUNGE_POS[1], 3.0, '#b967ff');
+makeLabel('DUMPSTER', DUMPSTER_POS[0], DUMPSTER_POS[1], 3.2, '#39ff14');
+makeLabel('DEALER', DEALER_POS[0], DEALER_POS[1], 2.8, '#ff0055');
 
 // ---- lab portal: a porta-potty interior you step into; click the old CRT to
 // boot the Lab (its own page). While inside, the festival stops rendering. ----
