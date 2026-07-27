@@ -4,12 +4,14 @@ import * as THREE from 'three';
 // and carry it; deliver it to the dealer and that effect goes "in stock" as a
 // buyable, time-limited drug. tryClick(ray) returns the orb's id (and removes it).
 
+// All within the walkable field (|x| <= 24, z in [-30, 24]) so every orb is
+// actually reachable — tucked near an edge but never inside/behind a wall.
 const SPOTS = {
-  crt: { pos: [0, 1.5, -33], accent: '#00f3ff' },        // behind the stage
-  vhs: { pos: [-26.5, 1.4, -2], accent: '#ff0055' },     // against the left wall
-  ascii: { pos: [26.5, 1.4, -2], accent: '#39ff14' },    // against the right wall
-  gameboy: { pos: [-6, 1.3, 26.5], accent: '#b967ff' },  // against the back wall
-  wireframe: { pos: [22, 1.4, -22], accent: '#e6c04a' }, // far back-right corner
+  crt: { pos: [8, 1.5, -20], accent: '#00f3ff' },        // out front of the stage
+  vhs: { pos: [-20, 1.4, -8], accent: '#ff0055' },       // left flank, open floor
+  ascii: { pos: [20, 1.4, 4], accent: '#39ff14' },       // right flank, open floor
+  gameboy: { pos: [-18, 1.3, 14], accent: '#b967ff' },   // lower-left, near the board
+  wireframe: { pos: [20, 1.4, -20], accent: '#e6c04a' }, // back-right corner
 };
 
 export function buildOrbs(scene, { need = [] } = {}) {
