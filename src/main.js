@@ -25,6 +25,7 @@ import { buildVJBoard } from './scene/vjboard.js';
 import { buildLaserShow } from './scene/laser.js';
 import { buildDistortion } from './scene/distortion.js';
 import { buildSecret } from './scene/secret.js';
+import { createAdmin } from './scene/admin.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -168,9 +169,11 @@ const faceCenter = (x, z) => Math.atan2(0 - x, -4 - z);
 // Tanky's tailgate: lifted truck + beer pong + ping-pong tosses, by his spot.
 // The bed/tailgate (party side, +Z) faces center; the cab backs into the corner.
 const TAILGATE_POS = [19, 15];
+const BEERPONG_POS = [15, 11];   // its own spot now — separate from the truck
 const pongHudEl = document.getElementById('pongHud');
 const tailgate = buildTailgate(scene, {
   pos: TAILGATE_POS, rot: faceCenter(TAILGATE_POS[0], TAILGATE_POS[1]),
+  pongPos: BEERPONG_POS, pongRot: faceCenter(BEERPONG_POS[0], BEERPONG_POS[1]),
   onScore: (n, left) => { flash(left === 0 ? `🍺 RACK CLEARED! (${n})` : `🍺 in the cup! (${n})`); if (pongHudEl) pongHudEl.textContent = `🍺 sunk: ${n} · ${left} cups left`; },
 });
 
@@ -453,6 +456,7 @@ const trippycam = createTrippyCam(scene, { onState: (on, err) => onTrippyCamStat
 // so the whole map reads as an annotated space (not an abstract sandbox). Each
 // is a camera-facing sprite; they fade with distance so nearby ones stand out.
 const sceneLabels = [];
+const labelById = {};
 function makeLabel(text, x, z, y = 3.4, color = '#eaeaf5') {
   const c = document.createElement('canvas'); c.width = 512; c.height = 96;
   const g = c.getContext('2d');
@@ -468,19 +472,37 @@ function makeLabel(text, x, z, y = 3.4, color = '#eaeaf5') {
   return s;
 }
 // every destination gets a persistent name label
-for (const d of DESTINATIONS) makeLabel(d.name, d.pos[0], d.pos[2], 3.6, d.accent || '#eaeaf5');
+for (const d of DESTINATIONS) labelById['dest_' + d.id] = makeLabel(d.name, d.pos[0], d.pos[2], 3.6, d.accent || '#eaeaf5');
 // props + points of interest
-makeLabel('MAIN STAGE', 0, festival.stageZ + 2, 6.2, '#00f3ff');
-makeLabel('YOU SPAWN HERE', -18, 18, 2.6, '#ff8a1e');
-makeLabel('PARK BENCH', -10, 20, 2.2, '#39ff14');
-makeLabel('MESSAGE BOARD', BOARD_POS[0], BOARD_POS[1], 3.4, '#00f3ff');
-makeLabel('PHOTO BOOTH', -6, 21, 3.2, '#ff0055');
-makeLabel('VJ BOARD', 5, 18, 2.8, '#b967ff');
-makeLabel('CAMPFIRE', CAMPFIRE_POS[0], CAMPFIRE_POS[1], 3.0, '#ff6b35');
-makeLabel('TRUCK · BEER PONG', TAILGATE_POS[0], TAILGATE_POS[1], 4.4, '#e6c04a');
-makeLabel('LOUNGE', LOUNGE_POS[0], LOUNGE_POS[1], 3.0, '#b967ff');
-makeLabel('DUMPSTER', DUMPSTER_POS[0], DUMPSTER_POS[1], 3.2, '#39ff14');
-makeLabel('DEALER', DEALER_POS[0], DEALER_POS[1], 2.8, '#ff0055');
+labelById.stage = makeLabel('MAIN STAGE', 0, festival.stageZ + 2, 6.2, '#00f3ff');
+labelById.spawn = makeLabel('YOU SPAWN HERE', -18, 18, 2.6, '#ff8a1e');
+labelById.bench = makeLabel('PARK BENCH', -10, 20, 2.2, '#39ff14');
+labelById.board = makeLabel('MESSAGE BOARD', BOARD_POS[0], BOARD_POS[1], 3.4, '#00f3ff');
+labelById.photo = makeLabel('PHOTO BOOTH', -6, 21, 3.2, '#ff0055');
+labelById.vjboard = makeLabel('VJ BOARD', 5, 18, 2.8, '#b967ff');
+labelById.campfire = makeLabel('CAMPFIRE', CAMPFIRE_POS[0], CAMPFIRE_POS[1], 3.0, '#ff6b35');
+labelById.truck = makeLabel('TRUCK', TAILGATE_POS[0], TAILGATE_POS[1], 4.4, '#e6c04a');
+labelById.beerpong = makeLabel('BEER PONG', BEERPONG_POS[0], BEERPONG_POS[1], 2.8, '#e6c04a');
+labelById.lounge = makeLabel('LOUNGE', LOUNGE_POS[0], LOUNGE_POS[1], 3.0, '#b967ff');
+labelById.dumpster = makeLabel('DUMPSTER', DUMPSTER_POS[0], DUMPSTER_POS[1], 3.2, '#39ff14');
+labelById.dealer = makeLabel('DEALER', DEALER_POS[0], DEALER_POS[1], 2.8, '#ff0055');
+
+// ---- admin / layout editor: register every movable thing (destinations +
+// props) so it can be dragged and its position exported. ----
+const adminItems = [];
+for (const c of characters.list) adminItems.push({ id: 'dest_' + c.dest.id, label: c.dest.name, obj: c.group, worldPos: c.worldPos, sprite: labelById['dest_' + c.dest.id] });
+const addProp = (id, obj, sprite) => { if (obj) adminItems.push({ id, label: id.toUpperCase(), obj, sprite }); };
+addProp('dumpster', trash.group, labelById.dumpster);
+addProp('dealer', dealer.group, labelById.dealer);
+addProp('campfire', campfire.group, labelById.campfire);
+addProp('truck', tailgate.group, labelById.truck);
+addProp('beerpong', tailgate.pong, labelById.beerpong);
+addProp('lounge', lounge.group, labelById.lounge);
+addProp('board', board.group, labelById.board);
+addProp('vjboard', vjboard.group, labelById.vjboard);
+addProp('photobooth', djbooth.group, labelById.photo);
+addProp('vault', secret.group, null);
+const admin = createAdmin({ scene, camera, renderer, controls, worldId: 'festival', items: adminItems });
 
 // ---- lab portal: a porta-potty interior you step into; click the old CRT to
 // boot the Lab (its own page). While inside, the festival stops rendering. ----
@@ -519,6 +541,8 @@ canvas.addEventListener('pointerup', (e) => {
 canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
 
 function handleTap(sx, sy) {
+  // layout editor intercepts taps to select/place things
+  if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   ndc.x = (sx / innerWidth) * 2 - 1;
   ndc.y = -(sy / innerHeight) * 2 + 1;
   raycaster.setFromCamera(ndc, camera);
@@ -607,6 +631,7 @@ function frame() {
     const dayT = dayLock != null ? dayLock : (((DAY_START + time / DAY_CYCLE + dayScrub) % 1) + 1) % 1;
     controls.bobEnabled = !reduceMotion;
     controls.update(dt);
+    admin.update(dt);
     // beat-drop fireworks + camera shake on big bass spikes
     if (!reduceMotion && pulse > 0.85 && time - lastBurst > burstGap) {
       fireworks.burst(); confetti.burst(CONFETTI_AT); shake = Math.max(shake, 0.4); lastBurst = time; burstGap = 3.5 + Math.random() * 3.5;

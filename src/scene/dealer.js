@@ -83,5 +83,5 @@ export function buildDealer(scene, { pos = [-5, 5], stageZ = -24, onToggle } = {
     wasClose = close;
   }
 
-  return { update, tryClick, worldPos, pos };
+  return { update, tryClick, worldPos, pos, group };
 }

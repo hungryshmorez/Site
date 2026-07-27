@@ -57,6 +57,7 @@ export class WalkControls {
   stop() { this.walkTarget = null; }
 
   update(dt) {
+    if (this.enabled === false) return;
     const k = this.keys;
     const forward = (k.has('w') || k.has('arrowup') ? 1 : 0) - (k.has('s') || k.has('arrowdown') ? 1 : 0);
     const strafe = (k.has('d') || k.has('arrowright') ? 1 : 0) - (k.has('a') || k.has('arrowleft') ? 1 : 0);

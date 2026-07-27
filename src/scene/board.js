@@ -63,7 +63,7 @@ export function buildBoard(scene, { pos = [3, 11], stageZ = -24, accent = '#00F3
     gl.intensity = 2.4 + pulse * 1.2;
   }
 
-  return { update, tryClick, worldPos };
+  return { update, tryClick, worldPos, group };
 }
 
 function makeSign(text, color) {

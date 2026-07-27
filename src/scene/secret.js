@@ -93,5 +93,5 @@ export function buildSecret(scene, { vaultPos = [-15, -20], cardPos = [-22, -23]
     if (state === 'open') pass.rotation.y += dt * 1.2;
   }
 
-  return { update, tryClick, isClaimed: () => state === 'claimed', hasCard: () => hasCard };
+  return { update, tryClick, isClaimed: () => state === 'claimed', hasCard: () => hasCard, group: g, cardGroup: card };
 }

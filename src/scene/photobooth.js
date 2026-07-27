@@ -81,5 +81,5 @@ export function buildPhotoBooth(scene, { pos = [-13, 0, 17], accent = '#00F3FF',
     if (close && !wasClose && onActivate) onActivate();
     wasClose = close;
   }
-  return { update, tryClick, worldPos };
+  return { update, tryClick, worldPos, group: g };
 }

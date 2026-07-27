@@ -55,5 +55,5 @@ export function buildLounge(scene, { pos = [14, 17], rot = 0, accent = '#6a6cff'
     for (const h of heads) h.head.rotation.x = -0.3 + Math.sin(time * 2.4 + h.phase) * (0.06 + pulse * 0.18); // nodding
   }
 
-  return { update };
+  return { update, group };
 }

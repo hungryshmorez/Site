@@ -185,5 +185,5 @@ export function buildTrash(scene, {
     if (state.held > 0 && near < depositRange) deposit();
   }
 
-  return { update, tryClick, state: publicState, dumpsterPos: dumpPos };
+  return { update, tryClick, state: publicState, dumpsterPos: dumpPos, group: dumpster.group };
 }

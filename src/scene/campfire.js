@@ -90,7 +90,7 @@ export function buildCampfire(scene, { pos = [-10, -8], roasters = 3 } = {}) {
     for (const m of marsh) m.material.emissiveIntensity = 0.3 + Math.sin(time * 5 + m.position.x) * 0.2 + pulse * 0.3;
   }
 
-  return { update };
+  return { update, group };
 }
 
 function dot() {

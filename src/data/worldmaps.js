@@ -53,7 +53,8 @@ export const WORLD_MAPS = [
       it('Lab: Tools kiosk', 26, -3, 'structure'),
       // props / world dressing
       it('Props dealer', -13, -13, 'prop'),
-      it('Truck (beer pong)', 19, 15, 'prop'),
+      it('Truck', 19, 15, 'prop'),
+      it('Beer pong', 15, 11, 'game'),
       it('Lounge', -25, 11, 'prop'),
       it('Campfire', 12, 16, 'prop'),
       it('Message board + artist directory', -14, 20, 'structure'),

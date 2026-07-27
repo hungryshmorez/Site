@@ -48,7 +48,7 @@ export function buildVJBoard(scene, { pos = [4, 0, 13], accent = '#00F3FF', onAc
     light.intensity = 2.5 + pulse * 2;
     knobs.forEach((k, i) => (k.rotation.y = Math.sin(time * 0.8 + i) * 0.6));
   }
-  return { update, tryClick, near, worldPos };
+  return { update, tryClick, near, worldPos, group: g };
 }
 
 function makeLabel(text, accent) {
