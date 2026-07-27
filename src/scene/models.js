@@ -658,8 +658,21 @@ export function buildCircusTent(accent = '#FF0055') {
   for (let i = 0; i < 9; i++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffd88a })); b.position.set(-3.2 + i * 0.8, 4.7 - Math.sin(i / 8 * Math.PI) * 0.5, 3.6); g.add(b); bulbs.push(b); }
   // pennant flag on the tip
   const flag = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.5, 4), new THREE.MeshBasicMaterial({ color: 0xffd24a })); flag.position.y = 10.1; g.add(flag);
-  const marquee = textPlane('▸ ENTER ◂', accent); marquee.position.set(0, 3, 3.7); marquee.scale.set(3, 0.6, 1); g.add(marquee);
-  return { group: g, update: (t, pulse) => { glow.intensity = 5 + Math.sin(t * 3) * 1 + pulse * 2; bulbs.forEach((b, i) => b.material.color.setHSL((i / 9 + t * 0.15) % 1, 0.85, 0.6)); flag.rotation.y = t * 2; } };
+  const marquee = textPlane('▸ WALK IN ◂', accent); marquee.position.set(0, 3, 3.7); marquee.scale.set(3, 0.6, 1); g.add(marquee);
+  // ---- the door: two striped curtain flaps parted around a walk-through gap ----
+  const curtainMat = std({ map: stex.clone(), side: THREE.DoubleSide, roughness: 0.9, emissive: col, emissiveIntensity: 0.06 });
+  curtainMat.map.repeat.set(2, 1);
+  for (const s of [-1, 1]) {
+    const curtain = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 4.6), curtainMat);
+    curtain.position.set(s * 2.35, 2.4, 3.42); curtain.rotation.y = -s * 0.4; curtain.castShadow = true; g.add(curtain);
+    // tie-back rope bulge so they read as pulled-open drapes
+    const tie = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffd88a })); tie.position.set(s * 1.5, 1.4, 3.55); g.add(tie);
+  }
+  // a glowing threshold on the ground you step across to go in
+  const thresh = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 1.4), new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
+  thresh.rotation.x = -Math.PI / 2; thresh.position.set(0, 0.07, 3.1); g.add(thresh);
+  const doorGlow = new THREE.PointLight(accent, 3, 9, 2); doorGlow.position.set(0, 1.6, 2.7); g.add(doorGlow);
+  return { group: g, update: (t, pulse) => { glow.intensity = 5 + Math.sin(t * 3) * 1 + pulse * 2; doorGlow.intensity = 2.5 + Math.sin(t * 2.5) * 1 + pulse; thresh.material.opacity = 0.45 + Math.sin(t * 2.5) * 0.15; bulbs.forEach((b, i) => b.material.color.setHSL((i / 9 + t * 0.15) % 1, 0.85, 0.6)); flag.rotation.y = t * 2; } };
 }
 
 export const MODELS = {

@@ -515,6 +515,10 @@ addProp('tent', tent.group, labelById.tent);
 for (const s of sceneLabels) s.visible = false;
 const admin = createAdmin({ scene, camera, renderer, controls, worldId: 'festival', items: adminItems });
 
+// the arcade tent has a real door — walk through it to enter (no clicking).
+const arcadeDest = DESTINATIONS.find((d) => d.id === 'arcade');
+const arcadeWP = (characters.list.find((c) => c.dest.id === 'arcade') || {}).worldPos;
+
 // ---- lab portal: a porta-potty interior you step into; click the old CRT to
 // boot the Lab (its own page). While inside, the festival stops rendering. ----
 const labPortal = buildLabPortal();
@@ -682,6 +686,8 @@ function frame() {
     { const grabbed = orbs.pickNear(controls.pos); if (grabbed) pickupOrb(grabbed); } // walk into an orb to grab it
     if (activeDrug) { drugTime -= dt; if (drugHudEl) drugHudEl.textContent = `💊 ${DRUGS.find((d) => d.id === activeDrug).name} · ${Math.ceil(drugTime)}s`; if (drugTime <= 0) endDrug(); }
     if (pongHudEl) pongHudEl.classList.toggle('on', tailgate.near(controls.pos));
+    // walk through the arcade tent's doorway → step right into the arcade
+    if (!warping && !admin.active && arcadeWP && controls.pos.distanceTo(arcadeWP) < 3.4) enterDestination(arcadeDest);
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
