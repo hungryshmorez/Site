@@ -57,6 +57,9 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items 
     if (it.dest) it.dest.name = name;
   }
   function setItemLink(it, url) { const f = linkField(it.dest); if (f) it.dest[f] = url; }
+  function setItemRot(it, deg) { it.obj.rotation.y = deg * Math.PI / 180; }
+  function setItemScale(it, s) { it.obj.scale.setScalar(s); }
+  const degOf = (it) => { let d = (it.obj.rotation.y * 180 / Math.PI) % 360; if (d < 0) d += 360; return d; };
 
   function loadSaved() {
     let saved = {};
@@ -66,12 +69,14 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items 
       if (s.pos) setItemPos(it, s.pos[0], s.pos[1]);
       if (s.name) setItemName(it, s.name);
       if (s.link) setItemLink(it, s.link);
+      if (s.rot != null) setItemRot(it, s.rot);
+      if (s.scale != null) setItemScale(it, s.scale);
     }
   }
   function snapshot() {
     const o = {};
     for (const it of items) {
-      const e = { pos: [+it.obj.position.x.toFixed(1), +it.obj.position.z.toFixed(1)], name: it.label };
+      const e = { pos: [+it.obj.position.x.toFixed(1), +it.obj.position.z.toFixed(1)], name: it.label, rot: +degOf(it).toFixed(0), scale: +it.obj.scale.x.toFixed(2) };
       const lk = getLink(it.dest); if (lk) e.link = lk;
       o[it.id] = e;
     }
@@ -83,7 +88,8 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items 
     const snap = snapshot();
     const rows = items.map((it) => {
       const e = snap[it.id];
-      return `  ${it.id}: { name: ${JSON.stringify(e.name)}, pos: [${e.pos[0]}, ${e.pos[1]}]${e.link ? `, link: ${JSON.stringify(e.link)}` : ''} },`;
+      const extra = `${e.rot ? `, rot: ${e.rot}` : ''}${e.scale !== 1 ? `, scale: ${e.scale}` : ''}${e.link ? `, link: ${JSON.stringify(e.link)}` : ''}`;
+      return `  ${it.id}: { name: ${JSON.stringify(e.name)}, pos: [${e.pos[0]}, ${e.pos[1]}]${extra} },`;
     });
     return `// ${worldId} layout\n{\n${rows.join('\n')}\n}`;
   }
@@ -101,8 +107,12 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items 
     <div id="ax-edit" style="display:none;margin:2px 0 8px">
       <label style="color:#8a8aa0;display:block;margin-bottom:3px">name</label>
       <input id="ax-name" style="width:100%;margin-bottom:6px"/>
-      <div id="ax-linkwrap"><label style="color:#8a8aa0;display:block;margin-bottom:3px">link</label>
+      <div id="ax-linkwrap" style="margin-bottom:6px"><label style="color:#8a8aa0;display:block;margin-bottom:3px">link</label>
       <input id="ax-link" placeholder="https:// or page.html"/></div>
+      <div style="display:flex;gap:10px">
+        <label style="flex:1;color:#8a8aa0;font-size:11px">rotate <span id="ax-rotv"></span><input id="ax-rot" type="range" min="0" max="360" step="1"/></label>
+        <label style="flex:1;color:#8a8aa0;font-size:11px">size <span id="ax-scalev"></span><input id="ax-scale" type="range" min="0.3" max="3" step="0.05"/></label>
+      </div>
     </div>
     <div style="color:#8a8aa0;line-height:1.5;margin-bottom:8px" id="ax-help">Tap a thing to grab it, then tap the ground to move it.</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px">
@@ -115,7 +125,10 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items 
     <div id="ax-flash" style="color:#39ff14;margin-top:6px;min-height:15px"></div>`;
   document.body.appendChild(panel);
   for (const b of panel.querySelectorAll('button')) b.style.cssText = 'background:#141426;color:#e6e6f0;border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:7px 10px;cursor:pointer';
-  for (const i of panel.querySelectorAll('input')) i.style.cssText = 'width:100%;background:#05060f;color:#e6e6f0;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:6px 8px;font-family:ui-monospace,monospace;font-size:12px';
+  for (const i of panel.querySelectorAll('input')) {
+    if (i.type === 'range') i.style.cssText = 'width:100%;margin-top:3px;accent-color:#00f3ff';
+    else i.style.cssText = 'width:100%;background:#05060f;color:#e6e6f0;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:6px 8px;font-family:ui-monospace,monospace;font-size:12px';
+  }
 
   const toggleBtn = document.createElement('button');
   toggleBtn.textContent = '✎'; toggleBtn.title = 'Layout editor';
@@ -127,6 +140,10 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items 
   const nameEl = panel.querySelector('#ax-name');
   const linkEl = panel.querySelector('#ax-link');
   const linkWrap = panel.querySelector('#ax-linkwrap');
+  const rotEl = panel.querySelector('#ax-rot');
+  const scaleEl = panel.querySelector('#ax-scale');
+  const rotVEl = panel.querySelector('#ax-rotv');
+  const scaleVEl = panel.querySelector('#ax-scalev');
   const outEl = panel.querySelector('#ax-out');
   const flashEl = panel.querySelector('#ax-flash');
   let flashT = 0;
@@ -134,6 +151,8 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items 
 
   nameEl.addEventListener('input', () => { if (selected) { setItemName(selected, nameEl.value); updateSel(); } });
   linkEl.addEventListener('input', () => { if (selected) setItemLink(selected, linkEl.value); });
+  rotEl.addEventListener('input', () => { if (selected) { setItemRot(selected, +rotEl.value); rotVEl.textContent = rotEl.value + '°'; } });
+  scaleEl.addEventListener('input', () => { if (selected) { setItemScale(selected, +scaleEl.value); scaleVEl.textContent = (+scaleEl.value).toFixed(2) + '×'; } });
   panel.querySelector('#ax-save').onclick = save;
   panel.querySelector('#ax-reset').onclick = reset;
   panel.querySelector('#ax-copy').onclick = () => {
@@ -161,6 +180,8 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items 
       const f = linkField(selected.dest);
       linkWrap.style.display = f ? 'block' : 'none';
       if (f) linkEl.value = getLink(selected.dest);
+      const d = Math.round(degOf(selected)); rotEl.value = d; rotVEl.textContent = d + '°';
+      const sc = selected.obj.scale.x; scaleEl.value = sc; scaleVEl.textContent = sc.toFixed(2) + '×';
     }
     for (const it of items) if (it.sprite) it.sprite.material.opacity = (selected === it) ? 1 : 0.8;
   }

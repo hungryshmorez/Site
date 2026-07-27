@@ -161,7 +161,8 @@ const dealer = buildDealer(scene, {
 // with a tent pitched behind him.
 const CAMPFIRE_POS = [12, 16];
 const campfire = buildCampfire(scene, { pos: CAMPFIRE_POS, roasters: 3 });
-buildTent(scene, { pos: [16, 21], accent: '#ff6b35' });
+const TENT_POS = [16, 21];
+const tent = buildTent(scene, { pos: TENT_POS, accent: '#ff6b35' });
 
 // everything faces the center of the grounds (front = +Z toward [0,-4])
 const faceCenter = (x, z) => Math.atan2(0 - x, -4 - z);
@@ -492,6 +493,7 @@ labelById.beerpong = makeLabel('BEER PONG', BEERPONG_POS[0], BEERPONG_POS[1], 2.
 labelById.lounge = makeLabel('LOUNGE', LOUNGE_POS[0], LOUNGE_POS[1], 3.0, '#b967ff');
 labelById.dumpster = makeLabel('DUMPSTER', DUMPSTER_POS[0], DUMPSTER_POS[1], 3.2, '#39ff14');
 labelById.dealer = makeLabel('DEALER', DEALER_POS[0], DEALER_POS[1], 2.8, '#ff0055');
+labelById.tent = makeLabel('TENT', TENT_POS[0], TENT_POS[1], 3.8, '#ff6b35');
 
 // ---- admin / layout editor: register every movable thing (destinations +
 // props) so it can be dragged and its position exported. ----
@@ -508,6 +510,7 @@ addProp('board', board.group, labelById.board);
 addProp('vjboard', vjboard.group, labelById.vjboard);
 addProp('photobooth', djbooth.group, labelById.photo);
 addProp('vault', secret.group, null);
+addProp('tent', tent.group, labelById.tent);
 const admin = createAdmin({ scene, camera, renderer, controls, worldId: 'festival', items: adminItems });
 
 // ---- lab portal: a porta-potty interior you step into; click the old CRT to
