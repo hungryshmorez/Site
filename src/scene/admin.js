@@ -12,7 +12,7 @@ import * as THREE from 'three';
 //   sprite   — (optional) floating label; moves + renames with the item
 //   dest     — (optional) destination data object, so name + link are editable
 
-export function createAdmin({ scene, camera, renderer, controls, worldId, items }) {
+export function createAdmin({ scene, camera, renderer, controls, worldId, items, overhead = {} }) {
   const canvas = renderer.domElement;
   const ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const ray = new THREE.Raycaster();
@@ -20,11 +20,12 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items 
   const hit = new THREE.Vector3();
   let active = false, selected = null;
 
-  // ---- overhead camera (the map view) ----
+  // ---- overhead camera (the map view) — framed to this world's extent ----
+  const OV = { ax: 34, az: 30, cx: 0, cz: -1, ...overhead };
   const cam = new THREE.OrthographicCamera(-40, 40, 30, -30, 0.5, 400);
-  cam.position.set(0, 120, -1); cam.up.set(0, 0, -1); cam.lookAt(0, 0, -1);
+  cam.position.set(OV.cx, 120, OV.cz); cam.up.set(0, 0, -1); cam.lookAt(OV.cx, 0, OV.cz);
   function fit() {
-    const a = innerWidth / innerHeight, ax = 34, az = 30;
+    const a = innerWidth / innerHeight, ax = OV.ax, az = OV.az;
     let hw, hh;
     if (a >= ax / az) { hh = az; hw = az * a; } else { hw = ax; hh = ax / a; }
     cam.left = -hw; cam.right = hw; cam.top = hh; cam.bottom = -hh; cam.updateProjectionMatrix();

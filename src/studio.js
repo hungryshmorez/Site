@@ -4,6 +4,7 @@ import { buildGlitch } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createAdmin } from './scene/admin.js';
 const ambience = createAmbience(AMBIENCE.studio);
 
 // 12MATT3R'S ROOM — a dark glitch-art studio built around a central MONUMENT of
@@ -124,6 +125,7 @@ function buildMonument() {
   const bigL = new THREE.PointLight(0x00f3ff, 5, 12, 2); bigL.position.set(0, 2, 6); g.add(bigL);
   epkProxy = new THREE.Mesh(new THREE.BoxGeometry(3.6, 3, 1), new THREE.MeshBasicMaterial({ visible: false })); epkProxy.position.set(0, 1.8, 4.4); g.add(epkProxy);
   updaters.push((dt, t, p) => { bigL.intensity = 4 + Math.sin(t * 8) * 1.2 + p * 2; });
+  return g;
 }
 
 // ---------- wall installations ----------
@@ -173,7 +175,7 @@ function textPlane(text, color) {
   return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, fog: false }));
 }
 
-buildMonument(); buildInstalls();
+const _monument = buildMonument(); buildInstalls();
 
 // ambient: cyan data-bit motes floating through the dark room
 updaters.push(addMotes(scene, { color: 0x00f3ff, count: 160, area: [30, 8, 30], rise: 0.3, size: 0.07, opacity: 0.45 }));
@@ -186,6 +188,15 @@ updaters.push((dt, t, p) => { if (fig.update) fig.update(t, p); });
 const controls = new WalkControls(camera, { bounds: RW - 1.5, eye: 1.6, zMin: -(RW - 1.5) });
 controls.pos.set(0, 1.6, 12); controls.yaw = 0;
 const KEEP = 4.2; // can't walk into the TV pile
+
+const epkRef = { url: EPK_URL };
+const admin = createAdmin({
+  scene, camera, renderer, controls, worldId: 'studio', overhead: { ax: 18, az: 13, cz: 2 },
+  items: [
+    { id: 'studio', label: '12matt3r', obj: fig.group },
+    { id: 'monument', label: 'CRT monument / EPK', obj: _monument, dest: epkRef },
+  ],
+});
 
 // ---------- LASER SECURITY GRID guarding the portal (west) ----------
 let breached = false;
@@ -227,7 +238,7 @@ canvas.addEventListener('pointermove', (e) => {
   if (!down || e.pointerId !== down.id) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y;
   if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
-  controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
+  if (!admin.active) controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
   down.x = e.clientX; down.y = e.clientY;
 });
 canvas.addEventListener('pointerup', (e) => { canvas.classList.remove('drag'); if (down && !dragged) tap(e.clientX, e.clientY); down = null; });
@@ -235,7 +246,8 @@ canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.r
 function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
-  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('12MATT3R — WEB-OS', EPK_URL); return; }
+  if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
+  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('12MATT3R — WEB-OS', epkRef.url); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -(RW - 1.5), RW - 1.5); g.z = THREE.MathUtils.clamp(g.z, -(RW - 1.5), RW - 1.5); controls.walkTo(g); }
 }
@@ -267,14 +279,15 @@ function frame() {
   const t = clock.elapsedTime;
   const p = Math.pow(1 - ((t * (100 / 60)) % 1), 2.0);
   controls.update(dt);
+  admin.update(dt);
   // keep-out circle around the TV pile
   const d = Math.hypot(controls.pos.x, controls.pos.z);
-  if (d < KEEP && d > 0.001) { const s = KEEP / d; controls.pos.x *= s; controls.pos.z *= s; }
+  if (!admin.active && d < KEEP && d > 0.001) { const s = KEEP / d; controls.pos.x *= s; controls.pos.z *= s; }
   for (const m of screenMats) m.uniforms.t.value = t;
   for (const u of updaters) u(dt, t, p);
   laserGrid.update(dt, t);
   updateZone(controls.pos);
-  renderer.render(scene, camera);
+  renderer.render(scene, admin.active ? admin.cam : camera);
 }
 controls.update(0);
 renderer.render(scene, camera);

@@ -4,6 +4,7 @@ import { buildVaporwave } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createAdmin } from './scene/admin.js';
 const ambience = createAmbience(AMBIENCE.driftwave);
 
 // DRIFTWAVE STATIC'S WORLD — one big vaporwave dreamscape stitched from the
@@ -120,6 +121,7 @@ function buildMonolith() {
   const gl = new THREE.PointLight(0xff2b8f, 4, 12, 2); gl.position.set(0, 2.4, 1.6); g.add(gl);
   epkProxy = new THREE.Mesh(new THREE.BoxGeometry(3.2, 3.8, 1.4), new THREE.MeshBasicMaterial({ visible: false })); epkProxy.position.set(0, 2, 0.3); g.add(epkProxy);
   updaters.push((dt, t, p) => { scrMat.uniforms.t.value = t; gl.intensity = 3 + Math.sin(t * 5) * 1 + p * 2; });
+  return g;
 }
 
 // ---------- MALLSOFT (east, +x) ----------
@@ -309,6 +311,7 @@ function buildDreamOS() {
   const label = textPlane('DREAMOS ✧ sit + boot', '#39ffd0'); label.position.set(0, 3.1, 0); label.scale.set(3.6, 0.55, 1); g.add(label);
   dreamosProxy = new THREE.Mesh(new THREE.BoxGeometry(3.6, 3.2, 2.8), new THREE.MeshBasicMaterial({ visible: false })); dreamosProxy.position.set(0, 1.6, 0.3); g.add(dreamosProxy);
   updaters.push((dt, t, p) => { dosMat.uniforms.t.value = t; gl.intensity = 2.4 + Math.sin(t * 4) * 0.7 + p * 1.4; });
+  return g;
 }
 
 // ---------- DEADNET portal (moved in from the festival) ----------
@@ -334,9 +337,13 @@ function buildDeadnet() {
   const label = textPlane('DEADNET // the dead internet', '#b967ff'); label.position.set(0, 3.7, 0.3); label.scale.set(3.4, 0.5, 1); g.add(label);
   deadnetProxy = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.6, 1.9), new THREE.MeshBasicMaterial({ visible: false })); deadnetProxy.position.set(0, 1.9, 0.3); g.add(deadnetProxy);
   updaters.push((dt, t, p) => { stMat.uniforms.t.value = t; gl.intensity = 2 + Math.sin(t * 9) * 1.4 + p; });
+  return g;
 }
 
-buildTemple(); buildMonolith(); buildMall(); buildLoFi(); buildDreamOS(); buildDeadnet();
+const _temple = buildTemple(); const _monolith = buildMonolith(); const _mall = buildMall(); const _lofi = buildLoFi();
+const _dreamos = buildDreamOS(); const _deadnet = buildDeadnet();
+// mutable link refs so the editor can re-point them
+const epkRef = { url: EPK_URL }, dreamosRef = { url: DREAMOS_URL }, deadnetRef = { url: DEADNET_URL };
 
 // ambient drift: warm motes across the dream + soft pink haze in the temple
 updaters.push(addMotes(scene, { color: 0xffd27a, count: 220, area: [56, 16, 60], opacity: 0.45 }));
@@ -352,6 +359,21 @@ const parkour = buildParkour(scene, controls);
 controls.groundAt = parkour.groundAt; // land on the floating islands
 const rings = buildRings(scene, controls); // glide from the summit through them
 
+// ---------- layout editor (overhead move / rotate / resize / rename / relink) ----------
+const admin = createAdmin({
+  scene, camera, renderer, controls, worldId: 'driftwave',
+  overhead: { ax: 30, az: 24, cz: -4 },
+  items: [
+    { id: 'driftwave', label: 'DriftWave', obj: dw.group },
+    { id: 'epk', label: 'EPK monolith', obj: _monolith, dest: epkRef },
+    { id: 'dreamos', label: 'DreamOS', obj: _dreamos, dest: dreamosRef },
+    { id: 'deadnet', label: 'Deadnet', obj: _deadnet, dest: deadnetRef },
+    { id: 'temple', label: 'Temple', obj: _temple },
+    { id: 'mall', label: 'Mallsoft', obj: _mall },
+    { id: 'lofi', label: 'Lo-fi nook', obj: _lofi },
+  ],
+});
+
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let down = null, dragged = false;
@@ -360,17 +382,18 @@ canvas.addEventListener('pointermove', (e) => {
   if (!down || e.pointerId !== down.id) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y;
   if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
-  controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
+  if (!admin.active) controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
   down.x = e.clientX; down.y = e.clientY;
 });
 canvas.addEventListener('pointerup', (e) => { canvas.classList.remove('drag'); if (down && !dragged) tap(e.clientX, e.clientY); down = null; });
 canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
 function tap(sx, sy) {
+  if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
-  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('DRIFTWAVE STATIC — EPK', EPK_URL); return; }
-  if (dreamosProxy && ray.intersectObject(dreamosProxy, false)[0]) { openWindow('DREAMOS ECOSYSTEM', DREAMOS_URL); return; }
-  if (deadnetProxy && ray.intersectObject(deadnetProxy, false)[0]) { openWindow('DEADNET — the dead internet', DEADNET_URL); return; }
+  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('DRIFTWAVE STATIC — EPK', epkRef.url); return; }
+  if (dreamosProxy && ray.intersectObject(dreamosProxy, false)[0]) { openWindow('DREAMOS ECOSYSTEM', dreamosRef.url); return; }
+  if (deadnetProxy && ray.intersectObject(deadnetProxy, false)[0]) { openWindow('DEADNET — the dead internet', deadnetRef.url); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -27, 27); g.z = THREE.MathUtils.clamp(g.z, -27, 27); controls.walkTo(g); }
 }
@@ -407,12 +430,13 @@ function frame() {
   const t = clock.elapsedTime;
   beat = Math.pow(1 - ((t * (72 / 60)) % 1), 2.0); // gentle 72bpm pulse
   controls.update(dt);
+  admin.update(dt);
   if (dw.update) dw.update(t, beat);
   for (const u of updaters) u(dt, t, beat);
   parkour.update(dt, t);
   rings.update(dt, t);
   updateZone(controls.pos);
-  renderer.render(scene, camera);
+  renderer.render(scene, admin.active ? admin.cam : camera);
 }
 controls.update(0);
 renderer.render(scene, camera); // one frame behind the overlay

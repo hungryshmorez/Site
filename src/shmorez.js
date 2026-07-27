@@ -4,6 +4,7 @@ import { buildMarshmallow } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createAdmin } from './scene/admin.js';
 const ambience = createAmbience(AMBIENCE.shmorez);
 
 // SHMOREZ'S WORLD — a cozy-surreal campground where everything's a s'more. A
@@ -85,6 +86,7 @@ function buildBonfire() {
     fire.intensity = 12 + Math.sin(t * 16) * 3 + p * 6 + Math.random();
     const a = eg.attributes.position.array; for (let i = 0; i < N; i++) { a[i * 3 + 1] += dt * seed[i] * 2.4; a[i * 3] += Math.sin(t + i) * dt * 0.2; if (a[i * 3 + 1] > 11) a[i * 3 + 1] = 0; } eg.attributes.position.needsUpdate = true;
   });
+  return g;
 }
 
 // ---------- EPK: the VISUALS screen behind the fire ----------
@@ -103,6 +105,7 @@ function buildVisuals() {
   const l = new THREE.PointLight(0xff8a3c, 5, 20, 2); l.position.set(0, 4, 4); g.add(l);
   epkProxy = new THREE.Mesh(new THREE.BoxGeometry(10.5, 6, 0.6), new THREE.MeshBasicMaterial({ visible: false })); epkProxy.position.set(0, 4.4, 0.4); g.add(epkProxy);
   updaters.push((dt, t, p) => { scrMat.uniforms.t.value = t; l.intensity = 4 + p * 4; });
+  return g;
 }
 
 // ---------- S'MORES LAND (west): choc walls, graham platforms, marshmallow rocks
@@ -157,7 +160,7 @@ function textPlane(text, color) {
   return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, fog: false }));
 }
 
-buildBonfire(); buildVisuals(); buildSmoresLand(); buildCamp();
+const _bonfire = buildBonfire(); const _visuals = buildVisuals(); const _smores = buildSmoresLand(); const _camp = buildCamp();
 
 // ambient: warm ember motes drifting across the whole camp + soft smoke haze
 updaters.push(addMotes(scene, { color: 0xffa64a, count: 220, area: [56, 15, 56], rise: 0.6, opacity: 0.5 }));
@@ -171,6 +174,18 @@ updaters.push((dt, t, p) => { if (sh.update) sh.update(t, p); sh.group.position.
 const controls = new WalkControls(camera, { bounds: 28, eye: 1.6, zMin: -24 });
 controls.pos.set(0, 1.6, 13); controls.yaw = 0;
 
+const epkRef = { url: EPK_URL };
+const admin = createAdmin({
+  scene, camera, renderer, controls, worldId: 'shmorez', overhead: { ax: 30, az: 19, cz: -3 },
+  items: [
+    { id: 'shmorez', label: 'Shmorez', obj: sh.group },
+    { id: 'bonfire', label: 'Bonfire', obj: _bonfire },
+    { id: 'visuals', label: 'Visuals / EPK', obj: _visuals, dest: epkRef },
+    { id: 'smores', label: "S'mores land", obj: _smores },
+    { id: 'camp', label: 'The camp', obj: _camp },
+  ],
+});
+
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let down = null, dragged = false;
@@ -179,7 +194,7 @@ canvas.addEventListener('pointermove', (e) => {
   if (!down || e.pointerId !== down.id) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y;
   if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
-  controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
+  if (!admin.active) controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
   down.x = e.clientX; down.y = e.clientY;
 });
 canvas.addEventListener('pointerup', (e) => { canvas.classList.remove('drag'); if (down && !dragged) tap(e.clientX, e.clientY); down = null; });
@@ -187,7 +202,8 @@ canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.r
 function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
-  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('SHMOREZ — EPK', EPK_URL); return; }
+  if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
+  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('SHMOREZ — EPK', epkRef.url); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -27, 27); g.z = THREE.MathUtils.clamp(g.z, -23, 27); controls.walkTo(g); }
 }
@@ -218,9 +234,10 @@ function frame() {
   const t = clock.elapsedTime;
   const p = Math.pow(1 - ((t * (90 / 60)) % 1), 2.0);
   controls.update(dt);
+  admin.update(dt);
   for (const u of updaters) u(dt, t, p);
   updateZone(controls.pos);
-  renderer.render(scene, camera);
+  renderer.render(scene, admin.active ? admin.cam : camera);
 }
 controls.update(0);
 renderer.render(scene, camera);

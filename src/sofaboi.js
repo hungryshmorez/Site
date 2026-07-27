@@ -4,6 +4,7 @@ import { buildSofaBoi } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createAdmin } from './scene/admin.js';
 const ambience = createAmbience(AMBIENCE.sofaboi);
 
 // SOFA KING SAD BOI'S WORLD — a rainy kingdom of couches. A giant sofa THRONE
@@ -106,6 +107,7 @@ function buildThrone() {
   updaters.push((dt, t, p) => { if (king.update) king.update(t, p); });
   // personal rain cloud over the throne
   buildRain(g, [0, 12, 0], 7);
+  return g;
 }
 
 // ---------- COUCH KINGDOM (a sea of couches) ----------
@@ -143,6 +145,7 @@ function buildBassPit() {
     for (const l of lights) l.intensity = 1.5 + wob * 6;
     strobe.intensity = p > 0.8 ? 8 : strobe.intensity * 0.8; // flash on the drop
   });
+  return g;
 }
 
 // ---------- rain over an area ----------
@@ -171,7 +174,7 @@ function textPlane(text, color) {
   return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, fog: false }));
 }
 
-buildThrone(); buildCouchField(); buildBassPit();
+const _throne = buildThrone(); buildCouchField(); const _bass = buildBassPit();
 
 // ambient: cool indigo motes drifting in the rain + haze in the bass pit
 updaters.push(addMotes(scene, { color: 0x9aa0ff, count: 200, area: [56, 16, 56], opacity: 0.4 }));
@@ -181,6 +184,15 @@ updaters.push(addHaze(scene, { color: 0x6a6cff, count: 8, center: [18, 3, 0], ar
 const controls = new WalkControls(camera, { bounds: 28, eye: 1.6, zMin: -28 });
 controls.pos.set(0, 1.6, 15); controls.yaw = 0;
 
+const epkRef = { url: EPK_URL };
+const admin = createAdmin({
+  scene, camera, renderer, controls, worldId: 'sofaboi', overhead: { ax: 25, az: 19, cz: -1 },
+  items: [
+    { id: 'throne', label: 'Sofa King (throne)', obj: _throne, dest: epkRef },
+    { id: 'basspit', label: 'Bass pit', obj: _bass },
+  ],
+});
+
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let down = null, dragged = false;
@@ -189,15 +201,16 @@ canvas.addEventListener('pointermove', (e) => {
   if (!down || e.pointerId !== down.id) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y;
   if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
-  controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
+  if (!admin.active) controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
   down.x = e.clientX; down.y = e.clientY;
 });
 canvas.addEventListener('pointerup', (e) => { canvas.classList.remove('drag'); if (down && !dragged) tap(e.clientX, e.clientY); down = null; });
 canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
 function tap(sx, sy) {
+  if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
-  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('SOFA KING SAD BOI — EPK', EPK_URL); return; }
+  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('SOFA KING SAD BOI — EPK', epkRef.url); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -27, 27); g.z = THREE.MathUtils.clamp(g.z, -27, 27); controls.walkTo(g); }
 }
@@ -230,9 +243,10 @@ function frame() {
   const p = Math.pow(1 - beatPhase, 2.0);            // beat pulse
   const wob = 0.5 + 0.5 * Math.sin(t * 5.0) * Math.sin(t * 1.7); // dubstep wobble
   controls.update(dt);
+  admin.update(dt);
   for (const u of updaters) u(dt, t, p, wob);
   updateZone(controls.pos);
-  renderer.render(scene, camera);
+  renderer.render(scene, admin.active ? admin.cam : camera);
 }
 controls.update(0);
 renderer.render(scene, camera);

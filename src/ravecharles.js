@@ -4,6 +4,7 @@ import { buildRaver } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createAdmin } from './scene/admin.js';
 const ambience = createAmbience(AMBIENCE.ravecharles);
 
 // RAVE CHARLES'S WORLD — the masked headliner, down in the pit with the crowd.
@@ -97,6 +98,7 @@ function buildPit() {
     for (const s of strobes) s.intensity = p > 0.82 ? 55 : s.intensity * 0.82;
     for (const c of crowd) { c.m.position.y = c.base + Math.max(0, Math.sin(t * 6 + c.ph)) * p * 1.6 * c.amp; c.m.rotation.z = Math.sin(t * 4 + c.ph) * 0.12; }
   });
+  return g;
 }
 
 // ---------- THE TOUR ROAD (east): glowing show-stops + city silhouettes ----------
@@ -142,7 +144,7 @@ function textPlane(text, color) {
   return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, fog: false }));
 }
 
-buildPit(); buildTour(); buildMask();
+const _pit = buildPit(); const _tour = buildTour(); const _mask = buildMask();
 
 // ambient: thick magenta haze in the pit for the strobes to cut through + motes
 updaters.push(addHaze(scene, { color: 0xff2b8f, count: 12, center: [0, 3, -14], area: [24, 7, 16], scale: 9, opacity: 0.07 }));
@@ -156,6 +158,17 @@ updaters.push((dt, t, p) => { if (rc.update) rc.update(t, p); });
 const controls = new WalkControls(camera, { bounds: 28, eye: 1.6, zMin: -18 });
 controls.pos.set(0, 1.6, 12); controls.yaw = 0;
 
+const epkRef = { url: EPK_URL };
+const admin = createAdmin({
+  scene, camera, renderer, controls, worldId: 'ravecharles', overhead: { ax: 25, az: 21, cz: -7 },
+  items: [
+    { id: 'ravecharles', label: 'Rave Charles', obj: rc.group },
+    { id: 'pit', label: 'Stage / EPK', obj: _pit, dest: epkRef },
+    { id: 'tour', label: 'Tour road', obj: _tour },
+    { id: 'mask', label: 'LED mask', obj: _mask },
+  ],
+});
+
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let down = null, dragged = false;
@@ -164,7 +177,7 @@ canvas.addEventListener('pointermove', (e) => {
   if (!down || e.pointerId !== down.id) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y;
   if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
-  controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
+  if (!admin.active) controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
   down.x = e.clientX; down.y = e.clientY;
 });
 canvas.addEventListener('pointerup', (e) => { canvas.classList.remove('drag'); if (down && !dragged) tap(e.clientX, e.clientY); down = null; });
@@ -172,7 +185,8 @@ canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.r
 function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
-  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('RAVE CHARLES — TOUR TIMELINE', EPK_URL); return; }
+  if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
+  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('RAVE CHARLES — TOUR TIMELINE', epkRef.url); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -27, 27); g.z = THREE.MathUtils.clamp(g.z, -27, 27); controls.walkTo(g); }
 }
@@ -203,9 +217,10 @@ function frame() {
   const t = clock.elapsedTime;
   const p = Math.pow(1 - ((t * (140 / 60)) % 1), 1.8); // 140bpm rave pulse
   controls.update(dt);
+  admin.update(dt);
   for (const u of updaters) u(dt, t, p);
   updateZone(controls.pos);
-  renderer.render(scene, camera);
+  renderer.render(scene, admin.active ? admin.cam : camera);
 }
 controls.update(0);
 renderer.render(scene, camera);

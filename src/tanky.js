@@ -4,6 +4,7 @@ import { buildCowboy } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createAdmin } from './scene/admin.js';
 const ambience = createAmbience(AMBIENCE.tanky);
 
 // TANKY JOHNSON'S WORLD — a cosmic western at dusk. A honky-tonk SALOON (EPK on
@@ -92,6 +93,7 @@ function buildSaloon() {
   const jl = new THREE.PointLight(0xff5aa0, 3, 8, 2); jl.position.set(0, 2, 1.4); jb.add(jl);
   epkProxy = new THREE.Mesh(new THREE.BoxGeometry(1.8, 3, 1.4), new THREE.MeshBasicMaterial({ visible: false })); epkProxy.position.set(0, 1.5, 0.3); jb.add(epkProxy);
   updaters.push((dt, t) => { jScrMat.uniforms.t.value = t; jl.intensity = 2.5 + Math.sin(t * 4) * 0.8; signL.intensity = 3.5 + Math.sin(t * 8) * 0.8; });
+  return g;
 }
 
 // ---------- TAILGATE (east): lifted truck + bonfire + hay bales ----------
@@ -115,6 +117,7 @@ function buildTailgate() {
     fire.intensity = 7 + Math.sin(t * 15) * 2 + Math.random();
     bulbs.forEach((b, i) => (b.material.color.setHSL(0.11, 0.7, 0.6 + Math.sin(t * 2 + i) * 0.12)));
   });
+  return g;
 }
 function buildTruck(parent) {
   const t = new THREE.Group(); t.position.set(0, 0, -3); t.rotation.y = -0.4; parent.add(t);
@@ -147,6 +150,7 @@ function buildDesert() {
   const tws = [];
   for (let i = 0; i < 3; i++) { const tw = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), std({ color: 0x6a4a2a, wireframe: true, emissive: C(0x2a1a10), emissiveIntensity: 0.4 })); tw.position.set(-10 + i * 8, 0.7, 12); g.add(tw); tws.push(tw); }
   updaters.push((dt, t) => { tws.forEach((w, i) => { w.position.x += dt * (1.4 + i * 0.3); w.rotation.z -= dt * 3; if (w.position.x > 30) w.position.x = -30; }); });
+  return g;
 }
 
 function textPlane(text, color) {
@@ -157,7 +161,7 @@ function textPlane(text, color) {
   return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, fog: false }));
 }
 
-buildSaloon(); buildTailgate(); buildDesert();
+const _saloon = buildSaloon(); const _tailgate = buildTailgate(); const _desert = buildDesert();
 
 // ambient: golden desert dust drifting + warm haze over the tailgate fire
 updaters.push(addMotes(scene, { color: 0xffd9a0, count: 200, area: [58, 14, 58], rise: 0.3, opacity: 0.4 }));
@@ -171,6 +175,17 @@ updaters.push((dt, t, p) => { if (tj.update) tj.update(t, p); });
 const controls = new WalkControls(camera, { bounds: 30, eye: 1.6, zMin: -26 });
 controls.pos.set(0, 1.6, 14); controls.yaw = 0;
 
+const epkRef = { url: EPK_URL };
+const admin = createAdmin({
+  scene, camera, renderer, controls, worldId: 'tanky', overhead: { ax: 32, az: 19, cz: -3 },
+  items: [
+    { id: 'tanky', label: 'Tanky Johnson', obj: tj.group },
+    { id: 'saloon', label: 'Saloon / EPK', obj: _saloon, dest: epkRef },
+    { id: 'tailgate', label: 'Truck + bonfire', obj: _tailgate },
+    { id: 'desert', label: 'Desert (mesas + cacti)', obj: _desert },
+  ],
+});
+
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let down = null, dragged = false;
@@ -179,7 +194,7 @@ canvas.addEventListener('pointermove', (e) => {
   if (!down || e.pointerId !== down.id) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y;
   if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
-  controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
+  if (!admin.active) controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
   down.x = e.clientX; down.y = e.clientY;
 });
 canvas.addEventListener('pointerup', (e) => { canvas.classList.remove('drag'); if (down && !dragged) tap(e.clientX, e.clientY); down = null; });
@@ -187,7 +202,8 @@ canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.r
 function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
-  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('TANKY JOHNSON — EPK', EPK_URL); return; }
+  if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
+  if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('TANKY JOHNSON — EPK', epkRef.url); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -29, 29); g.z = THREE.MathUtils.clamp(g.z, -25, 29); controls.walkTo(g); }
 }
@@ -218,9 +234,10 @@ function frame() {
   const t = clock.elapsedTime;
   const p = Math.pow(1 - ((t * (84 / 60)) % 1), 2.0);
   controls.update(dt);
+  admin.update(dt);
   for (const u of updaters) u(dt, t, p);
   updateZone(controls.pos);
-  renderer.render(scene, camera);
+  renderer.render(scene, admin.active ? admin.cam : camera);
 }
 controls.update(0);
 renderer.render(scene, camera);
