@@ -266,7 +266,77 @@ function buildRings(scene, controls) {
   return { update };
 }
 
-buildTemple(); buildMonolith(); buildMall(); buildLoFi();
+// ---------- DREAMOS WORKSTATION (moved in from the festival) ----------
+// A desk + CRT computer + office chair in the lo-fi nook. Click it to boot the
+// DreamOS Ecosystem in the in-site window.
+let dreamosProxy = null;
+const DREAMOS_URL = 'lab.html?folder=DreamOS%20Ecosystem';
+function buildDreamOS() {
+  const g = new THREE.Group(); g.position.set(-14, 0, 7); g.rotation.y = 0.5; scene.add(g);
+  const deskMat = std({ color: 0x2a1c2e, roughness: 0.6, metalness: 0.2 });
+  const beige = std({ color: 0xcfc6ae, roughness: 0.7 });
+  // desk
+  const top = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.16, 1.5), deskMat); top.position.set(0, 1.0, 0); top.castShadow = true; g.add(top);
+  for (const sx of [-1.5, 1.5]) for (const sz of [-0.55, 0.55]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.0, 0.14), deskMat); leg.position.set(sx, 0.5, sz); g.add(leg); }
+  // chunky CRT monitor
+  const mon = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.3, 1.1), beige); mon.position.set(0, 1.9, -0.25); mon.castShadow = true; g.add(mon);
+  const dosMat = new THREE.ShaderMaterial({
+    uniforms: { t: { value: 0 } },
+    vertexShader: `varying vec2 v; void main(){ v=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+    fragmentShader: `varying vec2 v; uniform float t;
+      float box(vec2 p, vec2 a, vec2 b){ return step(a.x,p.x)*step(p.x,b.x)*step(a.y,p.y)*step(p.y,b.y); }
+      void main(){ vec3 bg=vec3(0.02,0.16,0.20);
+        vec3 c=bg;
+        c += box(v, vec2(0.08,0.62), vec2(0.5,0.9))*vec3(0.0,0.6,0.55);   // a window
+        c += box(v, vec2(0.55,0.55), vec2(0.92,0.86))*vec3(0.05,0.35,0.5);
+        c += box(v, vec2(0.1,0.12), vec2(0.9,0.34))*vec3(0.0,0.28,0.32);  // taskbar-ish
+        float blink=step(0.5,fract(t*1.2)); c += box(v, vec2(0.12,0.2), vec2(0.16,0.28))*blink*vec3(0.2,1.0,0.7);
+        float scan=sin((v.y+t*0.25)*120.0)*0.5+0.5; c*=(0.75+0.25*scan);
+        gl_FragColor=vec4(c,1.0);} `,
+  });
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.36, 1.0), dosMat); scr.position.set(0, 1.95, 0.32); g.add(scr);
+  // keyboard + mouse
+  const kb = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.08, 0.42), std({ color: 0x141018 })); kb.position.set(0, 1.09, 0.5); g.add(kb);
+  const mouse = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.07, 0.3), std({ color: 0x141018 })); mouse.position.set(0.9, 1.09, 0.5); g.add(mouse);
+  // office chair (empty — sit down and mess with it)
+  const chair = new THREE.Group(); chair.position.set(0, 0, 1.7); chair.rotation.y = Math.PI;
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.16, 0.95), std({ color: 0x201826, roughness: 0.8 })); seat.position.y = 0.72; seat.castShadow = true; chair.add(seat);
+  const back = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.1, 0.15), std({ color: 0x201826, roughness: 0.8 })); back.position.set(0, 1.28, -0.4); chair.add(back);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.6, 8), std({ color: 0x0a0a10 })); stem.position.y = 0.4; chair.add(stem);
+  const wheels = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.07, 5), std({ color: 0x0a0a10 })); wheels.position.y = 0.08; chair.add(wheels);
+  g.add(chair);
+  const gl = new THREE.PointLight(0x39ffd0, 3, 9, 2); gl.position.set(0, 2.5, 0.8); g.add(gl);
+  const label = textPlane('DREAMOS ✧ sit + boot', '#39ffd0'); label.position.set(0, 3.1, 0); label.scale.set(3.6, 0.55, 1); g.add(label);
+  dreamosProxy = new THREE.Mesh(new THREE.BoxGeometry(3.6, 3.2, 2.8), new THREE.MeshBasicMaterial({ visible: false })); dreamosProxy.position.set(0, 1.6, 0.3); g.add(dreamosProxy);
+  updaters.push((dt, t, p) => { dosMat.uniforms.t.value = t; gl.intensity = 2.4 + Math.sin(t * 4) * 0.7 + p * 1.4; });
+}
+
+// ---------- DEADNET portal (moved in from the festival) ----------
+// A broken CRT monolith spitting static; click it to log into the dead internet.
+let deadnetProxy = null;
+const DEADNET_URL = 'https://deadnet.on.websim.com/';
+function buildDeadnet() {
+  const g = new THREE.Group(); g.position.set(21, 0, 11); g.rotation.y = -1.15; scene.add(g);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.6, 3.2, 1.5), std({ color: 0x0a0a14, metalness: 0.45, roughness: 0.55 })); body.position.y = 1.8; body.castShadow = true; g.add(body);
+  const stMat = new THREE.ShaderMaterial({
+    uniforms: { t: { value: 0 } },
+    vertexShader: `varying vec2 v; void main(){ v=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+    fragmentShader: `varying vec2 v; uniform float t;
+      float h(vec2 p){ return fract(sin(dot(p,vec2(12.9,78.2)))*43758.5); }
+      void main(){ float n=h(floor(v*vec2(90.0,120.0))+floor(t*24.0));
+        float band=step(0.86,fract(v.y*6.0 - t*1.4));
+        vec3 c=vec3(n)*0.7; c += band*vec3(0.72,0.4,1.0)*0.6;
+        c=mix(c, vec3(0.5,0.0,0.8), 0.15);
+        gl_FragColor=vec4(c,1.0);} `,
+  });
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.8), stMat); scr.position.set(0, 2.0, 0.77); g.add(scr);
+  const gl = new THREE.PointLight(0xb967ff, 3, 11, 2); gl.position.set(0, 2.2, 1.6); g.add(gl);
+  const label = textPlane('DEADNET // the dead internet', '#b967ff'); label.position.set(0, 3.7, 0.3); label.scale.set(3.4, 0.5, 1); g.add(label);
+  deadnetProxy = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.6, 1.9), new THREE.MeshBasicMaterial({ visible: false })); deadnetProxy.position.set(0, 1.9, 0.3); g.add(deadnetProxy);
+  updaters.push((dt, t, p) => { stMat.uniforms.t.value = t; gl.intensity = 2 + Math.sin(t * 9) * 1.4 + p; });
+}
+
+buildTemple(); buildMonolith(); buildMall(); buildLoFi(); buildDreamOS(); buildDeadnet();
 
 // ambient drift: warm motes across the dream + soft pink haze in the temple
 updaters.push(addMotes(scene, { color: 0xffd27a, count: 220, area: [56, 16, 60], opacity: 0.45 }));
@@ -299,6 +369,8 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('DRIFTWAVE STATIC — EPK', EPK_URL); return; }
+  if (dreamosProxy && ray.intersectObject(dreamosProxy, false)[0]) { openWindow('DREAMOS ECOSYSTEM', DREAMOS_URL); return; }
+  if (deadnetProxy && ray.intersectObject(deadnetProxy, false)[0]) { openWindow('DEADNET — the dead internet', DEADNET_URL); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -27, 27); g.z = THREE.MathUtils.clamp(g.z, -27, 27); controls.walkTo(g); }
 }

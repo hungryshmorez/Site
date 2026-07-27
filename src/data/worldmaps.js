@@ -45,11 +45,9 @@ export const WORLD_MAPS = [
       it('12matt3r', 0, -6, 'person'),
       // perimeter vendors — left wall = vendor/tech alley
       it('Arcade', 27, -10, 'game'),
-      it('Deadnet portal', -25, -3, 'structure'),
       it('TV', -25, -15, 'structure'),
       it('Merch store', -25, 4, 'structure'),
       it("Porta John's", 24, 10, 'structure'),
-      it('Lab: DreamOS kiosk', -25, -9, 'structure'),
       it('Lab: Tools kiosk', 26, -3, 'structure'),
       // props / world dressing
       it('Props dealer', -13, -13, 'prop'),
@@ -81,6 +79,8 @@ export const WORLD_MAPS = [
       it('Temple columns (back row)', 3, -25, 'structure'),
       it('Fountain', 13, 2, 'prop'),
       it('Lo-fi nook (west)', -20, 2, 'structure'),
+      it('DreamOS workstation', -14, 7, 'structure'),
+      it('Deadnet portal', 21, 11, 'structure'),
       it('Parkour spiral — base', 16, -6, 'game'),
       it('Ring 1 (summit launch)', 15, 9, 'game'),
       it('Ring 2', 12, 2.5, 'game'),

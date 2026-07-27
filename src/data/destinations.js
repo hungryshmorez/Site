@@ -97,28 +97,12 @@ export const DESTINATIONS = [
     cta: 'Step into the midway',
   },
   {
-    id: 'deadnet', name: 'DEADNET', model: 'deadnet',
-    role: 'the digital afterlife // by the arcade', accent: PALETTE.purple,
-    pos: [-25, 0, -3], tag: 'alt web · a self-generating dead internet',
-    url: 'https://deadnet.on.websim.com/',
-    blurb: 'Off in a lonely corner, a broken CRT monolith flickers with a web that never really existed — Deadnet, the digital afterlife. A self-generating, non-real internet you can wander into. Nobody comes back the same.',
-    cta: 'Log into the afterlife',
-  },
-  {
     id: 'labs', name: 'THE LAB', model: 'labsstage',
     role: 'the side stage // experiments', accent: PALETTE.green,
     pos: [0, 0, 22], tag: 'games · wake up · stories · tools',
     page: 'lab.html',
     blurb: 'The Lab is its own side stage: big screens over a deck loaded with the playable side of 12matt3r — the full launcher for every folder. Prefer a single aisle? The lab-market kiosks on the left flank (DreamOS, Wake Up, Stories, Tools) each boot straight to their section. Reach it to boot the whole Lab.',
     cta: 'Enter the Lab',
-  },
-  {
-    id: 'lab_dreamos', name: 'DREAMOS AISLE', model: 'kiosk',
-    role: 'lab market // OS builds', accent: PALETTE.cyan,
-    pos: [-25, 0, -9], tag: 'wake-up nodes · OS builds',
-    page: 'lab.html?folder=DreamOS%20Ecosystem',
-    blurb: 'A lab-market kiosk. Boots straight to the DreamOS Ecosystem aisle — every wake-up node and OS build in the catalog.',
-    cta: 'Open the DreamOS aisle',
   },
   {
     id: 'lab_tools', name: 'TOOLS AISLE', model: 'kiosk',
