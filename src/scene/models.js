@@ -377,6 +377,33 @@ export function buildStall(accent = '#39FF14') {
   // vendor person behind counter
   const vend = buildMarshmallow('#39FF14').group; vend.scale.setScalar(0.62); vend.position.set(0, 0.35, 0.2); g.add(vend);
   const gl = new THREE.PointLight(accent, 5, 8, 2); gl.position.set(0, 2.2, 1); g.add(gl);
+
+  // ---- merch on display so it reads as a real merch tent ----
+  const merchCols = [0xff2b8f, 0x00f3ff, 0x39ff14, 0xffd24a, 0xb967ff];
+  // folded-shirt stacks along the counter top (counter top ~y 0.9, z 1)
+  for (let i = 0; i < 4; i++) {
+    const stack = new THREE.Group(); stack.position.set(-1.1 + i * 0.72, 0.92, 1.02);
+    for (let j = 0; j < 3; j++) { const sh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.42), std({ color: merchCols[(i + j) % merchCols.length], roughness: 0.8, emissive: new THREE.Color(merchCols[(i + j) % merchCols.length]), emissiveIntensity: 0.12 })); sh.position.y = j * 0.09; stack.add(sh); }
+    g.add(stack);
+  }
+  // a hanging-shirt rack behind the vendor: a bar on two uprights with tees
+  const rackMat = std({ color: 0x14141c, metalness: 0.6, roughness: 0.5 });
+  for (const rx of [-1.2, 1.2]) { const up = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.7, 8), rackMat); up.position.set(rx, 0.85, -1.05); g.add(up); }
+  const rackBar = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.6, 8), rackMat); rackBar.rotation.z = Math.PI / 2; rackBar.position.set(0, 1.62, -1.05); g.add(rackBar);
+  for (let i = 0; i < 5; i++) {
+    const col = merchCols[i % merchCols.length];
+    const tee = new THREE.Group(); tee.position.set(-1.0 + i * 0.5, 1.15, -1.05);
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.5, 0.06), std({ color: col, roughness: 0.85, emissive: new THREE.Color(col), emissiveIntensity: 0.15 })); tee.add(torso);
+    for (const sx of [-1, 1]) { const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.16, 0.06), torso.material); sleeve.position.set(sx * 0.24, 0.16, 0); sleeve.rotation.z = sx * 0.5; tee.add(sleeve); }
+    const hook = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.012, 6, 10), rackMat); hook.position.y = 0.32; tee.add(hook);
+    g.add(tee);
+  }
+  // a couple of caps stacked at the end of the counter
+  for (let i = 0; i < 2; i++) {
+    const cap = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), std({ color: merchCols[i], roughness: 0.8, emissive: new THREE.Color(merchCols[i]), emissiveIntensity: 0.12 }));
+    cap.position.set(1.28, 0.95 + i * 0.12, 1.0); g.add(cap);
+    const brim = new THREE.Mesh(new THREE.CircleGeometry(0.15, 12, 0, Math.PI), std({ color: merchCols[i], roughness: 0.8 })); brim.rotation.x = -Math.PI / 2; brim.position.set(1.28, 0.95 + i * 0.12, 1.14); g.add(brim);
+  }
   return { group: g, update: (t, pulse) => { sign.material.emissiveIntensity = 0.5 + pulse * 0.6; } };
 }
 function makeStripes(accent) {
