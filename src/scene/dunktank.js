@@ -14,12 +14,19 @@ export function buildDunkTank(scene, { pos = [5, 7], accent = '#00f3ff', onDunk 
   const col = new THREE.Color(accent);
   scene.add(g);
 
-  // tank + water
-  const tank = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 1.8, 20), std({ color: 0x0e2a3a, metalness: 0.4, roughness: 0.4 })); tank.position.set(0, 0.9, -1.2); g.add(tank);
+  // tank + water — a brighter carnival barrel so it doesn't read as a black blob
+  const tank = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 1.8, 20), std({ color: 0x14506a, metalness: 0.4, roughness: 0.4, emissive: new THREE.Color(0x0a2a3a), emissiveIntensity: 0.35 })); tank.position.set(0, 0.9, -1.2); g.add(tank);
+  // a glowing rim band at the waterline + a base ring, tying it to the accent
+  const rim = new THREE.Mesh(new THREE.CylinderGeometry(1.84, 1.84, 0.22, 20, 1, true), std({ color: 0x02121a, emissive: col, emissiveIntensity: 0.9, side: THREE.DoubleSide })); rim.position.set(0, 1.72, -1.2); g.add(rim);
+  const baseRing = new THREE.Mesh(new THREE.CylinderGeometry(1.86, 1.9, 0.18, 20, 1, true), std({ color: 0x02121a, emissive: col, emissiveIntensity: 0.55, side: THREE.DoubleSide })); baseRing.position.set(0, 0.12, -1.2); g.add(baseRing);
   const water = new THREE.Mesh(new THREE.CylinderGeometry(1.65, 1.65, 0.3, 20), std({ color: 0x2aa8ff, transparent: true, opacity: 0.7, emissive: col, emissiveIntensity: 0.4, metalness: 0.5, roughness: 0.1 })); water.position.set(0, 1.7, -1.2); g.add(water);
-  // frame + drop seat
-  const frameMat = std({ color: 0x14141c, metalness: 0.6, roughness: 0.5 });
-  for (const sx of [-1.7, 1.7]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 3.6, 8), frameMat); p.position.set(sx, 1.8, -1.2); g.add(p); }
+  // frame + drop seat — candy-stripe uprights read as a carnival rig
+  const frameMat = std({ color: 0xf4f0f6, metalness: 0.3, roughness: 0.5, emissive: col, emissiveIntensity: 0.12 });
+  const stripeCv = document.createElement('canvas'); stripeCv.width = 16; stripeCv.height = 64; const sx0 = stripeCv.getContext('2d');
+  for (let i = 0; i < 8; i++) { sx0.fillStyle = i % 2 ? '#ff2b5e' : '#f4f0f6'; sx0.fillRect(0, i * 8, 16, 8); }
+  const stripeTex = new THREE.CanvasTexture(stripeCv); stripeTex.wrapS = stripeTex.wrapT = THREE.RepeatWrapping; stripeTex.repeat.set(1, 3); stripeTex.colorSpace = THREE.SRGBColorSpace;
+  const poleMat = std({ map: stripeTex, roughness: 0.6, emissive: col, emissiveIntensity: 0.1 });
+  for (const sx of [-1.7, 1.7]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 3.6, 8), poleMat); p.position.set(sx, 1.8, -1.2); g.add(p); }
   const bar = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.15, 0.15), frameMat); bar.position.set(0, 3.5, -1.2); g.add(bar);
   const seat = new THREE.Group(); seat.position.set(0, 2.9, -1.2); g.add(seat);
   const plank = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.14, 0.5), std({ color: 0x3a2a16, roughness: 0.8 })); plank.position.set(0, 0, 0.3); seat.add(plank);
