@@ -75,11 +75,19 @@ function buildSaloon() {
   // swinging doors + windows glowing warm
   const doorMat = std({ color: 0x3a2616, roughness: 0.8 });
   for (const dx of [-0.7, 0.7]) { const d = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.4, 0.12), doorMat); d.position.set(dx, 1.5, 3.05); g.add(d); }
-  for (const wx of [-4.5, 4.5]) { const win = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2), std({ color: 0x2a1000, emissive: C(0xffa63c), emissiveIntensity: 0.9 })); win.position.set(wx, 3, 3.06); g.add(win); }
+  for (const wx of [-4.5, 4.5]) {
+    const win = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 2), std({ color: 0x3a1800, emissive: C(0xffb454), emissiveIntensity: 1.4 })); win.position.set(wx, 3, 3.06); g.add(win);
+    const wl = new THREE.PointLight(0xffb060, 2.4, 9, 2); wl.position.set(wx, 3, 4.4); g.add(wl); // warm spill onto the porch
+  }
+  // strung porch lanterns under the awning — the honky-tonk glow
+  for (const lx of [-5, -2.5, 0, 2.5, 5]) {
+    const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffca7a }));
+    lantern.position.set(lx, 5.1, 5.6); g.add(lantern);
+  }
   // neon sign
   const sign = textPlane('★ TANKY’S ★', '#ff8a3c'); sign.position.set(0, 7, 3.3); sign.scale.set(7, 1.2, 1); g.add(sign);
   const signL = new THREE.PointLight(0xff8a3c, 4, 16, 2); signL.position.set(0, 6.5, 6); g.add(signL);
-  const warm = new THREE.PointLight(0xffb060, 5, 18, 2); warm.position.set(0, 3, 6); g.add(warm);
+  const warm = new THREE.PointLight(0xffb060, 7, 22, 2); warm.position.set(0, 3.5, 7); g.add(warm);
   // the JUKEBOX out on the porch — the EPK
   const jb = new THREE.Group(); jb.position.set(4.5, 0, 6.2); g.add(jb);
   const cabinet = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.6, 1), std({ color: 0x3a1030, roughness: 0.5, metalness: 0.3 })); cabinet.position.y = 1.3; cabinet.castShadow = true; jb.add(cabinet);

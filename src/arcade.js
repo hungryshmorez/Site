@@ -68,8 +68,14 @@ const clickables = [];
 function buildCabinet(x, z, label, accent, onClick) {
   const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = Math.atan2(0 - x, 2 - z); // face inward
   const col = C(accent);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 3.2, 1.3), std({ color: 0x140a1e, roughness: 0.6, metalness: 0.3 })); body.position.y = 1.6; body.castShadow = true; g.add(body);
-  const hood = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.4, 1.5), std({ color: 0x0a0512, emissive: col, emissiveIntensity: 0.4 })); hood.position.set(0, 3.3, 0.1); g.add(hood);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 3.2, 1.3), std({ color: 0x2a1c3a, roughness: 0.55, metalness: 0.35 })); body.position.y = 1.6; body.castShadow = true; g.add(body);
+  const hood = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.4, 1.5), std({ color: 0x0a0512, emissive: col, emissiveIntensity: 0.6 })); hood.position.set(0, 3.3, 0.1); g.add(hood);
+  // glowing neon side-trim so the cabinet reads as a machine, not a black slab
+  for (const sx of [-0.92, 0.92]) {
+    const trim = new THREE.Mesh(new THREE.BoxGeometry(0.06, 3.0, 1.34), std({ color: 0x02121a, emissive: col, emissiveIntensity: 0.9 }));
+    trim.position.set(sx, 1.6, 0); g.add(trim);
+  }
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.3, 1.4), std({ color: 0x02121a, emissive: col, emissiveIntensity: 0.55 })); base.position.set(0, 0.15, 0); g.add(base);
   const scrMat = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 }, col: { value: col } },
     vertexShader: `varying vec2 v; void main(){ v=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
     fragmentShader: `varying vec2 v; uniform float t; uniform vec3 col;
