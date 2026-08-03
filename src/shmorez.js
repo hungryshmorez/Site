@@ -43,11 +43,17 @@ const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 24
   scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xfff0d0, size: 0.5, transparent: true, opacity: 0.8 })));
 }
 
-// ---------- grassy ground ----------
+// ---------- campground ground: warm dirt, grass patches, graham crumbs ----------
 {
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), std({ color: 0x1f1a0e, roughness: 1, emissive: C(0x140a04), emissiveIntensity: 0.25 }));
-  floor.rotation.x = -Math.PI / 2; scene.add(floor);
-  const grid = new THREE.GridHelper(160, 50, 0xff6b35, 0x3a1c0c); grid.material.transparent = true; grid.material.opacity = 0.08; grid.position.y = 0.02; scene.add(grid);
+  const cv = document.createElement('canvas'); cv.width = cv.height = 256; const x = cv.getContext('2d');
+  x.fillStyle = '#3a2a14'; x.fillRect(0, 0, 256, 256);                        // warm dirt base
+  for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(${60 + Math.random() * 40 | 0},${44 + Math.random() * 30 | 0},20,0.5)`; const s = 8 + Math.random() * 34; x.fillRect(Math.random() * 256, Math.random() * 256, s, s * 0.7); }
+  for (let i = 0; i < 60; i++) { x.fillStyle = `rgba(${40 + Math.random() * 30 | 0},${70 + Math.random() * 40 | 0},24,0.45)`; x.beginPath(); x.arc(Math.random() * 256, Math.random() * 256, 4 + Math.random() * 12, 0, 7); x.fill(); } // mossy grass tufts
+  for (let i = 0; i < 240; i++) { x.fillStyle = Math.random() < 0.5 ? 'rgba(214,168,96,0.55)' : 'rgba(90,60,30,0.6)'; const s = 1 + Math.random() * 3; x.fillRect(Math.random() * 256, Math.random() * 256, s, s); } // graham-cracker crumbs
+  const tex = new THREE.CanvasTexture(cv); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(26, 26); tex.colorSpace = THREE.SRGBColorSpace;
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), std({ map: tex, roughness: 1, emissive: C(0x1c1206), emissiveIntensity: 0.22 }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+  const grid = new THREE.GridHelper(160, 50, 0xff6b35, 0x3a1c0c); grid.material.transparent = true; grid.material.opacity = 0.06; grid.position.y = 0.02; scene.add(grid);
 }
 scene.add(new THREE.HemisphereLight(0xffb060, 0x2a160a, 1.15));
 const shKey = new THREE.DirectionalLight(0xffd6a0, 0.6); shKey.position.set(10, 16, 14); scene.add(shKey);
@@ -76,6 +82,14 @@ function buildBonfire() {
     const a = (i / 5) * Math.PI * 2 + 0.3; const bx = Math.cos(a) * 5, bz = Math.sin(a) * 5;
     const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 4, 6), std({ color: 0x3a2814 })); stick.position.set((bx) * 0.6, 1.2, (bz) * 0.6); stick.lookAt(0, 1.8, 0); stick.rotateX(Math.PI / 2); g.add(stick);
     const m = marsh(0.28, 0.42); m.position.set(bx * 0.28, 1.7, bz * 0.28); m.material = std({ color: 0xffcf8a, emissive: C(0xff6a1a), emissiveIntensity: 0.5, roughness: 0.7 }); g.add(m); // toasted
+  }
+  // log-bench seats ringing the fire (gap left open toward the front)
+  const benchMat = std({ color: 0x3a2412, roughness: 0.92 });
+  for (const a of [Math.PI * 0.35, Math.PI * 0.75, Math.PI * 1.25, Math.PI * 1.65]) {
+    const bx = Math.cos(a) * 4.8, bz = Math.sin(a) * 4.8;
+    const bench = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 3.2, 10), benchMat);
+    bench.rotation.z = Math.PI / 2; bench.position.set(bx, 0.42, bz); bench.rotation.y = a + Math.PI / 2; bench.castShadow = true; g.add(bench);
+    for (const e of [-1, 1]) { const stump = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.18, 0.42, 8), benchMat); stump.position.set(bx + Math.cos(a + Math.PI / 2) * e * 1.3, 0.21, bz + Math.sin(a + Math.PI / 2) * e * 1.3); g.add(stump); }
   }
   // embers drifting up
   const N = 160; const pos = new Float32Array(N * 3); const seed = [];
