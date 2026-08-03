@@ -22,7 +22,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 1.3;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x03060a);
@@ -47,7 +47,9 @@ const RW = 17, H = 9;
   const ceil = new THREE.Mesh(new THREE.PlaneGeometry(RW * 2, RW * 2), std({ color: 0x05060c, roughness: 1 })); ceil.rotation.x = Math.PI / 2; ceil.position.y = H; scene.add(ceil);
   const grid = new THREE.GridHelper(RW * 2, 34, 0x00f3ff, 0x1a0a30); grid.material.transparent = true; grid.material.opacity = 0.14; grid.position.y = 0.02; scene.add(grid);
 }
-scene.add(new THREE.HemisphereLight(0x2a3a5a, 0x03060a, 0.5));
+scene.add(new THREE.HemisphereLight(0x3a5a8a, 0x08101a, 1.1));
+const stKey = new THREE.DirectionalLight(0x9fd8ff, 0.7); stKey.position.set(8, 16, 12); scene.add(stKey);
+scene.add(new THREE.AmbientLight(0xbfe0ff, 0.38));
 
 // ---------- shared CRT-screen shader (glitch OR plasma) ----------
 const screenMats = [];

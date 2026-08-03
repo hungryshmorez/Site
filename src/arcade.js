@@ -20,7 +20,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.06;
+renderer.toneMappingExposure = 1.24;
 renderer.shadowMap.enabled = !isMobile;
 
 const scene = new THREE.Scene();
@@ -40,7 +40,8 @@ const screenMats = [];
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
   const grid = new THREE.GridHelper(44, 22, 0xff0055, 0x2a1030); grid.material.transparent = true; grid.material.opacity = 0.16; grid.position.y = 0.02; scene.add(grid);
 }
-scene.add(new THREE.HemisphereLight(0x5a2a4a, 0x120416, 0.7));
+scene.add(new THREE.HemisphereLight(0x8a4a6a, 0x1e0a20, 1.3));
+const arcKey = new THREE.DirectionalLight(0xffe0c0, 0.6); arcKey.position.set(0, 18, 6); scene.add(arcKey);
 
 // ---------- the big-top tent ----------
 {

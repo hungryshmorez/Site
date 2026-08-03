@@ -4,7 +4,7 @@ import { PALETTE } from '../data/destinations.js';
 
 // one low-poly humanoid, merged into a single geometry so the whole crowd is
 // still a single instanced draw call — but reads as people, not pills.
-function makePersonGeo() {
+export function makePersonGeo() {
   const parts = [];
   const leg = (x) => { const l = new THREE.CapsuleGeometry(0.085, 0.5, 2, 5); l.translate(x, 0.36, 0); return l; };
   parts.push(leg(-0.1), leg(0.1));

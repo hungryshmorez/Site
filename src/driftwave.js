@@ -22,7 +22,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.08;
+renderer.toneMappingExposure = 1.2;
 renderer.shadowMap.enabled = !isMobile;
 
 const scene = new THREE.Scene();
@@ -68,8 +68,9 @@ const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 22
 }
 
 // ---------- lights ----------
-scene.add(new THREE.HemisphereLight(0xff9ecb, 0x2a0a4a, 0.9));
-const key = new THREE.DirectionalLight(0xffd9f0, 0.7); key.position.set(-8, 18, -20); scene.add(key);
+scene.add(new THREE.HemisphereLight(0xff9ecb, 0x2a0a4a, 1.15));
+const key = new THREE.DirectionalLight(0xffd9f0, 1.05); key.position.set(-8, 18, -20); scene.add(key);
+const fill = new THREE.DirectionalLight(0x9fd8ff, 0.5); fill.position.set(12, 10, 16); scene.add(fill);
 
 const updaters = [];
 

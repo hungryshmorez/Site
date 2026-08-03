@@ -22,7 +22,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.08;
+renderer.toneMappingExposure = 1.2;
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x2a1226, 0.017);
@@ -53,8 +53,9 @@ const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 26
   // dirt road up to the saloon
   const road = new THREE.Mesh(new THREE.PlaneGeometry(6, 60), std({ color: 0x2a1a10, roughness: 1 })); road.rotation.x = -Math.PI / 2; road.position.set(0, 0.03, 0); scene.add(road);
 }
-scene.add(new THREE.HemisphereLight(0xffb878, 0x2a1226, 0.7));
-const moonLight = new THREE.DirectionalLight(0xffd0a0, 0.4); moonLight.position.set(-20, 24, -30); scene.add(moonLight);
+scene.add(new THREE.HemisphereLight(0xffc490, 0x3a1a2e, 1.05));
+const moonLight = new THREE.DirectionalLight(0xffd8b0, 0.75); moonLight.position.set(-20, 24, -30); scene.add(moonLight);
+const tKey = new THREE.DirectionalLight(0xff9a6a, 0.35); tKey.position.set(16, 10, 14); scene.add(tKey);
 
 const updaters = [];
 

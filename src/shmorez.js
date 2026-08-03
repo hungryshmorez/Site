@@ -22,7 +22,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 1.24;
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x1c0e06, 0.02);
@@ -49,7 +49,8 @@ const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 24
   floor.rotation.x = -Math.PI / 2; scene.add(floor);
   const grid = new THREE.GridHelper(160, 50, 0xff6b35, 0x3a1c0c); grid.material.transparent = true; grid.material.opacity = 0.08; grid.position.y = 0.02; scene.add(grid);
 }
-scene.add(new THREE.HemisphereLight(0xff9a4a, 0x1c0e06, 0.7));
+scene.add(new THREE.HemisphereLight(0xffb060, 0x2a160a, 1.15));
+const shKey = new THREE.DirectionalLight(0xffd6a0, 0.6); shKey.position.set(10, 16, 14); scene.add(shKey);
 
 const updaters = [];
 

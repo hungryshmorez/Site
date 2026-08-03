@@ -5,6 +5,7 @@ import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createAdmin } from './scene/admin.js';
+import { makePersonGeo } from './scene/crowd.js';
 const ambience = createAmbience(AMBIENCE.ravecharles);
 
 // RAVE CHARLES'S WORLD — the masked headliner, down in the pit with the crowd.
@@ -22,7 +23,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 1.3;
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x14020c, 0.02);
@@ -50,7 +51,10 @@ const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 24
   floor.rotation.x = -Math.PI / 2; scene.add(floor);
   const grid = new THREE.GridHelper(140, 70, 0xff0055, 0x00f3ff); grid.material.transparent = true; grid.material.opacity = 0.16; grid.position.y = 0.02; scene.add(grid);
 }
-scene.add(new THREE.HemisphereLight(0x5a1030, 0x0a0208, 0.7));
+scene.add(new THREE.HemisphereLight(0x8a2a50, 0x140409, 1.2));
+const rcKey = new THREE.DirectionalLight(0xff9ecb, 0.7); rcKey.position.set(0, 18, 20); scene.add(rcKey);
+const rcFill = new THREE.DirectionalLight(0x6a9fff, 0.4); rcFill.position.set(-14, 12, 6); scene.add(rcFill);
+scene.add(new THREE.AmbientLight(0xffc0d0, 0.35));
 
 const updaters = [];
 
@@ -83,14 +87,15 @@ function buildPit() {
   for (const px of [-7, 0, 7]) { const l = new THREE.SpotLight(0xff2b8f, 0, 40, Math.PI / 6, 0.4, 1.2); l.position.set(px, 10.4, -25); l.target.position.set(px * 1.4, 0, 4); g.add(l); g.add(l.target); strobes.push(l); }
   const screenLight = new THREE.PointLight(0xff0055, 5, 30, 2); screenLight.position.set(0, 6, -20); g.add(screenLight);
 
-  // mosh crowd — a dense field of silhouettes that jump to the beat
+  // mosh crowd — a dense field of PEOPLE that jump to the beat
   const crowd = [];
-  const dark = std({ color: 0x08040a, roughness: 1 });
+  const dark = std({ color: 0x0a060e, roughness: 1 });
+  const moshGeo = makePersonGeo();
   for (let i = 0; i < 90; i++) {
-    const p = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 1.0, 4, 6), dark);
+    const p = new THREE.Mesh(moshGeo, dark);
     const x = (Math.random() - 0.5) * 22, z = -16 + Math.random() * 15;
-    p.position.set(x, 0.9, z); p.castShadow = false; g.add(p);
-    crowd.push({ m: p, base: 0.9, ph: Math.random() * 6.28, amp: 0.3 + Math.random() * 0.5 });
+    p.position.set(x, 0, z); p.rotation.y = Math.atan2(0 - x, -25 - z); p.castShadow = false; g.add(p);
+    crowd.push({ m: p, base: 0, ph: Math.random() * 6.28, amp: 0.3 + Math.random() * 0.5 });
   }
   updaters.push((dt, t, p) => {
     scrMat.uniforms.t.value = t; screenLight.intensity = 4 + p * 6;

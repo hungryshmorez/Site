@@ -22,11 +22,11 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.02;
+renderer.toneMappingExposure = 1.35;
 renderer.shadowMap.enabled = !isMobile;
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x08081e, 0.026);
+scene.fog = new THREE.FogExp2(0x131538, 0.017);
 const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 220);
 
 // ---------- stormy night sky ----------
@@ -52,15 +52,19 @@ const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 22
 }
 
 // ---------- lights (dim, moody) ----------
-scene.add(new THREE.HemisphereLight(0x3a3a80, 0x05050f, 0.6));
-const moon = new THREE.DirectionalLight(0x8a90ff, 0.35); moon.position.set(6, 20, 10); scene.add(moon);
+scene.add(new THREE.HemisphereLight(0x5a5ab0, 0x0a0a1a, 1.15));
+const moon = new THREE.DirectionalLight(0x9aa0ff, 0.8); moon.position.set(6, 20, 10); scene.add(moon);
+const fillL = new THREE.DirectionalLight(0x6a6cff, 0.45); fillL.position.set(-10, 12, 14); scene.add(fillL);
+scene.add(new THREE.AmbientLight(0xbfc4ff, 0.4));
 
 const updaters = [];
 
 // ---------- a reusable couch ----------
 function buildCouch({ color = 0x4a3a6a, s = 1 } = {}) {
   const g = new THREE.Group();
-  const m = std({ color, roughness: 0.95 });
+  // self-lit fabric — the dark palette reads much better with a touch of
+  // emissive so couches don't sink into the indigo gloom.
+  const m = std({ color, roughness: 0.9, emissive: C(color), emissiveIntensity: 0.28 });
   const seat = new THREE.Mesh(new THREE.BoxGeometry(2.4 * s, 0.7 * s, 1.2 * s), m); seat.position.y = 0.55 * s; seat.castShadow = true; g.add(seat);
   const back = new THREE.Mesh(new THREE.BoxGeometry(2.4 * s, 1.1 * s, 0.4 * s), m); back.position.set(0, 1.1 * s, -0.5 * s); g.add(back);
   for (const ax of [-1.1 * s, 1.1 * s]) { const arm = new THREE.Mesh(new THREE.BoxGeometry(0.35 * s, 0.95 * s, 1.3 * s), m); arm.position.set(ax, 0.75 * s, 0); g.add(arm); }
@@ -76,7 +80,7 @@ function buildThrone() {
   const dais = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 6.2, 0.7, 6), std({ color: 0x1a1030, roughness: 0.8 })); dais.position.y = 0.35; dais.receiveShadow = true; g.add(dais);
   const carpet = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 20), std({ color: 0x5a1030, roughness: 0.95, emissive: C(0x2a0010), emissiveIntensity: 0.25 })); carpet.rotation.x = -Math.PI / 2; carpet.position.set(0, 0.03, 11); g.add(carpet);
   // the giant sofa throne
-  const throne = buildCouch({ color: 0x3a2a6a, s: 2.2 }); throne.position.set(0, 0.7, 0); g.add(throne);
+  const throne = buildCouch({ color: 0x5a44a0, s: 2.2 }); throne.position.set(0, 0.7, 0); g.add(throne);
   // a crown floating over it
   const crown = new THREE.Group(); crown.position.set(0, 5.6, -0.5);
   const band = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.35, 20, 1, true), std({ color: 0xffd24a, metalness: 0.9, roughness: 0.25, emissive: C(0x6a5010), emissiveIntensity: 0.5, side: THREE.DoubleSide })); crown.add(band);
@@ -112,7 +116,7 @@ function buildThrone() {
 
 // ---------- COUCH KINGDOM (a sea of couches) ----------
 function buildCouchField() {
-  const cols = [0x4a3a6a, 0x3a4a7a, 0x5a3a5a, 0x3a3a5a, 0x4a2a4a, 0x2a3a6a];
+  const cols = [0x6a54a0, 0x5468b0, 0x8054a0, 0x5a5a90, 0x7a4a80, 0x4a5aa0];
   const spots = [[-14, 2], [-9, 8], [-16, 10], [-6, 13], [-13, -2], [-19, 4], [12, 14], [7, 10], [16, 6], [10, 2], [-20, 14], [4, 16], [-3, 9], [18, 12]];
   spots.forEach(([x, z], i) => {
     const c = buildCouch({ color: cols[i % cols.length], s: 0.8 + (i % 3) * 0.25 });
