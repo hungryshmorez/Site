@@ -29,7 +29,14 @@ export function buildDistortion(scene, { fields = [] } = {}) {
     const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(f.r || 3.4, 4), mat);
     mesh.position.set(f.pos[0], (f.r || 3.4) * 0.8, f.pos[1]);
     mesh.frustumCulled = false; scene.add(mesh);
-    list.push({ mesh, mat, x: f.pos[0], z: f.pos[1], r: f.r || 3.4, id: f.id });
+    // a glowing footprint ring on the ground so the trip zone is discoverable
+    // from across the grounds (otherwise you only find it by walking in blind).
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry((f.r || 3.4) - 0.5, (f.r || 3.4) + 0.1, 48),
+      new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.4, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })
+    );
+    ring.rotation.x = -Math.PI / 2; ring.position.set(f.pos[0], 0.04, f.pos[1]); ring.frustumCulled = false; scene.add(ring);
+    list.push({ mesh, mat, ring, x: f.pos[0], z: f.pos[1], r: f.r || 3.4, id: f.id });
   }
 
   // returns the id of the field the player is standing in, or null
@@ -41,6 +48,8 @@ export function buildDistortion(scene, { fields = [] } = {}) {
       const d = Math.hypot(playerPos.x - f.x, playerPos.z - f.z);
       if (d < f.r) inside = f.id;
       f.mesh.scale.setScalar(1 + pulse * 0.06 + Math.sin(time * 1.5 + f.x) * 0.03);
+      // the footprint ring breathes and flares brighter as you get near it
+      if (f.ring) { const near = Math.max(0, 1 - d / (f.r * 2.4)); f.ring.material.opacity = 0.28 + pulse * 0.2 + near * 0.4; f.ring.scale.setScalar(1 + Math.sin(time * 2 + f.x) * 0.02); }
     }
     return inside;
   }
