@@ -180,7 +180,7 @@ const tailgate = buildTailgate(scene, {
 
 // Sofa King's elevated lounge (riser + audience couches) at his spot. The
 // audience side (-Z) points at center, so the couches sit between him and it.
-const LOUNGE_POS = [-25, 11];
+const LOUNGE_POS = [11, -6];   // on Sofa King's spot so he sits centered on the riser
 const lounge = buildLounge(scene, { pos: LOUNGE_POS, rot: faceCenter(LOUNGE_POS[0], LOUNGE_POS[1]) + Math.PI });
 
 // the 12matt3r hub board → walk up, read news, sign the guest book
@@ -687,7 +687,7 @@ function frame() {
     if (activeDrug) { drugTime -= dt; if (drugHudEl) drugHudEl.textContent = `💊 ${DRUGS.find((d) => d.id === activeDrug).name} · ${Math.ceil(drugTime)}s`; if (drugTime <= 0) endDrug(); }
     if (pongHudEl) pongHudEl.classList.toggle('on', tailgate.near(controls.pos));
     // walk through the arcade tent's doorway → step right into the arcade
-    if (!warping && !admin.active && arcadeWP && controls.pos.distanceTo(arcadeWP) < 3.4) enterDestination(arcadeDest);
+    if (!warping && !admin.active && arcadeWP && controls.pos.distanceTo(arcadeWP) < 5) enterDestination(arcadeDest);
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }

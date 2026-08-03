@@ -6,12 +6,14 @@ import * as THREE from 'three';
 
 // All within the walkable field (|x| <= 24, z in [-30, 24]) so every orb is
 // actually reachable — tucked near an edge but never inside/behind a wall.
+// Kept well inside the field (|x| <= 16) so they float over open floor, never
+// near/inside a perimeter wall.
 const SPOTS = {
-  crt: { pos: [8, 1.5, -20], accent: '#00f3ff' },        // out front of the stage
-  vhs: { pos: [-20, 1.4, -8], accent: '#ff0055' },       // left flank, open floor
-  ascii: { pos: [20, 1.4, 4], accent: '#39ff14' },       // right flank, open floor
-  gameboy: { pos: [-18, 1.3, 14], accent: '#b967ff' },   // lower-left, near the board
-  wireframe: { pos: [20, 1.4, -20], accent: '#e6c04a' }, // back-right corner
+  crt: { pos: [-6, 1.5, -10], accent: '#00f3ff' },
+  vhs: { pos: [-16, 1.4, 4], accent: '#ff0055' },
+  ascii: { pos: [16, 1.4, -2], accent: '#39ff14' },
+  gameboy: { pos: [-8, 1.3, 12], accent: '#b967ff' },
+  wireframe: { pos: [7, 1.4, -13], accent: '#e6c04a' },
 };
 
 export function buildOrbs(scene, { need = [] } = {}) {
