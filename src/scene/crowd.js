@@ -1,13 +1,31 @@
 import * as THREE from 'three';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PALETTE } from '../data/destinations.js';
+
+// one low-poly humanoid, merged into a single geometry so the whole crowd is
+// still a single instanced draw call — but reads as people, not pills.
+function makePersonGeo() {
+  const parts = [];
+  const leg = (x) => { const l = new THREE.CapsuleGeometry(0.085, 0.5, 2, 5); l.translate(x, 0.36, 0); return l; };
+  parts.push(leg(-0.1), leg(0.1));
+  const hips = new THREE.CapsuleGeometry(0.18, 0.1, 2, 7); hips.translate(0, 0.74, 0); parts.push(hips);
+  const torso = new THREE.CapsuleGeometry(0.19, 0.4, 2, 7); torso.translate(0, 1.02, 0); parts.push(torso);
+  const neck = new THREE.CylinderGeometry(0.06, 0.08, 0.1, 6); neck.translate(0, 1.34, 0); parts.push(neck);
+  const head = new THREE.SphereGeometry(0.145, 8, 6); head.translate(0, 1.47, 0.01); parts.push(head);
+  const arm = (x, rot) => { const a = new THREE.CapsuleGeometry(0.062, 0.46, 2, 5); a.rotateZ(rot); a.translate(x, 1.02, 0.02); return a; };
+  parts.push(arm(-0.26, 0.16), arm(0.26, -0.16));
+  const geo = BufferGeometryUtils.mergeGeometries(parts, false);
+  geo.computeVertexNormals();
+  return geo;
+}
 
 // A dense crowd of instanced silhouettes facing the stage, bobbing on the
 // beat, each waving a glowing stick. Instanced for performance (one draw
 // call for all bodies, one for all glowsticks).
 export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [], rail = 0 } = {}) {
-  // ---- bodies: a simple capsule silhouette ----
-  const bodyGeo = new THREE.CapsuleGeometry(0.26, 0.72, 4, 8);
-  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x05050a, roughness: 1, metalness: 0 });
+  // ---- bodies: a low-poly humanoid silhouette (feet at y=0) ----
+  const bodyGeo = makePersonGeo();
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0b0b16, roughness: 1, metalness: 0 });
   const bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, count);
   bodies.castShadow = true;
   bodies.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -65,7 +83,7 @@ export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [], rai
     for (let k = 0; k < realCount; k++) {
       const a = agents[k];
       const bob = Math.abs(Math.sin(time * a.freq * 2.2 + a.phase)) * (0.14 + pulse * 0.5);
-      dummy.position.set(a.x, 0.9 * a.scale + bob, a.z);
+      dummy.position.set(a.x, bob, a.z); // feet on the ground, hop on the beat
       dummy.rotation.y = Math.atan2(0 - a.x, stageZ - a.z) + Math.sin(time + a.phase) * 0.12;
       dummy.scale.setScalar(a.scale);
       dummy.updateMatrix();
