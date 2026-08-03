@@ -50,11 +50,17 @@ export function buildFestival(scene) {
   orbGlow.scale.setScalar(16); orb.add(orbGlow);
 
   // ---- ground ----
-  // a trampled-field texture (speckled dirt) instead of a flat colour
+  // a trampled festival field: dark turf, mud patches, and scattered confetti
   const gcvs = document.createElement('canvas'); gcvs.width = gcvs.height = 256; const gtx = gcvs.getContext('2d');
-  gtx.fillStyle = '#080810'; gtx.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 1400; i++) { const v = Math.random(); gtx.fillStyle = v > 0.5 ? 'rgba(30,30,44,0.5)' : 'rgba(2,2,6,0.6)'; const s = 1 + Math.random() * 2.5; gtx.fillRect(Math.random() * 256, Math.random() * 256, s, s); }
-  const gtex = new THREE.CanvasTexture(gcvs); gtex.wrapS = gtex.wrapT = THREE.RepeatWrapping; gtex.repeat.set(28, 28); gtex.colorSpace = THREE.SRGBColorSpace;
+  gtx.fillStyle = '#0a0c0a'; gtx.fillRect(0, 0, 256, 256);
+  // muddy trampled patches
+  for (let i = 0; i < 46; i++) { gtx.fillStyle = `rgba(${26 + Math.random() * 22},${18 + Math.random() * 14},12,0.22)`; const r = 8 + Math.random() * 22; gtx.beginPath(); gtx.arc(Math.random() * 256, Math.random() * 256, r, 0, 7); gtx.fill(); }
+  // grass + dirt speckle
+  for (let i = 0; i < 1700; i++) { const v = Math.random(); gtx.fillStyle = v > 0.62 ? 'rgba(38,46,30,0.5)' : v > 0.3 ? 'rgba(30,24,16,0.5)' : 'rgba(3,4,6,0.6)'; const s = 1 + Math.random() * 2.6; gtx.fillRect(Math.random() * 256, Math.random() * 256, s, s); }
+  // dropped confetti / trash flecks in festival colours
+  const flecks = ['#00f3ff', '#ff0055', '#39ff14', '#b967ff', '#ffd24a', '#ff8a1e'];
+  for (let i = 0; i < 100; i++) { gtx.save(); gtx.globalAlpha = 0.2 + Math.random() * 0.28; gtx.fillStyle = flecks[(Math.random() * flecks.length) | 0]; const s = 1.4 + Math.random() * 2.4; gtx.translate(Math.random() * 256, Math.random() * 256); gtx.rotate(Math.random() * 7); gtx.fillRect(0, 0, s, s * 0.55); gtx.restore(); }
+  const gtex = new THREE.CanvasTexture(gcvs); gtex.wrapS = gtex.wrapT = THREE.RepeatWrapping; gtex.repeat.set(16, 16); gtex.colorSpace = THREE.SRGBColorSpace;
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), new THREE.MeshStandardMaterial({ map: gtex, roughness: 1, metalness: 0.05 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const grid = new THREE.GridHelper(54, 27, 0x123038, 0x0a1016); // only the arena floor is gridded
