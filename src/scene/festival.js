@@ -25,10 +25,12 @@ export function buildFestival(scene) {
     fragmentShader: `varying vec3 vP; uniform vec3 top,mid,bot;
       void main(){ float h=normalize(vP).y; vec3 col=mix(bot,mid,smoothstep(-0.15,0.3,h)); col=mix(col,top,smoothstep(0.25,0.85,h)); gl_FragColor=vec4(col,1.0);} `,
   });
-  scene.add(new THREE.Mesh(new THREE.SphereGeometry(150, 32, 16), skyMat));
+  const skyMesh = new THREE.Mesh(new THREE.SphereGeometry(150, 32, 16), skyMat);
+  scene.add(skyMesh);
 
   // ---- stars (fade out in daylight) ----
   const starMat = new THREE.PointsMaterial({ size: 0.7, map: dot(), vertexColors: true, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
+  let starMesh = null;
   {
     const N = 1200, pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
     const cyan = c(PALETTE.cyan), mag = c(PALETTE.magenta), w = c(0xcfe9ff);
@@ -40,7 +42,7 @@ export function buildFestival(scene) {
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    scene.add(new THREE.Points(g, starMat));
+    starMesh = new THREE.Points(g, starMat); scene.add(starMesh);
   }
 
   // ---- sun/moon disc ----
@@ -235,8 +237,10 @@ export function buildFestival(scene) {
     motes.frustumCulled = false; motes.userData.rise = mrise; scene.add(motes);
 
     // ---- enclosing wall, only as tall as the light posts so you can see the
-    // sky beyond; the back (south) side is a see-through fence. ----
-    const WX = 28, WSZ = 28, WNZ = -34, H = 8;
+    // sky beyond; the back (south) side is a see-through fence. Pushed out past
+    // the grandstands (outer tier ~R29) and the edge stalls/arcade (~x27) so
+    // nothing pokes through the walls. ----
+    const WX = 32, WSZ = 33, WNZ = -39, H = 8;
     const wallMat = new THREE.MeshStandardMaterial({ color: 0x07070e, roughness: 0.95, metalness: 0.1, side: THREE.DoubleSide, emissive: c(PALETTE.cyan), emissiveIntensity: 0.02 });
     const midZ = (WSZ + WNZ) / 2, lenZ = WSZ - WNZ, lenX = WX * 2;
     const mkWall = (w, d, x, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, H, d), wallMat); m.position.set(x, H / 2, z); scene.add(m); };
@@ -365,7 +369,7 @@ export function buildFestival(scene) {
     }
   }
 
-  return { stageZ, deck: deckInfo, screen, screenPos: [0, 6.2, stageZ - 4.9], screenSize: [22, 7], update };
+  return { stageZ, deck: deckInfo, screen, screenPos: [0, 6.2, stageZ - 4.9], screenSize: [22, 7], sky: skyMesh, stars: starMesh, update };
 }
 
 // park bench (simple wooden slats + iron legs), sits by the message board

@@ -977,6 +977,11 @@ function onTrippyCamState(on, err) {
     tripcamToggleEl.textContent = on ? 'TRIPPY CAM: ON' : 'TRIPPY CAM: OFF';
     tripcamToggleEl.classList.toggle('active', on);
   }
+  // the cam sphere IS the sky while it's live — hide the festival sky dome and
+  // the stars (some sit inside the cam sphere and would bleed in front of your
+  // face) so the webcam feed owns the whole sky cleanly, then restore on off.
+  if (festival.sky) festival.sky.visible = !on;
+  if (festival.stars) festival.stars.visible = !on;
   if (err) flash('camera blocked — allow it to look down on the festival');
   else flash(on ? 'look up — that’s you, over the whole festival' : 'trippy cam off');
 }
