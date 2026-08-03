@@ -321,7 +321,16 @@ let deadnetProxy = null;
 const DEADNET_URL = 'https://deadnet.on.websim.com/';
 function buildDeadnet() {
   const g = new THREE.Group(); g.position.set(21, 0, 11); g.rotation.y = -1.15; scene.add(g);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(2.6, 3.2, 1.5), std({ color: 0x0a0a14, metalness: 0.45, roughness: 0.55 })); body.position.y = 1.8; body.castShadow = true; g.add(body);
+  // the whole cabinet leans — a dead, abandoned terminal sinking into the plaza
+  const lean = new THREE.Group(); lean.rotation.z = 0.09; lean.rotation.x = -0.05; g.add(lean);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.6, 3.2, 1.5), std({ color: 0x0a0a14, metalness: 0.45, roughness: 0.55 })); body.position.y = 1.8; body.castShadow = true; lean.add(body);
+  // a busted, dented top corner + hairline cracks across the shell
+  const dent = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 1.6), std({ color: 0x050509, metalness: 0.4, roughness: 0.7 })); dent.position.set(0.95, 3.15, 0); dent.rotation.z = -0.4; lean.add(dent);
+  const crackMat = std({ color: 0x02020a, emissive: C(0x1a0a2a), emissiveIntensity: 0.3 });
+  for (const [cy, cz, rz] of [[2.3, 0.76, 0.5], [1.3, 0.76, -0.7], [2.7, 0.76, 1.2]]) { const cr = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.1, 0.02), crackMat); cr.position.set((Math.random() - 0.5) * 1.6, cy, cz); cr.rotation.z = rz; lean.add(cr); }
+  // exposed wires trailing out the bottom
+  const wireMat = std({ color: 0x1a1a22, roughness: 0.8 });
+  for (let i = 0; i < 4; i++) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.2, 5), wireMat); w.position.set(-0.7 + i * 0.35, 0.4, 0.8); w.rotation.set(1.1 + Math.random() * 0.4, 0, (Math.random() - 0.5) * 0.6); lean.add(w); }
   const stMat = new THREE.ShaderMaterial({
     uniforms: { t: { value: 0 } },
     vertexShader: `varying vec2 v; void main(){ v=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
@@ -333,9 +342,9 @@ function buildDeadnet() {
         c=mix(c, vec3(0.5,0.0,0.8), 0.15);
         gl_FragColor=vec4(c,1.0);} `,
   });
-  const scr = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.8), stMat); scr.position.set(0, 2.0, 0.77); g.add(scr);
-  const gl = new THREE.PointLight(0xb967ff, 3, 11, 2); gl.position.set(0, 2.2, 1.6); g.add(gl);
-  const label = textPlane('DEADNET // the dead internet', '#b967ff'); label.position.set(0, 3.7, 0.3); label.scale.set(3.4, 0.5, 1); g.add(label);
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.8), stMat); scr.position.set(0, 2.0, 0.77); lean.add(scr);
+  const gl = new THREE.PointLight(0xb967ff, 3, 11, 2); gl.position.set(0, 2.2, 1.6); lean.add(gl);
+  const label = textPlane('DEADNET // the dead internet', '#b967ff'); label.position.set(0, 3.9, 0.3); label.scale.set(3.4, 0.5, 1); g.add(label);
   deadnetProxy = new THREE.Mesh(new THREE.BoxGeometry(2.8, 3.6, 1.9), new THREE.MeshBasicMaterial({ visible: false })); deadnetProxy.position.set(0, 1.9, 0.3); g.add(deadnetProxy);
   updaters.push((dt, t, p) => { stMat.uniforms.t.value = t; gl.intensity = 2 + Math.sin(t * 9) * 1.4 + p; });
   return g;

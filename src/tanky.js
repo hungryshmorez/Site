@@ -155,6 +155,34 @@ function buildDesert() {
   };
   const neon = ['#39ff14', '#00f3ff', '#e6c04a', '#ff5aa0'];
   [[-12, -6], [-16, 8], [-24, -4], [12, -12], [20, 6], [-10, 18], [22, -6]].forEach(([x, z], i) => cactus(x, z, neon[i % neon.length]));
+  // scattered boulders + low scrub across the mid-field so the flats aren't bare
+  const boulder = std({ color: 0x4a2426, roughness: 1, emissive: C(0x24101a), emissiveIntensity: 0.2 });
+  [[-8, 2, 1.1], [6, 4, 0.8], [-14, 14, 1.4], [10, 16, 1.0], [16, -4, 1.2], [-4, 20, 0.7], [24, 2, 1.3], [2, -8, 0.9]].forEach(([x, z, s]) => {
+    const b = new THREE.Mesh(new THREE.DodecahedronGeometry(s, 0), boulder); b.position.set(x, s * 0.55, z); b.rotation.set(Math.random(), Math.random(), Math.random()); b.castShadow = true; g.add(b);
+  });
+  const scrubMat = std({ color: 0x2a3018, roughness: 1, emissive: C(0x141a08), emissiveIntensity: 0.3 });
+  for (let i = 0; i < 18; i++) {
+    const x = (Math.random() - 0.5) * 52, z = -8 + Math.random() * 28;
+    const bush = new THREE.Mesh(new THREE.IcosahedronGeometry(0.35 + Math.random() * 0.3, 0), scrubMat); bush.position.set(x, 0.3, z); bush.scale.y = 0.7; g.add(bush);
+  }
+  // a bleached cow skull half-sunk in the sand (western flavor)
+  {
+    const sk = new THREE.Group(); sk.position.set(-6, 0.25, 6); sk.rotation.y = 0.6;
+    const skMat = std({ color: 0xd8cdb0, roughness: 0.85 });
+    const skull = new THREE.Mesh(new THREE.SphereGeometry(0.5, 12, 10), skMat); skull.scale.set(1, 0.8, 1.2); sk.add(skull);
+    const snout = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.34, 0.5), skMat); snout.position.set(0, -0.15, 0.55); sk.add(snout);
+    for (const s of [-1, 1]) { const horn = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.9, 6), skMat); horn.position.set(s * 0.5, 0.25, -0.1); horn.rotation.z = s * 1.1; sk.add(horn); }
+    g.add(sk);
+  }
+  // an old wagon wheel leaning in the dirt
+  {
+    const wm = std({ color: 0x3a2614, roughness: 0.9 });
+    const wheel = new THREE.Group(); wheel.position.set(14, 1.0, 10); wheel.rotation.set(Math.PI / 2 - 0.35, 0, 0.2);
+    wheel.add(new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.09, 8, 20), wm));
+    wheel.add(new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.3, 8), wm));
+    for (let i = 0; i < 8; i++) { const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 1.9, 6), wm); sp.rotation.z = (i / 8) * Math.PI; wheel.add(sp); }
+    g.add(wheel);
+  }
   // a couple tumbleweeds drifting
   const tws = [];
   for (let i = 0; i < 3; i++) { const tw = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), std({ color: 0x6a4a2a, wireframe: true, emissive: C(0x2a1a10), emissiveIntensity: 0.4 })); tw.position.set(-10 + i * 8, 0.7, 12); g.add(tw); tws.push(tw); }
