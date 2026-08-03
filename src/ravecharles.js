@@ -87,21 +87,36 @@ function buildPit() {
   for (const px of [-7, 0, 7]) { const l = new THREE.SpotLight(0xff2b8f, 0, 40, Math.PI / 6, 0.4, 1.2); l.position.set(px, 10.4, -25); l.target.position.set(px * 1.4, 0, 4); g.add(l); g.add(l.target); strobes.push(l); }
   const screenLight = new THREE.PointLight(0xff0055, 5, 30, 2); screenLight.position.set(0, 6, -20); g.add(screenLight);
 
-  // mosh crowd — a dense field of PEOPLE that jump to the beat
+  // mosh crowd — a dense field of PEOPLE that jump to the beat, glowsticks up
   const crowd = [];
   const dark = std({ color: 0x0a060e, roughness: 1 });
   const moshGeo = makePersonGeo();
+  const stickGeo = new THREE.CapsuleGeometry(0.05, 0.34, 3, 6);
+  const stickCols = [0x39ff14, 0x00f3ff, 0xff2b8f, 0xffd24a, 0xb967ff, 0xff6a00];
   for (let i = 0; i < 90; i++) {
     const p = new THREE.Mesh(moshGeo, dark);
     const x = (Math.random() - 0.5) * 22, z = -16 + Math.random() * 15;
     p.position.set(x, 0, z); p.rotation.y = Math.atan2(0 - x, -25 - z); p.castShadow = false; g.add(p);
-    crowd.push({ m: p, base: 0, ph: Math.random() * 6.28, amp: 0.3 + Math.random() * 0.5 });
+    // ~65% of the crowd holds a raised glowstick
+    let stick = null;
+    if (Math.random() < 0.65) {
+      const col = stickCols[i % stickCols.length];
+      stick = new THREE.Mesh(stickGeo, new THREE.MeshBasicMaterial({ color: col }));
+      const hx = (Math.random() < 0.5 ? -0.34 : 0.34);
+      stick.position.set(x + hx, 1.55, z); stick.rotation.z = (Math.random() - 0.5) * 0.5;
+      g.add(stick);
+    }
+    crowd.push({ m: p, stick, base: 0, ph: Math.random() * 6.28, amp: 0.3 + Math.random() * 0.5 });
   }
   updaters.push((dt, t, p) => {
     scrMat.uniforms.t.value = t; screenLight.intensity = 4 + p * 6;
     for (const cn of cones) cn.scale.z = 1 + p * 0.5;
     for (const s of strobes) s.intensity = p > 0.82 ? 55 : s.intensity * 0.82;
-    for (const c of crowd) { c.m.position.y = c.base + Math.max(0, Math.sin(t * 6 + c.ph)) * p * 1.6 * c.amp; c.m.rotation.z = Math.sin(t * 4 + c.ph) * 0.12; }
+    for (const c of crowd) {
+      const bob = Math.max(0, Math.sin(t * 6 + c.ph)) * p * 1.6 * c.amp;
+      c.m.position.y = c.base + bob; c.m.rotation.z = Math.sin(t * 4 + c.ph) * 0.12;
+      if (c.stick) { c.stick.position.y = 1.55 + bob + 0.15; c.stick.rotation.z = Math.sin(t * 3 + c.ph) * 0.6; }
+    }
   });
   return g;
 }

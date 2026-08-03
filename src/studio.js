@@ -51,6 +51,35 @@ scene.add(new THREE.HemisphereLight(0x3a5a8a, 0x08101a, 1.1));
 const stKey = new THREE.DirectionalLight(0x9fd8ff, 0.7); stKey.position.set(8, 16, 12); scene.add(stKey);
 scene.add(new THREE.AmbientLight(0xbfe0ff, 0.38));
 
+const updaters = [];
+
+// ---------- glowing floor data-conduits radiating from the CRT monument ----------
+// thin emissive strips + a pulse of light travelling along each one, so the dark
+// floor reads as a live circuit board feeding the central stack.
+{
+  const conduits = [];
+  const cols = [0x00f3ff, 0xff2b8f, 0x39ff14, 0xb967ff, 0x00f3ff, 0xffd24a, 0x39ff14, 0xff2b8f];
+  const N = 8;
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2 + 0.2, len = 13;
+    const col = C(cols[i % cols.length]);
+    const strip = new THREE.Mesh(new THREE.PlaneGeometry(0.14, len), std({ color: 0x02121a, emissive: col, emissiveIntensity: 0.7, roughness: 0.4, metalness: 0.4 }));
+    strip.rotation.x = -Math.PI / 2; strip.rotation.z = -a;
+    strip.position.set(Math.sin(a) * (len / 2 + 2), 0.03, Math.cos(a) * (len / 2 + 2)); scene.add(strip);
+    // a bright travelling pulse riding the conduit toward the monument
+    const pulse = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.9), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.9, depthWrite: false }));
+    pulse.rotation.x = -Math.PI / 2; scene.add(pulse);
+    conduits.push({ a, len, pulse, ph: Math.random() });
+  }
+  updaters.push((dt, t) => {
+    for (const cn of conduits) {
+      const f = ((t * 0.35 + cn.ph) % 1); const d = (0.5 - f) * cn.len; // travel outward->in
+      cn.pulse.position.set(Math.sin(cn.a) * (d + cn.len / 2 + 2 - cn.len / 2), 0.05, Math.cos(cn.a) * (d + cn.len / 2 + 2 - cn.len / 2));
+      cn.pulse.rotation.z = -cn.a; cn.pulse.material.opacity = 0.35 + 0.55 * Math.sin(f * Math.PI);
+    }
+  });
+}
+
 // ---------- shared CRT-screen shader (glitch OR plasma) ----------
 const screenMats = [];
 function crtMaterial(mode, seed) {
@@ -131,7 +160,6 @@ function buildMonument() {
 }
 
 // ---------- wall installations ----------
-const updaters = [];
 function buildInstalls() {
   // datamosh wall: a grid of small monitors on the north wall
   for (let r = 0; r < 3; r++) for (let cc = 0; cc < 6; cc++) {
