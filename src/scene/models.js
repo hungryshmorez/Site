@@ -91,10 +91,18 @@ export function buildCowboy(accent = '#e6c04a') {
 export function buildVaporwave(accent = '#b967ff') {
   const g = new THREE.Group();
   const chrome = std({ color: 0x2a1840, roughness: 0.15, metalness: 0.9, emissive: new THREE.Color(accent), emissiveIntensity: 0.15 });
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.32, 0.9, 6, 14), chrome);
-  body.position.y = 1.0; body.castShadow = true; g.add(body);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 20, 18), chrome);
-  head.position.y = 1.85; head.castShadow = true; g.add(head);
+  // a chrome mannequin — torso, hips, arms with hands, legs with feet
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.26, 0.5, 6, 14), chrome); torso.position.y = 1.32; torso.castShadow = true; g.add(torso);
+  const hips = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 12), chrome); hips.position.y = 1.0; hips.scale.set(1, 0.7, 0.9); g.add(hips);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 0.16, 10), chrome); neck.position.y = 1.66; g.add(neck);
+  for (const s of [-1, 1]) {
+    const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.56, 5, 10), chrome); leg.position.set(s * 0.13, 0.55, 0); leg.castShadow = true; g.add(leg);
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.11, 0.36), chrome); foot.position.set(s * 0.13, 0.18, 0.08); foot.castShadow = true; g.add(foot);
+    const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.082, 0.52, 5, 10), chrome); arm.rotation.z = s * 0.26; arm.position.set(s * 0.34, 1.3, 0.02); arm.castShadow = true; g.add(arm);
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), chrome); hand.position.set(s * 0.47, 1.0, 0.05); g.add(hand);
+  }
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.27, 20, 18), chrome);
+  head.position.y = 1.86; head.scale.set(0.95, 1.05, 1); head.castShadow = true; g.add(head);
 
   // shades
   const shade = std({ color: 0x050008, emissive: new THREE.Color('#01cdfe'), emissiveIntensity: 0.6, metalness: 0.5, roughness: 0.2 });
@@ -175,22 +183,31 @@ export function buildGlitch(accent = '#00F3FF') {
 export function buildRaver(accent = '#FF0055') {
   const g = new THREE.Group();
   const dark = std({ color: 0x0d0d14, roughness: 0.6, metalness: 0.3 });
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.33, 1.0, 6, 12), dark);
-  body.position.y = 1.05; body.castShadow = true; g.add(body);
+  const rubber = std({ color: 0x05050a, roughness: 0.8 });
+  // techwear body — torso, hips, arms with hands, legs with boots
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.56, 6, 12), dark); torso.position.y = 1.38; torso.castShadow = true; g.add(torso);
+  const hips = new THREE.Mesh(new THREE.SphereGeometry(0.27, 16, 12), dark); hips.position.y = 1.04; hips.scale.set(1, 0.68, 0.9); g.add(hips);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.13, 0.16, 10), dark); neck.position.y = 1.72; g.add(neck);
+  for (const s of [-1, 1]) {
+    const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.58, 5, 10), dark); leg.position.set(s * 0.14, 0.56, 0); leg.castShadow = true; g.add(leg);
+    const boot = new THREE.Mesh(new THREE.BoxGeometry(0.19, 0.14, 0.4), rubber); boot.position.set(s * 0.14, 0.2, 0.1); boot.castShadow = true; g.add(boot);
+    const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.56, 5, 10), dark); arm.rotation.z = s * 0.24; arm.position.set(s * 0.36, 1.34, 0.02); arm.castShadow = true; g.add(arm);
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.095, 10, 8), rubber); hand.position.set(s * 0.5, 1.02, 0.05); g.add(hand);
+  }
 
   // helmet
   const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.3, 20, 18), std({ color: 0x14141c, roughness: 0.3, metalness: 0.6 }));
-  helmet.position.y = 1.95; helmet.castShadow = true; g.add(helmet);
+  helmet.position.y = 2.0; helmet.castShadow = true; g.add(helmet);
   // glowing visor
   const visorMat = std({ color: 0x1a0010, emissive: new THREE.Color(accent), emissiveIntensity: 1.2 });
   const visor = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.05, 10, 24, Math.PI), visorMat);
-  visor.position.set(0, 1.96, 0.14); visor.rotation.x = Math.PI / 2; visor.rotation.z = Math.PI; g.add(visor);
+  visor.position.set(0, 2.01, 0.14); visor.rotation.x = Math.PI / 2; visor.rotation.z = Math.PI; g.add(visor);
   // headphones
-  for (const sx of [-0.3, 0.3]) { const ear = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 16), visorMat); ear.rotation.z = Math.PI / 2; ear.position.set(sx, 1.98, 0); g.add(ear); }
-  const bandTop = new THREE.Mesh(new THREE.TorusGeometry(0.31, 0.03, 8, 24, Math.PI), std({ color: 0x22222c })); bandTop.position.y = 2.1; g.add(bandTop);
-  // arm light strips
+  for (const sx of [-0.3, 0.3]) { const ear = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 16), visorMat); ear.rotation.z = Math.PI / 2; ear.position.set(sx, 2.03, 0); g.add(ear); }
+  const bandTop = new THREE.Mesh(new THREE.TorusGeometry(0.31, 0.03, 8, 24, Math.PI), std({ color: 0x22222c })); bandTop.position.y = 2.15; g.add(bandTop);
+  // arm light strips down the forearms
   const strips = [];
-  for (const sx of [-0.34, 0.34]) { const st = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.5, 0.04), visorMat.clone()); st.position.set(sx, 1.1, 0.05); g.add(st); strips.push(st); }
+  for (const sx of [-0.4, 0.4]) { const st = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.5, 0.04), visorMat.clone()); st.position.set(sx, 1.3, 0.08); st.rotation.z = (sx < 0 ? 1 : -1) * 0.24; g.add(st); strips.push(st); }
   const mag = new THREE.PointLight(accent, 7, 8, 2); mag.position.set(0, 1.7, 0.4); g.add(mag);
 
   return {
