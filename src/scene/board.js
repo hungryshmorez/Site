@@ -26,19 +26,25 @@ export function buildBoard(scene, { pos = [3, 11], stageZ = -24, accent = '#00F3
   const cork = new THREE.Mesh(new THREE.BoxGeometry(2.28, 1.28, 0.06), std({ color: 0x8a6a3a, roughness: 1 }));
   cork.position.set(0, 1.7, 0.06); group.add(cork);
 
-  // scattered Post-it notes (decorative)
+  // scattered Post-it notes with scribbled "handwriting" so they read as real
+  // messages pinned to the board, each with a pushpin
   const notes = [];
   let ni = 0;
   for (let r = 0; r < 2; r++) {
     for (let c = 0; c < 4; c++) {
+      const col = NOTE_COLORS[ni % NOTE_COLORS.length];
       const note = new THREE.Mesh(
         new THREE.PlaneGeometry(0.4, 0.4),
-        std({ color: NOTE_COLORS[ni % NOTE_COLORS.length], emissive: new THREE.Color(NOTE_COLORS[ni % NOTE_COLORS.length]), emissiveIntensity: 0.12, roughness: 0.9, side: THREE.DoubleSide })
+        std({ map: makeNote(col), emissive: new THREE.Color(col), emissiveIntensity: 0.12, roughness: 0.9, side: THREE.DoubleSide })
       );
-      note.position.set(-0.8 + c * 0.53, 2.05 - r * 0.62, 0.1);
+      const nx = -0.8 + c * 0.53, ny = 2.05 - r * 0.62;
+      note.position.set(nx, ny, 0.1);
       note.rotation.z = (Math.random() - 0.5) * 0.28;
       note.userData.baseZ = note.rotation.z;
       group.add(note); notes.push(note); ni++;
+      // a little pushpin holding it up
+      const pin = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 8), new THREE.MeshStandardMaterial({ color: [0xff3b3b, 0x3b7bff, 0x39ff8a, 0xffd23b][ni % 4], emissive: new THREE.Color([0xff3b3b, 0x3b7bff, 0x39ff8a, 0xffd23b][ni % 4]), emissiveIntensity: 0.4 }));
+      pin.position.set(nx, ny + 0.15, 0.14); group.add(pin);
     }
   }
 
@@ -64,6 +70,26 @@ export function buildBoard(scene, { pos = [3, 11], stageZ = -24, accent = '#00F3
   }
 
   return { update, tryClick, worldPos, group };
+}
+
+// a Post-it: the paper color washed over the canvas, a folded corner, and a few
+// wavy "handwriting" strokes so it reads as a written note from across the field.
+function makeNote(color) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d');
+  const hex = '#' + color.toString(16).padStart(6, '0');
+  x.fillStyle = hex; x.fillRect(0, 0, 64, 64);
+  // darker folded corner
+  x.fillStyle = 'rgba(0,0,0,0.18)'; x.beginPath(); x.moveTo(64, 44); x.lineTo(64, 64); x.lineTo(44, 64); x.closePath(); x.fill();
+  // handwriting: a few jittery ink lines
+  x.strokeStyle = 'rgba(20,16,24,0.65)'; x.lineWidth = 2; x.lineCap = 'round';
+  const lines = 3 + (Math.random() * 2 | 0);
+  for (let i = 0; i < lines; i++) {
+    const y = 16 + i * 11; x.beginPath(); x.moveTo(8, y);
+    const w = 30 + Math.random() * 22;
+    for (let sx = 8; sx < 8 + w; sx += 6) x.lineTo(sx, y + Math.sin(sx * 0.7 + i) * 1.8);
+    x.stroke();
+  }
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; return tex;
 }
 
 function makeSign(text, color) {
