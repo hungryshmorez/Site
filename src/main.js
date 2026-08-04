@@ -13,6 +13,7 @@ import { buildPhotoBooth } from './scene/photobooth.js';
 import { createTrippyCam } from './scene/trippycam.js';
 import { buildCampfire } from './scene/campfire.js';
 import { buildTailgate } from './scene/tailgate.js';
+import { createGameZones } from './scene/gamezones.js';
 import { buildLounge } from './scene/lounge.js';
 import { buildFireworks } from './scene/fireworks.js';
 import { buildConfetti } from './scene/confetti.js';
@@ -215,6 +216,10 @@ const controls = new WalkControls(camera, { bounds: 24, eye: 1.6, zMin: -30 });
 // spawn in the bottom-left corner for a diagonal entry toward the dancefloor
 controls.pos.set(-18, 1.6, 18);
 if (controls.yaw !== undefined) controls.yaw = -Math.PI * 0.75; // face into the grounds
+
+// beer pong asks before it grabs your clicks, then stands you at the table
+const gamezones = createGameZones({ controls, camera });
+gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => tailgate.near(p), spot: { pos: [11.8, 8.6], yaw: -2.2 }, play: (cam) => tailgate.throwBall(cam) });
 // let the player walk up the ramp onto the stage deck
 controls.groundAt = (x, z) => {
   const d = festival.deck;
@@ -574,8 +579,9 @@ function handleTap(sx, sy) {
   if (vjboard.tryClick(raycaster)) return;
   // effect orbs — clicking one picks it up to carry to the dealer
   { const got = orbs.tryClick(raycaster); if (got) { pickupOrb(got); return; } }
-  // near the beer-pong table — a click tosses a ball at the cups
-  if (tailgate.near(controls.pos)) { tailgate.throwBall(camera); return; }
+  // beer pong: only toss while actually playing (entered via its "Play?" prompt)
+  // so wandering past the table never hijacks your clicks
+  if (gamezones.onTap()) return;
   // the secret keycard / backstage vault
   if (secret.tryClick(raycaster)) return;
   // characters next
@@ -685,7 +691,8 @@ function frame() {
     orbs.update(dt, time, pulse);
     { const grabbed = orbs.pickNear(controls.pos); if (grabbed) pickupOrb(grabbed); } // walk into an orb to grab it
     if (activeDrug) { drugTime -= dt; if (drugHudEl) drugHudEl.textContent = `💊 ${DRUGS.find((d) => d.id === activeDrug).name} · ${Math.ceil(drugTime)}s`; if (drugTime <= 0) endDrug(); }
-    if (pongHudEl) pongHudEl.classList.toggle('on', tailgate.near(controls.pos));
+    gamezones.update(controls.pos);
+    if (pongHudEl) pongHudEl.classList.toggle('on', gamezones.isPlaying());
     // walk through the arcade tent's doorway → step right into the arcade
     if (!warping && !admin.active && arcadeWP && controls.pos.distanceTo(arcadeWP) < 5) enterDestination(arcadeDest);
     hud.update(controls.pos);

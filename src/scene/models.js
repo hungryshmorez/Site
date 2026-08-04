@@ -683,39 +683,44 @@ export function buildCircusTent(accent = '#FF0055') {
   for (let i = 0; i < 16; i++) { cx.fillStyle = i % 2 ? '#ff0055' : '#fff0f6'; cx.fillRect(i * 16, 0, 16, 32); }
   const stex = new THREE.CanvasTexture(cv); stex.wrapS = THREE.RepeatWrapping; stex.repeat.set(5, 1); stex.colorSpace = THREE.SRGBColorSpace;
   const stripe = std({ map: stex, side: THREE.DoubleSide, roughness: 0.85, emissive: col, emissiveIntensity: 0.06 });
-  // three-quarter wall, open toward +Z (the front / center)
-  const wall = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 5, 24, 1, true, 2.356, 4.712), stripe);
+  // FULL enclosed striped wall (so the entrance reads as a doorway cut into it,
+  // not just an open-sided bandstand)
+  const wall = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 5, 24, 1, true), stripe);
   wall.position.y = 2.5; wall.castShadow = true; g.add(wall);
   // roof cone (overhangs)
   const roof = new THREE.Mesh(new THREE.ConeGeometry(6, 5, 24, 1, true), stripe); roof.position.y = 7.4; roof.castShadow = true; g.add(roof);
-  // dark interior backdrop + warm glow (reads as "inside")
-  const inside = new THREE.Mesh(new THREE.CylinderGeometry(4.7, 4.7, 4.8, 24, 1, true, 2.356, 4.712), std({ color: 0x1a0510, side: THREE.BackSide, emissive: col, emissiveIntensity: 0.15 }));
-  inside.position.y = 2.5; g.add(inside);
   const floor = new THREE.Mesh(new THREE.CircleGeometry(4.8, 24), std({ color: 0x120410, roughness: 0.6, metalness: 0.3 })); floor.rotation.x = -Math.PI / 2; floor.position.y = 0.05; g.add(floor);
-  const glow = new THREE.PointLight(0xffd24a, 6, 14, 2); glow.position.set(0, 2.4, 1); g.add(glow);
-  // entrance frame: two poles + a striped valance across the front (z≈+3.5)
-  const poleMat = std({ color: 0x2a1020, metalness: 0.4, roughness: 0.6 });
-  for (const px of [-3.5, 3.5]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.18, 5.6, 8), poleMat); p.position.set(px, 2.8, 3.5); p.castShadow = true; g.add(p); }
-  const valance = new THREE.Mesh(new THREE.BoxGeometry(7.4, 0.9, 0.2), stripe); valance.position.set(0, 5.2, 3.5); g.add(valance);
-  // scalloped bunting bulbs across the entrance
-  const bulbs = [];
-  for (let i = 0; i < 9; i++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffd88a })); b.position.set(-3.2 + i * 0.8, 4.7 - Math.sin(i / 8 * Math.PI) * 0.5, 3.6); g.add(b); bulbs.push(b); }
-  // pennant flag on the tip
-  const flag = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.5, 4), new THREE.MeshBasicMaterial({ color: 0xffd24a })); flag.position.y = 10.1; g.add(flag);
-  const marquee = textPlane('▸ WALK IN ◂', accent); marquee.position.set(0, 3, 3.7); marquee.scale.set(3, 0.6, 1); g.add(marquee);
-  // ---- the door: two striped curtain flaps parted around a walk-through gap ----
-  const curtainMat = std({ map: stex.clone(), side: THREE.DoubleSide, roughness: 0.9, emissive: col, emissiveIntensity: 0.06 });
+  const glow = new THREE.PointLight(0xffd24a, 6, 14, 2); glow.position.set(0, 2.4, 0); g.add(glow);
+
+  // ---- DOORWAY on the front (+Z): a dark opening in the wall, framed by a
+  // glowing peaked arch with parted curtains, so it clearly reads "walk in" ----
+  const DZ = 5.04; // just outside the wall surface
+  // the dark opening you look/step into
+  const openMat = std({ color: 0x08020a, emissive: col, emissiveIntensity: 0.22, side: THREE.DoubleSide, roughness: 1 });
+  const opening = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 4.4), openMat); opening.position.set(0, 2.25, DZ); g.add(opening);
+  // glowing frame: two uprights + a peaked arch meeting at a point
+  const frameMat = std({ color: 0x2a0a14, emissive: col, emissiveIntensity: 0.95, metalness: 0.3, roughness: 0.4 });
+  const bar = (ax, ay, bx, by, w = 0.16) => { const len = Math.hypot(bx - ax, by - ay); const m = new THREE.Mesh(new THREE.BoxGeometry(len, w, w), frameMat); m.position.set((ax + bx) / 2, (ay + by) / 2, DZ + 0.05); m.rotation.z = Math.atan2(by - ay, bx - ax); m.castShadow = true; g.add(m); };
+  bar(-1.7, 0, -1.7, 4.4); bar(1.7, 0, 1.7, 4.4);          // uprights
+  bar(-1.7, 4.4, 0, 5.7); bar(1.7, 4.4, 0, 5.7);            // peak
+  // parted striped curtains hugging the frame
+  const curtainMat = std({ map: stex.clone(), side: THREE.DoubleSide, roughness: 0.9, emissive: col, emissiveIntensity: 0.08 });
   curtainMat.map.repeat.set(2, 1);
   for (const s of [-1, 1]) {
-    const curtain = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 4.6), curtainMat);
-    curtain.position.set(s * 2.35, 2.4, 3.42); curtain.rotation.y = -s * 0.4; curtain.castShadow = true; g.add(curtain);
-    // tie-back rope bulge so they read as pulled-open drapes
-    const tie = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffd88a })); tie.position.set(s * 1.5, 1.4, 3.55); g.add(tie);
+    const curtain = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 4.4), curtainMat);
+    curtain.position.set(s * 2.5, 2.3, DZ + 0.06); curtain.rotation.y = -s * 0.5; curtain.castShadow = true; g.add(curtain);
+    const tie = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffd88a })); tie.position.set(s * 1.9, 1.5, DZ + 0.14); g.add(tie);
   }
+  // scalloped bunting bulbs along the peak
+  const bulbs = [];
+  for (let i = 0; i < 9; i++) { const t = i / 8, bx = -1.7 + t * 3.4, by = 4.4 + (1 - Math.abs(t - 0.5) * 2) * 1.3; const b = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffd88a })); b.position.set(bx, by + 0.25, DZ + 0.1); g.add(b); bulbs.push(b); }
+  // pennant flag on the tip
+  const flag = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.5, 4), new THREE.MeshBasicMaterial({ color: 0xffd24a })); flag.position.y = 10.1; g.add(flag);
+  const marquee = textPlane('▸ WALK IN ◂', accent); marquee.position.set(0, 6.4, DZ + 0.1); marquee.scale.set(3, 0.6, 1); g.add(marquee);
   // a glowing threshold on the ground you step across to go in
-  const thresh = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 1.4), new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
-  thresh.rotation.x = -Math.PI / 2; thresh.position.set(0, 0.07, 3.1); g.add(thresh);
-  const doorGlow = new THREE.PointLight(accent, 3, 9, 2); doorGlow.position.set(0, 1.6, 2.7); g.add(doorGlow);
+  const thresh = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 1.6), new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false }));
+  thresh.rotation.x = -Math.PI / 2; thresh.position.set(0, 0.07, DZ + 0.9); g.add(thresh);
+  const doorGlow = new THREE.PointLight(accent, 3, 9, 2); doorGlow.position.set(0, 1.8, DZ - 0.6); g.add(doorGlow);
   return { group: g, update: (t, pulse) => { glow.intensity = 5 + Math.sin(t * 3) * 1 + pulse * 2; doorGlow.intensity = 2.5 + Math.sin(t * 2.5) * 1 + pulse; thresh.material.opacity = 0.45 + Math.sin(t * 2.5) * 0.15; bulbs.forEach((b, i) => b.material.color.setHSL((i / 9 + t * 0.15) % 1, 0.85, 0.6)); flag.rotation.y = t * 2; } };
 }
 

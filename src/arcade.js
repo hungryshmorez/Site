@@ -4,6 +4,7 @@ import { buildHoop } from './scene/hoop.js';
 import { buildGallery } from './scene/gallery.js';
 import { buildDunkTank } from './scene/dunktank.js';
 import { buildMonkeyPaw } from './scene/models.js';
+import { createGameZones } from './scene/gamezones.js';
 import { openWindow } from './ui/popup.js';
 
 // THE MIDWAY — a carnival arcade tent holding every game: portal cabinets
@@ -128,6 +129,12 @@ const dunktank = buildDunkTank(scene, { pos: [5, 8], onDunk: (n) => { dunks = n;
 const controls = new WalkControls(camera, { bounds: 19, eye: 1.6, zMin: -17 });
 controls.pos.set(0, 1.6, 13); controls.yaw = 0;
 
+// ---------- game zones: ask before playing, then stand you in the right spot ----
+const gamezones = createGameZones({ controls, camera });
+gamezones.register({ id: 'hoop', label: 'Basketball', emoji: '🏀', accent: '#ff6b35', near: (p) => hoop.near(p) && p.x < -2, spot: { pos: [-7.5, 0], yaw: 1.99 }, play: (cam) => hoop.throwBall(cam) });
+gamezones.register({ id: 'gallery', label: 'Shooting Gallery', emoji: '🎯', accent: '#ff0055', near: (p) => gallery.near(p) && p.x > 4, spot: { pos: [8.4, 0.2], yaw: -2.03 }, play: (cam) => gallery.shoot(cam) });
+gamezones.register({ id: 'dunk', label: 'Dunk Tank', emoji: '💦', accent: '#00f3ff', near: (p) => dunktank.near(p) && p.z > 2 && Math.abs(p.x - 6) < 6, spot: { pos: [5, 13], yaw: 0 }, play: (cam) => dunktank.throwBall(cam) });
+
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let down = null, dragged = false;
@@ -145,9 +152,9 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   for (const c of clickables) if (ray.intersectObject(c.proxy, false)[0]) { c.onClick(); return; }
-  if (gallery.near(controls.pos)) { gallery.shoot(camera); return; }
-  if (hoop.near(controls.pos) && controls.pos.x < -2) { hoop.throwBall(camera); return; }
-  if (dunktank.near(controls.pos)) { dunktank.throwBall(camera); return; }
+  // only throw while actually playing a game (entered via the prompt); otherwise
+  // a click always walks, so you never get stuck in "shooting mode"
+  if (gamezones.onTap()) return;
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -18, 18); g.z = THREE.MathUtils.clamp(g.z, -16, 18); controls.walkTo(g); }
 }
@@ -164,10 +171,11 @@ function updateHint(p) {
   else if (p.z < -9) z = 'THE CABINETS';
   if (z !== curZone) { curZone = z; if (zoneEl) { zoneEl.textContent = z; zoneEl.classList.add('show'); } }
   if (hintEl) {
-    const atHoop = hoop.near(p) && p.x < -4, atGal = gallery.near(p) && p.x > 4;
-    const atDunk = dunktank.near(p) && p.z > 2 && Math.abs(p.x - 6) < 6 && !atGal;
-    hintEl.textContent = atHoop ? '🏀 aim & click to shoot — bank it off the board' : atGal ? '🎯 aim & click to hit a target' : atDunk ? '💦 aim & click to hit the bullseye — dunk him!' : 'click a cabinet to play';
-    hintEl.classList.toggle('show', atHoop || atGal || atDunk || p.z < -9);
+    // game prompts are handled by the game-zone card now; here we only nudge
+    // toward the cabinets. (Near a game, its "Play?" prompt shows instead.)
+    const nearGame = gamezones.isPlaying() || (hoop.near(p) && p.x < -4) || (gallery.near(p) && p.x > 4) || (dunktank.near(p) && p.z > 2 && Math.abs(p.x - 6) < 6);
+    hintEl.textContent = 'click a cabinet to play';
+    hintEl.classList.toggle('show', !nearGame && p.z < -9);
   }
 }
 
@@ -189,6 +197,7 @@ function frame() {
   for (const m of screenMats) m.uniforms.t.value = t;
   for (const u of updaters) u(dt, t, p);
   hoop.update(dt, t); gallery.update(dt, t, p); dunktank.update(dt, t);
+  gamezones.update(controls.pos);
   updateHint(controls.pos);
   renderer.render(scene, camera);
 }
