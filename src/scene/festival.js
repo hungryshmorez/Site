@@ -197,10 +197,12 @@ export function buildFestival(scene) {
   let wlasers = null, motes = null;
   {
     const seatMat = new THREE.MeshStandardMaterial({ color: 0x0c0c16, roughness: 0.9, metalness: 0.2 });
-    const R = 25, TIERS = 4;
-    const mkTier = (w, d, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 1.0, d), seatMat); m.position.set(x, y, z); m.receiveShadow = true; scene.add(m); };
+    // low bleachers around the edge — just two short tiers so they don't wall
+    // off the view of the open-air fence and sky beyond.
+    const R = 25, TIERS = 2;
+    const mkTier = (w, d, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.8, d), seatMat); m.position.set(x, y, z); m.receiveShadow = true; scene.add(m); };
     for (let i = 0; i < TIERS; i++) {
-      const off = i * 1.3, y = 0.5 + i * 1.0;
+      const off = i * 1.2, y = 0.4 + i * 0.8;
       mkTier(1.2, 56, -R - off, y, -2);   // left grandstand (runs along z)
       mkTier(1.2, 56, R + off, y, -2);    // right grandstand
       mkTier(56, 1.2, 0, y, R + off);     // back grandstand (runs along x)
@@ -236,26 +238,27 @@ export function buildFestival(scene) {
     motes = new THREE.Points(mg, new THREE.PointsMaterial({ color: 0xffe6b0, size: 0.09, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
     motes.frustumCulled = false; motes.userData.rise = mrise; scene.add(motes);
 
-    // ---- enclosing wall, only as tall as the light posts so you can see the
-    // sky beyond; the back (south) side is a see-through fence. Pushed out past
-    // the grandstands (outer tier ~R29) and the edge stalls/arcade (~x27) so
-    // nothing pokes through the walls. ----
-    const WX = 32, WSZ = 33, WNZ = -39, H = 8;
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0x07070e, roughness: 0.95, metalness: 0.1, side: THREE.DoubleSide, emissive: c(PALETTE.cyan), emissiveIntensity: 0.02 });
-    const midZ = (WSZ + WNZ) / 2, lenZ = WSZ - WNZ, lenX = WX * 2;
-    const mkWall = (w, d, x, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, H, d), wallMat); m.position.set(x, H / 2, z); scene.add(m); };
-    mkWall(0.5, lenZ, -WX, midZ);  // left
-    mkWall(0.5, lenZ, WX, midZ);   // right
-    mkWall(lenX, 0.5, 0, WNZ);     // north (behind stage)
-    // back (south) side is a chain-link-style fence — vertical pickets + two
-    // rails — so you can still see the outside beyond the grandstands.
+    // ---- open-air perimeter fence on ALL four sides (was solid walls on three
+    // sides + fence only behind the message board). A see-through chain-link
+    // style — vertical pickets + three rails — so the whole arena is open to the
+    // sky. Pushed out past the grandstands + edge stalls so nothing clips it. ----
+    const WX = 32, WSZ = 33, WNZ = -39, H = 6;
     const fenceMat = new THREE.MeshStandardMaterial({ color: 0x16161f, metalness: 0.6, roughness: 0.5, emissive: c(PALETTE.cyan), emissiveIntensity: 0.04 });
-    for (let x = -WX; x <= WX + 0.01; x += 2) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.12, H, 0.12), fenceMat); p.position.set(x, H / 2, WSZ); scene.add(p); }
-    for (const ry of [H * 0.32, H * 0.7, H - 0.15]) { const rail = new THREE.Mesh(new THREE.BoxGeometry(lenX, 0.1, 0.1), fenceMat); rail.position.set(0, ry, WSZ); scene.add(rail); }
+    const railYs = [H * 0.3, H * 0.62, H - 0.12];
+    const fenceRun = (x0, z0, x1, z1) => {
+      const len = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.round(len / 2));
+      for (let i = 0; i <= n; i++) { const u = i / n, x = x0 + (x1 - x0) * u, z = z0 + (z1 - z0) * u; const p = new THREE.Mesh(new THREE.BoxGeometry(0.12, H, 0.12), fenceMat); p.position.set(x, H / 2, z); scene.add(p); }
+      const mx = (x0 + x1) / 2, mz = (z0 + z1) / 2, ang = Math.atan2(z1 - z0, x1 - x0);
+      for (const ry of railYs) { const rail = new THREE.Mesh(new THREE.BoxGeometry(len, 0.08, 0.08), fenceMat); rail.position.set(mx, ry, mz); rail.rotation.y = -ang; scene.add(rail); }
+    };
+    fenceRun(-WX, WNZ, -WX, WSZ);  // left
+    fenceRun(WX, WNZ, WX, WSZ);    // right
+    fenceRun(-WX, WNZ, WX, WNZ);   // north (behind stage)
+    fenceRun(-WX, WSZ, WX, WSZ);   // south (behind message board)
 
     // ---- beat-reactive light strips up the interior of the walls ----
     const stripCols = [PALETTE.cyan, PALETTE.magenta, PALETTE.purple, PALETTE.green, PALETTE.orange];
-    const stripAt = (x, z, i) => { const s = new THREE.Mesh(new THREE.BoxGeometry(0.16, 7, 0.16), new THREE.MeshStandardMaterial({ color: 0x05050a, emissive: c(stripCols[i % stripCols.length]), emissiveIntensity: 0.3 })); s.position.set(x, 3.6, z); scene.add(s); wallStrips.push(s); };
+    const stripAt = (x, z, i) => { const s = new THREE.Mesh(new THREE.BoxGeometry(0.16, 5.4, 0.16), new THREE.MeshStandardMaterial({ color: 0x05050a, emissive: c(stripCols[i % stripCols.length]), emissiveIntensity: 0.3 })); s.position.set(x, 2.8, z); scene.add(s); wallStrips.push(s); };
     let si = 0;
     for (let z = WNZ + 4; z < WSZ; z += 6) { stripAt(-WX + 0.3, z, si++); stripAt(WX - 0.3, z, si++); }
     for (let x = -WX + 5; x < WX; x += 6) { stripAt(x, WSZ - 0.3, si++); }
