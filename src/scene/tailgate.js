@@ -111,10 +111,13 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = nul
   }
 
   // AI arcs a shot at a random one of YOUR cups, with a little wobble so it misses sometimes
+  const AI_MAKE = 0.46; // the AI sinks roughly half its shots (rim bounces add a few) — beatable
   function aiThrow() {
     const targets = playerCups.filter((c) => !c.sunk); if (!targets.length) return;
     const dest = cupWorld(targets[(Math.random() * targets.length) | 0], new THREE.Vector3());
-    dest.x += (Math.random() - 0.5) * 0.12; dest.z += (Math.random() - 0.5) * 0.12;   // aim spread
+    dest.y = 1.04;                                                        // aim for the lip so it drops in
+    const s = Math.random() < AI_MAKE ? 0.03 : 0.5;                       // precise, or clearly off the rack
+    dest.x += (Math.random() - 0.5) * s; dest.z += (Math.random() - 0.5) * s;
     const from = pong.localToWorld(_lp.set(0.2, 1.55, -2.0)).clone();
     const T = 0.82;
     launch('ai', from, new THREE.Vector3((dest.x - from.x) / T, (dest.y - from.y + 0.5 * G * T * T) / T, (dest.z - from.z) / T));
@@ -175,5 +178,5 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = nul
 
   return { update, near, throwBall, group, pong, marker,
     made: () => allCups.filter((c) => c.sunk).length,
-    state: () => ({ turn, winner }) };
+    state: () => ({ turn, winner, aiLeft: aiCups.filter((c) => !c.sunk).length, youLeft: playerCups.filter((c) => !c.sunk).length }) };
 }
