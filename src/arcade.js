@@ -131,7 +131,7 @@ controls.pos.set(0, 1.6, 13); controls.yaw = 0;
 
 // ---------- game zones: ask before playing, then stand you in the right spot ----
 const gamezones = createGameZones({ controls, camera });
-gamezones.register({ id: 'hoop', label: 'Basketball', emoji: '🏀', accent: '#ff6b35', near: (p) => hoop.near(p) && p.x < -2, spot: { pos: [-7.5, 0], yaw: 1.99 }, play: (cam) => hoop.throwBall(cam) });
+gamezones.register({ id: 'hoop', label: 'Basketball', emoji: '🏀', accent: '#ff6b35', near: (p) => hoop.near(p) && p.x < -2, spot: { pos: [-4.4, -1.8], yaw: 2.03, pitch: 0.14 }, play: (cam) => hoop.throwBall(cam) });
 gamezones.register({ id: 'gallery', label: 'Shooting Gallery', emoji: '🎯', accent: '#ff0055', near: (p) => gallery.near(p) && p.x > 4, spot: { pos: [8.4, 0.2], yaw: -2.03 }, play: (cam) => gallery.shoot(cam) });
 gamezones.register({ id: 'dunk', label: 'Dunk Tank', emoji: '💦', accent: '#00f3ff', near: (p) => dunktank.near(p) && p.z > 2 && Math.abs(p.x - 6) < 6, spot: { pos: [5, 13], yaw: 0 }, play: (cam) => dunktank.throwBall(cam) });
 

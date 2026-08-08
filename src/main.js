@@ -102,9 +102,11 @@ const VJ_PLAYLIST = 'PLTHYibH4Hb0Y';
 // each billboard starts at a different playlist index, so many VJ clips play at
 // once across the room. Billboards are heavy (one YouTube player each) so we run
 // fewer on phones.
+// ONE centered stage screen (behind the DJ booth). Two flanking players drift
+// apart and one can fail to autoplay — a single screen stays in sync with itself
+// and always plays. The side billboards below still carry the rest of the clips.
 const VJ_STAGE = [
-  { pos: [-6.6, 6.6, -30.7], size: [8.8, 4.95], audio: true },
-  { pos: [6.6, 6.6, -30.7], size: [8.8, 4.95], audio: true },
+  { pos: [0, 7.0, -30.7], size: [13, 7.3], audio: true },
 ];
 const BB_Z = isMobile ? [-2] : [-20, -2, 16]; // 1/side on mobile, 3/side on desktop
 const vjBillboards = [];

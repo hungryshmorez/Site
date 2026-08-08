@@ -36,7 +36,7 @@ export function createGameZones({ controls, camera }) {
   function enter(g) {
     active = g; prompt = null;
     const [sx, sz] = g.spot.pos;
-    controls.walkTo(new THREE.Vector3(sx, controls.eye, sz), () => { if (g.spot.yaw != null) controls.yaw = g.spot.yaw; });
+    controls.walkTo(new THREE.Vector3(sx, controls.eye, sz), () => { if (g.spot.yaw != null) controls.yaw = g.spot.yaw; if (g.spot.pitch != null) controls.pitch = g.spot.pitch; });
     show(`${g.emoji} ${g.label} — aim & click to play`, 'leave ✕', g.accent || '#00f3ff');
   }
   function leave() { if (!active) return; active = null; hide(); }
