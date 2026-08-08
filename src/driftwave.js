@@ -5,6 +5,7 @@ import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createAdmin } from './scene/admin.js';
+import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 const ambience = createAmbience(AMBIENCE.driftwave);
 
 // DRIFTWAVE STATIC'S WORLD — one big vaporwave dreamscape stitched from the
@@ -273,7 +274,10 @@ function buildRings(scene, controls) {
 // A desk + CRT computer + office chair in the lo-fi nook. Click it to boot the
 // DreamOS Ecosystem in the in-site window.
 let dreamosProxy = null;
-const DREAMOS_URL = 'lab.html?folder=DreamOS%20Ecosystem';
+// the DreamOS is now a VJ TV — its monitor plays the festival's VJ playlist and
+// clicking it opens the full playlist (with sound + controls) in the popup.
+const VJ_PLAYLIST = 'PLTHYibH4Hb0Y';
+const DREAMOS_URL = `https://www.youtube.com/embed/videoseries?list=${VJ_PLAYLIST}&autoplay=1&rel=0&modestbranding=1&playsinline=1`;
 function buildDreamOS() {
   const g = new THREE.Group(); g.position.set(-14, 0, 7); g.rotation.y = 0.5; scene.add(g);
   const deskMat = std({ color: 0x2a1c2e, roughness: 0.6, metalness: 0.2 });
@@ -309,7 +313,7 @@ function buildDreamOS() {
   const wheels = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.07, 5), std({ color: 0x0a0a10 })); wheels.position.y = 0.08; chair.add(wheels);
   g.add(chair);
   const gl = new THREE.PointLight(0x39ffd0, 3, 9, 2); gl.position.set(0, 2.5, 0.8); g.add(gl);
-  const label = textPlane('DREAMOS ✧ sit + boot', '#39ffd0'); label.position.set(0, 3.1, 0); label.scale.set(3.6, 0.55, 1); g.add(label);
+  const label = textPlane('DREAMOS ✧ VJ playlist — sit + watch', '#39ffd0'); label.position.set(0, 3.1, 0); label.scale.set(4.4, 0.55, 1); g.add(label);
   dreamosProxy = new THREE.Mesh(new THREE.BoxGeometry(3.6, 3.2, 2.8), new THREE.MeshBasicMaterial({ visible: false })); dreamosProxy.position.set(0, 1.6, 0.3); g.add(dreamosProxy);
   updaters.push((dt, t, p) => { dosMat.uniforms.t.value = t; gl.intensity = 2.4 + Math.sin(t * 4) * 0.7 + p * 1.4; });
   return g;
@@ -354,6 +358,30 @@ const _temple = buildTemple(); const _monolith = buildMonolith(); const _mall = 
 const _dreamos = buildDreamOS(); const _deadnet = buildDeadnet();
 // mutable link refs so the editor can re-point them
 const epkRef = { url: EPK_URL }, dreamosRef = { url: DREAMOS_URL }, deadnetRef = { url: DEADNET_URL };
+
+// ---- DreamOS "TV": a live CSS3D YouTube player pinned to the monitor screen so
+// the VJ playlist actually plays on the DreamOS as you sit at it (muted/looping;
+// click the machine for the full playlist with sound). One player, loaded on
+// enter so nothing streams before you start. ----
+const dosCss = new THREE.Scene();
+const dosCssRenderer = new CSS3DRenderer();
+dosCssRenderer.setSize(innerWidth, innerHeight);
+Object.assign(dosCssRenderer.domElement.style, { position: 'fixed', top: '0', left: '0', pointerEvents: 'none', zIndex: '2' });
+document.body.appendChild(dosCssRenderer.domElement);
+let dosTvFrame = null;
+{
+  const PPU = 60, w = 1.34, h = 0.99;
+  const wrap = document.createElement('div');
+  Object.assign(wrap.style, { width: (w * PPU) + 'px', height: (h * PPU) + 'px', background: '#000', overflow: 'hidden' });
+  const f = document.createElement('iframe');
+  Object.assign(f.style, { width: '100%', height: '100%', border: '0', pointerEvents: 'none' });
+  f.allow = 'autoplay; encrypted-media; picture-in-picture'; f.setAttribute('frameborder', '0');
+  wrap.appendChild(f); dosTvFrame = f;
+  const obj = new CSS3DObject(wrap);
+  obj.position.set(-13.83, 1.95, 7.31); obj.rotation.y = 0.5; obj.scale.setScalar(1 / PPU); // matches the monitor face
+  dosCss.add(obj);
+}
+const startDreamTV = () => { if (dosTvFrame && !dosTvFrame.src) dosTvFrame.src = `https://www.youtube.com/embed/videoseries?list=${VJ_PLAYLIST}&autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&playsinline=1&rel=0`; };
 
 // ambient drift: warm motes across the dream + soft pink haze in the temple
 updaters.push(addMotes(scene, { color: 0xffd27a, count: 220, area: [56, 16, 60], opacity: 0.45 }));
@@ -402,12 +430,12 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('DRIFTWAVE STATIC — EPK', epkRef.url); return; }
-  if (dreamosProxy && ray.intersectObject(dreamosProxy, false)[0]) { openWindow('DREAMOS ECOSYSTEM', dreamosRef.url); return; }
+  if (dreamosProxy && ray.intersectObject(dreamosProxy, false)[0]) { openWindow('DREAMOS · VJ PLAYLIST', dreamosRef.url); return; }
   if (deadnetProxy && ray.intersectObject(deadnetProxy, false)[0]) { openWindow('DEADNET — the dead internet', deadnetRef.url); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -27, 27); g.z = THREE.MathUtils.clamp(g.z, -27, 27); controls.walkTo(g); }
 }
-addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); });
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); dosCssRenderer.setSize(innerWidth, innerHeight); });
 
 // zone labels + EPK hint
 const zoneEl = document.getElementById('zone'), hintEl = document.getElementById('hint');
@@ -448,6 +476,7 @@ function frame() {
   rings.update(dt, t);
   updateZone(controls.pos);
   renderer.render(scene, admin.active ? admin.cam : camera);
+  dosCssRenderer.render(dosCss, admin.active ? admin.cam : camera); // DreamOS TV tracks the camera
 }
 controls.update(0);
 renderer.render(scene, camera); // one frame behind the overlay
@@ -456,6 +485,7 @@ document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
   if (track) { track.volume = 0.55; track.play().catch(() => {}); }
   ambience.start();
+  startDreamTV(); // the DreamOS monitor starts playing the VJ playlist
   if (!running) { running = true; clock.start(); frame(); }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
