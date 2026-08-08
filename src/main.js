@@ -643,6 +643,7 @@ function phaseName(d) {
 
 function frame() {
   requestAnimationFrame(frame);
+  if (document.hidden) return; // don't render/update while the tab is backgrounded
   const dt = Math.min(clock.getDelta(), 0.05);
   const time = clock.elapsedTime;
   const beat = time * (BPM / 60);
