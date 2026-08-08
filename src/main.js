@@ -553,8 +553,15 @@ for (const s of sceneLabels) s.visible = false;
 const admin = createAdmin({ scene, camera, renderer, controls, worldId: 'festival', items: adminItems });
 
 // the arcade tent has a real door — walk through it to enter (no clicking).
+// The tent sits past the arena bound, and its door faces the grounds, so the
+// entry waypoint is the DOORWAY (the tent centre stepped toward the middle of
+// the field) — otherwise the invisible bound stops you a couple units short of a
+// trigger centred on the tent's hidden middle, and the door feels blocked.
 const arcadeDest = DESTINATIONS.find((d) => d.id === 'arcade');
-const arcadeWP = (characters.list.find((c) => c.dest.id === 'arcade') || {}).worldPos;
+const _arcadeCenter = (characters.list.find((c) => c.dest.id === 'arcade') || {}).worldPos;
+const arcadeWP = _arcadeCenter
+  ? _arcadeCenter.clone().addScaledVector(new THREE.Vector3(0 - _arcadeCenter.x, 0, -4 - _arcadeCenter.z).normalize(), 5.3)
+  : null;
 
 // ---- lab portal: a porta-potty interior you step into; click the old CRT to
 // boot the Lab (its own page). While inside, the festival stops rendering. ----
@@ -727,7 +734,7 @@ function frame() {
     gamezones.update(controls.pos);
     if (pongHudEl) pongHudEl.classList.toggle('on', gamezones.isPlaying());
     // walk through the arcade tent's doorway → step right into the arcade
-    if (!warping && !admin.active && arcadeWP && controls.pos.distanceTo(arcadeWP) < 5) enterDestination(arcadeDest);
+    if (!warping && !admin.active && arcadeWP && controls.pos.distanceTo(arcadeWP) < 4) enterDestination(arcadeDest);
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
