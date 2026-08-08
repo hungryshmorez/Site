@@ -233,7 +233,9 @@ if (controls.yaw !== undefined) controls.yaw = -Math.PI * 0.75; // face into the
 
 // beer pong asks before it grabs your clicks, then stands you at the table
 const gamezones = createGameZones({ controls, camera });
-gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => tailgate.near(p), spot: { pos: [11.8, 8.6], yaw: -2.2 }, play: (cam) => tailgate.throwBall(cam) });
+// stand right at the near end of the table (its length runs toward centre),
+// looking down it at the cups — up close, like real beer pong
+gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => tailgate.near(p), spot: { pos: [13.4, 9.4], yaw: -2.356, pitch: -0.12 }, play: (cam) => tailgate.throwBall(cam) });
 // let the player walk up the ramp onto the stage deck
 controls.groundAt = (x, z) => {
   const d = festival.deck;

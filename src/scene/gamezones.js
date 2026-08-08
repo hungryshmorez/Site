@@ -36,7 +36,13 @@ export function createGameZones({ controls, camera }) {
   function enter(g) {
     active = g; prompt = null;
     const [sx, sz] = g.spot.pos;
-    controls.walkTo(new THREE.Vector3(sx, controls.eye, sz), () => { if (g.spot.yaw != null) controls.yaw = g.spot.yaw; if (g.spot.pitch != null) controls.pitch = g.spot.pitch; });
+    // walk over, then SNAP to the exact spot — walkTo otherwise stops ~2.4 units
+    // short, which left you well back from where the game should place you.
+    controls.walkTo(new THREE.Vector3(sx, controls.eye, sz), () => {
+      controls.pos.x = sx; controls.pos.z = sz;
+      if (g.spot.yaw != null) controls.yaw = g.spot.yaw;
+      if (g.spot.pitch != null) controls.pitch = g.spot.pitch;
+    });
     show(`${g.emoji} ${g.label} — aim & click to play`, 'leave ✕', g.accent || '#00f3ff');
   }
   function leave() { if (!active) return; active = null; hide(); }
