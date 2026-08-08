@@ -47,8 +47,8 @@ export const WORLD_MAPS = [
       it('Arcade', 27, -10, 'game'),
       it('TV', -25, -15, 'structure'),
       it('Merch store', -25, 4, 'structure'),
+      it('Lab: Tools kiosk', -25, -1, 'structure'),
       it("Porta John's", 24, 10, 'structure'),
-      it('Lab: Tools kiosk', 26, -3, 'structure'),
       // props / world dressing
       it('Props dealer', -13, -13, 'prop'),
       it('Truck', 19, 15, 'prop'),

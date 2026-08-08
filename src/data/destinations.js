@@ -107,7 +107,7 @@ export const DESTINATIONS = [
   {
     id: 'lab_tools', name: 'TOOLS AISLE', model: 'kiosk',
     role: 'lab market // apps + effects', accent: PALETTE.green,
-    pos: [26, 0, -3], tag: 'effects · studios · LoRAs',
+    pos: [-25, 0, -1], tag: 'effects · studios · LoRAs', // beside the merch tent on the left flank
     page: 'lab.html?folder=Tools',
     blurb: 'A lab-market kiosk. Boots straight to the Tools aisle — effects apps, the synth + vapor studios, the flash portal, and the LoRA model packs.',
     cta: 'Open the Tools aisle',
@@ -115,7 +115,8 @@ export const DESTINATIONS = [
   {
     id: 'portapotty', name: "PORTA JOHN'S", model: 'bathroom',
     role: 'the archive // inside the potty', accent: PALETTE.green,
-    pos: [24, 0, 10], tag: 'the encyclopedia', hideTag: true,
+    pos: [24, 0, 10], rot: -2.526, tag: 'the encyclopedia', hideTag: true, // doors aimed at the main stage / center
+
     portal: 'lab',
     blurb: 'A row of festival porta-potties, one glowing an unhealthy green. Step inside and boot the old screen to read the Codex — the full encyclopedia of the festival.',
     cta: 'Read the Codex',
