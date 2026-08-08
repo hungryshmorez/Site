@@ -20,8 +20,10 @@ const FPS = 1000 / 30;
 
 // auto-radio: when you stop DJing it cycles through your whole library
 let radioActive = false, radioIndex = 0, lastUserAction = performance.now();
-let autoEnabled = localStorage.getItem('djAuto') !== 'off';
-const IDLE_MS = 4500;
+// auto-radio (idle jukebox) is OFF by default now — it was reloading the anthem
+// onto deck A the moment you went idle, yanking your track. Opt in via the button.
+let autoEnabled = localStorage.getItem('djAuto') === 'on';
+const IDLE_MS = 8000;
 function userActed() { lastUserAction = performance.now(); if (radioActive) stopRadio(); }
 
 const KEYS = {
@@ -173,17 +175,26 @@ async function handleUpload(e) {
   renderLibrary();
 }
 
+let loadingDeck = { a: false, b: false };
 async function loadToDeck(id, deck) {
-  const t = library[id]; if (!t) return;
+  const t = library[id]; if (!t || loadingDeck[deck]) return;
+  loadingDeck[deck] = true;
   try {
-    await loadTrack(deck, t.file);
+    try { await getAudioContext()?.resume(); } catch (e) { /* fine */ }
+    await loadTrack(deck, t.file);            // stops any old source on this deck
     const info = getTrackInfo(deck); if (info) info.bpm = t.bpm;
     document.getElementById(`deck-${deck}-title`).textContent = t.name;
-    document.getElementById(`deck-${deck}-bpm`).textContent = `${t.bpm} BPM`;
-    window.wavesurfers[deck].load(t.file);
+    // a fresh track loads paused at 1× — reset the transport UI so it's honest
+    const ts = document.getElementById(`tempo-${deck}`); if (ts) ts.value = 0;
+    const tv = document.getElementById(`tempo-value-${deck}`); if (tv) tv.textContent = '0%';
+    const tb = document.getElementById(`tap-bpm-${deck}`); if (tb) tb.textContent = '--';
+    updateEffectiveBpm(deck);
     document.getElementById(`cue-markers-${deck}`).innerHTML = '';
     document.getElementById(`play-${deck}`).textContent = 'PLAY';
+    // waveform is visual-only; never let it block loading the deck
+    try { window.wavesurfers[deck].load(t.file); } catch (e) { console.warn('waveform load failed', e); }
   } catch (err) { console.error(err); alert('Could not load that track.'); }
+  finally { loadingDeck[deck] = false; }
 }
 
 // ── deck controls ────────────────────────────────────────────────────────────
@@ -222,22 +233,37 @@ function handleLoop(deck) {
   document.getElementById(`loop-${deck}`).classList.toggle('active', on);
 }
 
+// TAP TEMPO — tap along with the beat to MEASURE a song's tempo. This only
+// reads the tempo (and sets it as the deck's reference BPM so SYNC + the tempo
+// display use the true value); it does NOT change the song's playback speed. To
+// actually beat-match, read both decks' BPM and nudge the TEMPO slider until the
+// numbers line up (or hit SYNC).
 function handleTap(deck) {
   userActed();
   const now = Date.now(); const ti = tapTempo[deck];
-  if (now - ti.lastTap > 2000) ti.taps = [];
+  if (now - ti.lastTap > 2000) ti.taps = []; // long gap → start a fresh measure
   if (ti.lastTap > 0) {
     ti.taps.push((now - ti.lastTap) / 1000);
-    if (ti.taps.length > 4) ti.taps.shift();
+    if (ti.taps.length > 7) ti.taps.shift();
     if (ti.taps.length >= 2) {
       const avg = ti.taps.reduce((s, v) => s + v, 0) / ti.taps.length;
       const bpm = Math.round(60 / avg);
-      document.getElementById(`tap-bpm-${deck}`).textContent = `${bpm} BPM`;
+      const tb = document.getElementById(`tap-bpm-${deck}`); if (tb) tb.textContent = `${bpm} BPM`;
       const info = getTrackInfo(deck);
-      if (info && info.bpm) { const rate = bpm / info.bpm; if (rate >= 0.5 && rate <= 2) applyRate(deck, rate); }
+      if (info && bpm >= 40 && bpm <= 220) info.bpm = bpm; // set the reference, leave speed alone
+      updateEffectiveBpm(deck);
     }
   }
   ti.lastTap = now;
+}
+
+// show the deck's CURRENT effective tempo (measured/analyzed BPM × playback rate)
+// so two decks can be dialed to the same number and beat-match
+function updateEffectiveBpm(deck) {
+  const el = document.getElementById(`deck-${deck}-bpm`); if (!el) return;
+  const info = getTrackInfo(deck);
+  if (!info || !info.bpm) { el.textContent = '-- BPM'; return; }
+  el.textContent = `${Math.round(info.bpm * (info.playbackRate || 1))} BPM`;
 }
 
 function applyRate(deck, rate) {
@@ -283,6 +309,7 @@ function initUI() {
       const pct = +e.target.value;
       document.getElementById(`tempo-value-${d}`).textContent = `${pct > 0 ? '+' : ''}${pct}%`;
       setPlaybackRate(d, 1 + pct / 100);
+      updateEffectiveBpm(d); // live BPM readout so you can match the two decks
     };
     document.getElementById(`volume-${d}`).oninput = (e) => { userActed(); setVolume(d, e.target.value / 100); };
     for (const band of ['high', 'mid', 'low']) document.getElementById(`${band}-${d}`).oninput = (e) => { userActed(); setEQ(d, band, e.target.value / 100); };

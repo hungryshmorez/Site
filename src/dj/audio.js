@@ -46,6 +46,13 @@ export async function loadTrack(deck, url) {
   const response = await fetch(url);
   const arrayBuffer = await response.arrayBuffer();
   const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  // CRITICAL: kill any source already playing on this deck before we swap the
+  // track in — otherwise the old song keeps playing under the new one.
+  const old = tracks[deck];
+  if (old && old.source) {
+    try { old.source.onended = null; old.source.stop(); old.source.disconnect(); } catch (e) { /* already stopped */ }
+    old.source = null;
+  }
   tracks[deck] = {
     buffer: audioBuffer, source: null, startTime: 0, pauseTime: 0, isPlaying: false,
     cuePoint: 0, bpm: null, playbackRate: 1.0, loopActive: false, loopStart: 0, loopEnd: 0,
@@ -164,32 +171,51 @@ export function syncDecks(fromDeck, toDeck) {
 }
 
 // Lightweight BPM estimate via energy-onset clustering (no external lib).
+// Tempo detection by autocorrelation of an onset-strength envelope. Far more
+// reliable than interval-clustering: build a low-res "how much did the energy
+// jump" signal, autocorrelate it, and the strongest periodic lag in the musical
+// range is the beat. Octaves are folded into a sensible BPM window. Analyses a
+// slice from ~10% in (skips intros) for speed + stability.
 export async function analyzeBPM(audioBuffer) {
   try {
-    const audioData = audioBuffer.getChannelData(0);
-    const chunkSize = 4096;
-    const chunks = Math.floor(audioData.length / chunkSize);
-    if (chunks < 2) return null;
-    const onsets = []; let lastEnergy = 0;
-    for (let i = 0; i < chunks; i++) {
-      const chunk = audioData.slice(i * chunkSize, (i + 1) * chunkSize);
-      const energy = Math.sqrt(chunk.reduce((a, v) => a + v * v, 0) / chunkSize);
-      if (energy > lastEnergy * 1.2 && energy > 0.01) onsets.push(i * chunkSize / audioBuffer.sampleRate);
-      lastEnergy = energy;
+    const sr = audioBuffer.sampleRate;
+    // mono mixdown of the slice we analyze
+    const chs = [];
+    for (let c = 0; c < Math.min(2, audioBuffer.numberOfChannels); c++) chs.push(audioBuffer.getChannelData(c));
+    const total = chs[0].length;
+    const from = Math.floor(total * 0.1);
+    const to = Math.min(total, from + sr * 60);       // up to 60s
+    const H = 512;                                     // hop ≈ 11.6ms @44.1k
+    const nF = Math.floor((to - from) / H);
+    if (nF < 128) return null;
+
+    // onset-strength envelope: positive change in short-window RMS energy
+    const env = new Float32Array(nF);
+    let prev = 0, mean = 0;
+    for (let f = 0; f < nF; f++) {
+      let e = 0; const o = from + f * H;
+      for (let j = 0; j < H; j++) { let s = chs[0][o + j]; if (chs[1]) s = (s + chs[1][o + j]) * 0.5; e += s * s; }
+      e = Math.sqrt(e / H);
+      const flux = e - prev; env[f] = flux > 0 ? flux : 0; prev = e; mean += env[f];
     }
-    if (onsets.length < 4) return null;
-    const intervals = [];
-    for (let i = 1; i < onsets.length; i++) { const d = onsets[i] - onsets[i - 1]; if (d > 0.2 && d < 1.0) intervals.push(d); }
-    if (intervals.length < 2) return null;
-    const clusters = {};
-    intervals.map((iv) => 60 / iv).forEach((bpm) => {
-      const r = Math.round(bpm);
-      for (let i = -2; i <= 2; i++) clusters[r + i] = (clusters[r + i] || 0) + 1 / (Math.abs(i) + 1);
-    });
-    let max = 0, detected = 120;
-    Object.entries(clusters).forEach(([bpm, count]) => { if (count > max) { max = count; detected = parseInt(bpm); } });
-    if (detected < 60) detected *= 2; else if (detected > 200) detected = Math.round(detected / 2);
-    return detected;
+    mean /= nF;
+    for (let f = 0; f < nF; f++) env[f] -= mean;        // zero-mean → cleaner autocorrelation
+
+    // autocorrelation across lags for 60–190 BPM
+    const minBpm = 60, maxBpm = 190;
+    const minLag = Math.max(1, Math.floor((60 / maxBpm) * sr / H));
+    const maxLag = Math.min(nF - 1, Math.ceil((60 / minBpm) * sr / H));
+    let bestLag = minLag, best = -Infinity;
+    for (let lag = minLag; lag <= maxLag; lag++) {
+      let sum = 0; for (let i = 0; i + lag < nF; i++) sum += env[i] * env[i + lag];
+      sum /= (nF - lag);
+      if (sum > best) { best = sum; bestLag = lag; }
+    }
+    let bpm = 60 * sr / (bestLag * H);
+    // fold octaves into the usual DJ window (tap tempo can correct odd cases)
+    while (bpm < 82) bpm *= 2;
+    while (bpm > 165) bpm /= 2;
+    return Math.round(bpm);
   } catch { return null; }
 }
 
