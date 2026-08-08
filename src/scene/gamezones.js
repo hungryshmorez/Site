@@ -31,17 +31,22 @@ export function createGameZones({ controls, camera }) {
   };
   const hide = () => { el.style.display = 'none'; };
 
-  function register(g) { games.push(g); } // {id,label,emoji,accent,near(pos),spot:{pos:[x,z],yaw},play(camera)}
+  function register(g) { games.push(g); } // {id,label,emoji,accent,near(pos),spot:{pos:[x,z],yaw} | spotFn(),play(camera)}
+
+  // spot can be static (g.spot) or computed fresh each time (g.spotFn) so a game
+  // whose props move — e.g. the beer-pong table — always places you correctly.
+  const spotOf = (g) => (g.spotFn ? g.spotFn() : g.spot);
 
   function enter(g) {
     active = g; prompt = null;
-    const [sx, sz] = g.spot.pos;
+    active._spot = spotOf(g);   // freeze the spot for this play session
+    const [sx, sz] = active._spot.pos;
     // walk over, then SNAP to the exact spot — walkTo otherwise stops ~2.4 units
     // short, which left you well back from where the game should place you.
     controls.walkTo(new THREE.Vector3(sx, controls.eye, sz), () => {
       controls.pos.x = sx; controls.pos.z = sz;
-      if (g.spot.yaw != null) controls.yaw = g.spot.yaw;
-      if (g.spot.pitch != null) controls.pitch = g.spot.pitch;
+      if (active._spot.yaw != null) controls.yaw = active._spot.yaw;
+      if (active._spot.pitch != null) controls.pitch = active._spot.pitch;
     });
     show(`${g.emoji} ${g.label} — aim & click to play`, 'leave ✕', g.accent || '#00f3ff');
   }
@@ -64,7 +69,7 @@ export function createGameZones({ controls, camera }) {
 
   function update(pos) {
     if (active) {
-      const [sx, sz] = active.spot.pos;
+      const [sx, sz] = active._spot.pos;
       if (Math.hypot(pos.x - sx, pos.z - sz) > 10) leave(); // wandered off → stop playing
       return;
     }

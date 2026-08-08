@@ -656,20 +656,53 @@ export function buildMonkeyPaw(accent = '#b967ff') {
 // A small digital vendor kiosk — a counter + an angled glowing terminal screen
 // under a thin canopy. Used for the lab-market aisles (each opens a Lab folder).
 // The floating name tag (drawn by the HUD) says which aisle it is.
+// TOOLS AISLE — a vendor booth where someone's selling tools: a striped canopy,
+// a counter, a pegboard hung with hammers/wrenches/saws, a red toolbox, and a
+// vendor behind it. Front (+Z) faces the grounds.
 export function buildKiosk(accent = '#39FF14') {
   const g = new THREE.Group();
   const col = new THREE.Color(accent);
-  const frame = std({ color: 0x101018, metalness: 0.5, roughness: 0.55 });
-  const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.0, 0.9), frame); base.position.y = 0.5; base.castShadow = true; g.add(base);
-  const facia = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.5), std({ color: 0x02121a, emissive: col, emissiveIntensity: 0.7 })); facia.position.set(0, 0.5, 0.46); g.add(facia);
-  // angled terminal screen
-  const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.0), std({ color: 0x03060a, emissive: col, emissiveIntensity: 0.9, roughness: 0.4 }));
-  scr.position.set(0, 1.35, 0.28); scr.rotation.x = -0.5; g.add(scr);
-  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.0, 8), frame); post.position.set(0, 1.2, -0.1); g.add(post);
-  // thin canopy
-  const canopy = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.1, 1.2), std({ color: 0x0a0a12, emissive: col, emissiveIntensity: 0.1 })); canopy.position.set(0, 2.05, 0); canopy.castShadow = true; g.add(canopy);
-  const gl = new THREE.PointLight(col, 3, 7, 2); gl.position.set(0, 1.6, 0.8); g.add(gl);
-  return { group: g, update: (t, pulse) => { scr.material.emissiveIntensity = 0.7 + Math.sin(t * 3) * 0.2 + pulse * 0.4; facia.material.emissiveIntensity = 0.5 + pulse * 0.5; gl.intensity = 2.5 + pulse * 2; } };
+  const frame = std({ color: 0x14141c, metalness: 0.6, roughness: 0.5 });
+  const wood = std({ color: 0x4a3320, roughness: 0.9 });
+  const metal = std({ color: 0x9aa0aa, metalness: 0.85, roughness: 0.35 });
+  const metalDk = std({ color: 0x5a6068, metalness: 0.8, roughness: 0.45 });
+
+  // frame posts + striped awning
+  for (const [px, pz] of [[-1.5, -1], [1.5, -1], [-1.5, 1], [1.5, 1]]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.5, 8), frame); p.position.set(px, 1.25, pz); p.castShadow = true; g.add(p); }
+  const cv = document.createElement('canvas'); cv.width = 128; cv.height = 32; const cx = cv.getContext('2d');
+  const hex = '#' + col.getHexString();
+  for (let i = 0; i < 8; i++) { cx.fillStyle = i % 2 ? hex : '#101018'; cx.fillRect(i * 16, 0, 16, 32); }
+  const ctex = new THREE.CanvasTexture(cv); ctex.colorSpace = THREE.SRGBColorSpace;
+  const canopy = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.14, 2.4), std({ map: ctex, emissive: col, emissiveIntensity: 0.12, roughness: 0.85 })); canopy.position.set(0, 2.55, 0); canopy.castShadow = true; g.add(canopy);
+
+  // counter (front, +Z)
+  const counter = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.95, 0.7), wood); counter.position.set(0, 0.48, 0.95); counter.castShadow = true; g.add(counter);
+  const cTop = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.08, 0.82), std({ color: 0x5a4326, roughness: 0.7 })); cTop.position.set(0, 0.98, 0.95); g.add(cTop);
+
+  // pegboard of hanging tools behind the counter
+  const peg = new THREE.Mesh(new THREE.BoxGeometry(3.0, 1.7, 0.08), std({ color: 0x2a2420, roughness: 0.9, emissive: col, emissiveIntensity: 0.05 })); peg.position.set(0, 1.6, -0.9); g.add(peg);
+  const hammer = (x, y) => { const gr = new THREE.Group(); gr.position.set(x, y, -0.82); const hn = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.06), wood); hn.position.y = -0.1; gr.add(hn); const hd = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.12, 0.12), metal); hd.position.y = 0.2; gr.add(hd); g.add(gr); };
+  const wrench = (x, y) => { const gr = new THREE.Group(); gr.position.set(x, y, -0.82); gr.add(new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.5, 0.05), metal)); const jaw = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.04, 8, 16, Math.PI * 1.4), metal); jaw.position.y = 0.28; gr.add(jaw); g.add(gr); };
+  const saw = (x, y) => { const gr = new THREE.Group(); gr.position.set(x, y, -0.82); gr.rotation.z = -0.3; const bl = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.16, 0.02), metalDk); bl.position.x = 0.2; gr.add(bl); const grip = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.03, 8, 14), wood); grip.rotation.y = Math.PI / 2; grip.position.x = -0.12; gr.add(grip); g.add(gr); };
+  const driver = (x, y) => { const gr = new THREE.Group(); gr.position.set(x, y, -0.82); const h = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.24, 8), std({ color: 0xd11e2a, emissive: new THREE.Color(0xd11e2a), emissiveIntensity: 0.2 })); h.position.y = 0.12; gr.add(h); const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.3, 6), metal); sh.position.y = -0.15; gr.add(sh); g.add(gr); };
+  hammer(-1.1, 1.75); wrench(-0.4, 1.8); saw(0.45, 1.8); driver(1.15, 1.75);
+  wrench(-1.1, 1.15); hammer(0.55, 1.15); driver(-0.35, 1.1);
+
+  // toolbox + loose tools on the counter
+  const box = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.28, 0.36), std({ color: 0xd11e2a, roughness: 0.5, emissive: new THREE.Color(0xd11e2a), emissiveIntensity: 0.15 })); box.position.set(-1.0, 1.16, 0.95); g.add(box);
+  const bh = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.02, 6, 12, Math.PI), metal); bh.rotation.x = Math.PI / 2; bh.position.set(-1.0, 1.32, 0.95); g.add(bh);
+  const cw = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.4, 0.04), metal); cw.rotation.x = Math.PI / 2; cw.position.set(0.3, 1.03, 1.0); g.add(cw);
+  const ch = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.1, 0.1), metal); ch.position.set(0.95, 1.05, 1.0); g.add(ch);
+  const jar = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.2, 12), std({ color: 0x88aacc, transparent: true, opacity: 0.5, roughness: 0.2 })); jar.position.set(1.25, 1.12, 0.88); g.add(jar);
+
+  // vendor behind the counter
+  const vend = buildMarshmallow(accent).group; vend.scale.setScalar(0.6); vend.position.set(0.15, 0.3, 0.05); g.add(vend);
+
+  // sign + wash
+  const facia = new THREE.Mesh(new THREE.PlaneGeometry(3.3, 0.42), std({ color: 0x02121a, emissive: col, emissiveIntensity: 0.45 })); facia.position.set(0, 2.32, 1.19); g.add(facia);
+  const sign = textPlane('TOOLS', accent); sign.position.set(0, 2.32, 1.21); sign.scale.set(2.2, 0.55, 1); g.add(sign);
+  const gl = new THREE.PointLight(0xffe8b0, 1.8, 6, 2); gl.position.set(0, 1.9, 1.3); g.add(gl); // warm booth light so the tools read, not a green blowout
+  return { group: g, update: (t, pulse) => { facia.material.emissiveIntensity = 0.3 + pulse * 0.4; gl.intensity = 1.6 + Math.sin(t * 3) * 0.3 + pulse * 0.8; } };
 }
 
 // ---------------------------------------------------------------- CIRCUS TENT

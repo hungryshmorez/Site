@@ -176,7 +176,17 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = nul
   }
   say();
 
-  return { update, near, throwBall, group, pong, marker,
+  // Where to stand to play: the NEAR end (behind YOUR rack, local +z), facing the
+  // NPC (local -z). Derived from the pong group transform so it always tracks the
+  // table even if it's moved — never leaves you stranded behind the truck.
+  const _spp = new THREE.Vector3(), _spf = new THREE.Vector3();
+  function playSpot() {
+    pong.localToWorld(_spp.set(0, 0, 2.7));
+    _spf.set(0, 0, -1).applyQuaternion(pong.quaternion);
+    return { pos: [_spp.x, _spp.z], yaw: Math.atan2(-_spf.x, -_spf.z), pitch: -0.3 };
+  }
+
+  return { update, near, throwBall, group, pong, marker, playSpot,
     made: () => allCups.filter((c) => c.sunk).length,
     state: () => ({ turn, winner, aiLeft: aiCups.filter((c) => !c.sunk).length, youLeft: playerCups.filter((c) => !c.sunk).length }) };
 }

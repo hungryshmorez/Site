@@ -312,7 +312,8 @@ function buildDreamOS() {
   const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.6, 8), std({ color: 0x0a0a10 })); stem.position.y = 0.4; chair.add(stem);
   const wheels = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.07, 5), std({ color: 0x0a0a10 })); wheels.position.y = 0.08; chair.add(wheels);
   g.add(chair);
-  const gl = new THREE.PointLight(0x39ffd0, 3, 9, 2); gl.position.set(0, 2.5, 0.8); g.add(gl);
+  // glow emanates FROM the CRT screen (at the monitor face), not a lamp overhead
+  const gl = new THREE.PointLight(0x39ffd0, 3.4, 6, 2); gl.position.set(0, 1.95, 0.55); g.add(gl);
   const label = textPlane('DREAMOS ✧ VJ playlist — sit + watch', '#39ffd0'); label.position.set(0, 3.1, 0); label.scale.set(4.4, 0.55, 1); g.add(label);
   dreamosProxy = new THREE.Mesh(new THREE.BoxGeometry(3.6, 3.2, 2.8), new THREE.MeshBasicMaterial({ visible: false })); dreamosProxy.position.set(0, 1.6, 0.3); g.add(dreamosProxy);
   updaters.push((dt, t, p) => { dosMat.uniforms.t.value = t; gl.intensity = 2.4 + Math.sin(t * 4) * 0.7 + p * 1.4; });

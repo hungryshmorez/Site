@@ -235,7 +235,7 @@ if (controls.yaw !== undefined) controls.yaw = -Math.PI * 0.75; // face into the
 const gamezones = createGameZones({ controls, camera });
 // stand right at the near end of the table (its length runs toward centre),
 // looking down it at the cups — up close, like real beer pong
-gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => tailgate.near(p), spot: { pos: [13.4, 9.4], yaw: -2.356, pitch: -0.3 }, play: (cam) => tailgate.throwBall(cam) });
+gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => tailgate.near(p), spotFn: () => tailgate.playSpot(), play: (cam) => tailgate.throwBall(cam) });
 // let the player walk up the ramp onto the stage deck
 controls.groundAt = (x, z) => {
   const d = festival.deck;
@@ -302,7 +302,9 @@ function toggleVJ() {
     const listening = vj.toggleListen();
     listenBtn.classList.toggle('on', listening);
     listenBtn.textContent = listening ? '🔊 VJ audio' : '🔇 VJ audio';
-    if (track) track.volume = listening ? 0.06 : 0.5; // duck / restore the festival anthem
+    // fully stop the festival anthem while you listen to the video, so only ONE
+    // thing plays; pausing (not just volume 0) guarantees no bleed-through
+    if (track) { track.muted = listening; if (listening) track.pause(); else { track.volume = 0.5; track.play().catch(() => {}); } }
     flash(listening ? '🔊 listening to the VJ feed' : '🔇 VJ muted — festival audio back');
   };
 }
