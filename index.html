@@ -173,6 +173,9 @@
     .vjbar.shown{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
     .vjbar button{font-size:16px;background:none;border:0;color:inherit;cursor:pointer;padding:2px 6px;text-shadow:inherit}
     .vjbar button:hover{color:#fff}
+    .vjbar button.txt{font-size:11px;letter-spacing:.08em}
+    .vjbar button.on{color:#ff71ce;text-shadow:0 0 10px rgba(255,113,206,.6)}
+    .vjbar .sep{width:1px;height:16px;background:rgba(255,255,255,.18)}
 
     /* portal warp — plays before loading an EPK on its own page */
     .warp{position:fixed;inset:0;z-index:40;overflow:hidden;opacity:0;pointer-events:none;transition:opacity .2s}
@@ -287,7 +290,10 @@
     <kbd>W A S D</kbd> walk · <kbd>space</kbd> jump <span style="opacity:.7">(hold to glide)</span> · <kbd>drag</kbd> look · <b>click a name</b> to walk to them · <kbd>[ ]</kbd> time of day
   </div>
   <div class="vjbar" id="vjBar">
-    <button id="vjPrev" title="Previous clip">⏮</button><span>VJ · STAGE</span><button id="vjNext" title="Next clip">⏭</button>
+    <button id="vjPrev" title="Previous clip">⏮</button><span>VJ</span><button id="vjNext" title="Next clip">⏭</button>
+    <div class="sep"></div>
+    <button id="vjLink" class="txt" title="Play any YouTube link on the screens">🔗 link</button>
+    <button id="vjListen" class="txt" title="Hear the VJ feed (ducks the festival audio)">🔇 VJ audio</button>
   </div>
   <div class="dock" id="dock">
     <button class="rmbtn" id="sizeToggle" title="Resize yourself">📐 size</button>

@@ -97,13 +97,25 @@ const CONFETTI_AT = new THREE.Vector3(0, 13, festival.stageZ + 8); // over the p
 const VJ_PLAYLIST = 'PLTHYibH4Hb0Y';
 // two 16:9 panels flanking the stage (no black bars); the centered DJ booth
 // sits in the open gap between them, so the video reads as behind/around it.
+// two 16:9 stage panels (these can carry sound via the "listen" toggle) plus a
+// row of big BILLBOARDS hung high on each side wall so the whole room can watch;
+// each billboard starts at a different playlist index, so many VJ clips play at
+// once across the room. Billboards are heavy (one YouTube player each) so we run
+// fewer on phones.
+const VJ_STAGE = [
+  { pos: [-6.6, 6.6, -30.7], size: [8.8, 4.95], audio: true },
+  { pos: [6.6, 6.6, -30.7], size: [8.8, 4.95], audio: true },
+];
+const BB_Z = isMobile ? [-2] : [-20, -2, 16]; // 1/side on mobile, 3/side on desktop
+const vjBillboards = [];
+BB_Z.forEach((z, i) => {
+  vjBillboards.push({ pos: [-31, 10.5, z], size: [10, 5.6], rotY: Math.PI / 2, index: 1 + i });
+  vjBillboards.push({ pos: [31, 10.5, z], size: [10, 5.6], rotY: -Math.PI / 2, index: 1 + BB_Z.length + i });
+});
 const vj = buildVJ({
   container: document.body,
   playlist: VJ_PLAYLIST,
-  panels: [
-    { pos: [-6.6, 6.6, -30.7], size: [8.8, 4.95] },
-    { pos: [6.6, 6.6, -30.7], size: [8.8, 4.95] },
-  ],
+  panels: [...VJ_STAGE, ...vjBillboards],
 });
 // the VJ board (by the lab) is where you run the stage screens
 const vjboard = buildVJBoard(scene, { pos: [5, 0, 18], onActivate: () => toggleVJ() });
@@ -269,6 +281,26 @@ function toggleVJ() {
   const p = document.getElementById('vjPrev'), n = document.getElementById('vjNext');
   if (p) p.onclick = () => { vj.prev(); flash('⏮ previous clip'); };
   if (n) n.onclick = () => { vj.next(); flash('⏭ next clip'); };
+  // submit a link → play any YouTube video across every screen
+  const linkBtn = document.getElementById('vjLink');
+  if (linkBtn) linkBtn.onclick = () => {
+    const url = window.prompt('Paste a YouTube link to play on the screens (blank = back to the VJ playlist):', '');
+    if (url === null) return;
+    if (url.trim() === '') { vj.clearLink(); flash('🎬 back to the VJ playlist'); return; }
+    if (vj.playLink(url)) { if (!vj.isOn()) toggleVJ(); flash('🔗 playing your link'); }
+    else flash('couldn’t read that link — paste a YouTube URL');
+  };
+  // listen → un-mute the stage feed and duck the festival track so you can hear
+  // the video that’s on the VJ screens
+  const listenBtn = document.getElementById('vjListen');
+  const track = document.getElementById('track');
+  if (listenBtn) listenBtn.onclick = () => {
+    const listening = vj.toggleListen();
+    listenBtn.classList.toggle('on', listening);
+    listenBtn.textContent = listening ? '🔊 VJ audio' : '🔇 VJ audio';
+    if (track) track.volume = listening ? 0.06 : 0.5; // duck / restore the festival anthem
+    flash(listening ? '🔊 listening to the VJ feed' : '🔇 VJ muted — festival audio back');
+  };
 }
 
 // ---- aimable laser show: toggle, then the beams follow your gaze ----
