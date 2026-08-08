@@ -190,7 +190,7 @@ const pongHudEl = document.getElementById('pongHud');
 const tailgate = buildTailgate(scene, {
   pos: TAILGATE_POS, rot: faceCenter(TAILGATE_POS[0], TAILGATE_POS[1]),
   pongPos: BEERPONG_POS, pongRot: faceCenter(BEERPONG_POS[0], BEERPONG_POS[1]),
-  onScore: (n, left) => { flash(left === 0 ? `🍺 RACK CLEARED! (${n})` : `🍺 in the cup! (${n})`); if (pongHudEl) pongHudEl.textContent = `🍺 sunk: ${n} · ${left} cups left`; },
+  onState: (msg, turn) => { if (pongHudEl) pongHudEl.textContent = msg; if (turn === 'over') flash(msg); },
 });
 
 // Sofa King's elevated lounge (riser + audience couches) at his spot. The
@@ -235,7 +235,7 @@ if (controls.yaw !== undefined) controls.yaw = -Math.PI * 0.75; // face into the
 const gamezones = createGameZones({ controls, camera });
 // stand right at the near end of the table (its length runs toward centre),
 // looking down it at the cups — up close, like real beer pong
-gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => tailgate.near(p), spot: { pos: [13.4, 9.4], yaw: -2.356, pitch: -0.12 }, play: (cam) => tailgate.throwBall(cam) });
+gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => tailgate.near(p), spot: { pos: [13.4, 9.4], yaw: -2.356, pitch: -0.3 }, play: (cam) => tailgate.throwBall(cam) });
 // let the player walk up the ramp onto the stage deck
 controls.groundAt = (x, z) => {
   const d = festival.deck;

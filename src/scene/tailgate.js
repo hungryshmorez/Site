@@ -7,7 +7,7 @@ import * as THREE from 'three';
 
 const std = (o) => new THREE.MeshStandardMaterial(o);
 
-export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = null, pongRot = null, accent = '#e6c04a', onScore } = {}) {
+export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = null, pongRot = null, accent = '#e6c04a', onState } = {}) {
   const col = new THREE.Color(accent);
   const bodyMat = std({ color: 0x7a1424, metalness: 0.6, roughness: 0.28 });   // glossy deep red
   const glass = std({ color: 0x05080f, metalness: 0.4, roughness: 0.15, emissive: col, emissiveIntensity: 0.05 });
@@ -43,112 +43,137 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = nul
   const top = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.08, 3.0), std({ color: 0x203040, roughness: 0.5, metalness: 0.3, emissive: col, emissiveIntensity: 0.06 }));
   top.position.set(0, 0.9, 0); top.castShadow = true; pong.add(top);
   for (const [lx, lz] of [[-0.5, -1.3], [0.5, -1.3], [-0.5, 1.3], [0.5, 1.3]]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.9, 8), std({ color: 0x14141c, metalness: 0.6, roughness: 0.4 })); leg.position.set(lx, 0.45, lz); pong.add(leg); }
-  const cupMat = std({ color: 0xd11e2a, roughness: 0.6, emissive: new THREE.Color(0xd11e2a), emissiveIntensity: 0.25 });
+  // ---- cups: TWO racks. The FAR rack is the AI's (you throw at it); the NEAR
+  // rack is yours (the AI throws at it). Turn-based 1-on-1 beer pong. ----
   const rackRows = [[0], [-0.16, 0.16], [-0.32, 0, 0.32]];
-  const cups = []; // { mesh, sunk } — for the playable toss
-  function rack(zBase, dir) {
+  const CUP_TOP = 1.06, CUP_R = 0.082, BALL_R = 0.06, G = 11;
+  function makeRack(zBase, dir, side) {
+    const arr = [];
     rackRows.forEach((row, ri) => row.forEach((cx) => {
-      const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.05, 0.16, 12), cupMat);
+      const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.05, 0.16, 14),
+        std({ color: 0xd11e2a, roughness: 0.6, emissive: new THREE.Color(0xd11e2a), emissiveIntensity: 0.25 }));
       cup.position.set(cx, 0.98, zBase + dir * ri * 0.16); pong.add(cup);
-      cups.push({ mesh: cup, sunk: false });
+      arr.push({ mesh: cup, sunk: false, side });
     }));
+    return arr;
   }
-  rack(-1.2, 1);  // one end
-  rack(1.2, -1);  // far end
+  const aiCups = makeRack(-1.2, 1, 'ai');          // far end — YOU throw at these
+  const playerCups = makeRack(1.2, -1, 'player');  // near end — the AI throws at these
+  const allCups = aiCups.concat(playerCups);
+  const cupWorld = (c, out) => c.mesh.getWorldPosition(out);
 
   const marker = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.04, 10, 28), new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }));
   marker.rotation.x = Math.PI / 2; marker.position.set(0, 2.2, 0); pong.add(marker);
   const markerLight = new THREE.PointLight(accent, 2.5, 7, 2); markerLight.position.set(0, 1.6, 0); pong.add(markerLight);
 
-  // ---- NPC players around the table ----
-  const npcMat = std({ color: 0x05050a, roughness: 1 });
-  const players = [[-1.15, 2.0, -1], [1.15, 2.0, -1], [-1.15, -2.0, 1]]; // [x, z, tossDir]
-  for (const [nx, nz] of players) {
-    const rg = new THREE.Group(); rg.position.set(nx, 0, nz); rg.rotation.y = Math.atan2(0 - nx, 0 - nz);
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.26, 0.7, 4, 8), npcMat); body.position.y = 0.85; body.castShadow = true; rg.add(body);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), npcMat); head.position.y = 1.45; rg.add(head);
-    const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.4, 4, 6), npcMat); arm.position.set(0.2, 1.15, 0.25); arm.rotation.x = -1.1; rg.add(arm);
-    pong.add(rg);
-  }
+  // ---- the opponent: one NPC at the far end, facing you ----
+  const npcMat = std({ color: 0x0a0a12, roughness: 1, emissive: new THREE.Color(0x1a0a10), emissiveIntensity: 0.2 });
+  const npc = new THREE.Group(); npc.position.set(0, 0, -2.1); npc.rotation.y = Math.PI; pong.add(npc);
+  { const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.26, 0.7, 4, 8), npcMat); body.position.y = 0.85; body.castShadow = true; npc.add(body);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), npcMat); head.position.y = 1.45; npc.add(head);
+    const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.4, 4, 6), npcMat); arm.position.set(0.22, 1.15, 0.2); arm.rotation.x = -0.6; npc.add(arm); }
 
-  // ---- NPC ping-pong tosses (instanced, cosmetic) ----
-  const POOL = 10;
-  const ballM = new THREE.InstancedMesh(new THREE.SphereGeometry(0.05, 8, 8),
-    new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x333333, emissiveIntensity: 0.3, roughness: 0.5 }), POOL);
-  ballM.instanceMatrix.setUsage(THREE.DynamicDrawUsage); pong.add(ballM);
-  const balls = Array.from({ length: POOL }, () => ({ active: false, p: new THREE.Vector3(), v: new THREE.Vector3() }));
-  const hide = new THREE.Object3D(); hide.scale.setScalar(0); hide.updateMatrix();
-  for (let i = 0; i < POOL; i++) ballM.setMatrixAt(i, hide.matrix);
-  ballM.instanceMatrix.needsUpdate = true;
-  const dummy = new THREE.Object3D();
-  let tmr = 0;
-  function toss() {
-    const k = balls.find((b) => !b.active); if (!k) return;
-    const pl = players[(Math.random() * players.length) | 0];
-    const dir = pl[2];
-    k.active = true;
-    k.p.set(pl[0] + (Math.random() - 0.5) * 0.3, 1.35, pl[1]);
-    const targetZ = dir > 0 ? 1.2 : -1.2;
-    const dz = targetZ - pl[1], flight = 0.62;
-    k.v.set((0 - pl[0]) * 0.15, 2.9, dz / flight + (Math.random() - 0.5) * 0.3);
-  }
-
-  // ---- the PLAYABLE toss: world-space balls you throw by aiming + clicking ----
-  // world anchors are recomputed live (the table can be moved by the editor).
   const _wc = new THREE.Vector3();
-  function tableCenter() { return pong.localToWorld(_wc.set(0, 0.98, 0)); }
-  const PBALLS = 6, pBalls = [];
-  const pGeo = new THREE.SphereGeometry(0.06, 12, 10);
-  for (let i = 0; i < PBALLS; i++) {
-    const m = new THREE.Mesh(pGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x666666, emissiveIntensity: 0.4, roughness: 0.5 }));
-    m.visible = false; scene.add(m); pBalls.push({ mesh: m, v: new THREE.Vector3(), active: false, scored: false });
+  const tableCenter = () => pong.localToWorld(_wc.set(0, 0.98, 0));
+  const near = (p) => { const c = tableCenter(); return Math.hypot(p.x - c.x, p.z - c.z) < 8; };
+
+  // ---- one shared ball pool (you + the AI) ----
+  const balls = [];
+  const pGeo = new THREE.SphereGeometry(BALL_R, 12, 10);
+  for (let i = 0; i < 4; i++) {
+    const m = new THREE.Mesh(pGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x777777, emissiveIntensity: 0.4, roughness: 0.5 }));
+    m.visible = false; scene.add(m);
+    balls.push({ mesh: m, v: new THREE.Vector3(), prevY: 0, active: false, thrower: null, resolved: false, life: 0 });
   }
-  let made = 0;
-  const _fwd = new THREE.Vector3(), _tc = new THREE.Vector3();
-  function near(playerPos) { const c = tableCenter(); return Math.hypot(playerPos.x - c.x, playerPos.z - c.z) < 8; }
+  const _tc = new THREE.Vector3(), _lp = new THREE.Vector3(), _fwd = new THREE.Vector3();
+
+  // ---- game state ----
+  let turn = 'player', winner = null, inFlight = false, aiTimer = 0, resetT = 0;
+
+  function say() {
+    if (!onState) return;
+    const you = aiCups.filter((c) => !c.sunk).length, them = playerCups.filter((c) => !c.sunk).length;
+    if (turn === 'over') onState(winner === 'player' ? `🏆 YOU WIN!  ·  ${you}–${them}` : `😈 the AI wins  ·  ${you}–${them}`, turn);
+    else onState(`🍺 ${turn === 'player' ? 'YOUR shot — aim & click' : 'AI is shooting…'}  ·  you ${you}–${them} them`, turn);
+  }
+
+  function launch(thrower, from, vel) {
+    const b = balls.find((x) => !x.active); if (!b) return;
+    b.thrower = thrower; b.active = true; b.resolved = false; b.life = 0; b.mesh.visible = true;
+    b.mesh.position.copy(from); b.prevY = from.y; b.v.copy(vel); inFlight = true;
+  }
+
+  // YOU throw — only on your turn, aimed with the camera
   function throwBall(camera) {
-    const b = pBalls.find((x) => !x.active); if (!b) return;
+    if (turn !== 'player' || inFlight) return;
     camera.getWorldDirection(_fwd);
-    b.mesh.position.copy(camera.position).addScaledVector(_fwd, 0.6);
-    b.v.copy(_fwd).multiplyScalar(8).add(new THREE.Vector3(0, 3.6, 0));
-    b.active = true; b.mesh.visible = true; b.scored = false;
+    launch('player', camera.position.clone().addScaledVector(_fwd, 0.6), _fwd.clone().multiplyScalar(8).add(new THREE.Vector3(0, 3.6, 0)));
   }
-  function resetCups() { cups.forEach((c) => { c.sunk = false; c.mesh.visible = true; }); }
+
+  // AI arcs a shot at a random one of YOUR cups, with a little wobble so it misses sometimes
+  function aiThrow() {
+    const targets = playerCups.filter((c) => !c.sunk); if (!targets.length) return;
+    const dest = cupWorld(targets[(Math.random() * targets.length) | 0], new THREE.Vector3());
+    dest.x += (Math.random() - 0.5) * 0.12; dest.z += (Math.random() - 0.5) * 0.12;   // aim spread
+    const from = pong.localToWorld(_lp.set(0.2, 1.55, -2.0)).clone();
+    const T = 0.82;
+    launch('ai', from, new THREE.Vector3((dest.x - from.x) / T, (dest.y - from.y + 0.5 * G * T * T) / T, (dest.z - from.z) / T));
+  }
+
+  function endThrow(b) {
+    b.active = false; b.mesh.visible = false; inFlight = false;
+    if (turn === 'over') return;
+    if (aiCups.every((c) => c.sunk)) { winner = 'player'; turn = 'over'; say(); resetT = 3.4; return; }
+    if (playerCups.every((c) => c.sunk)) { winner = 'ai'; turn = 'over'; say(); resetT = 3.4; return; }
+    turn = (b.thrower === 'player') ? 'ai' : 'player';
+    if (turn === 'ai') aiTimer = 1.1;
+    say();
+  }
+
+  function resetGame() { allCups.forEach((c) => { c.sunk = false; c.mesh.visible = true; }); turn = 'player'; winner = null; inFlight = false; aiTimer = 0; say(); }
+
+  function stepBall(b, dt) {
+    b.life += dt; b.prevY = b.mesh.position.y;
+    b.v.y -= G * dt; b.mesh.position.addScaledVector(b.v, dt);
+    const p = b.mesh.position;
+    // cup rim: make (into the target rack) or bounce off the top of any cup
+    if (!b.resolved) {
+      for (const c of allCups) {
+        if (c.sunk) continue;
+        cupWorld(c, _tc);
+        const dx = p.x - _tc.x, dz = p.z - _tc.z, d = Math.hypot(dx, dz);
+        if (d > CUP_R + BALL_R) continue;
+        if (b.prevY > CUP_TOP && p.y <= CUP_TOP && b.v.y < 0) {
+          const target = b.thrower === 'player' ? 'ai' : 'player';
+          if (d < 0.06 && c.side === target) { c.sunk = true; c.mesh.visible = false; b.resolved = true; endThrow(b); return; }
+          p.y = CUP_TOP; b.v.y = Math.abs(b.v.y) * 0.55;            // rim bounce
+          const n = d > 1e-4 ? 1 / d : 0;
+          b.v.x = b.v.x * 0.3 + dx * n * 0.9; b.v.z = b.v.z * 0.3 + dz * n * 0.9;
+          return;
+        }
+      }
+    }
+    // table-top bounce (inside the table footprint)
+    pong.worldToLocal(_lp.copy(p));
+    if (p.y <= 0.985 + BALL_R && b.v.y < 0 && Math.abs(_lp.x) < 0.62 && Math.abs(_lp.z) < 1.55) {
+      p.y = 0.985 + BALL_R; b.v.y = Math.abs(b.v.y) * 0.4; b.v.x *= 0.7; b.v.z *= 0.7;
+      if (!b.resolved && Math.hypot(b.v.x, b.v.z) < 0.5 && b.v.y < 1.0) { b.resolved = true; endThrow(b); return; }
+    }
+    // off the table / to the floor, or timed out
+    if (p.y < 0.08 || b.life > 5) { if (!b.resolved) { b.resolved = true; endThrow(b); } else { b.active = false; b.mesh.visible = false; } }
+  }
 
   function update(dt, time, pulse) {
     underglow.intensity = 1.6 + pulse * 1.4;
     marker.material.opacity = 0.55 + Math.sin(time * 3) * 0.25 + pulse * 0.2;
     marker.position.y = 2.2 + Math.sin(time * 1.6) * 0.12;
-    tmr -= dt; if (tmr <= 0) { toss(); tmr = 0.7 + Math.random() * 0.9; }
-    let dirty = false;
-    for (let i = 0; i < POOL; i++) {
-      const b = balls[i]; if (!b.active) continue;
-      b.v.y -= 12 * dt; b.p.addScaledVector(b.v, dt);
-      if (b.p.y < 0.9) { b.active = false; ballM.setMatrixAt(i, hide.matrix); dirty = true; continue; }
-      dummy.position.copy(b.p); dummy.scale.setScalar(1); dummy.updateMatrix(); ballM.setMatrixAt(i, dummy.matrix); dirty = true;
-    }
-    if (dirty) ballM.instanceMatrix.needsUpdate = true;
-
-    // player toss physics + cup scoring (cup world positions computed live)
-    for (const b of pBalls) {
-      if (!b.active) continue;
-      const py = b.mesh.position.y;
-      b.v.y -= 11 * dt; b.mesh.position.addScaledVector(b.v, dt);
-      if (!b.scored && py > 1.06 && b.mesh.position.y <= 1.06) {
-        for (const c of cups) {
-          if (c.sunk) continue;
-          c.mesh.getWorldPosition(_tc);
-          if (Math.hypot(b.mesh.position.x - _tc.x, b.mesh.position.z - _tc.z) < 0.16) {
-            c.sunk = true; c.mesh.visible = false; b.scored = true; made++;
-            if (onScore) onScore(made, cups.filter((k) => !k.sunk).length);
-            if (cups.every((k) => k.sunk)) setTimeout(resetCups, 1200);
-            break;
-          }
-        }
-      }
-      if (b.mesh.position.y < 0.5) { b.active = false; b.mesh.visible = false; }
-    }
+    if (turn === 'ai' && !inFlight) { aiTimer -= dt; if (aiTimer <= 0) aiThrow(); }
+    if (resetT > 0) { resetT -= dt; if (resetT <= 0) resetGame(); }
+    for (const b of balls) if (b.active) stepBall(b, dt);
   }
+  say();
 
-  return { update, near, throwBall, made: () => made, group, pong };
+  return { update, near, throwBall, group, pong, marker,
+    made: () => allCups.filter((c) => c.sunk).length,
+    state: () => ({ turn, winner }) };
 }
