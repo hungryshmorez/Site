@@ -54,7 +54,15 @@ async function init() {
 
 // ── auto-radio (idle jukebox) ────────────────────────────────────────────────
 function startRadio() { radioActive = true; radioIndex = 0; radioPlay(); updateRadioBadge(); }
-function stopRadio() { radioActive = false; updateRadioBadge(); }
+// stopping the auto-radio must also SILENCE it — it plays on deck A, so pause
+// that deck and reset its button. Otherwise the idle-jukebox track kept playing
+// under your mix the moment you started to DJ.
+function stopRadio() {
+  radioActive = false;
+  try { pauseTrack('a'); } catch (e) { /* engine not ready */ }
+  const pa = document.getElementById('play-a'); if (pa) pa.textContent = 'PLAY';
+  updateRadioBadge();
+}
 async function radioPlay() {
   const ids = Object.keys(library); if (!ids.length) { radioActive = false; return; }
   const id = ids[radioIndex % ids.length];
@@ -304,7 +312,7 @@ function initUI() {
   if (autoBtn) {
     const paint = () => { autoBtn.textContent = `AUTO RADIO: ${autoEnabled ? 'ON' : 'OFF'}`; autoBtn.classList.toggle('on', autoEnabled); };
     paint();
-    autoBtn.onclick = () => { autoEnabled = !autoEnabled; localStorage.setItem('djAuto', autoEnabled ? 'on' : 'off'); if (!autoEnabled && radioActive) { stopRadio(); pauseTrack('a'); document.getElementById('play-a').textContent = 'PLAY'; } paint(); };
+    autoBtn.onclick = () => { autoEnabled = !autoEnabled; localStorage.setItem('djAuto', autoEnabled ? 'on' : 'off'); if (!autoEnabled && radioActive) stopRadio(); paint(); };
   }
 }
 
