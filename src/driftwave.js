@@ -436,6 +436,7 @@ const clock = new THREE.Clock();
 let running = false, beat = 0;
 function frame() {
   requestAnimationFrame(frame);
+  if (document.hidden) return;
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
   beat = Math.pow(1 - ((t * (72 / 60)) % 1), 2.0); // gentle 72bpm pulse

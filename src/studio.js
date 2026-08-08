@@ -305,6 +305,7 @@ const clock = new THREE.Clock();
 let running = false;
 function frame() {
   requestAnimationFrame(frame);
+  if (document.hidden) return;
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
   const p = Math.pow(1 - ((t * (100 / 60)) % 1), 2.0);

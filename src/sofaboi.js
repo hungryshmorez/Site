@@ -241,6 +241,7 @@ const clock = new THREE.Clock();
 let running = false;
 function frame() {
   requestAnimationFrame(frame);
+  if (document.hidden) return;
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
   const beatPhase = (t * (70 / 60)) % 1;
