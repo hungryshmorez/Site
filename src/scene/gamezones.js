@@ -62,8 +62,8 @@ export function createGameZones({ controls, camera }) {
   });
 
   // page tap handler calls this first; true => consumed (a throw), skip walking
-  function onTap() {
-    if (active) { active.play(camera); return true; }
+  function onTap(raycaster) {
+    if (active) { active.play(camera, raycaster); return true; }
     return false;
   }
 

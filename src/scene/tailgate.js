@@ -46,7 +46,7 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = nul
   // ---- cups: TWO racks. The FAR rack is the AI's (you throw at it); the NEAR
   // rack is yours (the AI throws at it). Turn-based 1-on-1 beer pong. ----
   const rackRows = [[0], [-0.16, 0.16], [-0.32, 0, 0.32]];
-  const CUP_TOP = 1.06, CUP_R = 0.082, BALL_R = 0.06, G = 11;
+  const CUP_TOP = 1.06, CUP_R = 0.082, BALL_R = 0.06, G = 11, MAKE_R = 0.06; // MAKE_R = catch radius (axis) for a clean drop-in
   function makeRack(zBase, dir, side) {
     const arr = [];
     rackRows.forEach((row, ri) => row.forEach((cx) => {
@@ -103,11 +103,43 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = nul
     b.mesh.position.copy(from); b.prevY = from.y; b.v.copy(vel); inFlight = true;
   }
 
-  // YOU throw — only on your turn, aimed with the camera
-  function throwBall(camera) {
+  // YOU throw — only on your turn. The ball is LOBBED to wherever you clicked:
+  // we intersect the click ray with the cup-lip plane to get the aim point, add a
+  // little scatter (so a dead-on click isn't an automatic make), and solve for the
+  // arc that lands there in a fixed time. No more hurling it across the map.
+  const _aim = new THREE.Vector3(), _from = new THREE.Vector3();
+  const AIM_Y = 1.04;        // cup-lip height — where a click resolves on the table
+  const THROW_T = 0.9;       // flight time; fixes the arc so throws land, not sail
+  const AIM_SPREAD = 0.085;  // ± metres of give-and-take around the click point
+  function throwBall(camera, raycaster) {
     if (turn !== 'player' || inFlight) return;
     camera.getWorldDirection(_fwd);
-    launch('player', camera.position.clone().addScaledVector(_fwd, 0.6), _fwd.clone().multiplyScalar(8).add(new THREE.Vector3(0, 3.6, 0)));
+    const dir = raycaster ? raycaster.ray.direction : _fwd;
+    const org = raycaster ? raycaster.ray.origin : camera.position;
+    // where does the click ray meet the horizontal cup-lip plane?
+    const t = dir.y < -1e-3 ? (AIM_Y - org.y) / dir.y : -1;
+    if (t > 0 && t < 80) _aim.copy(org).addScaledVector(dir, t);
+    else { // looking flat/up — default to the middle of the far rack
+      const live = aiCups.filter((c) => !c.sunk);
+      if (live.length) cupWorld(live[(live.length / 2) | 0], _aim);
+      else pong.localToWorld(_aim.set(0, AIM_Y, -1.35));
+      _aim.y = AIM_Y;
+    }
+    // clamp to the table region so a wild click can't fling it off the map
+    pong.worldToLocal(_lp.copy(_aim));
+    _lp.x = THREE.MathUtils.clamp(_lp.x, -1.1, 1.1);
+    _lp.z = THREE.MathUtils.clamp(_lp.z, -2.0, 2.2);
+    pong.localToWorld(_lp); _aim.copy(_lp); _aim.y = AIM_Y;
+    // scatter, so clicking dead-centre on a lid still only lands *near* it
+    _aim.x += (Math.random() - 0.5) * 2 * AIM_SPREAD;
+    _aim.z += (Math.random() - 0.5) * 2 * AIM_SPREAD;
+    // launch from just in front of the camera, arced to reach the aim point in T
+    _from.copy(camera.position).addScaledVector(_fwd, 0.4);
+    const T = THROW_T;
+    launch('player', _from.clone(), new THREE.Vector3(
+      (_aim.x - _from.x) / T,
+      (_aim.y - _from.y + 0.5 * G * T * T) / T,
+      (_aim.z - _from.z) / T));
   }
 
   // AI arcs a shot at a random one of YOUR cups, with a little wobble so it misses sometimes
@@ -139,18 +171,30 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = nul
     b.life += dt; b.prevY = b.mesh.position.y;
     b.v.y -= G * dt; b.mesh.position.addScaledVector(b.v, dt);
     const p = b.mesh.position;
-    // cup rim: make (into the target rack) or bounce off the top of any cup
-    if (!b.resolved) {
+    // cup detection: fires the frame the ball descends through the lip. A single
+    // sample at the lip is a poor test — the ball is moving fast and steeply, so it
+    // can cross the lip plane offset from the cup yet still be falling INTO it. So we
+    // project the descent forward and use the closest approach to each cup's axis to
+    // decide: drop it in (make) or clip the rim (bounce).
+    if (!b.resolved && b.prevY > CUP_TOP && p.y <= CUP_TOP && b.v.y < 0) {
+      const target = b.thrower === 'player' ? 'ai' : 'player';
+      const vhx = b.v.x, vhz = b.v.z, vh2 = vhx * vhx + vhz * vhz;
+      const tFall = 0.16 / Math.max(0.6, -b.v.y);                     // ~time to reach cup depth
+      let best = null, bestMin = 1e9, bestCur = 0, bcx = 0, bcz = 0;
       for (const c of allCups) {
         if (c.sunk) continue;
         cupWorld(c, _tc);
-        const dx = p.x - _tc.x, dz = p.z - _tc.z, d = Math.hypot(dx, dz);
-        if (d > CUP_R + BALL_R) continue;
-        if (b.prevY > CUP_TOP && p.y <= CUP_TOP && b.v.y < 0) {
-          const target = b.thrower === 'player' ? 'ai' : 'player';
-          if (d < 0.06 && c.side === target) { c.sunk = true; c.mesh.visible = false; b.resolved = true; endThrow(b); return; }
-          p.y = CUP_TOP; b.v.y = Math.abs(b.v.y) * 0.55;            // rim bounce
-          const n = d > 1e-4 ? 1 / d : 0;
+        const rx = p.x - _tc.x, rz = p.z - _tc.z;
+        let ts = vh2 > 1e-6 ? -((rx * vhx + rz * vhz) / vh2) : 0;     // time of closest horizontal approach
+        if (ts < 0) ts = 0; else if (ts > tFall) ts = tFall;
+        const dmin = Math.hypot(rx + vhx * ts, rz + vhz * ts);
+        if (dmin < bestMin) { bestMin = dmin; best = c; bestCur = Math.hypot(rx, rz); bcx = _tc.x; bcz = _tc.z; }
+      }
+      if (best) {
+        if (bestMin < MAKE_R && best.side === target) { best.sunk = true; best.mesh.visible = false; b.resolved = true; endThrow(b); return; }
+        if (bestCur < CUP_R + BALL_R) {                              // clipped the rim → bounce off the top
+          p.y = CUP_TOP; b.v.y = Math.abs(b.v.y) * 0.55;
+          const dx = p.x - bcx, dz = p.z - bcz, d = Math.hypot(dx, dz), n = d > 1e-4 ? 1 / d : 0;
           b.v.x = b.v.x * 0.3 + dx * n * 0.9; b.v.z = b.v.z * 0.3 + dz * n * 0.9;
           return;
         }

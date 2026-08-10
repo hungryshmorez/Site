@@ -235,7 +235,7 @@ if (controls.yaw !== undefined) controls.yaw = -Math.PI * 0.75; // face into the
 const gamezones = createGameZones({ controls, camera });
 // stand right at the near end of the table (its length runs toward centre),
 // looking down it at the cups — up close, like real beer pong
-gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => tailgate.near(p), spotFn: () => tailgate.playSpot(), play: (cam) => tailgate.throwBall(cam) });
+gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => tailgate.near(p), spotFn: () => tailgate.playSpot(), play: (cam, ray) => tailgate.throwBall(cam, ray) });
 // let the player walk up the ramp onto the stage deck
 controls.groundAt = (x, z) => {
   const d = festival.deck;
@@ -626,7 +626,7 @@ function handleTap(sx, sy) {
   { const got = orbs.tryClick(raycaster); if (got) { pickupOrb(got); return; } }
   // beer pong: only toss while actually playing (entered via its "Play?" prompt)
   // so wandering past the table never hijacks your clicks
-  if (gamezones.onTap()) return;
+  if (gamezones.onTap(raycaster)) return;
   // the secret keycard / backstage vault
   if (secret.tryClick(raycaster)) return;
   // characters next
