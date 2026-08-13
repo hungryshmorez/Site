@@ -225,13 +225,17 @@ export function buildRaver(accent = '#FF0055') {
 // dubstep / weird bass, watching the whole festival from the back.
 export function buildSofaBoi(accent = '#6a6cff') {
   const g = new THREE.Group();
+  const col = new THREE.Color(accent);
   const fabric = std({ color: 0x2a2c3a, roughness: 0.95 });   // worn couch
   const fabric2 = std({ color: 0x22242f, roughness: 0.95 });
-  const hoodie = std({ color: 0x191b26, roughness: 0.9, emissive: new THREE.Color(accent), emissiveIntensity: 0.12 });
+  const seam = std({ color: 0x15161f, roughness: 1 });        // dark piping / seams
+  const hoodie = std({ color: 0x191b26, roughness: 0.9, emissive: col, emissiveIntensity: 0.12 });
+  const hoodieDk = std({ color: 0x0f1017, roughness: 0.95 }); // hood interior / shadow
   const shins = std({ color: 0x14161f, roughness: 0.9 });
   const skin = std({ color: 0xc9a888, roughness: 0.7 });
+  const rubber = std({ color: 0x0c0d13, roughness: 0.85 });
 
-  // ---- couch ----
+  // ---- couch: seat, tufted back, arms, feet, + worn detail ----
   const seat = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.4, 1.1), fabric); seat.position.set(0, 0.5, 0); seat.castShadow = seat.receiveShadow = true; g.add(seat);
   const cushL = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.22, 1.0), fabric2); cushL.position.set(-0.55, 0.72, 0.02); g.add(cushL);
   const cushR = cushL.clone(); cushR.position.x = 0.55; g.add(cushR);
@@ -240,40 +244,93 @@ export function buildSofaBoi(accent = '#6a6cff') {
   const bcushR = bcushL.clone(); bcushR.position.x = 0.55; g.add(bcushR);
   for (const sx of [-1.28, 1.28]) { const arm = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.75, 1.1), fabric); arm.position.set(sx, 0.72, 0); arm.castShadow = true; g.add(arm); }
   for (const [ax, az] of [[-1.05, 0.45], [1.05, 0.45], [-1.05, -0.45], [1.05, -0.45]]) { const f = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.3, 8), std({ color: 0x140f0a })); f.position.set(ax, 0.15, az); g.add(f); }
+  // tufting buttons on the back cushions + a worn seam across the seat front
+  for (const bx of [-0.85, -0.55, -0.25, 0.25, 0.55, 0.85]) for (const by of [0.78, 1.12]) { const btn = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 6), seam); btn.position.set(bx, by, -0.31); g.add(btn); }
+  const piping = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.3, 8), seam); piping.rotation.z = Math.PI / 2; piping.position.set(0, 0.7, 0.55); g.add(piping);
+  // a slumped throw pillow on the left seat + a blanket draped over the right arm
+  const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.16), std({ color: 0x33364a, roughness: 0.95, emissive: col, emissiveIntensity: 0.06 })); pillow.position.set(-0.86, 0.95, 0.18); pillow.rotation.set(0.2, 0.3, 0.5); g.add(pillow);
+  const blanket = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 0.06), std({ color: 0x3a2d4a, roughness: 1 })); blanket.position.set(1.28, 0.7, 0.35); blanket.rotation.set(0.35, 0, 0.05); g.add(blanket);
 
   // ---- the sad boi (sitting, slumped forward) ----
   const boi = new THREE.Group(); boi.position.set(0.05, 0, 0.05); g.add(boi);
   const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.4, 6, 12), hoodie); torso.position.set(0, 1.15, 0.05); torso.rotation.x = 0.3; torso.castShadow = true; boi.add(torso);
+  // kangaroo pocket + glowing chest emblem + drawstrings with aglets
+  const pocket = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.12), hoodieDk); pocket.position.set(0, 0.98, 0.34); pocket.rotation.x = 0.3; boi.add(pocket);
+  const emblem = new THREE.Mesh(new THREE.CircleGeometry(0.06, 20), std({ color: 0x05060a, emissive: col, emissiveIntensity: 0.9, roughness: 0.4 })); emblem.position.set(0, 1.22, 0.35); emblem.rotation.x = 0.3; boi.add(emblem);
+  for (const sx of [-0.07, 0.07]) { const str = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.26, 6), hoodieDk); str.position.set(sx, 1.24, 0.33); str.rotation.x = 0.3; boi.add(str); const ag = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.05, 6), std({ color: 0x0a0b12, metalness: 0.4 })); ag.position.set(sx, 1.11, 0.37); boi.add(ag); }
+  // head, hood shell + dark inner rim framing the face
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 18, 16), skin); head.position.set(0, 1.52, 0.24); boi.add(head);
   const hood = new THREE.Mesh(new THREE.SphereGeometry(0.31, 18, 16, 0, Math.PI * 2, 0, Math.PI * 0.64), hoodie); hood.position.set(0, 1.58, 0.16); hood.rotation.x = 0.5; hood.castShadow = true; boi.add(hood);
+  const hoodRim = new THREE.Mesh(new THREE.TorusGeometry(0.235, 0.05, 8, 22), hoodieDk); hoodRim.position.set(0, 1.55, 0.32); hoodRim.rotation.x = 0.28; boi.add(hoodRim);
+  // sad face: heavy-lidded downcast eyes, worried (inner-raised) brows, small nose, frown
   const eyeMat = std({ color: 0x0e0e16 });
-  for (const sx of [-0.09, 0.09]) { const e = new THREE.Mesh(new THREE.SphereGeometry(0.032, 8, 8), eyeMat); e.position.set(sx, 1.5, 0.46); boi.add(e); }
+  const lidShadow = std({ color: 0x9a7a63, roughness: 0.85 });
+  for (const sx of [-0.09, 0.09]) {
+    const e = new THREE.Mesh(new THREE.SphereGeometry(0.033, 10, 8), eyeMat); e.position.set(sx, 1.49, 0.46); boi.add(e);
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.088, 0.026, 0.018), lidShadow); lid.position.set(sx, 1.511, 0.468); lid.rotation.z = sx > 0 ? -0.12 : 0.12; boi.add(lid);  // heavy droop
+    const bag = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.013, 0.013), lidShadow); bag.position.set(sx, 1.462, 0.47); boi.add(bag);                                          // faint under-eye bag
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.02, 0.02), std({ color: 0x1a1420, roughness: 0.9 })); brow.position.set(sx * 1.05, 1.555, 0.46); brow.rotation.z = sx > 0 ? -0.32 : 0.32; boi.add(brow); // inner end raised = worried
+  }
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.028, 0.06, 6), skin); nose.rotation.x = Math.PI / 2 + 0.3; nose.position.set(0, 1.465, 0.48); boi.add(nose);
+  const mouth = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.012, 6, 14, Math.PI), std({ color: 0x2a1e22, roughness: 0.9 })); mouth.position.set(0, 1.415, 0.47); boi.add(mouth); // frown arc (corners down)
+  // legs, arms, hands (right hand cups the phone), sneakers
   for (const sx of [-0.16, 0.16]) { const th = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.4, 4, 8), hoodie); th.rotation.x = Math.PI / 2; th.position.set(sx, 0.88, 0.35); boi.add(th); }
   for (const sx of [-0.16, 0.16]) { const sh = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.5, 4, 8), shins); sh.position.set(sx, 0.42, 0.62); boi.add(sh); }
+  for (const sx of [-0.16, 0.16]) {
+    const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.14, 0.34), rubber); shoe.position.set(sx, 0.12, 0.78); shoe.castShadow = true; boi.add(shoe);
+    const sole = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.05, 0.36), std({ color: 0xd8d8e0, roughness: 0.6 })); sole.position.set(sx, 0.05, 0.78); boi.add(sole);
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.205, 0.03, 0.16), std({ color: 0x05060a, emissive: col, emissiveIntensity: 0.5 })); stripe.position.set(sx, 0.13, 0.8); boi.add(stripe);
+  }
   const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.35, 4, 8), hoodie); armL.rotation.x = Math.PI / 2.2; armL.position.set(-0.24, 1.0, 0.42); boi.add(armL);
   const armR = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.35, 4, 8), hoodie); armR.rotation.x = Math.PI / 2.2; armR.position.set(0.24, 1.0, 0.42); boi.add(armR);
-  const phone = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.28, 0.02), std({ color: 0x05060a, emissive: new THREE.Color(accent), emissiveIntensity: 1.2 }));
+  const handL = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), skin); handL.position.set(-0.24, 0.92, 0.62); boi.add(handL);
+  const handR = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), skin); handR.position.set(0.24, 0.96, 0.6); boi.add(handR);
+  const phone = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.28, 0.02), std({ color: 0x05060a, emissive: col, emissiveIntensity: 1.2 }));
   phone.position.set(0.24, 1.04, 0.58); phone.rotation.x = -0.5; boi.add(phone);
   const phoneGlow = new THREE.PointLight(accent, 2, 2.5, 2); phoneGlow.position.set(0.24, 1.12, 0.62); boi.add(phoneGlow);
 
-  // ---- personal rain cloud ----
+  // ---- side subwoofer that wobbles to his weird bass ----
+  const sub = new THREE.Group(); sub.position.set(2.0, 0, 0.15); g.add(sub);
+  const subBox = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.9, 0.66), std({ color: 0x0a0b11, roughness: 0.7 })); subBox.position.y = 0.45; subBox.castShadow = true; sub.add(subBox);
+  const subRing = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.04, 10, 24), std({ color: 0x1a1c26, roughness: 0.6 })); subRing.position.set(0, 0.5, 0.34); sub.add(subRing);
+  const subCone = new THREE.Mesh(new THREE.CircleGeometry(0.24, 24), std({ color: 0x101219, roughness: 0.5, emissive: col, emissiveIntensity: 0.12 })); subCone.position.set(0, 0.5, 0.35); sub.add(subCone);
+  const subDust = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 10), std({ color: 0x05060a, emissive: col, emissiveIntensity: 0.3 })); subDust.position.set(0, 0.5, 0.36); sub.add(subDust);
+  const subGlow = new THREE.PointLight(accent, 0.6, 3, 2); subGlow.position.set(0, 0.5, 0.6); sub.add(subGlow);
+
+  // ---- little clutter: crushed can + pizza slice on the left arm, puddle below ----
+  const can = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.16, 10), std({ color: 0x9aa2ad, metalness: 0.7, roughness: 0.35 })); can.position.set(-1.28, 1.16, 0.2); can.rotation.set(0.4, 0, 0.6); g.add(can);
+  const pizzaBox = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.05, 0.34), std({ color: 0x6b5030, roughness: 1 })); pizzaBox.position.set(-1.28, 1.13, -0.2); pizzaBox.rotation.y = 0.3; g.add(pizzaBox);
+  const puddle = new THREE.Mesh(new THREE.CircleGeometry(1.5, 32), new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false })); puddle.rotation.x = -Math.PI / 2; puddle.position.set(0.1, 0.02, 0.5); g.add(puddle);
+
+  // ---- personal rain cloud (denser, with a lightning core) ----
   const cloud = new THREE.Group(); cloud.position.set(0.05, 2.65, 0.1); g.add(cloud);
-  const cloudMat = std({ color: 0x2b2f3e, roughness: 1, emissive: new THREE.Color(accent), emissiveIntensity: 0.08 });
-  for (const [cx, cy, cr] of [[-0.38, 0, 0.32], [0.02, 0.09, 0.42], [0.44, 0, 0.3], [0.04, -0.06, 0.36]]) { const puff = new THREE.Mesh(new THREE.SphereGeometry(cr, 14, 12), cloudMat); puff.position.set(cx, cy, 0); cloud.add(puff); }
+  const cloudMat = std({ color: 0x2b2f3e, roughness: 1, emissive: col, emissiveIntensity: 0.08 });
+  for (const [cx, cy, cr] of [[-0.5, -0.02, 0.34], [-0.2, 0.08, 0.4], [0.14, 0.12, 0.44], [0.5, 0.02, 0.34], [0.06, -0.08, 0.4], [-0.3, -0.06, 0.3]]) { const puff = new THREE.Mesh(new THREE.SphereGeometry(cr, 14, 12), cloudMat); puff.position.set(cx, cy, (Math.random() - 0.5) * 0.2); cloud.add(puff); }
+  const bolt = new THREE.PointLight(0xdfe4ff, 0, 4, 2); bolt.position.set(0.05, -0.15, 0); cloud.add(bolt);
   const rain = [];
   const rainMat = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false });
-  for (let i = 0; i < 12; i++) { const drop = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.18, 4), rainMat); drop.position.set((Math.random() - 0.5) * 0.9, -0.25 - Math.random() * 0.7, (Math.random() - 0.5) * 0.35); cloud.add(drop); rain.push(drop); }
+  for (let i = 0; i < 20; i++) { const drop = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.18, 4), rainMat); drop.position.set((Math.random() - 0.5) * 1.05, -0.25 - Math.random() * 0.8, (Math.random() - 0.5) * 0.45); cloud.add(drop); rain.push(drop); }
 
+  let flash = 0;
   return {
     group: g,
     update: (t, pulse) => {
       // dejected slump sinks on the bass; slow breathing otherwise
       boi.position.y = -pulse * 0.06 + Math.sin(t * 1.2) * 0.01;
       boi.rotation.x = 0.02 + pulse * 0.04;
+      head.position.y = 1.52 + Math.sin(t * 1.1) * 0.006 - pulse * 0.02;   // faint head bob
       phone.material.emissiveIntensity = 0.9 + Math.sin(t * 3) * 0.3 + pulse * 0.5;
       phoneGlow.intensity = 1.4 + pulse;
-      rain.forEach((d, i) => { d.position.y -= (0.5 + i * 0.03) * 0.03; if (d.position.y < -1.15) d.position.y = -0.2; });
+      // subwoofer cone punches out on the bass
+      const push = pulse * 0.06 + Math.sin(t * 6) * 0.008;
+      subCone.position.z = 0.35 + push; subDust.position.z = 0.36 + push * 1.2;
+      subGlow.intensity = 0.4 + pulse * 1.6;
+      rain.forEach((d, i) => { d.position.y -= (0.5 + i * 0.03) * 0.03; if (d.position.y < -1.2) d.position.y = -0.2; });
       cloud.position.x = 0.05 + Math.sin(t * 0.5) * 0.05;
+      // occasional lightning flicker inside the cloud
+      flash *= 0.82; if (Math.random() < 0.006 + pulse * 0.02) flash = 1;
+      bolt.intensity = flash * 5;
+      cloudMat.emissiveIntensity = 0.08 + flash * 0.5;
     },
   };
 }
