@@ -1,0 +1,2626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0X4PB1JR3C"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-0X4PB1JR3C');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>TAKE A TRIP! Glitch Art & Datamosh in Real-time</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        @keyframes rainbowText {
+            0% { color: #ff00ff; text-shadow: 0 0 7px #ff00ff; } 16% { color: #007bff; text-shadow: 0 0 7px #007bff; } 33% { color: #00ff00; text-shadow: 0 0 7px #00ff00; } 50% { color: #ffff00; text-shadow: 0 0 7px #ffff00; } 66% { color: #ff7f00; text-shadow: 0 0 7px #ff7f00; } 83% { color: #ff0000; text-shadow: 0 0 7px #ff0000; } 100% { color: #ff00ff; text-shadow: 0 0 7px #ff00ff; }
+        }
+        @keyframes rainbowBackground {
+            0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+        }
+        html, body { margin: 0; padding: 0; overflow: hidden; width: 100%; height: 100%; background-color: #0a0a0f; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #e8e8e8; }
+        canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
+        #errorMessage { position: absolute; top: 10px; left: 10px; background-color: rgba(255, 0, 100, 0.9); padding: 12px; border-radius: 6px; display: none; z-index: 1001; color: white; font-size: 14px; box-shadow: 0 0 20px rgba(255,0,100,0.7); }
+        #webcamVideo { position: absolute; top: -9999px; left: -9999px; }
+        #controls { position: absolute; bottom: 10px; left: 10px; background-color: rgba(15, 18, 28, 0.65); padding: 12px; border-radius: 12px; font-size: 12px; display: flex; flex-direction: column; width: 290px; max-width: 90vw; max-height: 88vh; z-index: 1000; overflow: hidden; min-width: 240px; border: 1px solid rgba(70, 80, 110, 0.8); box-shadow: 0 8px 35px rgba(0,0,0,0.6), 0 0 50px rgba(100, 150, 255, 0.1); transition: height 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), min-height 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.3s ease-out; }
+        #controlsHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(60, 70, 95, 0.8); position: relative; }
+        #headerButtons { display: flex; align-items: center; gap: 8px; }
+        #controlsTitle { font-weight: 700; font-size: 18px; animation: rainbowText 10s linear infinite; margin-right: auto; }
+        #minimizeButton { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(120, 150, 200, 0.5); color: #aaa; cursor: pointer; padding: 0; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s, transform 0.2s, color 0.2s, box-shadow 0.2s; flex-shrink: 0; }
+        #minimizeButton:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: scale(1.15); box-shadow: 0 0 10px rgba(150, 180, 255, 0.5); }
+        #minimizeButton svg { width: 12px; height: 12px; fill: currentColor; }
+        #controlsContent { overflow-y: auto; overflow-x: hidden; padding-right: 3px; display: flex; flex-direction: column; gap: 10px; transition: opacity 0.2s 0.1s ease-out; }
+        #controls.minimized { height: 52px !important; min-height: 52px !important; background-color: rgba(15, 18, 28, 0.55); }
+        #controls.minimized #controlsContent, #controls.minimized #resizeHandle { opacity: 0; pointer-events: none; }
+        #controls .main-action-button { width: 100%; box-sizing: border-box; margin-top: 6px; padding: 7px 10px; background: linear-gradient(120deg, red, orange, yellow, green, blue, indigo, violet, red); background-size: 300% 300%; animation: rainbowBackground 8s linear infinite; border: none; color: white; cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600; transition: transform 0.15s ease, box-shadow 0.15s ease; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        #controls .main-action-button:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
+        #controls .main-action-button:active { transform: translateY(0px) scale(1); animation-duration: 4s; }
+        #controls .main-action-button:disabled { background-image: none; background-color: #3a3a45; color: #777; cursor: default; transform: none; box-shadow: none; animation: none; }
+        .control-group { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; }
+        .control-group label { flex-basis: 75px; flex-shrink: 0; font-size: 12.5px; font-weight: 500; color: #77ccff; text-shadow: 0 0 5px rgba(100, 200, 255, 0.5); }
+        .control-group input[type="range"] { flex-grow: 1; min-width: 80px; height: 20px; margin: 0; -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
+        .control-group input[type="range"]::-webkit-slider-runnable-track { height: 10px; background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00, #ff00ff, #00ffff, #ffff00); background-size: 400% 100%; animation: rainbowBackground 12s linear infinite; border-radius: 5px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); }
+        .control-group input[type="range"]::-moz-range-track { height: 10px; background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00, #ff00ff, #00ffff, #ffff00); background-size: 400% 100%; animation: rainbowBackground 12s linear infinite; border-radius: 5px; border: none; }
+        .control-group input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; height: 18px; width: 18px; background-color: #ffffff; border-radius: 50%; border: 2px solid #10121a; box-shadow: 0 0 6px #fff, 0 0 12px #fff, 0 0 18px rgba(200,220,255,0.8); margin-top: -4px; }
+        .control-group input[type="range"]::-moz-range-thumb { height: 16px; width: 16px; background-color: #ffffff; border-radius: 50%; border: 2px solid #10121a; box-shadow: 0 0 6px #fff, 0 0 12px #fff, 0 0 18px rgba(200,220,255,0.8); }
+        .control-group input[type="number"] { width: 55px; flex-shrink: 0; text-align: right; padding: 5px 6px; background-color: rgba(20, 22, 30, 0.8); color: #66ffee; border: 1px solid rgba(80, 90, 120, 0.9); border-radius: 4px; -moz-appearance: textfield; appearance: textfield; font-size: 12px; font-weight: 500; box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); }
+        .control-group input[type="number"]::-webkit-outer-spin-button, .control-group input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .button-group { display: flex; gap: 10px; margin-top: 8px; }
+        .button-group button { flex-grow: 1; }
+        #resizeHandle { position: absolute; bottom: 0; right: 0; width: 16px; height: 16px; cursor: nwse-resize; z-index: 1000; display: flex; align-items: flex-end; justify-content: flex-end; opacity: 0.4; }
+        #resizeHandle::before { content: ""; display: block; width: 8px; height: 8px; border-right: 2.5px solid #66ffee; border-bottom: 2.5px solid #66ffee; margin: 0 2px 2px 0; opacity: 0.6; }
+        #resizeHandle:hover { opacity: 0.8; }
+        .record-button { padding: 0; background-color: #282c34; border: 1px solid #4f5661; cursor: pointer; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s, transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.3); flex-shrink: 0; color: #e8e8e8; }
+        .record-button:hover { background-color: #3a3f47; transform: scale(1.05); box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        .record-button:active { background-color: #1c1e22; transform: scale(1); }
+        .record-button.is-recording { animation: blink 1.5s linear infinite; }
+        .record-button svg { display: block; margin: auto; }
+        #fileUploadInput { background-color: rgba(20, 22, 30, 0.8); color: #e8e8e8; border: 1px solid rgba(80, 90, 120, 0.9); border-radius: 4px; padding: 4px; font-size: 11px; flex-grow: 1; }
+        #fileUploadInput::file-selector-button { background-color: #3a3f47; color: #e8e8e8; border: none; padding: 3px 6px; border-radius: 3px; cursor: pointer; margin-right: 8px; }
+        #snapshotButton { background-color: rgba(50, 205, 50, 0.15); border: 1px solid rgba(50, 205, 50, 0.6); color: #90ee90; }
+        #snapshotButton:hover { background-color: rgba(50, 205, 50, 0.3); box-shadow: 0 0 10px rgba(50, 205, 50, 0.5); color: #d0ffd0; }
+        #snapshotButton svg { width: 16px; height: 16px; fill: currentColor; }
+        #refreshButton { background-color: rgba(65, 105, 225, 0.15); border: 1px solid rgba(65, 105, 225, 0.6); color: #90a9ee; }
+        #refreshButton:hover { background-color: rgba(65, 105, 225, 0.3); box-shadow: 0 0 10px rgba(65, 105, 225, 0.5); color: #ccd6ff; }
+        #switchCameraButton { background-color: rgba(255, 165, 0, 0.15); border: 1px solid rgba(255, 165, 0, 0.6); color: #ffd280; }
+        #switchCameraButton:hover { background-color: rgba(255, 165, 0, 0.3); box-shadow: 0 0 10px rgba(255, 165, 0, 0.5); color: #ffe0b3; }
+        #presetSelector { background-color: rgba(20, 22, 30, 0.8); color: #e8e8e8; border: 1px solid rgba(80, 90, 120, 0.9); border-radius: 4px; padding: 5px; font-size: 12px; width: 100%; margin-top: 5px; }
+        #effectSelector { background-color: rgba(20, 22, 30, 0.8); color: #e8e8e8; border: 1px solid rgba(80, 90, 120, 0.9); border-radius: 4px; padding: 5px; font-size: 12px; width: 100%; margin-top: 5px; }
+        .section-title { font-size: 13px; font-weight: 600; color: #66ffee; margin-top: 10px; margin-bottom: 5px; text-shadow: 0 0 5px rgba(100, 200, 255, 0.3); }
+        .tab-buttons { display: flex; gap: 5px; margin-bottom: 10px; }
+        .tab-button { flex: 1; padding: 6px 8px; background-color: rgba(20, 22, 30, 0.5); border: 1px solid rgba(80, 90, 120, 0.5); border-radius: 4px; color: #aaa; cursor: pointer; font-size: 11px; transition: all 0.2s ease; }
+        .tab-button:hover { background-color: rgba(40, 45, 60, 0.7); color: #ddd; }
+        .tab-button.active { background-color: rgba(80, 100, 140, 0.5); color: #fff; box-shadow: 0 0 10px rgba(100, 150, 255, 0.2); border-color: rgba(100, 120, 180, 0.8); }
+        .tab-content { display: none; }
+        .tab-content.active { display: flex; flex-direction: column; gap: 10px; }
+        
+        #clipsButton { background-color: rgba(138, 43, 226, 0.15); border: 1px solid rgba(138, 43, 226, 0.6); color: #d8a0ff; }
+        #clipsButton:hover { background-color: rgba(138, 43, 226, 0.3); box-shadow: 0 0 10px rgba(138, 43, 226, 0.5); color: #f0d0ff; }
+        #clipsButton svg { width: 16px; height: 16px; fill: currentColor; }
+        #clipsButton.recording { background-color: rgba(255, 65, 54, 0.3); border-color: rgba(255, 65, 54, 0.8); animation: blink 1s linear infinite; }
+        
+        #clipsPanel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(15, 18, 28, 0.95); border: 1px solid rgba(100, 120, 180, 0.7); border-radius: 12px; padding: 20px; max-width: 600px; max-height: 80vh; overflow-y: auto; z-index: 2000; display: none; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 60px rgba(120, 150, 255, 0.15); }
+        #clipsPanel.visible { display: block; }
+        #clipsPanelHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(60, 70, 95, 0.8); }
+        #clipsPanelTitle { font-weight: 700; font-size: 18px; color: #d8a0ff; text-shadow: 0 0 7px rgba(138, 43, 226, 0.5); }
+        #clipsPanelClose { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(120, 150, 200, 0.5); color: #aaa; cursor: pointer; padding: 0; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        #clipsPanelClose:hover { background: rgba(255, 100, 100, 0.3); color: #ff6666; transform: scale(1.1); }
+        
+        #clipsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 15px; }
+        .clip-item { position: relative; background-color: rgba(20, 22, 30, 0.8); border: 1px solid rgba(80, 90, 120, 0.7); border-radius: 8px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+        .clip-item:hover { border-color: rgba(138, 43, 226, 0.8); box-shadow: 0 0 15px rgba(138, 43, 226, 0.3); transform: translateY(-2px); }
+        .clip-thumbnail { width: 100%; height: 120px; object-fit: cover; background-color: rgba(10, 10, 15, 0.5); }
+        .clip-info { padding: 8px; font-size: 11px; color: #aaa; }
+        .clip-duration { font-weight: 600; color: #d8a0ff; }
+        .clip-actions { position: absolute; top: 5px; right: 5px; display: flex; gap: 5px; opacity: 0; transition: opacity 0.2s; }
+        .clip-item:hover .clip-actions { opacity: 1; }
+        .clip-action-btn { background: rgba(0, 0, 0, 0.7); border: 1px solid rgba(255, 255, 255, 0.3); color: white; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 10px; transition: all 0.2s; }
+        .clip-action-btn:hover { background: rgba(138, 43, 226, 0.8); border-color: rgba(138, 43, 226, 1); }
+        .clip-action-btn.delete:hover { background: rgba(255, 65, 54, 0.8); border-color: rgba(255, 65, 54, 1); }
+        
+        #clipRecordingOverlay { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(138, 43, 226, 0.15); border: 3px solid rgba(138, 43, 226, 0.8); border-radius: 12px; padding: 30px 50px; z-index: 2500; display: none; backdrop-filter: blur(5px); animation: pulse 1s ease-in-out infinite; }
+        #clipRecordingOverlay.visible { display: block; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 20px rgba(138, 43, 226, 0.5); } 50% { box-shadow: 0 0 40px rgba(138, 43, 226, 0.8); } }
+        #clipRecordingText { font-size: 24px; font-weight: 700; color: #fff; text-align: center; text-shadow: 0 0 10px rgba(138, 43, 226, 0.8); }
+        #clipRecordingProgress { margin-top: 10px; font-size: 36px; font-weight: 700; color: #d8a0ff; text-align: center; }
+        
+        #clipsEmpty { text-align: center; color: #777; padding: 40px 20px; font-size: 14px; }
+        
+        #clipVideoModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); z-index: 3000; display: none; align-items: center; justify-content: center; }
+        #clipVideoModal.visible { display: flex; }
+        #clipVideoContainer { position: relative; max-width: 90%; max-height: 90%; }
+        #clipVideoPlayer { max-width: 100%; max-height: 80vh; border-radius: 8px; }
+        #clipVideoClose { position: absolute; top: -40px; right: 0; background: rgba(255, 255, 255, 0.1); border: none; color: white; cursor: pointer; padding: 8px 12px; border-radius: 4px; font-size: 16px; transition: all 0.2s; }
+        #clipVideoClose:hover { background: rgba(255, 100, 100, 0.5); }
+        
+        #clipStudioPreview {
+            width: 100%;
+            max-height: 180px;
+            background-color: rgba(10, 10, 15, 0.8);
+            border: 1px solid rgba(80, 90, 120, 0.7);
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        #clipStudioPreview.visible {
+            display: block;
+        }
+        
+        .clip-studio-upload {
+            margin-bottom: 10px;
+        }
+        
+        .clip-studio-upload label {
+            display: block;
+            font-size: 12px;
+            color: #77ccff;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .clip-studio-file-input {
+            background-color: rgba(20, 22, 30, 0.8);
+            color: #e8e8e8;
+            border: 1px solid rgba(80, 90, 120, 0.9);
+            border-radius: 4px;
+            padding: 6px;
+            font-size: 11px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .clip-studio-file-input::file-selector-button {
+            background-color: #3a3f47;
+            color: #e8e8e8;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 8px;
+            font-size: 11px;
+        }
+        
+        .clip-studio-status {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 5px;
+            min-height: 16px;
+        }
+        
+        .clip-studio-status.success {
+            color: #90ee90;
+        }
+        
+        .clip-studio-status.error {
+            color: #ff6b6b;
+        }
+        
+        #clipStudioRecordButton {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        #clipStudioRecordButton:disabled {
+            background: #3a3a45;
+        }
+        
+        #clipStudioRecordButton.recording {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        #floatingRandomizeButton {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: linear-gradient(120deg, red, orange, yellow, green, blue, indigo, violet, red);
+            background-size: 300% 300%;
+            animation: rainbowBackground 8s linear infinite;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 999;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        #floatingRandomizeButton:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+        
+        #floatingRandomizeButton:active {
+            transform: translateY(0px) scale(1);
+        }
+        
+        .clip-studio-recording-info {
+            background-color: rgba(138, 43, 226, 0.15);
+            border: 1px solid rgba(138, 43, 226, 0.4);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .clip-studio-recording-info.visible {
+            display: block;
+        }
+        
+        .clip-studio-recording-time {
+            font-size: 24px;
+            font-weight: 700;
+            color: #d8a0ff;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        
+        .clip-studio-recording-bar {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(20, 22, 30, 0.8);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .clip-studio-recording-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        
+        .clip-studio-recording-status {
+            font-size: 12px;
+            color: #aaa;
+            text-align: center;
+        }
+        
+        .clip-studio-preview-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .clip-studio-preview-controls.visible {
+            display: flex;
+        }
+        
+        .clip-studio-preview-controls button {
+            flex: 1;
+            padding: 8px;
+            background-color: rgba(80, 100, 140, 0.5);
+            border: 1px solid rgba(100, 120, 180, 0.7);
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        
+        .clip-studio-preview-controls button:hover {
+            background-color: rgba(100, 120, 160, 0.7);
+            transform: translateY(-1px);
+        }
+        
+        .clip-studio-clear-button {
+            background-color: rgba(255, 65, 54, 0.3) !important;
+            border-color: rgba(255, 65, 54, 0.6) !important;
+        }
+        
+        .clip-studio-clear-button:hover {
+            background-color: rgba(255, 65, 54, 0.5) !important;
+        }
+        
+        .clip-studio-queue {
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .clip-studio-queue.visible {
+            display: block;
+        }
+        
+        .clip-studio-queue-header {
+            font-size: 12px;
+            color: #77ccff;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .clip-studio-queue-list {
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: rgba(10, 10, 15, 0.8);
+            border: 1px solid rgba(80, 90, 120, 0.5);
+            border-radius: 4px;
+            padding: 5px;
+        }
+        
+        .clip-studio-queue-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 6px;
+            margin-bottom: 3px;
+            background-color: rgba(40, 45, 60, 0.5);
+            border-radius: 3px;
+            font-size: 11px;
+            color: #aaa;
+        }
+        
+        .clip-studio-queue-item.active {
+            background-color: rgba(138, 43, 226, 0.3);
+            color: #d8a0ff;
+            border: 1px solid rgba(138, 43, 226, 0.5);
+        }
+        
+        .clip-studio-queue-item-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            margin-right: 8px;
+        }
+        
+        .clip-studio-queue-item-duration {
+            font-weight: 600;
+            color: #66ffee;
+            margin-right: 8px;
+        }
+        
+        .clip-studio-queue-item-remove {
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 10px;
+            transition: all 0.2s;
+        }
+        
+        .clip-studio-queue-item-remove:hover {
+            background-color: rgba(255, 107, 107, 0.2);
+        }
+        
+        #debugPanel{position:fixed;top:60px;left:20px;max-width:360px;max-height:50vh;overflow:auto;background:rgba(0,0,0,0.8);color:#fff;border:1px solid #444;border-radius:8px;padding:10px;z-index:999;}
+        #debugPanel.hidden{display:none;}
+        #debugPanel ul{list-style:none;margin:0;padding:0;}
+        #debugPanel li{font-size:11px;line-height:1.35;border-bottom:1px solid #333;padding:6px 0;}
+        #debugPanel a{color:#77ccff;text-decoration:underline;}
+    </style>
+</head>
+<body>
+    <canvas id="outputCanvas"></canvas>
+    <video id="webcamVideo" playsinline autoplay muted></video>
+    <div id="errorMessage"></div>
+    <button id="floatingRandomizeButton">Randomize Effects</button>
+    <button id="debugToggle" style="position:fixed;top:20px;left:20px;z-index:999;">Debug</button>
+    <div id="controls">
+        <div id="controlsHeader">
+            <span id="controlsTitle">TAKE A TRIP!</span>
+            <div id="headerButtons">
+                <button id="recordButton" class="record-button" title="Start Recording"></button>
+                <button id="clipsButton" class="record-button" title="Record Clip (Beta)">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+                </button>
+                <button id="snapshotButton" class="record-button" title="Take Snapshot">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/><circle cx="12" cy="12" r="3.5"/></svg>
+                </button>
+                <button id="refreshButton" class="record-button" title="Refresh Stream">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                </button>
+                <button id="switchCameraButton" class="record-button" title="Switch Camera">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"/></svg>
+                </button>
+                <button id="minimizeButton" title="Minimize Controls">
+                    <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
+                </button>
+            </div>
+        </div>
+        <div id="controlsContent">
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="main-tab">Main Controls</button>
+                <button class="tab-button" data-tab="effects-tab">Effects</button>
+                <button class="tab-button" data-tab="advanced-tab">Advanced</button>
+                <button class="tab-button" data-tab="clip-studio-tab">Clip Studio</button>
+            </div>
+            
+            <div id="main-tab" class="tab-content active">
+                <div class="control-group">
+                    <label for="presetSelector">Preset:</label>
+                    <select id="presetSelector">
+                        <option value="default">Default</option>
+                        <option value="psychedelic">Psychedelic</option>
+                        <option value="ghostly">Ghostly</option>
+                        <option value="neon">Neon Traces</option>
+                        <option value="glitchy">Glitchy VHS</option>
+                        <option value="dreamy">Dreamy</option>
+                    </select>
+                </div>
+
+                <div class="control-group"> <label for="trailRange">Trailing:</label> <input type="range" id="trailRange" min="0.0" max="1.5" step="0.005" value="0.9"> <input type="number" id="trailNumber" step="0.005" value="0.9"> </div>
+                <div class="control-group"> <label for="motionRange">Motion:</label> <input type="range" id="motionRange" min="0.0" max="1.0" step="0.01" value="0.12"> <input type="number" id="motionNumber" step="0.01" value="0.12"> </div>
+                <div class="control-group"> <label for="hueRange">Hue:</label> <input type="range" id="hueRange" min="-0.2" max="0.2" step="0.001" value="0.0"> <input type="number" id="hueNumber" step="0.001" value="0.0"> </div>
+                
+                <div class="button-group"> <button id="freezeButton" class="main-action-button">Freeze Frame (0)</button> <button id="clearFreezeButton" class="main-action-button" disabled>Clear Frozen</button> </div>
+                <button id="randomizeButton" class="main-action-button" style="display: none; margin-top: 5px;">Randomize Sliders</button>
+                
+                <div class="control-group" style="margin-top: 10px;"> <label for="fileUploadInput" style="flex-basis: auto; margin-right: 5px; white-space: nowrap;">Upload:</label> <input type="file" id="fileUploadInput" accept="image/*,video/*"> </div>
+                <button id="useWebcamButton" class="main-action-button" style="display: none; margin-top: 5px;">Use Webcam</button>
+            </div>
+            
+            <div id="effects-tab" class="tab-content">
+                <div class="control-group">
+                    <label for="effectSelector">Effect:</label>
+                    <select id="effectSelector">
+                        <option value="datamosh">Datamosh</option>
+                        <option value="pixelsort">Pixel Sort</option>
+                        <option value="feedback">Feedback</option>
+                        <option value="colorshift">Color Shift</option>
+                    </select>
+                </div>
+                
+                <div class="control-group"> <label for="intensityRange">Intensity:</label> <input type="range" id="intensityRange" min="0.0" max="1.0" step="0.01" value="0.5"> <input type="number" id="intensityNumber" step="0.01" value="0.5"> </div>
+                <div class="control-group"> <label for="displacementRange">Displace:</label> <input type="range" id="displacementRange" min="0.0" max="0.1" step="0.001" value="0.01"> <input type="number" id="displacementNumber" step="0.001" value="0.01"> </div>
+                <div class="control-group"> <label for="feedbackRange">Feedback:</label> <input type="range" id="feedbackRange" min="0.0" max="0.95" step="0.01" value="0.2"> <input type="number" id="feedbackNumber" step="0.01" value="0.2"> </div>
+                <div class="control-group"> <label for="thresholdRange">Threshold:</label> <input type="range" id="thresholdRange" min="0.0" max="1.0" step="0.01" value="0.5"> <input type="number" id="thresholdNumber" step="0.01" value="0.5"> </div>
+            </div>
+            
+            <div id="advanced-tab" class="tab-content">
+                <div class="control-group"> <label for="historyRange">Buffer:</label> <input type="range" id="historyRange" min="1" max="16" step="1" value="6"> <input type="number" id="historyNumber" min="1" max="16" step="1" value="6"> </div>
+                <div class="control-group"> <label for="extrapRange">Extrapolate:</label> <input type="range" id="extrapRange" min="0.0" max="2.0" step="0.01" value="0.0"> <input type="number" id="extrapNumber" step="0.01" value="0.0"> </div>
+                <div class="control-group"> <label for="brightnessRange">Brightness:</label> <input type="range" id="brightnessRange" min="-0.5" max="0.5" step="0.01" value="0.0"> <input type="number" id="brightnessNumber" step="0.01" value="0.0"> </div>
+                <div class="control-group"> <label for="contrastRange">Contrast:</label> <input type="range" id="contrastRange" min="0.5" max="2.0" step="0.01" value="1.0"> <input type="number" id="contrastNumber" step="0.01" value="1.0"> </div>
+                <div class="control-group"> <label for="saturationRange">Saturation:</label> <input type="range" id="saturationRange" min="0.0" max="2.0" step="0.01" value="1.0"> <input type="number" id="saturationNumber" step="0.01" value="1.0"> </div>
+            </div>
+            
+            <div id="clip-studio-tab" class="tab-content">
+                <div class="clip-studio-upload">
+                    <label for="clipStudioAudioInput">Upload Audio/Song:</label>
+                    <input type="file" id="clipStudioAudioInput" class="clip-studio-file-input" accept="audio/mpeg,audio/mp3,audio/wav,audio/wave,audio/x-wav,audio/aac,audio/m4a,audio/ogg,audio/flac,audio/*">
+                    <div id="clipStudioAudioStatus" class="clip-studio-status"></div>
+                </div>
+                
+                <div class="clip-studio-upload">
+                    <label for="clipStudioVideoInput">Upload Videos (Multiple):</label>
+                    <input type="file" id="clipStudioVideoInput" class="clip-studio-file-input" accept="video/mp4,video/quicktime,video/x-m4v,video/webm,video/ogg,video/*" multiple>
+                    <div id="clipStudioVideoStatus" class="clip-studio-status"></div>
+                </div>
+                
+                <div id="clipStudioQueue" class="clip-studio-queue">
+                    <div class="clip-studio-queue-header">Video Queue:</div>
+                    <div class="clip-studio-queue-list" id="clipStudioQueueList"></div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="clipStudioAudioVolumeRange">Audio Volume:</label>
+                    <input type="range" id="clipStudioAudioVolumeRange" min="0.0" max="1.0" step="0.05" value="0.8">
+                    <input type="number" id="clipStudioAudioVolumeNumber" step="0.05" value="0.8">
+                </div>
+                
+                <button id="clipStudioRecordButton" class="main-action-button" disabled>Start Recording</button>
+                <button id="clipStudioStopButton" class="main-action-button" style="display: none;">Stop Recording</button>
+                
+                <div id="clipStudioRecordingInfo" class="clip-studio-recording-info">
+                    <div class="clip-studio-recording-time">00:00</div>
+                    <div class="clip-studio-recording-bar">
+                        <div class="clip-studio-recording-bar-fill"></div>
+                    </div>
+                    <div class="clip-studio-recording-status">Recording in progress...</div>
+                </div>
+                
+                <video id="clipStudioPreview" controls></video>
+                
+                <div id="clipStudioPreviewControls" class="clip-studio-preview-controls">
+                    <button id="clipStudioDownloadButton">Download</button>
+                    <button id="clipStudioClearButton" class="clip-studio-clear-button">Clear</button>
+                </div>
+            </div>
+        </div>
+        <div id="resizeHandle"></div>
+    </div>
+    
+    <div id="clipsPanel">
+        <div id="clipsPanelHeader">
+            <span id="clipsPanelTitle">My Clips (Beta)</span>
+            <button id="clipsPanelClose">&times;</button>
+        </div>
+        <div id="clipsGrid"></div>
+        <div id="clipsEmpty" style="display: none;">
+            No clips yet! Click the clips button to record a short video.
+        </div>
+    </div>
+    
+    <div id="clipRecordingOverlay">
+        <div id="clipRecordingText">RECORDING CLIP</div>
+        <div id="clipRecordingProgress">3</div>
+    </div>
+    
+    <div id="clipVideoModal">
+        <div id="clipVideoContainer">
+            <button id="clipVideoClose">Close</button>
+            <video id="clipVideoPlayer" controls></video>
+        </div>
+    </div>
+    
+    <div id="debugPanel" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <strong>Debug Logs</strong>
+        <button id="debugClear" style="font-size:11px;">Clear</button>
+      </div>
+      <div style="margin-bottom:8px;">
+        Screenshot: <a href="/IMG_8228.png" target="_blank" rel="noopener">Open</a>
+      </div>
+      <ul id="debugList"></ul>
+    </div>
+    
+    <script>
+        // Define shader sources for different effects
+        const vsSource = ` attribute vec4 a_position; attribute vec2 a_texCoord; varying vec2 v_texCoord; void main() { gl_Position = a_position; v_texCoord = a_texCoord; } `;
+        
+        /* @tweakable base fragment shader for datamosh effect */
+        const datamoshShader = `
+            precision highp float; varying vec2 v_texCoord;
+            uniform sampler2D u_webcamTexture; uniform sampler2D u_previousFrameTexture;
+            uniform float u_time; uniform float u_motionThreshold; uniform float u_trailPersistence;
+            uniform float u_hueShiftSpeed; uniform float u_motionExtrapolation;
+            uniform float u_intensity; uniform float u_displacement; uniform float u_feedback;
+            uniform float u_brightness; uniform float u_contrast; uniform float u_saturation;
+            
+            float random (vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123 + u_time * 0.01); }
+            float noise (vec2 st) { vec2 i = floor(st); vec2 f = fract(st); float a = random(i); float b = random(i + vec2(1.,0.)); float c = random(i + vec2(0.,1.)); float d = random(i + vec2(1.,1.)); vec2 u = f*f*(3.0-2.0*f); return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y; }
+            vec3 rgb2hsl(vec3 color) { float r = color.r; float g = color.g; float b = color.b; float maxC = max(max(r, g), b); float minC = min(min(r, g), b); float h = 0.0, s = 0.0, l = (maxC + minC) / 2.0; if (maxC == minC) { h = s = 0.0; } else { float d = maxC - minC; s = l > 0.5 ? d / (2.0 - maxC - minC) : d / (maxC + minC); if (maxC == r) { h = (g - b) / d + (g < b ? 6.0 : 0.0); } else if (maxC == g) { h = (b - r) / d + 2.0; } else if (maxC == b) { h = (r - g) / d + 4.0; } h /= 6.0; } return vec3(h, s, l); }
+            float hue2rgb(float p, float q, float t) { if(t < 0.0) t += 1.0; if(t > 1.0) t -= 1.0; if(t < 1.0/6.0) return p + (q - p) * 6.0 * t; if(t < 1.0/2.0) return q; if(t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0; return p; }
+            vec3 hsl2rgb(vec3 hsl) { float h = hsl.x; float s = hsl.y; float l = hsl.z; float r, g, b; if(s == 0.0){ r = g = b = l; } else { float q = l < 0.5 ? l * (1.0 + s) : l + s - l * s; float p = 2.0 * l - q; r = hue2rgb(p, q, h + 1.0/3.0); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1.0/3.0); } return vec3(r, g, b); }
+            
+            vec3 adjustBrightnessContrast(vec3 color, float brightness, float contrast) {
+                vec3 result = color + brightness;
+                result = (result - 0.5) * contrast + 0.5;
+                return clamp(result, 0.0, 1.0);
+            }
+            
+            vec3 adjustSaturation(vec3 color, float saturation) {
+                vec3 gray = vec3(dot(color, vec3(0.2126, 0.7152, 0.0722)));
+                return mix(gray, color, saturation);
+            }
+            
+            void main() {
+                vec2 mirroredTexCoord = vec2(1.0 - v_texCoord.x, v_texCoord.y);
+                vec4 currentWebcamColor = texture2D(u_webcamTexture, mirroredTexCoord);
+                vec4 previousOrStaticColor = texture2D(u_previousFrameTexture, v_texCoord);
+                float difference = length(currentWebcamColor.rgb - previousOrStaticColor.rgb);
+                vec4 finalColor; vec4 motionDerivedColor; vec4 staticDerivedColor;
+                
+                // Enhanced displacement with intensity parameter
+                float displacementAmount = u_displacement * (1.0 + u_intensity * 2.0);
+                vec2 R_offset = vec2(random(mirroredTexCoord.yx + u_time * 0.1) - 0.5) * displacementAmount;
+                vec2 B_offset = vec2(random(mirroredTexCoord.xy - u_time * 0.1) - 0.5) * displacementAmount;
+                
+                motionDerivedColor = vec4(
+                    texture2D(u_webcamTexture, mirroredTexCoord + R_offset).r, 
+                    currentWebcamColor.g, 
+                    texture2D(u_webcamTexture, mirroredTexCoord + B_offset).b, 
+                    1.0
+                );
+                
+                // Enhanced smear with feedback
+                vec2 smearOffset = vec2(noise(v_texCoord*8.0 + u_time*0.05)-0.5) * 0.003 * (1.0 + u_feedback * 3.0);
+                vec4 smearedPreviousOrStatic = texture2D(u_previousFrameTexture, v_texCoord + smearOffset);
+                
+                // Trail persistence adjusted by intensity
+                float adjustedTrailPersistence = clamp(u_trailPersistence * (1.0 + u_intensity * 0.5), 0.0, 1.0);
+                staticDerivedColor = mix(currentWebcamColor, smearedPreviousOrStatic, clamp(adjustedTrailPersistence, 0.0, 100.0));
+                
+                if (difference > u_motionThreshold) {
+                    finalColor = mix(staticDerivedColor, motionDerivedColor, 0.85 * (1.0 + u_intensity * 0.3));
+                } else {
+                    finalColor = staticDerivedColor;
+                }
+                
+                if (u_motionExtrapolation > 0.0) {
+                    vec2 pseudoVelocityOffset = vec2(noise(v_texCoord*8.0 + u_time*0.05)-0.5) * 0.003 * (1.0 + u_feedback);
+                    vec2 extrapolatedCoord = v_texCoord + pseudoVelocityOffset * u_motionExtrapolation;
+                    vec4 extrapolatedColor = texture2D(u_previousFrameTexture, extrapolatedCoord);
+                    float extrapolationMix = u_motionExtrapolation * smoothstep(u_motionThreshold + 0.05, u_motionThreshold - 0.05, difference);
+                    extrapolationMix = clamp(extrapolationMix, 0.0, 0.9);
+                    finalColor = mix(finalColor, extrapolatedColor, extrapolationMix);
+                }
+                
+                if (u_hueShiftSpeed != 0.0) {
+                    vec3 hsl = rgb2hsl(finalColor.rgb);
+                    hsl.x = fract(hsl.x + u_time * u_hueShiftSpeed);
+                    if (hsl.y < 0.1) { hsl.y = 0.7; }
+                    finalColor.rgb = hsl2rgb(hsl);
+                }
+                
+                // Apply brightness, contrast, and saturation adjustments
+                finalColor.rgb = adjustSaturation(
+                    adjustBrightnessContrast(finalColor.rgb, u_brightness, u_contrast),
+                    u_saturation
+                );
+                
+                finalColor = clamp(finalColor, 0.0, 1.0);
+                if (finalColor.a < 0.01) discard;
+                gl_FragColor = finalColor;
+            }`;
+            
+        /* @tweakable pixel sort shader effect */
+        const pixelSortShader = `
+            precision highp float; varying vec2 v_texCoord;
+            uniform sampler2D u_webcamTexture; uniform sampler2D u_previousFrameTexture;
+            uniform float u_time; uniform float u_motionThreshold; uniform float u_trailPersistence;
+            uniform float u_hueShiftSpeed; uniform float u_motionExtrapolation;
+            uniform float u_intensity; uniform float u_displacement; uniform float u_feedback;
+            uniform float u_threshold; uniform float u_brightness; uniform float u_contrast; uniform float u_saturation;
+            
+            float random (vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123 + u_time * 0.01); }
+            float noise (vec2 st) { vec2 i = floor(st); vec2 f = fract(st); float a = random(i); float b = random(i + vec2(1.,0.)); float c = random(i + vec2(0.,1.)); float d = random(i + vec2(1.,1.)); vec2 u = f*f*(3.0-2.0*f); return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y; }
+            vec3 rgb2hsl(vec3 color) { float r = color.r; float g = color.g; float b = color.b; float maxC = max(max(r, g), b); float minC = min(min(r, g), b); float h = 0.0, s = 0.0, l = (maxC + minC) / 2.0; if (maxC == minC) { h = s = 0.0; } else { float d = maxC - minC; s = l > 0.5 ? d / (2.0 - maxC - minC) : d / (maxC + minC); if (maxC == r) { h = (g - b) / d + (g < b ? 6.0 : 0.0); } else if (maxC == g) { h = (b - r) / d + 2.0; } else if (maxC == b) { h = (r - g) / d + 4.0; } h /= 6.0; } return vec3(h, s, l); }
+            float hue2rgb(float p, float q, float t) { if(t < 0.0) t += 1.0; if(t > 1.0) t -= 1.0; if(t < 1.0/6.0) return p + (q - p) * 6.0 * t; if(t < 1.0/2.0) return q; if(t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0; return p; }
+            vec3 hsl2rgb(vec3 hsl) { float h = hsl.x; float s = hsl.y; float l = hsl.z; float r, g, b; if(s == 0.0){ r = g = b = l; } else { float q = l < 0.5 ? l * (1.0 + s) : l + s - l * s; float p = 2.0 * l - q; r = hue2rgb(p, q, h + 1.0/3.0); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1.0/3.0); } return vec3(r, g, b); }
+            
+            vec3 adjustBrightnessContrast(vec3 color, float brightness, float contrast) {
+                vec3 result = color + brightness;
+                result = (result - 0.5) * contrast + 0.5;
+                return clamp(result, 0.0, 1.0);
+            }
+            
+            vec3 adjustSaturation(vec3 color, float saturation) {
+                vec3 gray = vec3(dot(color, vec3(0.2126, 0.7152, 0.0722)));
+                return mix(gray, color, saturation);
+            }
+            
+            void main() {
+                vec2 mirroredTexCoord = vec2(1.0 - v_texCoord.x, v_texCoord.y);
+                vec4 currentWebcamColor = texture2D(u_webcamTexture, mirroredTexCoord);
+                vec4 previousOrStaticColor = texture2D(u_previousFrameTexture, v_texCoord);
+                
+                float brightness = dot(currentWebcamColor.rgb, vec3(0.299, 0.587, 0.114));
+                
+                // Pixel sort based on brightness threshold and direction
+                vec2 sortDir = vec2(0.0, 1.0); // Sort vertically
+                if (sin(u_time * 0.1) > 0.0) {
+                    sortDir = vec2(1.0, 0.0); // Sometimes sort horizontally
+                }
+                
+                // Adjust threshold based on intensity
+                float adjustedThreshold = u_threshold * (1.0 + u_intensity * 0.5);
+                
+                // Sort pixel if brightness meets threshold
+                vec2 sortedCoord = mirroredTexCoord;
+                if (brightness > adjustedThreshold) {
+                    // Offset in the sort direction
+                    sortedCoord += sortDir * u_displacement * 10.0 * (brightness - adjustedThreshold);
+                    sortedCoord = fract(sortedCoord); // Wrap around
+                }
+                
+                vec4 sortedColor = texture2D(u_webcamTexture, sortedCoord);
+                
+                // Mix with previous frame for trails
+                vec4 finalColor = mix(sortedColor, previousOrStaticColor, u_trailPersistence);
+                
+                // Apply feedback effect
+                if (u_feedback > 0.0) {
+                    vec2 feedbackOffset = vec2(noise(v_texCoord*3.0 + u_time*0.1)-0.5) * 0.01 * u_feedback;
+                    vec4 feedbackColor = texture2D(u_previousFrameTexture, v_texCoord + feedbackOffset);
+                    finalColor = mix(finalColor, feedbackColor, u_feedback * 0.5);
+                }
+                
+                // Apply hue shift if enabled
+                if (u_hueShiftSpeed != 0.0) {
+                    vec3 hsl = rgb2hsl(finalColor.rgb);
+                    hsl.x = fract(hsl.x + u_time * u_hueShiftSpeed);
+                    finalColor.rgb = hsl2rgb(hsl);
+                }
+                
+                // Apply brightness, contrast, and saturation adjustments
+                finalColor.rgb = adjustSaturation(
+                    adjustBrightnessContrast(finalColor.rgb, u_brightness, u_contrast),
+                    u_saturation
+                );
+                
+                finalColor = clamp(finalColor, 0.0, 1.0);
+                gl_FragColor = finalColor;
+            }`;
+            
+        /* @tweakable feedback loop shader effect */
+        const feedbackShader = `
+            precision highp float; varying vec2 v_texCoord;
+            uniform sampler2D u_webcamTexture; uniform sampler2D u_previousFrameTexture;
+            uniform float u_time; uniform float u_motionThreshold; uniform float u_trailPersistence;
+            uniform float u_hueShiftSpeed; uniform float u_motionExtrapolation;
+            uniform float u_intensity; uniform float u_displacement; uniform float u_feedback;
+            uniform float u_threshold; uniform float u_brightness; uniform float u_contrast; uniform float u_saturation;
+            
+            float random (vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123 + u_time * 0.01); }
+            float noise (vec2 st) { vec2 i = floor(st); vec2 f = fract(st); float a = random(i); float b = random(i + vec2(1.,0.)); float c = random(i + vec2(0.,1.)); float d = random(i + vec2(1.,1.)); vec2 u = f*f*(3.0-2.0*f); return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y; }
+            vec3 rgb2hsl(vec3 color) { float r = color.r; float g = color.g; float b = color.b; float maxC = max(max(r, g), b); float minC = min(min(r, g), b); float h = 0.0, s = 0.0, l = (maxC + minC) / 2.0; if (maxC == minC) { h = s = 0.0; } else { float d = maxC - minC; s = l > 0.5 ? d / (2.0 - maxC - minC) : d / (maxC + minC); if (maxC == r) { h = (g - b) / d + (g < b ? 6.0 : 0.0); } else if (maxC == g) { h = (b - r) / d + 2.0; } else if (maxC == b) { h = (r - g) / d + 4.0; } h /= 6.0; } return vec3(h, s, l); }
+            float hue2rgb(float p, float q, float t) { if(t < 0.0) t += 1.0; if(t > 1.0) t -= 1.0; if(t < 1.0/6.0) return p + (q - p) * 6.0 * t; if(t < 1.0/2.0) return q; if(t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0; return p; }
+            vec3 hsl2rgb(vec3 hsl) { float h = hsl.x; float s = hsl.y; float l = hsl.z; float r, g, b; if(s == 0.0){ r = g = b = l; } else { float q = l < 0.5 ? l * (1.0 + s) : l + s - l * s; float p = 2.0 * l - q; r = hue2rgb(p, q, h + 1.0/3.0); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1.0/3.0); } return vec3(r, g, b); }
+            
+            vec3 adjustBrightnessContrast(vec3 color, float brightness, float contrast) {
+                vec3 result = color + brightness;
+                result = (result - 0.5) * contrast + 0.5;
+                return clamp(result, 0.0, 1.0);
+            }
+            
+            vec3 adjustSaturation(vec3 color, float saturation) {
+                vec3 gray = vec3(dot(color, vec3(0.2126, 0.7152, 0.0722)));
+                return mix(gray, color, saturation);
+            }
+            
+            void main() {
+                vec2 mirroredTexCoord = vec2(1.0 - v_texCoord.x, v_texCoord.y);
+                
+                // Create feedback effect by rotating/zooming coordinates
+                float angle = u_time * 0.05 * u_intensity;
+                float zoom = 1.0 + sin(u_time * 0.1) * 0.01 * u_intensity;
+                
+                vec2 center = vec2(0.5, 0.5);
+                vec2 fbCoord = v_texCoord - center;
+                fbCoord = vec2(
+                    fbCoord.x * cos(angle) - fbCoord.y * sin(angle),
+                    fbCoord.x * sin(angle) + fbCoord.y * cos(angle)
+                );
+                fbCoord = fbCoord * zoom + center;
+                
+                // Add displacement/warp for more organic feel
+                fbCoord += vec2(
+                    noise(fbCoord * 5.0 + u_time * 0.1) - 0.5,
+                    noise(fbCoord * 5.0 - u_time * 0.1) - 0.5
+                ) * u_displacement * 0.1;
+                
+                vec4 currentWebcamColor = texture2D(u_webcamTexture, mirroredTexCoord);
+                vec4 feedbackColor = texture2D(u_previousFrameTexture, fbCoord);
+                
+                // Blend webcam with feedback based on our parameters
+                float feedbackAmount = clamp(u_feedback * (1.0 + u_intensity), 0.0, 0.95);
+                vec4 finalColor = mix(currentWebcamColor, feedbackColor, feedbackAmount);
+                
+                // Add some motion-reactive glow
+                float difference = length(currentWebcamColor.rgb - feedbackColor.rgb);
+                if (difference > u_motionThreshold) {
+                    // Enhance colors where motion is detected
+                    vec3 hsl = rgb2hsl(finalColor.rgb);
+                    hsl.y = min(hsl.y + 0.2 * u_intensity, 1.0);  // Increase saturation
+                    hsl.z = min(hsl.z + 0.1 * u_intensity, 0.9);  // Increase lightness
+                    finalColor.rgb = hsl2rgb(hsl);
+                }
+                
+                // Apply hue shift if enabled
+                if (u_hueShiftSpeed != 0.0) {
+                    vec3 hsl = rgb2hsl(finalColor.rgb);
+                    hsl.x = fract(hsl.x + u_time * u_hueShiftSpeed);
+                    finalColor.rgb = hsl2rgb(hsl);
+                }
+                
+                // Apply brightness, contrast, and saturation adjustments
+                finalColor.rgb = adjustSaturation(
+                    adjustBrightnessContrast(finalColor.rgb, u_brightness, u_contrast),
+                    u_saturation
+                );
+                
+                finalColor = clamp(finalColor, 0.0, 1.0);
+                gl_FragColor = finalColor;
+            }`;
+            
+        /* @tweakable color shift shader effect */
+        const colorShiftShader = `
+            precision highp float; varying vec2 v_texCoord;
+            uniform sampler2D u_webcamTexture; uniform sampler2D u_previousFrameTexture;
+            uniform float u_time; uniform float u_motionThreshold; uniform float u_trailPersistence;
+            uniform float u_hueShiftSpeed; uniform float u_motionExtrapolation;
+            uniform float u_intensity; uniform float u_displacement; uniform float u_feedback;
+            uniform float u_threshold; uniform float u_brightness; uniform float u_contrast; uniform float u_saturation;
+            
+            float random (vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123 + u_time * 0.01); }
+            float noise (vec2 st) { vec2 i = floor(st); vec2 f = fract(st); float a = random(i); float b = random(i + vec2(1.,0.)); float c = random(i + vec2(0.,1.)); float d = random(i + vec2(1.,1.)); vec2 u = f*f*(3.0-2.0*f); return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y; }
+            vec3 rgb2hsl(vec3 color) { float r = color.r; float g = color.g; float b = color.b; float maxC = max(max(r, g), b); float minC = min(min(r, g), b); float h = 0.0, s = 0.0, l = (maxC + minC) / 2.0; if (maxC == minC) { h = s = 0.0; } else { float d = maxC - minC; s = l > 0.5 ? d / (2.0 - maxC - minC) : d / (maxC + minC); if (maxC == r) { h = (g - b) / d + (g < b ? 6.0 : 0.0); } else if (maxC == g) { h = (b - r) / d + 2.0; } else if (maxC == b) { h = (r - g) / d + 4.0; } h /= 6.0; } return vec3(h, s, l); }
+            float hue2rgb(float p, float q, float t) { if(t < 0.0) t += 1.0; if(t > 1.0) t -= 1.0; if(t < 1.0/6.0) return p + (q - p) * 6.0 * t; if(t < 1.0/2.0) return q; if(t < 2.0/3.0) return p + (q - p) * (2.0/3.0 - t) * 6.0; return p; }
+            vec3 hsl2rgb(vec3 hsl) { float h = hsl.x; float s = hsl.y; float l = hsl.z; float r, g, b; if(s == 0.0){ r = g = b = l; } else { float q = l < 0.5 ? l * (1.0 + s) : l + s - l * s; float p = 2.0 * l - q; r = hue2rgb(p, q, h + 1.0/3.0); g = hue2rgb(p, q, h); b = hue2rgb(p, q, h - 1.0/3.0); } return vec3(r, g, b); }
+            
+            vec3 adjustBrightnessContrast(vec3 color, float brightness, float contrast) {
+                vec3 result = color + brightness;
+                result = (result - 0.5) * contrast + 0.5;
+                return clamp(result, 0.0, 1.0);
+            }
+            
+            vec3 adjustSaturation(vec3 color, float saturation) {
+                vec3 gray = vec3(dot(color, vec3(0.2126, 0.7152, 0.0722)));
+                return mix(gray, color, saturation);
+            }
+            
+            void main() {
+                vec2 mirroredTexCoord = vec2(1.0 - v_texCoord.x, v_texCoord.y);
+                
+                // Create color channel separation effect
+                float channelShift = u_displacement * 0.2 * (1.0 + u_intensity);
+                vec2 rOffset = vec2(sin(u_time * 0.3) * channelShift, cos(u_time * 0.2) * channelShift);
+                vec2 gOffset = vec2(sin(u_time * 0.2 + 2.0) * channelShift, cos(u_time * 0.3 + 1.0) * channelShift);
+                vec2 bOffset = vec2(sin(u_time * 0.1 + 4.0) * channelShift, cos(u_time * 0.4 + 3.0) * channelShift);
+                
+                // Sample each color channel with offset
+                float r = texture2D(u_webcamTexture, mirroredTexCoord + rOffset).r;
+                float g = texture2D(u_webcamTexture, mirroredTexCoord + gOffset).g;
+                float b = texture2D(u_webcamTexture, mirroredTexCoord + bOffset).b;
+                
+                vec4 currentColor = vec4(r, g, b, 1.0);
+                vec4 previousColor = texture2D(u_previousFrameTexture, v_texCoord);
+                
+                // Add trail/persistence
+                vec4 finalColor = mix(currentColor, previousColor, u_trailPersistence);
+                
+                // Add some dynamic hue rotation
+                float dynamicHueShift = u_hueShiftSpeed + sin(u_time * 0.1) * 0.02 * u_intensity;
+                vec3 hsl = rgb2hsl(finalColor.rgb);
+                
+                // Make the hue shift more dramatic with intensity
+                hsl.x = fract(hsl.x + u_time * dynamicHueShift);
+                
+                // Enhance saturation based on intensity
+                hsl.y = min(hsl.y + u_intensity * 0.3, 1.0);
+                
+                finalColor.rgb = hsl2rgb(hsl);
+                
+                // Blend with feedback for more visual complexity
+                if (u_feedback > 0.0) {
+                    // Apply a slight zoom and rotation to the feedback
+                    vec2 center = vec2(0.5, 0.5);
+                    vec2 fbCoord = v_texCoord - center;
+                    float angle = u_time * 0.02 * u_feedback;
+                    fbCoord = vec2(
+                        fbCoord.x * cos(angle) - fbCoord.y * sin(angle),
+                        fbCoord.x * sin(angle) + fbCoord.y * cos(angle)
+                    );
+                    fbCoord = fbCoord * (1.0 + u_feedback * 0.03) + center;
+                    
+                    vec4 feedbackColor = texture2D(u_previousFrameTexture, fbCoord);
+                    finalColor = mix(finalColor, feedbackColor, u_feedback * 0.5);
+                }
+                
+                // Apply brightness, contrast, and saturation adjustments
+                finalColor.rgb = adjustSaturation(
+                    adjustBrightnessContrast(finalColor.rgb, u_brightness, u_contrast),
+                    u_saturation
+                );
+                
+                finalColor = clamp(finalColor, 0.0, 1.0);
+                gl_FragColor = finalColor;
+            }`;
+        
+        const fsPassthroughSource = ` precision mediump float; varying vec2 v_texCoord; uniform sampler2D u_textureToDraw; void main() { gl_FragColor = texture2D(u_textureToDraw, v_texCoord); } `;
+        const canvas = document.getElementById('outputCanvas');
+        const video = document.getElementById('webcamVideo');
+        const errorMessageDiv = document.getElementById('errorMessage');
+        let gl; let shaderProgram; let passthroughProgram;
+        let positionBuffer; let texCoordBuffer;
+        let mediaReady = false;
+        let startTime = performance.now(); let renderLoopId = null;
+        let fbo1, fbo2, fboCopy; let fbTexture1, fbTexture2; let currentSourceFBO, currentDestFBO; let currentSourceTexture, currentDestTexture; let webcamTexture;
+        let frameCount = 0; let isFrozen = false; let frozenFrameTextures = []; const MAX_HISTORY_LENGTH = 16; let frameHistoryTextures = []; let historyWriteIndex = 0;
+        
+        /* @tweakable the main control values that adjust visual effects */
+        let controlValues = { 
+            trail: 0.9, 
+            motion: 0.12, 
+            hue: 0.0, 
+            history: 6, 
+            extrap: 0.0,
+            intensity: 0.5,
+            displacement: 0.01,
+            feedback: 0.2,
+            threshold: 0.5,
+            brightness: 0.0,
+            contrast: 1.0,
+            saturation: 1.0
+        };
+        
+        // Default presets for different visual styles
+        const presets = {
+            default: { trail: 0.9, motion: 0.12, hue: 0.0, history: 6, extrap: 0.0, intensity: 0.5, displacement: 0.01, feedback: 0.2, threshold: 0.5, brightness: 0.0, contrast: 1.0, saturation: 1.0 },
+            psychedelic: { trail: 1.2, motion: 0.15, hue: 0.05, history: 8, extrap: 0.5, intensity: 0.8, displacement: 0.02, feedback: 0.4, threshold: 0.6, brightness: 0.05, contrast: 1.2, saturation: 1.4 },
+            ghostly: { trail: 1.3, motion: 0.08, hue: 0.0, history: 12, extrap: 1.0, intensity: 0.3, displacement: 0.005, feedback: 0.6, threshold: 0.3, brightness: -0.1, contrast: 0.8, saturation: 0.7 },
+            neon: { trail: 0.95, motion: 0.2, hue: 0.02, history: 4, extrap: 0.0, intensity: 0.9, displacement: 0.03, feedback: 0.1, threshold: 0.7, brightness: 0.1, contrast: 1.4, saturation: 1.6 },
+            glitchy: { trail: 0.7, motion: 0.3, hue: -0.01, history: 3, extrap: 0.0, intensity: 0.7, displacement: 0.05, feedback: 0.05, threshold: 0.4, brightness: 0.0, contrast: 1.1, saturation: 1.2 },
+            dreamy: { trail: 1.1, motion: 0.05, hue: 0.01, history: 10, extrap: 0.8, intensity: 0.4, displacement: 0.008, feedback: 0.5, threshold: 0.3, brightness: 0.0, contrast: 0.9, saturation: 0.9 }
+        };
+        
+        let currentEffect = 'datamosh';
+        let shaderSources = {
+            datamosh: datamoshShader,
+            pixelsort: pixelSortShader,
+            feedback: feedbackShader,
+            colorshift: colorShiftShader
+        };
+        
+        const freezeButton = document.getElementById('freezeButton'); const clearFreezeButton = document.getElementById('clearFreezeButton');
+        const randomizeButton = document.getElementById('randomizeButton');
+        const controlsPanel = document.getElementById('controls'); const controlsContent = document.getElementById('controlsContent');
+        const minimizeButton = document.getElementById('minimizeButton'); const resizeHandle = document.getElementById('resizeHandle');
+        const recordButton = document.getElementById('recordButton');
+        const snapshotButton = document.getElementById('snapshotButton');
+        const switchCameraButton = document.getElementById('switchCameraButton');
+        const refreshButton = document.getElementById('refreshButton');
+        const fileUploadInput = document.getElementById('fileUploadInput');
+        const useWebcamButton = document.getElementById('useWebcamButton');
+        const presetSelector = document.getElementById('presetSelector');
+        const effectSelector = document.getElementById('effectSelector');
+        let mediaRecorder;
+        let recordedChunks = [];
+        let isRecording = false;
+        /* @tweakable timeslice in ms for main recording to ensure data availability */
+        const RECORDING_TIMESLICE = 1000;
+        /* @tweakable prefix used for downloaded main recordings */
+        const RECORDING_FILENAME_PREFIX = 'datamosh_trip';
+        /* @tweakable also upload recording to cloud and log the URL */
+        const RECORDING_ENABLE_CLOUD_UPLOAD = true;
+        const RECORD_BUTTON_RED = '#FF4136';
+        const REC_SVG_CIRCLE = `<svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="7" fill="${RECORD_BUTTON_RED}"/></svg>`;
+        const REC_SVG_SQUARE = `<svg viewBox="0 0 24 24" width="16" height="16"><rect x="7" y="7" width="10" height="10" fill="${RECORD_BUTTON_RED}" rx="1"/></svg>`;
+        const SWITCH_CAMERA_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>`;
+        let currentInputSource = 'webcam';
+        let uploadedMediaElement = null;
+        let currentFacingMode = 'user';
+        let isResizing = false; let startX, startY, startWidth, startHeight;
+        if (!canvas || !video || !freezeButton || !clearFreezeButton || !controlsPanel || !resizeHandle || !randomizeButton || !minimizeButton || !controlsContent || !recordButton || !switchCameraButton || !fileUploadInput || !useWebcamButton) {
+            alert("Init Error: Essential UI elements missing!");
+            throw new Error("Missing DOM Elements");
+        }
+        function getControlElements(name) { const range = document.getElementById(`${name}Range`); const number = document.getElementById(`${name}Number`); if (!range || !number) { console.error(`Missing control elements for "${name}"`); } if(range && number && !number.hasAttribute('data-synced')) { number.min = range.min; number.max = range.max; number.step = range.step; number.setAttribute('data-synced', 'true');} return { range, number }; }
+        function showError(message, isFatal = true) { console.error(message); if(errorMessageDiv) { errorMessageDiv.textContent = message; errorMessageDiv.style.display = 'block'; setTimeout(() => { if (errorMessageDiv.textContent === message) errorMessageDiv.style.display = 'none'; }, isFatal ? 10000 : 5000); } if(isFatal && renderLoopId) cancelAnimationFrame(renderLoopId); renderLoopId = null; }
+        // Global error capture
+        /* @tweakable enable global error capture */
+        const ENABLE_GLOBAL_ERROR_CAPTURE = true;
+        /* @tweakable verbose global error logging */
+        const GLOBAL_ERROR_VERBOSE = true;
+        /* @tweakable maximum stored debug log entries */
+        const DEBUG_MAX_LOGS = 100;
+        
+        const debugPanel = document.getElementById('debugPanel');
+        const debugList = document.getElementById('debugList');
+        const debugToggle = document.getElementById('debugToggle');
+        const debugClear = document.getElementById('debugClear');
+        
+        function appendDebug(msg){
+            if(!debugList) return;
+            const li=document.createElement('li'); li.textContent=`${new Date().toLocaleTimeString()} - ${msg}`;
+            debugList.prepend(li);
+            while(debugList.children.length>DEBUG_MAX_LOGS) debugList.removeChild(debugList.lastChild);
+        }
+        
+        if (ENABLE_GLOBAL_ERROR_CAPTURE) {
+            window.addEventListener('error', (e) => { showError(`Error: ${e.message}`, false); if (GLOBAL_ERROR_VERBOSE && e.error?.stack) console.error(e.error.stack); appendDebug(e.message || 'Unknown error'); });
+            window.addEventListener('unhandledrejection', (e) => { const msg = typeof e.reason === 'string' ? e.reason : (e.reason?.message || 'Unhandled promise rejection'); showError(`Promise Error: ${msg}`, false); if (GLOBAL_ERROR_VERBOSE && e.reason?.stack) console.error(e.reason.stack); appendDebug(msg); });
+        }
+        
+        function initWebGL() { gl = canvas.getContext('webgl', { premultipliedAlpha: false, antialias: false }) || canvas.getContext('experimental-webgl', { premultipliedAlpha: false, antialias: false }); if (!gl) { showError('WebGL not supported.'); return false; } return true; }
+        function loadShader(type, source) { const shader = gl.createShader(type); gl.shaderSource(shader, source); gl.compileShader(shader); if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { showError(`Shader compile error: ${gl.getShaderInfoLog(shader)}`); gl.deleteShader(shader); return null; } return shader; }
+        function createShaderProgram(vsSource, fsSource) { const vertexShader = loadShader(gl.VERTEX_SHADER, vsSource); const fragmentShader = loadShader(gl.FRAGMENT_SHADER, fsSource); if (!vertexShader || !fragmentShader) return null; const program = gl.createProgram(); gl.attachShader(program, vertexShader); gl.attachShader(program, fragmentShader); gl.linkProgram(program); if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { showError(`Shader link error: ${gl.getProgramInfoLog(program)}`); gl.deleteProgram(program); gl.deleteShader(vertexShader); gl.deleteShader(fragmentShader); return null; } return program; }
+        function initBuffers() { positionBuffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1.,-1., 1.,-1., -1., 1., -1., 1., 1.,-1., 1., 1.,]), gl.STATIC_DRAW); texCoordBuffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0.,0., 1.,0., 0.,1., 0.,1., 1.,0., 1.,1.,]), gl.STATIC_DRAW); gl.bindBuffer(gl.ARRAY_BUFFER, null); return true; }
+        function createAndSetupTexture(width, height) { if (!gl) return null; const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null); } catch (e) { return null; } return tex; }
+        function copyTexture(sourceTexture, destTexture) { if (!gl || !passthroughProgram || !fboCopy || !positionBuffer || !texCoordBuffer) { return; } gl.bindFramebuffer(gl.FRAMEBUFFER, fboCopy); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, destTexture, 0); gl.viewport(0, 0, canvas.width, canvas.height); gl.useProgram(passthroughProgram); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, sourceTexture); gl.uniform1i(passthroughProgram.uTextureToDrawLoc, 0); gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer); gl.vertexAttribPointer(passthroughProgram.aPosLoc, 2, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(passthroughProgram.aPosLoc); gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer); gl.vertexAttribPointer(passthroughProgram.aTexLoc, 2, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(passthroughProgram.aTexLoc); gl.drawArrays(gl.TRIANGLES, 0, 6); gl.bindFramebuffer(gl.FRAMEBUFFER, null); }
+        function initFramebuffersAndTextures(width, height) {
+            if (fbTexture1) gl.deleteTexture(fbTexture1); if (fbTexture2) gl.deleteTexture(fbTexture2); if (webcamTexture) gl.deleteTexture(webcamTexture);
+            frameHistoryTextures.forEach(tex => gl.deleteTexture(tex)); frozenFrameTextures.forEach(tex => gl.deleteTexture(tex));
+            fbTexture1 = createAndSetupTexture(width, height); fbTexture2 = createAndSetupTexture(width, height); webcamTexture = createAndSetupTexture(width, height);
+            frameHistoryTextures = []; frozenFrameTextures = [];
+            if (clearFreezeButton) clearFreezeButton.disabled = true; if (freezeButton) freezeButton.textContent = 'Freeze Frame (0)';
+            if (!fbTexture1 || !fbTexture2 || !webcamTexture) { showError("Failed to create FBO textures.", true); return false; }
+            for (let i = 0; i < MAX_HISTORY_LENGTH; i++) { const historyTex = createAndSetupTexture(width, height); if (!historyTex) { showError(`Failed to create history texture ${i}.`, true); return false; } frameHistoryTextures.push(historyTex); }
+            historyWriteIndex = 0;
+            if (fbo1) gl.deleteFramebuffer(fbo1); if (fbo2) gl.deleteFramebuffer(fbo2); if (fboCopy) gl.deleteFramebuffer(fboCopy);
+            fbo1 = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fbo1); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fbTexture1, 0);
+            fbo2 = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fbo2); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fbTexture2, 0);
+            fboCopy = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo1); const status1 = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo2); const status2 = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            if (status1 !== gl.FRAMEBUFFER_COMPLETE || status2 !== gl.FRAMEBUFFER_COMPLETE) { showError(`FBO incomplete. Status1: ${status1}, Status2: ${status2}`, true); return false; }
+            currentSourceFBO = fbo2; currentDestFBO = fbo1; currentSourceTexture = fbTexture2; currentDestTexture = fbTexture1;
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fboCopy);
+            [fbTexture1, fbTexture2, webcamTexture, ...frameHistoryTextures].forEach(tex => { gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT); });
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null); return true;
+        }
+        function setupMainShaderAttributesUniforms() {
+            gl.useProgram(shaderProgram);
+            const pLoc = gl.getAttribLocation(shaderProgram, 'a_position');
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(pLoc);
+            
+            const tLoc = gl.getAttribLocation(shaderProgram, 'a_texCoord');
+            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+            gl.vertexAttribPointer(tLoc, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(tLoc);
+            
+            // Define all possible uniforms that any shader might need
+            const uniformNames = [
+                'u_webcamTexture', 'u_previousFrameTexture', 'u_time', 'u_motionThreshold',
+                'u_trailPersistence', 'u_hueShiftSpeed', 'u_motionExtrapolation', 'u_intensity',
+                'u_displacement', 'u_feedback', 'u_threshold', 'u_brightness', 'u_contrast', 'u_saturation'
+            ];
+            
+            /* @tweakable tolerance for missing uniforms in shaders */
+            const optionalUniforms = ['u_threshold']; // Uniforms that are allowed to be missing
+            
+            let allRequiredOk = true;
+            uniformNames.forEach(name => {
+                shaderProgram[name + 'Loc'] = gl.getUniformLocation(shaderProgram, name);
+                // Only show an error if a required uniform is missing
+                if (!shaderProgram[name + 'Loc'] && !optionalUniforms.includes(name)) {
+                    console.error(`Failed to get required uniform: ${name}`);
+                    allRequiredOk = false;
+                }
+            });
+            
+            if (!allRequiredOk) {
+                showError(`Failed to get required shader uniforms.`);
+                return false;
+            }
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            return true;
+        }
+        function setupPassthroughShaderAttributesUniforms() { gl.useProgram(passthroughProgram); passthroughProgram.aPosLoc = gl.getAttribLocation(passthroughProgram, 'a_position'); passthroughProgram.aTexLoc = gl.getAttribLocation(passthroughProgram, 'a_texCoord'); gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer); gl.vertexAttribPointer(passthroughProgram.aPosLoc, 2, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(passthroughProgram.aPosLoc); gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer); gl.vertexAttribPointer(passthroughProgram.aTexLoc, 2, gl.FLOAT, false, 0, 0); gl.enableVertexAttribArray(passthroughProgram.aTexLoc); passthroughProgram.uTextureToDrawLoc = gl.getUniformLocation(passthroughProgram, 'u_textureToDraw'); if (!passthroughProgram.uTextureToDrawLoc || passthroughProgram.aPosLoc < 0 || passthroughProgram.aTexLoc < 0) { showError(`Failed to get passthrough uniforms.`); return false; } gl.bindBuffer(gl.ARRAY_BUFFER, null); return true; }
+        function updateSourceTexture() {
+            if (!mediaReady) return false; let sourceElement;
+            if (currentInputSource === 'webcam') { sourceElement = video; if (video.paused || video.ended || video.readyState < video.HAVE_ENOUGH_DATA) return false;
+            } else if (currentInputSource === 'file' && uploadedMediaElement) { sourceElement = uploadedMediaElement;
+                if (sourceElement.tagName === 'VIDEO') { if (sourceElement.paused || sourceElement.ended || sourceElement.readyState < sourceElement.HAVE_ENOUGH_DATA) return false;
+                } else { if (!sourceElement.complete || sourceElement.naturalWidth === 0) return false; }
+            } else { return false; }
+            gl.bindTexture(gl.TEXTURE_2D, webcamTexture); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+            try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceElement); return true;
+            } catch (e) { console.error("Error updating source texture (texImage2D):", e); return false; }
+        }
+        const controlConfig = { 
+            trail: { precision: 3, isInt: false }, 
+            motion: { precision: 2, isInt: false }, 
+            hue: { precision: 3, isInt: false }, 
+            history: { precision: 0, isInt: true }, 
+            extrap: { precision: 2, isInt: false },
+            intensity: { precision: 2, isInt: false },
+            displacement: { precision: 3, isInt: false },
+            feedback: { precision: 2, isInt: false },
+            threshold: { precision: 2, isInt: false },
+            brightness: { precision: 2, isInt: false },
+            contrast: { precision: 2, isInt: false },
+            saturation: { precision: 2, isInt: false }
+        };
+        function updateControlValueFromSlider(controlName, newValue, precision, isInt) {
+            const { range, number } = getControlElements(controlName); if (!range || !number) return; let valueToStore = newValue;
+            if (controlName === 'history') { valueToStore = Math.max(1, Math.min(Math.round(newValue), MAX_HISTORY_LENGTH)); isInt = true; }
+            controlValues[controlName] = valueToStore; range.value = valueToStore; number.value = isInt ? Math.round(valueToStore) : valueToStore.toFixed(precision);
+        }
+        function setupControl(name) {
+            const config = controlConfig[name]; if (!config) { console.error(`No config for: ${name}`); return; } const { precision, isInt } = config; const { range, number } = getControlElements(name); if (!range || !number) return;
+            number.addEventListener('input', () => {
+                let parsedValue = parseFloat(number.value);
+                if (isNaN(parsedValue)) { parsedValue = controlValues[name] || 0; number.value = isInt ? Math.round(parsedValue) : parsedValue.toFixed(precision); }
+                if (name === 'history') { parsedValue = Math.max(1, Math.min(Math.round(parsedValue), MAX_HISTORY_LENGTH)); number.value = parsedValue; }
+                controlValues[name] = parsedValue; const minR = parseFloat(range.min); const maxR = parseFloat(range.max);
+                if (parsedValue >= minR && parsedValue <= maxR) { range.value = parsedValue; } else { if (parsedValue < minR) range.value = minR; if (parsedValue > maxR) range.value = maxR; }
+            });
+            range.addEventListener('input', () => { updateControlValueFromSlider(name, parseFloat(range.value), precision, isInt); });
+            updateControlValueFromSlider(name, controlValues[name], precision, isInt);
+        }
+        function drawScene(time) {
+            if (!gl || !shaderProgram || !passthroughProgram || (!mediaReady && !isFrozen) || !frameHistoryTextures.length) return;
+            const sourceTextureUpdated = updateSourceTexture(); if (!sourceTextureUpdated && !isFrozen && controlValues.history <= 1) return;
+            let prevFrameTextureToBind;
+            if (isFrozen && frozenFrameTextures.length > 0) { let frozenIndex = (frameCount % frozenFrameTextures.length); prevFrameTextureToBind = frozenFrameTextures[frozenIndex];
+            } else { let historyLength = Math.max(1, Math.min(Math.round(controlValues.history), frameHistoryTextures.length)); let historyReadIndex = (historyWriteIndex - 1 - (frameCount % historyLength) + frameHistoryTextures.length) % frameHistoryTextures.length; prevFrameTextureToBind = frameHistoryTextures[historyReadIndex]; }
+            gl.bindFramebuffer(gl.FRAMEBUFFER, currentDestFBO); gl.viewport(0, 0, canvas.width, canvas.height); gl.useProgram(shaderProgram);
+            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, webcamTexture); gl.uniform1i(shaderProgram.u_webcamTextureLoc, 0);
+            gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, prevFrameTextureToBind); gl.uniform1i(shaderProgram.u_previousFrameTextureLoc, 1);
+            const elapsedTime = (performance.now() - startTime) * 0.001;
+            
+            // Safe uniform setting helper function
+            /* @tweakable safely sets uniform value if the location exists */
+            function safeUniform1f(name, value) {
+                const location = shaderProgram[name + 'Loc'];
+                if (location !== null && location !== undefined) {
+                    gl.uniform1f(location, value);
+                }
+            }
+            
+            // Set all uniforms safely
+            safeUniform1f('u_time', elapsedTime);
+            safeUniform1f('u_motionThreshold', controlValues.motion);
+            safeUniform1f('u_trailPersistence', controlValues.trail);
+            safeUniform1f('u_hueShiftSpeed', controlValues.hue);
+            safeUniform1f('u_motionExtrapolation', controlValues.extrap);
+            safeUniform1f('u_intensity', controlValues.intensity);
+            safeUniform1f('u_displacement', controlValues.displacement);
+            safeUniform1f('u_feedback', controlValues.feedback);
+            safeUniform1f('u_threshold', controlValues.threshold);
+            safeUniform1f('u_brightness', controlValues.brightness);
+            safeUniform1f('u_contrast', controlValues.contrast);
+            safeUniform1f('u_saturation', controlValues.saturation);
+            
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            
+            if (!isFrozen) { copyTexture(currentDestTexture, frameHistoryTextures[historyWriteIndex]); historyWriteIndex = (historyWriteIndex + 1) % frameHistoryTextures.length; }
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); gl.useProgram(passthroughProgram);
+            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, currentDestTexture); gl.uniform1i(passthroughProgram.uTextureToDrawLoc, 0);
+            gl.enableVertexAttribArray(passthroughProgram.aPosLoc); gl.enableVertexAttribArray(passthroughProgram.aTexLoc);
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer); gl.vertexAttribPointer(passthroughProgram.aPosLoc, 2, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer); gl.vertexAttribPointer(passthroughProgram.aTexLoc, 2, gl.FLOAT, false, 0, 0);
+            gl.clearColor(0.0, 0.0, 0.0, 1.0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLES, 0, 6);
+            if (!isFrozen) { let tempFBO = currentSourceFBO; currentSourceFBO = currentDestFBO; currentDestFBO = tempFBO; let tempTex = currentSourceTexture; currentSourceTexture = currentDestTexture; currentDestTexture = tempTex; }
+            const err = gl.getError(); if (err !== gl.NO_ERROR) { } frameCount++;
+        }
+        function renderLoop(now) { drawScene(now); renderLoopId = requestAnimationFrame(renderLoop); }
+        function startRecording() {
+            if (!canvas || typeof canvas.captureStream !== 'function') { showError("Recording Error: canvas.captureStream not supported.", false); return; }
+            if (typeof MediaRecorder !== 'function') { showError("Recording Error: MediaRecorder not supported.", false); return; }
+            const stream = canvas.captureStream(30); recordedChunks = [];
+            const mimeTypeOptions = [ { mime: 'video/mp4;codecs=hvc1', extension: 'mp4' }, { mime: 'video/mp4;codecs=avc1', extension: 'mp4' }, { mime: 'video/mp4', extension: 'mp4' }, { mime: 'video/webm', extension: 'webm' } ];
+            let selectedMimeTypeInfo = null;
+            for (const option of mimeTypeOptions) { if (MediaRecorder.isTypeSupported(option.mime)) { selectedMimeTypeInfo = option; console.log("Supported MIME type for recording:", option.mime); break; } else { console.log("Unsupported MIME type for recording:", option.mime); } }
+            if (!selectedMimeTypeInfo) { showError("Recording Error: Neither H.265 (HEVC) nor H.264 (AVC) recording is supported. No suitable video MIME type found.", false); return; }
+            const recorderOptions = { mimeType: selectedMimeTypeInfo.mime, videoBitsPerSecond: 8000000, };
+            try { mediaRecorder = new MediaRecorder(stream, recorderOptions);
+            } catch (e) { console.warn(`MediaRecorder init failed with bitrate option: ${e.toString()}. Retrying without bitrate.`); try { mediaRecorder = new MediaRecorder(stream, { mimeType: selectedMimeTypeInfo.mime }); } catch (e2) { showError(`Recording Error: MediaRecorder init failed: ${e2.toString()}`, false); return; } }
+            mediaRecorder.ondataavailable = (event) => { if (event.data && event.data.size > 0) { recordedChunks.push(event.data); } };
+            mediaRecorder.onstop = downloadVideo;
+            mediaRecorder.onerror = (event) => { showError(`Recording Error: ${event.error.name} - ${event.error.message}`, false); isRecording = false; if (recordButton) { recordButton.innerHTML = REC_SVG_CIRCLE; recordButton.title = "Start Recording"; recordButton.classList.remove('is-recording'); } };
+            mediaRecorder.start(RECORDING_TIMESLICE);
+            isRecording = true;
+            if (recordButton) { recordButton.innerHTML = REC_SVG_SQUARE; recordButton.title = "Stop Recording"; recordButton.classList.add('is-recording'); }
+            console.log("Recording started with type: ", mediaRecorder.mimeType, "and options:", recorderOptions);
+        }
+        function stopRecording() { if (mediaRecorder && mediaRecorder.state === "recording") { try { mediaRecorder.requestData(); } catch(_){} mediaRecorder.stop(); } isRecording = false; if (recordButton) { recordButton.innerHTML = REC_SVG_CIRCLE; recordButton.title = "Start Recording"; recordButton.classList.remove('is-recording'); } console.log("Recording stopped."); }
+        async function downloadVideo() {
+            if (recordedChunks.length === 0) { console.warn("No data recorded to download."); return; }
+            const actualMimeType = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : recordedChunks[0]?.type;
+            let fileExtension = 'mp4';
+            if (actualMimeType) { if (actualMimeType.startsWith('video/webm')) { fileExtension = 'webm'; } } else if (recordedChunks[0]?.type?.startsWith('video/webm')) { fileExtension = 'webm'; }
+            const blob = new Blob(recordedChunks, { type: actualMimeType || `video/${fileExtension}` });
+            const url = URL.createObjectURL(blob); const a = document.createElement('a');
+            a.style.display = 'none'; a.href = url;
+            a.download = `${RECORDING_FILENAME_PREFIX}_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.${fileExtension}`;
+            document.body.appendChild(a); a.click();
+            setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+            recordedChunks = []; console.log("Video download initiated as", a.download, "with MIME type:", actualMimeType);
+            if (RECORDING_ENABLE_CLOUD_UPLOAD && window.websim?.upload) {
+                try { const uploadedUrl = await window.websim.upload(blob); console.log(`Uploaded recording: ${uploadedUrl}`); } catch (e) { console.warn('Upload failed:', e); }
+            }
+        }
+        
+        // Function to take a snapshot of current canvas content
+        function takeSnapshot() {
+            try {
+                const dataURL = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataURL;
+                a.download = `datamosh_snapshot_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.png`;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                }, 100);
+                console.log("Snapshot saved");
+            } catch (e) {
+                showError(`Error saving snapshot: ${e.message}`, false);
+            }
+        }
+        
+        // Function to apply a preset
+        function applyPreset(presetName) {
+            if (!presets[presetName]) return;
+            
+            const preset = presets[presetName];
+            Object.keys(preset).forEach(key => {
+                if (controlValues.hasOwnProperty(key) && controlConfig.hasOwnProperty(key)) {
+                    const config = controlConfig[key];
+                    updateControlValueFromSlider(key, preset[key], config.precision, config.isInt);
+                }
+            });
+            
+            console.log(`Applied preset: ${presetName}`);
+        }
+        
+        // Function to change the current effect/shader
+        function changeEffect(effectName) {
+            if (!shaderSources[effectName]) return;
+            
+            const fsSource = shaderSources[effectName];
+            
+            // Recreate shader program with new fragment shader
+            if (shaderProgram) {
+                gl.deleteProgram(shaderProgram);
+            }
+            
+            shaderProgram = createShaderProgram(vsSource, fsSource);
+            if (!shaderProgram) {
+                showError(`Failed to create shader program for ${effectName}`);
+                return;
+            }
+            
+            if (!setupMainShaderAttributesUniforms()) {
+                showError(`Failed to setup uniforms for ${effectName}`);
+                return;
+            }
+            
+            currentEffect = effectName;
+            console.log(`Changed effect to: ${effectName}`);
+        }
+        
+        async function setupMediaSource(sourceType, sourceDetail = {}) {
+            mediaReady = false;
+            if (video.srcObject) { video.srcObject.getTracks().forEach(track => track.stop()); video.srcObject = null; }
+            if (video.src && video.src !== '' && !video.src.startsWith('blob:')) { video.pause(); video.removeAttribute('src'); video.load(); }
+            if (uploadedMediaElement) { if (uploadedMediaElement.tagName === 'VIDEO') uploadedMediaElement.pause(); if (uploadedMediaElement.src) URL.revokeObjectURL(uploadedMediaElement.src); uploadedMediaElement.removeAttribute('src'); }
+            currentInputSource = sourceType;
+            if (sourceType === 'webcam') {
+                const facingModeToUse = sourceDetail.facingMode || currentFacingMode;
+                try {
+                    const constraints = { audio: false, video: { width: { ideal: 1280, max: 1920 }, height: { ideal: 720, max: 1080 }, facingMode: {exact: facingModeToUse} } };
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showError("getUserMedia not supported.", true); return; }
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints); currentFacingMode = facingModeToUse;
+                    if (!video) { showError("Video element null.", true); return; } video.srcObject = stream;
+                    video.onloadedmetadata = () => {
+                        if (video.videoWidth === 0 || video.videoHeight === 0) { showError("Webcam video dimensions zero.", true); return; }
+                        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+                        if (!initFramebuffersAndTextures(canvas.width, canvas.height)) { showError("FBO/History Init Failed for webcam.", true); return; }
+                        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+                        video.play().then(() => { mediaReady = true; startTime = performance.now(); if (renderLoopId === null) { frameCount = 0; renderLoopId = requestAnimationFrame(renderLoop); } useWebcamButton.style.display = 'none'; fileUploadInput.value = null;
+                        }).catch(err => { showError(`video.play() failed: ${err.name} - ${err.message}`); });
+                    };
+                    video.onerror = (e) => { showError(`Webcam video error: ${e?.target?.error?.message || 'Unknown'}`); };
+                    stream.addEventListener('inactive', () => { showError("Webcam stream inactive.", false); mediaReady = false; if (freezeButton) freezeButton.disabled = true; if (clearFreezeButton) clearFreezeButton.disabled = true; });
+                } catch (err) {
+                    showError(`Error accessing webcam (facing: ${facingModeToUse}): ${err.name} - ${err.message}`, err.name !== 'OverconstrainedError');
+                    if (sourceDetail.isSwitching && facingModeToUse !== 'user') { console.warn("Failed to switch to environment, trying user."); await setupMediaSource('webcam', { facingMode: 'user' });
+                    } else if (sourceDetail.isSwitching && facingModeToUse !== 'environment') { console.warn("Failed to switch to user, trying environment."); await setupMediaSource('webcam', { facingMode: 'environment' }); }
+                }
+            } else if (sourceType === 'file') {
+                const file = sourceDetail.file; if (!file) { showError("No file provided for file source.", false); return; } const objectURL = URL.createObjectURL(file);
+                if (file.type.startsWith('image/')) {
+                    if (!uploadedMediaElement || uploadedMediaElement.tagName !== 'IMG') { uploadedMediaElement = new Image(); }
+                    uploadedMediaElement.onload = () => {
+                        if (uploadedMediaElement.naturalWidth === 0 || uploadedMediaElement.naturalHeight === 0) { showError("Uploaded image has zero dimensions.", false); URL.revokeObjectURL(objectURL); return; }
+                        canvas.width = uploadedMediaElement.naturalWidth; canvas.height = uploadedMediaElement.naturalHeight;
+                        if (!initFramebuffersAndTextures(canvas.width, canvas.height)) { showError("FBO init failed for uploaded image.", true); URL.revokeObjectURL(objectURL); return; }
+                        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight); mediaReady = true; startTime = performance.now();
+                        if (renderLoopId === null) { renderLoopId = requestAnimationFrame(renderLoop); } useWebcamButton.style.display = 'block';
+                    };
+                    uploadedMediaElement.onerror = () => { showError("Error loading uploaded image.", false); URL.revokeObjectURL(objectURL); setupMediaSource('webcam'); };
+                    uploadedMediaElement.src = objectURL;
+                } else if (file.type.startsWith('video/')) {
+                    if (!uploadedMediaElement || uploadedMediaElement.tagName !== 'VIDEO') { uploadedMediaElement = document.createElement('video'); uploadedMediaElement.autoplay = true; uploadedMediaElement.muted = true; uploadedMediaElement.playsInline = true; }
+                    uploadedMediaElement.loop = true;
+                    uploadedMediaElement.onloadedmetadata = () => {
+                        if (uploadedMediaElement.videoWidth === 0 || uploadedMediaElement.videoHeight === 0) { showError("Uploaded video has zero dimensions.", false); URL.revokeObjectURL(objectURL); return; }
+                        canvas.width = uploadedMediaElement.videoWidth; canvas.height = uploadedMediaElement.videoHeight;
+                        if (!initFramebuffersAndTextures(canvas.width, canvas.height)) { showError("FBO init failed for uploaded video.", true); URL.revokeObjectURL(objectURL); return; }
+                        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+                        uploadedMediaElement.play().then(() => { mediaReady = true; startTime = performance.now(); if (renderLoopId === null) { frameCount = 0; renderLoopId = requestAnimationFrame(renderLoop); } useWebcamButton.style.display = 'block';
+                        }).catch(err => { showError(`Uploaded video play failed: ${err.message}`, false); URL.revokeObjectURL(objectURL); });
+                    };
+                    uploadedMediaElement.onerror = (e) => { showError(`Uploaded video error: ${e.target.error?.message || 'Unknown error'}`, false); URL.revokeObjectURL(objectURL); setupMediaSource('webcam'); };
+                    uploadedMediaElement.src = objectURL;
+                } else { showError("Unsupported file type. Please upload an image or video.", false); URL.revokeObjectURL(objectURL); setupMediaSource('webcam'); }
+            }
+        }
+        
+        // Function to refresh the stream without changing settings
+        /* @tweakable timeout for refresh attempts in milliseconds */
+        const REFRESH_TIMEOUT = 5000; 
+        
+        function refreshStream() {
+            const currentSource = currentInputSource;
+            let refreshPromise;
+            
+            if (currentSource === 'webcam') {
+                refreshPromise = setupMediaSource('webcam', { facingMode: currentFacingMode });
+            } else if (currentSource === 'file' && uploadedMediaElement) {
+                // For files we can't easily refresh without re-uploading, so just re-initialize
+                // what we already have
+                if (uploadedMediaElement.tagName === 'VIDEO') {
+                    uploadedMediaElement.currentTime = 0;
+                    refreshPromise = uploadedMediaElement.play().then(() => {
+                        mediaReady = true;
+                        startTime = performance.now();
+                    });
+                } else {
+                    // For images, just re-trigger the render loop
+                    mediaReady = true;
+                    startTime = performance.now();
+                    if (renderLoopId === null) {
+                        frameCount = 0;
+                        renderLoopId = requestAnimationFrame(renderLoop);
+                    }
+                    refreshPromise = Promise.resolve();
+                }
+            } else {
+                refreshPromise = Promise.resolve();
+            }
+            
+            // Add a timeout to the refresh operation
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error("Refresh timed out")), REFRESH_TIMEOUT);
+            });
+            
+            // Race the refresh against the timeout
+            Promise.race([refreshPromise, timeoutPromise])
+                .catch(err => {
+                    showError(`Refresh failed: ${err.message}`, false);
+                });
+        }
+        
+        async function main() {
+            if (!errorMessageDiv) { return; }
+            if (!initWebGL() || !initBuffers()) { showError("WebGL/Buffer Init Failed.", true); return; }
+            
+            // Initialize with the datamosh shader by default
+            shaderProgram = createShaderProgram(vsSource, datamoshShader);
+            passthroughProgram = createShaderProgram(vsSource, fsPassthroughSource);
+            
+            if (!shaderProgram || !passthroughProgram) { showError("Shader Program Creation Failed.", true); return; }
+            if (!setupMainShaderAttributesUniforms() || !setupPassthroughShaderAttributesUniforms()) { showError("Shader Setup Failed.", true); return; }
+            
+            // Setup all controls
+            Object.keys(controlConfig).forEach(name => {
+                if (controlValues.hasOwnProperty(name)) {
+                    setupControl(name);
+                }
+            });
+            
+            recordButton.innerHTML = REC_SVG_CIRCLE;
+            
+            // Tab functionality
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+                    
+                    // Update active button
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Update visible content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabId) {
+                            content.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Add event listeners for controls
+            presetSelector.addEventListener('change', () => {
+                applyPreset(presetSelector.value);
+            });
+            
+            effectSelector.addEventListener('change', () => {
+                changeEffect(effectSelector.value);
+            });
+            
+            snapshotButton.addEventListener('click', takeSnapshot);
+            refreshButton.addEventListener('click', refreshStream);
+            
+            // Show switch camera button on mobile devices
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                            (navigator.maxTouchPoints && navigator.maxTouchPoints > 0 && window.matchMedia("(pointer:coarse)").matches);
+            
+            if (isMobile && navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices(); 
+                    const videoInputs = devices.filter(device => device.kind === 'videoinput');
+                    switchCameraButton.style.display = videoInputs.length > 1 ? 'flex' : 'none';
+                } catch (err) { 
+                    console.warn("Could not enumerate devices:", err); 
+                    // Keep the button visible anyway for mobile devices, even if enumeration fails
+                    if (isMobile) {
+                        switchCameraButton.style.display = 'flex';
+                    } else {
+                        switchCameraButton.style.display = 'none';
+                    }
+                }
+            } else { 
+                // Keep the button visible on mobile even without enumeration
+                switchCameraButton.style.display = isMobile ? 'flex' : 'none'; 
+            }
+            
+            const floatingRandomizeButton = document.getElementById('floatingRandomizeButton');
+            if (floatingRandomizeButton) {
+                floatingRandomizeButton.addEventListener('click', randomizeControls);
+            }
+            
+            debugToggle.addEventListener('click',()=>{ debugPanel.classList.toggle('hidden'); });
+            debugClear.addEventListener('click',()=>{ debugList.innerHTML=''; });
+            
+            await setupMediaSource('webcam', { facingMode: currentFacingMode });
+        }
+        
+        // Update the randomization function
+        function randomizeControls() {
+            const excludedControls = ['history', 'hue'];
+            Object.keys(controlValues).forEach(controlName => {
+                if (excludedControls.includes(controlName)) return; const config = controlConfig[controlName]; const { range, number } = getControlElements(controlName); if (!range || !number || !config) { return; }
+                const minVal = parseFloat(range.min); const maxVal = parseFloat(range.max); const stepVal = parseFloat(range.step) || 0.01;
+                if (isNaN(minVal) || isNaN(maxVal) || isNaN(stepVal) || stepVal <= 0 || minVal > maxVal) return;
+                if (minVal === maxVal) { updateControlValueFromSlider(controlName, minVal, config.precision, config.isInt); return; }
+                const numSteps = Math.round((maxVal - minVal) / stepVal); const randomStepIndex = Math.floor(Math.random() * (numSteps + 1));
+                let randomValue = minVal + randomStepIndex * stepVal; randomValue = Math.max(minVal, Math.min(maxVal, randomValue));
+                updateControlValueFromSlider(controlName, randomValue, config.precision, config.isInt);
+            });
+        }
+        
+        freezeButton.addEventListener('click', () => { if (!gl || (!mediaReady && !isFrozen) || !currentDestTexture) return; isFrozen = true; const frozenTexture = createAndSetupTexture(canvas.width, canvas.height); if (!frozenTexture) { return; } copyTexture(currentDestTexture, frozenTexture); frozenFrameTextures.push(frozenTexture); freezeButton.textContent = `Freeze Frame (${frozenFrameTextures.length})`; clearFreezeButton.disabled = false; });
+        clearFreezeButton.addEventListener('click', () => { if (!gl) return; isFrozen = false; frozenFrameTextures.forEach(tex => gl.deleteTexture(tex)); frozenFrameTextures = []; freezeButton.textContent = 'Freeze Frame (0)'; clearFreezeButton.disabled = true; });
+        recordButton.addEventListener('click', () => { if (!mediaReady && !isFrozen) { showError("Media not ready and no frozen content. Cannot record.", false); return; } if (isRecording) { stopRecording(); } else { startRecording(); } });
+        switchCameraButton.addEventListener('click', async () => { const newFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user'; await setupMediaSource('webcam', { facingMode: newFacingMode, isSwitching: true }); });
+        fileUploadInput.addEventListener('change', async (event) => { const file = event.target.files[0]; if (file) { await setupMediaSource('file', { file: file }); } event.target.value = null; });
+        useWebcamButton.addEventListener('click', async () => { await setupMediaSource('webcam', { facingMode: currentFacingMode }); });
+        resizeHandle.addEventListener('mousedown', (e) => { if (controlsPanel.classList.contains('minimized')) return; isResizing = true; startX = e.clientX; startY = e.clientY; startWidth = controlsPanel.offsetWidth; startHeight = controlsPanel.offsetHeight; controlsPanel.style.userSelect = 'none'; controlsPanel.style.pointerEvents = 'none'; window.addEventListener('mousemove', handleMouseMove); window.addEventListener('mouseup', handleMouseUp); e.preventDefault(); });
+        function handleMouseMove(e) { if (!isResizing) return; const dx = e.clientX - startX; const dy = e.clientY - startY; let newWidth = startWidth + dx; let newHeight = startHeight + dy; newWidth = Math.max(parseInt(controlsPanel.style.minWidth) || 230, newWidth); newHeight = Math.max(parseInt(controlsPanel.style.minHeight) || 150, newHeight); controlsPanel.style.width = `${newWidth}px`; controlsPanel.style.height = `${newHeight}px`; }
+        function handleMouseUp() { if (isResizing) { isResizing = false; controlsPanel.style.userSelect = ''; controlsPanel.style.pointerEvents = ''; window.removeEventListener('mousemove', handleMouseMove); window.removeEventListener('mouseup', handleMouseUp); if (!controlsPanel.classList.contains('minimized')) { controlsPanel.dataset.originalHeight = controlsPanel.offsetHeight + 'px'; } } }
+        minimizeButton.addEventListener('click', () => {
+            if (controlsPanel.classList.contains('minimized')) {
+                controlsPanel.classList.remove('minimized'); minimizeButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>'; minimizeButton.title = "Minimize Controls";
+                controlsPanel.style.height = controlsPanel.dataset.originalHeight || 'auto';
+                controlsPanel.addEventListener('transitionend', function onMaximizeEnd(event) { if (event.target === controlsPanel && event.propertyName === 'height' && !controlsPanel.classList.contains('minimized')) { controlsPanel.style.height = 'auto'; controlsPanel.removeEventListener('transitionend', onMaximizeEnd); } }, { once: false });
+                setTimeout(() => { controlsContent.style.opacity = 1; resizeHandle.style.opacity = 0.4;}, 50);
+            } else {
+                if (!controlsPanel.dataset.originalHeight || controlsPanel.style.height === 'auto') { controlsPanel.dataset.originalHeight = controlsPanel.offsetHeight + 'px'; }
+                controlsPanel.style.height = controlsPanel.offsetHeight + 'px'; requestAnimationFrame(() => { controlsPanel.classList.add('minimized'); });
+                minimizeButton.innerHTML = '<svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>'; minimizeButton.title = "Maximize Controls";
+                controlsContent.style.opacity = 0; resizeHandle.style.opacity = 0;
+            }
+        });
+        controlsPanel.addEventListener('keydown', (e) => {
+            const focusableNumberInputs = Array.from(controlsContent.querySelectorAll('input[type="number"]'));
+            const currentNumberIndex = focusableNumberInputs.indexOf(document.activeElement);
+            if (e.key === 'w' || e.key === 'W' || e.key === 's' || e.key === 'S') {
+                e.preventDefault(); let targetInput;
+                if (currentNumberIndex === -1 && focusableNumberInputs.length > 0) { targetInput = focusableNumberInputs[e.key === 'w' || e.key === 'W' ? focusableNumberInputs.length - 1 : 0];
+                } else if (currentNumberIndex !== -1) { let nextIndex = currentNumberIndex + (e.key === 's' || e.key === 'S' ? 1 : -1); nextIndex = (nextIndex + focusableNumberInputs.length) % focusableNumberInputs.length; targetInput = focusableNumberInputs[nextIndex]; }
+                if (targetInput) { targetInput.focus(); targetInput.select(); }
+            }
+        });
+        
+        // Clips feature implementation
+        const clipsButton = document.getElementById('clipsButton');
+        const clipsPanel = document.getElementById('clipsPanel');
+        const clipsPanelClose = document.getElementById('clipsPanelClose');
+        const clipsGrid = document.getElementById('clipsGrid');
+        const clipsEmpty = document.getElementById('clipsEmpty');
+        const clipRecordingOverlay = document.getElementById('clipRecordingOverlay');
+        const clipRecordingProgress = document.getElementById('clipRecordingProgress');
+        const clipVideoModal = document.getElementById('clipVideoModal');
+        const clipVideoPlayer = document.getElementById('clipVideoPlayer');
+        const clipVideoClose = document.getElementById('clipVideoClose');
+        
+        /* @tweakable default duration for recorded clips in seconds */
+        const DEFAULT_CLIP_DURATION = 5;
+        /* @tweakable maximum number of clips that can be stored */
+        const MAX_CLIPS = 20;
+        /* @tweakable video bitrate for clip recording */
+        const CLIP_VIDEO_BITRATE = 5000000;
+        /* @tweakable frame rate for clip recording */
+        const CLIP_FRAME_RATE = 30;
+        
+        /* @tweakable video bitrate for clip studio recordings in bits per second */
+        const CLIP_STUDIO_VIDEO_BITRATE = 8000000;
+        /* @tweakable audio bitrate for clip studio recordings in bits per second */
+        const CLIP_STUDIO_AUDIO_BITRATE = 192000;
+        /* @tweakable frame rate for clip studio recordings */
+        const CLIP_STUDIO_FRAME_RATE = 30;
+        /* @tweakable default audio volume for clip studio (0.0 to 1.0) */
+        const CLIP_STUDIO_DEFAULT_AUDIO_VOLUME = 0.8;
+        /* @tweakable maximum duration for clip studio recordings in seconds (0 = unlimited) */
+        const CLIP_STUDIO_MAX_DURATION = 60;
+        /* @tweakable whether to show detailed error messages for clip studio debugging */
+        const CLIP_STUDIO_SHOW_DETAILED_ERRORS = true;
+        /* @tweakable maximum chunk size in megabytes before stopping recording to prevent crash */
+        const CLIP_STUDIO_MAX_CHUNK_SIZE_MB = 500;
+        /* @tweakable delay in milliseconds before processing recording to allow cleanup */
+        const CLIP_STUDIO_PROCESSING_DELAY = 100;
+        /* @tweakable timeslice in milliseconds for MediaRecorder data availability */
+        const CLIP_STUDIO_RECORDING_TIMESLICE = 1000;
+        /* @tweakable interval (ms) for memory checks during recording */
+        const CLIP_STUDIO_MEMORY_CHECK_INTERVAL = 2000;
+        /* @tweakable attempt aggressive memory cleanup via GC if available */
+        const CLIP_STUDIO_AGGRESSIVE_MEMORY_CLEANUP = false;
+        /* @tweakable safe timeslice used for MediaRecorder.start */
+        const CLIP_STUDIO_SAFE_TIMESLICE = CLIP_STUDIO_RECORDING_TIMESLICE;
+        /* @tweakable safe max duration cap in seconds (0 = unlimited) */
+        const CLIP_STUDIO_SAFE_MAX_DURATION = CLIP_STUDIO_MAX_DURATION;
+        /* @tweakable require both audio and video to enable recording */
+        const CLIP_STUDIO_REQUIRE_BOTH = false;
+        /* @tweakable allow recording with audio only */
+        const CLIP_STUDIO_ALLOW_AUDIO_ONLY = true;
+        /* @tweakable allow recording with video only */
+        const CLIP_STUDIO_ALLOW_VIDEO_ONLY = true;
+        
+        let clips = [];
+        let isRecordingClip = false;
+        let clipRecorder = null;
+        let clipRecordedChunks = [];
+        let clipRecordingInterval = null;
+        let clipCountdown = DEFAULT_CLIP_DURATION;
+        
+        // Function to start recording a clip
+        function startClipRecording() {
+            if (!canvas || typeof canvas.captureStream !== 'function') {
+                showError("Clip Recording Error: canvas.captureStream not supported.", false);
+                return;
+            }
+            
+            if (typeof MediaRecorder !== 'function') {
+                showError("Clip Recording Error: MediaRecorder not supported.", false);
+                return;
+            }
+            
+            if (clips.length >= MAX_CLIPS) {
+                showError(`Maximum clips limit reached (${MAX_CLIPS}). Please delete some clips first.`, false);
+                return;
+            }
+            
+            const stream = canvas.captureStream(CLIP_FRAME_RATE);
+            clipRecordedChunks = [];
+            
+            const mimeTypeOptions = [
+                { mime: 'video/mp4;codecs=hvc1', extension: 'mp4' },
+                { mime: 'video/mp4;codecs=avc1', extension: 'mp4' },
+                { mime: 'video/mp4', extension: 'mp4' },
+                { mime: 'video/webm', extension: 'webm' }
+            ];
+            
+            let selectedMimeTypeInfo = null;
+            for (const option of mimeTypeOptions) {
+                if (MediaRecorder.isTypeSupported(option.mime)) {
+                    selectedMimeTypeInfo = option;
+                    break;
+                }
+            }
+            
+            if (!selectedMimeTypeInfo) {
+                showError("Clip Recording Error: No suitable video MIME type found.", false);
+                return;
+            }
+            
+            const recorderOptions = {
+                mimeType: selectedMimeTypeInfo.mime,
+                videoBitsPerSecond: CLIP_VIDEO_BITRATE,
+            };
+            
+            try {
+                clipRecorder = new MediaRecorder(stream, recorderOptions);
+            } catch (e) {
+                try {
+                    clipRecorder = new MediaRecorder(stream, { mimeType: selectedMimeTypeInfo.mime });
+                } catch (e2) {
+                    showError(`Clip Recording Error: ${e2.toString()}`, false);
+                    return;
+                }
+            }
+            
+            clipRecorder.ondataavailable = (event) => {
+                if (event.data && event.data.size > 0) {
+                    clipRecordedChunks.push(event.data);
+                }
+            };
+            
+            clipRecorder.onstop = saveClip;
+            
+            clipRecorder.onerror = (event) => {
+                showError(`Clip Recording Error: ${event.error.name}`, false);
+                stopClipRecording();
+            };
+            
+            clipRecorder.start();
+            isRecordingClip = true;
+            clipCountdown = DEFAULT_CLIP_DURATION;
+            
+            // Show recording overlay
+            clipRecordingOverlay.classList.add('visible');
+            clipRecordingProgress.textContent = clipCountdown;
+            clipsButton.classList.add('recording');
+            
+            // Start countdown
+            clipRecordingInterval = setInterval(() => {
+                clipCountdown--;
+                clipRecordingProgress.textContent = clipCountdown;
+                
+                if (clipCountdown <= 0) {
+                    stopClipRecording();
+                }
+            }, 1000);
+            
+            console.log("Clip recording started");
+        }
+        
+        // Function to stop recording a clip
+        function stopClipRecording() {
+            if (clipRecorder && clipRecorder.state === "recording") {
+                clipRecorder.stop();
+            }
+            
+            if (clipRecordingInterval) {
+                clearInterval(clipRecordingInterval);
+                clipRecordingInterval = null;
+            }
+            
+            isRecordingClip = false;
+            clipRecordingOverlay.classList.remove('visible');
+            clipsButton.classList.remove('recording');
+            
+            console.log("Clip recording stopped");
+        }
+        
+        // Function to save a recorded clip
+        function saveClip() {
+            if (clipRecordedChunks.length === 0) {
+                console.warn("No clip data to save.");
+                return;
+            }
+            
+            const actualMimeType = (clipRecorder && clipRecorder.mimeType) ? clipRecorder.mimeType : clipRecordedChunks[0]?.type;
+            let fileExtension = 'mp4';
+            if (actualMimeType && actualMimeType.startsWith('video/webm')) {
+                fileExtension = 'webm';
+            }
+            
+            const blob = new Blob(clipRecordedChunks, { type: actualMimeType || `video/${fileExtension}` });
+            const url = URL.createObjectURL(blob);
+            const timestamp = new Date().toISOString();
+            
+            // Create thumbnail from current canvas
+            const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
+            
+            const clip = {
+                id: Date.now() + Math.random(),
+                url: url,
+                blob: blob,
+                thumbnail: thumbnail,
+                timestamp: timestamp,
+                duration: DEFAULT_CLIP_DURATION,
+                mimeType: actualMimeType,
+                extension: fileExtension
+            };
+            
+            clips.push(clip);
+            clipRecordedChunks = [];
+            
+            updateClipsGrid();
+            console.log("Clip saved:", clip);
+        }
+        
+        // Function to update the clips grid display
+        function updateClipsGrid() {
+            clipsGrid.innerHTML = '';
+            
+            if (clips.length === 0) {
+                clipsEmpty.style.display = 'block';
+                return;
+            }
+            
+            clipsEmpty.style.display = 'none';
+            
+            clips.forEach((clip, index) => {
+                const clipItem = document.createElement('div');
+                clipItem.className = 'clip-item';
+                clipItem.dataset.clipId = clip.id;
+                
+                const thumbnail = document.createElement('img');
+                thumbnail.className = 'clip-thumbnail';
+                thumbnail.src = clip.thumbnail;
+                thumbnail.alt = 'Clip thumbnail';
+                
+                const info = document.createElement('div');
+                info.className = 'clip-info';
+                info.innerHTML = `
+                    <div class="clip-duration">${clip.duration}s</div>
+                    <div>${new Date(clip.timestamp).toLocaleTimeString()}</div>
+                `;
+                
+                const actions = document.createElement('div');
+                actions.className = 'clip-actions';
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'clip-action-btn';
+                downloadBtn.textContent = '⬇';
+                downloadBtn.title = 'Download';
+                downloadBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    downloadClip(clip);
+                };
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'clip-action-btn delete';
+                deleteBtn.textContent = '✕';
+                deleteBtn.title = 'Delete';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteClip(clip.id);
+                };
+                
+                actions.appendChild(downloadBtn);
+                actions.appendChild(deleteBtn);
+                
+                clipItem.appendChild(thumbnail);
+                clipItem.appendChild(info);
+                clipItem.appendChild(actions);
+                
+                clipItem.onclick = () => {
+                    playClip(clip);
+                };
+                
+                clipsGrid.appendChild(clipItem);
+            });
+        }
+        
+        // Function to play a clip in the modal
+        function playClip(clip) {
+            clipVideoPlayer.src = clip.url;
+            clipVideoModal.classList.add('visible');
+            clipVideoPlayer.play();
+        }
+        
+        // Function to download a clip
+        function downloadClip(clip) {
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = clip.url;
+            a.download = `datamosh_clip_${new Date(clip.timestamp).toISOString().slice(0,19).replace(/:/g,'-')}.${clip.extension}`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+            }, 100);
+            console.log("Clip download initiated:", a.download);
+        }
+        
+        // Function to delete a clip
+        function deleteClip(clipId) {
+            const clipIndex = clips.findIndex(c => c.id === clipId);
+            if (clipIndex !== -1) {
+                const clip = clips[clipIndex];
+                URL.revokeObjectURL(clip.url);
+                clips.splice(clipIndex, 1);
+                updateClipsGrid();
+                console.log("Clip deleted:", clipId);
+            }
+        }
+        
+        // Event listeners for clips feature
+        clipsButton.addEventListener('click', () => {
+            if (isRecordingClip) {
+                stopClipRecording();
+            } else if (!clipsPanel.classList.contains('visible')) {
+                // If panel is not visible, start recording
+                startClipRecording();
+            } else {
+                // If panel is visible, close it and start recording
+                clipsPanel.classList.remove('visible');
+                setTimeout(() => startClipRecording(), 100);
+            }
+        });
+        
+        // Long press on clips button to open panel
+        let clipButtonPressTimer;
+        clipsButton.addEventListener('mousedown', () => {
+            clipButtonPressTimer = setTimeout(() => {
+                if (!isRecordingClip) {
+                    clipsPanel.classList.add('visible');
+                    updateClipsGrid();
+                }
+            }, 500);
+        });
+        
+        clipsButton.addEventListener('mouseup', () => {
+            clearTimeout(clipButtonPressTimer);
+        });
+        
+        clipsButton.addEventListener('mouseleave', () => {
+            clearTimeout(clipButtonPressTimer);
+        });
+        
+        clipsPanelClose.addEventListener('click', () => {
+            clipsPanel.classList.remove('visible');
+        });
+        
+        clipVideoClose.addEventListener('click', () => {
+            clipVideoModal.classList.remove('visible');
+            clipVideoPlayer.pause();
+            clipVideoPlayer.src = '';
+        });
+        
+        clipVideoModal.addEventListener('click', (e) => {
+            if (e.target === clipVideoModal) {
+                clipVideoModal.classList.remove('visible');
+                clipVideoPlayer.pause();
+                clipVideoPlayer.src = '';
+            }
+        });
+        
+        // Clip Studio feature implementation
+        const clipStudioAudioInput = document.getElementById('clipStudioAudioInput');
+        const clipStudioVideoInput = document.getElementById('clipStudioVideoInput');
+        const clipStudioAudioStatus = document.getElementById('clipStudioAudioStatus');
+        const clipStudioVideoStatus = document.getElementById('clipStudioVideoStatus');
+        const clipStudioRecordButton = document.getElementById('clipStudioRecordButton');
+        const clipStudioStopButton = document.getElementById('clipStudioStopButton');
+        const clipStudioPreview = document.getElementById('clipStudioPreview');
+        const clipStudioAudioVolumeRange = document.getElementById('clipStudioAudioVolumeRange');
+        const clipStudioAudioVolumeNumber = document.getElementById('clipStudioAudioVolumeNumber');
+        const clipStudioQueue = document.getElementById('clipStudioQueue');
+        const clipStudioQueueList = document.getElementById('clipStudioQueueList');
+        
+        /* @tweakable whether to loop the video queue when it ends */
+        let clipStudioLoopQueue = false;
+        
+        /* @tweakable maintains the list of uploaded videos for Clip Studio */
+        var clipStudioVideoQueue = [];
+        let clipStudioCurrentVideoIndex = 0;
+        
+        let clipStudioAudioElement = null;
+        let clipStudioVideoElement = null;
+        let clipStudioRecorder = null;
+        let clipStudioRecordedChunks = [];
+        let isClipStudioRecording = false;
+        let clipStudioAudioContext = null;
+        let clipStudioAudioSourceNode = null;
+        let clipStudioAudioDestination = null;
+        let clipStudioRecordingStartTime = 0;
+        let clipStudioMaxDurationTimeout = null;
+        
+        /* @tweakable interval for updating clip studio progress display in milliseconds */
+        const CLIP_STUDIO_PROGRESS_UPDATE_INTERVAL = 100;
+        
+        let clipStudioProgressInterval = null;
+        let clipStudioCurrentRecordingUrl = null;
+        let clipStudioCurrentRecordingExtension = 'mp4';
+        
+        // Get references to clip studio recording info elements
+        const clipStudioRecordingInfo = document.getElementById('clipStudioRecordingInfo');
+        const clipStudioRecordingTime = document.querySelector('.clip-studio-recording-time');
+        const clipStudioRecordingBarFill = document.querySelector('.clip-studio-recording-bar-fill');
+        const clipStudioRecordingStatus = document.querySelector('.clip-studio-recording-status');
+        const clipStudioDownloadButton = document.getElementById('clipStudioDownloadButton');
+        const clipStudioClearButton = document.getElementById('clipStudioClearButton');
+        const clipStudioPreviewControls = document.getElementById('clipStudioPreviewControls');
+        
+        // Setup audio volume control
+        controlConfig.clipStudioAudioVolume = { precision: 2, isInt: false };
+        controlValues.clipStudioAudioVolume = CLIP_STUDIO_DEFAULT_AUDIO_VOLUME;
+        setupControl('clipStudioAudioVolume');
+        
+        /* @tweakable whether to automatically switch main input to uploaded clip studio video */
+        const CLIP_STUDIO_AUTO_SWITCH_INPUT = true;
+        
+        // Handle audio file upload
+        clipStudioAudioInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            /* @tweakable whether to validate audio file type strictly */
+            const strictAudioValidation = false;
+            
+            // Check if file is actually audio
+            if (strictAudioValidation && !file.type.startsWith('audio/')) {
+                clipStudioAudioStatus.textContent = '✗ Please select an audio file';
+                clipStudioAudioStatus.className = 'clip-studio-status error';
+                event.target.value = '';
+                return;
+            }
+            
+            if (clipStudioAudioElement) {
+                URL.revokeObjectURL(clipStudioAudioElement.src);
+                clipStudioAudioElement = null;
+            }
+            
+            clipStudioAudioElement = new Audio();
+            clipStudioAudioElement.src = URL.createObjectURL(file);
+            clipStudioAudioElement.volume = controlValues.clipStudioAudioVolume;
+            
+            clipStudioAudioElement.onloadedmetadata = () => {
+                clipStudioAudioStatus.textContent = `✓ Loaded: ${file.name} (${Math.round(clipStudioAudioElement.duration)}s)`;
+                clipStudioAudioStatus.className = 'clip-studio-status success';
+                /* @tweakable safely call updater only if defined */
+                if (typeof updateClipStudioRecordButton === 'function') updateClipStudioRecordButton();
+            };
+            
+            clipStudioAudioElement.onerror = () => {
+                clipStudioAudioStatus.textContent = '✗ Error loading audio file';
+                clipStudioAudioStatus.className = 'clip-studio-status error';
+                clipStudioAudioElement = null;
+                /* @tweakable safely call updater only if defined */
+                if (typeof updateClipStudioRecordButton === 'function') updateClipStudioRecordButton();
+            };
+        });
+        
+        // Handle video file upload
+        clipStudioVideoInput.addEventListener('change', async (event) => {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+            
+            /* @tweakable whether to validate video file type strictly */
+            const strictVideoValidation = false;
+            
+            // Clear previous queue
+            clipStudioVideoQueue = [];
+            clipStudioCurrentVideoIndex = 0;
+            
+            let loadedCount = 0;
+            let totalDuration = 0;
+            
+            for (const file of files) {
+                // Check if file is actually video
+                if (strictVideoValidation && !file.type.startsWith('video/')) {
+                    console.warn(`Skipping non-video file: ${file.name}`);
+                    continue;
+                }
+                
+                try {
+                    const videoData = await loadVideoFile(file);
+                    clipStudioVideoQueue.push(videoData);
+                    totalDuration += videoData.duration;
+                    loadedCount++;
+                } catch (error) {
+                    console.error(`Failed to load ${file.name}:`, error);
+                }
+            }
+            
+            if (loadedCount > 0) {
+                clipStudioVideoStatus.textContent = `✓ Loaded ${loadedCount} video(s) (${Math.round(totalDuration)}s total)`;
+                clipStudioVideoStatus.className = 'clip-studio-status success';
+                
+                // Set up the first video
+                if (clipStudioVideoQueue.length > 0) {
+                    setupVideoFromQueue(0);
+                }
+                
+                // Update queue display
+                updateClipStudioQueueDisplay();
+                /* @tweakable safely call updater only if defined */
+                if (typeof updateClipStudioRecordButton === 'function') updateClipStudioRecordButton();
+            } else {
+                clipStudioVideoStatus.textContent = '✗ No valid video files loaded';
+                clipStudioVideoStatus.className = 'clip-studio-status error';
+            }
+            
+            event.target.value = '';
+        });
+        
+        // Load a video file and return its data
+        /* @tweakable function to load video file into memory with metadata */
+        function loadVideoFile(file) {
+            return new Promise((resolve, reject) => {
+                const video = document.createElement('video');
+                video.src = URL.createObjectURL(file);
+                video.muted = true;
+                video.playsInline = true;
+                
+                video.onloadedmetadata = () => {
+                    const videoData = {
+                        element: video,
+                        url: video.src,
+                        name: file.name,
+                        duration: video.duration,
+                        file: file
+                    };
+                    resolve(videoData);
+                };
+                
+                video.onerror = () => {
+                    URL.revokeObjectURL(video.src);
+                    reject(new Error(`Failed to load ${file.name}`));
+                };
+            });
+        }
+        
+        // Setup video from queue at given index
+        /* @tweakable function to initialize a video from the queue for playback */
+        function setupVideoFromQueue(index) {
+            if (index < 0 || index >= clipStudioVideoQueue.length) {
+                console.warn(`Invalid queue index: ${index}`);
+                return;
+            }
+            
+            clipStudioCurrentVideoIndex = index;
+            const videoData = clipStudioVideoQueue[index];
+            
+            // Clean up previous video element if it exists and is different
+            if (clipStudioVideoElement && clipStudioVideoElement !== videoData.element) {
+                clipStudioVideoElement.pause();
+            }
+            
+            clipStudioVideoElement = videoData.element;
+            clipStudioVideoElement.currentTime = 0;
+            
+            // Set up ended handler for queue progression
+            clipStudioVideoElement.onended = () => {
+                if (!isClipStudioRecording) return;
+                
+                const nextIndex = clipStudioCurrentVideoIndex + 1;
+                if (nextIndex < clipStudioVideoQueue.length) {
+                    setupVideoFromQueue(nextIndex);
+                    clipStudioVideoElement.play().catch(err => {
+                        console.error("Failed to play next video:", err);
+                    });
+                    updateClipStudioQueueDisplay();
+                } else if (clipStudioLoopQueue && clipStudioVideoQueue.length > 0) {
+                    setupVideoFromQueue(0);
+                    clipStudioVideoElement.play().catch(err => {
+                        console.error("Failed to loop queue:", err);
+                    });
+                    updateClipStudioQueueDisplay();
+                } else {
+                    // Queue finished, stop recording
+                    stopClipStudioRecording();
+                }
+            };
+            
+            // Switch main input to this video if enabled
+            if (CLIP_STUDIO_AUTO_SWITCH_INPUT) {
+                setupMediaSource('file', { file: videoData.file }).then(() => {
+                    console.log(`Switched main input to video ${index + 1}: ${videoData.name}`);
+                });
+            }
+        }
+        
+        // Update the queue display UI
+        /* @tweakable function to refresh the video queue list in the UI */
+        function updateClipStudioQueueDisplay() {
+            if (clipStudioVideoQueue.length === 0) {
+                clipStudioQueue.classList.remove('visible');
+                return;
+            }
+            
+            clipStudioQueue.classList.add('visible');
+            clipStudioQueueList.innerHTML = '';
+            
+            clipStudioVideoQueue.forEach((videoData, index) => {
+                const item = document.createElement('div');
+                item.className = 'clip-studio-queue-item';
+                if (index === clipStudioCurrentVideoIndex) {
+                    item.classList.add('active');
+                }
+                
+                const name = document.createElement('div');
+                name.className = 'clip-studio-queue-item-name';
+                name.textContent = videoData.name;
+                name.title = videoData.name;
+                
+                const duration = document.createElement('div');
+                duration.className = 'clip-studio-queue-item-duration';
+                duration.textContent = `${Math.round(videoData.duration)}s`;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'clip-studio-queue-item-remove';
+                removeBtn.textContent = '✕';
+                removeBtn.title = 'Remove from queue';
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeFromQueue(index);
+                };
+                
+                item.appendChild(name);
+                item.appendChild(duration);
+                item.appendChild(removeBtn);
+                
+                clipStudioQueueList.appendChild(item);
+            });
+        }
+        
+        // Remove a video from the queue
+        /* @tweakable function to remove a video from the playback queue */
+        function removeFromQueue(index) {
+            if (index < 0 || index >= clipStudioVideoQueue.length) return;
+            
+            const videoData = clipStudioVideoQueue[index];
+            
+            // Clean up the video element
+            if (videoData.element) {
+                videoData.element.pause();
+                if (videoData.url) {
+                    URL.revokeObjectURL(videoData.url);
+                }
+            }
+            
+            clipStudioVideoQueue.splice(index, 1);
+            
+            // Adjust current index if needed
+            if (clipStudioCurrentVideoIndex >= index && clipStudioCurrentVideoIndex > 0) {
+                clipStudioCurrentVideoIndex--;
+            }
+            
+            // Update display
+            updateClipStudioQueueDisplay();
+            
+            // If we removed the last video, clean up
+            if (clipStudioVideoQueue.length === 0) {
+                clipStudioVideoElement = null;
+                updateClipStudioRecordButton();
+            } else if (index <= clipStudioCurrentVideoIndex) {
+                // If we removed the current or earlier video, set up the new current video
+                setupVideoFromQueue(clipStudioCurrentVideoIndex);
+            }
+        }
+        
+        // Start clip studio recording
+        async function startClipStudioRecording() {
+            /* @tweakable whether to validate required elements before starting recording */
+            const validateBeforeRecording = true;
+            
+            if (validateBeforeRecording) {
+                // Detailed validation checks
+                if (!clipStudioAudioElement && clipStudioVideoQueue.length === 0) {
+                    showError("Clip Studio: Please upload audio or video first.", false);
+                    return;
+                }
+                
+                if (clipStudioAudioElement && (clipStudioAudioElement.error || clipStudioAudioElement.networkState === HTMLMediaElement.NETWORK_NO_SOURCE)) {
+                    showError("Clip Studio: Audio file failed to load. Please try uploading again.", false);
+                    return;
+                }
+                
+                if (!canvas) {
+                    showError("Clip Studio: Canvas element not found.", false);
+                    return;
+                }
+                
+                if (typeof canvas.captureStream !== 'function') {
+                    showError("Clip Studio: Canvas.captureStream not supported in your browser.", false);
+                    return;
+                }
+                
+                if (typeof MediaRecorder !== 'function') {
+                    showError("Clip Studio: MediaRecorder not supported in your browser.", false);
+                    return;
+                }
+            }
+            
+            try {
+                if (CLIP_STUDIO_SHOW_DETAILED_ERRORS) {
+                    console.log("Clip Studio: Starting recording initialization...");
+                }
+                
+                // Create audio context for mixing
+                try {
+                    clipStudioAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    if (CLIP_STUDIO_SHOW_DETAILED_ERRORS) {
+                        console.log("Clip Studio: Audio context created successfully");
+                    }
+                } catch (audioContextError) {
+                    throw new Error(`Failed to create audio context: ${audioContextError.message}`);
+                }
+                
+                clipStudioAudioDestination = clipStudioAudioContext.createMediaStreamDestination();
+                
+                // Get canvas stream
+                let canvasStream;
+                try {
+                    canvasStream = canvas.captureStream(CLIP_STUDIO_FRAME_RATE);
+                    if (!canvasStream || canvasStream.getVideoTracks().length === 0) {
+                        throw new Error("Canvas stream has no video tracks");
+                    }
+                    if (CLIP_STUDIO_SHOW_DETAILED_ERRORS) {
+                        console.log("Clip Studio: Canvas stream captured successfully");
+                    }
+                } catch (canvasStreamError) {
+                    throw new Error(`Failed to capture canvas stream: ${canvasStreamError.message}`);
+                }
+                
+                // Setup video element if provided
+                if (clipStudioVideoQueue.length > 0) {
+                    try {
+                        setupVideoFromQueue(0);
+                        await clipStudioVideoElement.play();
+                        updateClipStudioQueueDisplay();
+                        if (CLIP_STUDIO_SHOW_DETAILED_ERRORS) {
+                            console.log("Clip Studio: Video queue playback started");
+                        }
+                    } catch (videoPlayError) {
+                        throw new Error(`Failed to play video: ${videoPlayError.message}`);
+                    }
+                }
+                
+                // Setup and play audio
+                if (clipStudioAudioElement) {
+                    try {
+                        clipStudioAudioElement.currentTime = 0;
+                        clipStudioAudioElement.volume = controlValues.clipStudioAudioVolume;
+                        
+                        // Connect audio to destination
+                        clipStudioAudioSourceNode = clipStudioAudioContext.createMediaElementSource(clipStudioAudioElement);
+                        clipStudioAudioSourceNode.connect(clipStudioAudioDestination);
+                        clipStudioAudioSourceNode.connect(clipStudioAudioContext.destination);
+                        
+                        await clipStudioAudioElement.play();
+                        if (CLIP_STUDIO_SHOW_DETAILED_ERRORS) {
+                            console.log("Clip Studio: Audio playing and connected");
+                        }
+                    } catch (audioPlayError) {
+                        throw new Error(`Failed to play audio: ${audioPlayError.message}`);
+                    }
+                }
+                
+                // Combine canvas video with audio
+                const combinedStream = new MediaStream();
+                canvasStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
+                if (clipStudioAudioElement) {
+                    clipStudioAudioDestination.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
+                }
+                
+                if (CLIP_STUDIO_SHOW_DETAILED_ERRORS) {
+                    console.log(`Clip Studio: Combined stream has ${combinedStream.getVideoTracks().length} video tracks and ${combinedStream.getAudioTracks().length} audio tracks`);
+                }
+                
+                // Setup MediaRecorder
+                const mimeTypeOptions = [
+                    { mime: 'video/mp4;codecs=hvc1', extension: 'mp4' },
+                    { mime: 'video/mp4;codecs=avc1', extension: 'mp4' },
+                    { mime: 'video/webm;codecs=vp9,opus', extension: 'webm' },
+                    { mime: 'video/webm', extension: 'webm' }
+                ];
+                
+                let selectedMimeTypeInfo = null;
+                for (const option of mimeTypeOptions) {
+                    if (MediaRecorder.isTypeSupported(option.mime)) {
+                        selectedMimeTypeInfo = option;
+                        if (CLIP_STUDIO_SHOW_DETAILED_ERRORS) {
+                            console.log(`Clip Studio: Using MIME type: ${option.mime}`);
+                        }
+                        break;
+                    }
+                }
+                
+                if (!selectedMimeTypeInfo) {
+                    throw new Error("No suitable video MIME type found for recording");
+                }
+                
+                const recorderOptions = {
+                    mimeType: selectedMimeTypeInfo.mime,
+                    videoBitsPerSecond: CLIP_STUDIO_VIDEO_BITRATE,
+                    audioBitsPerSecond: CLIP_STUDIO_AUDIO_BITRATE
+                };
+                
+                try {
+                    clipStudioRecorder = new MediaRecorder(combinedStream, recorderOptions);
+                    if (CLIP_STUDIO_SHOW_DETAILED_ERRORS) {
+                        console.log("Clip Studio: MediaRecorder created successfully");
+                    }
+                } catch (recorderCreateError) {
+                    throw new Error(`Failed to create MediaRecorder: ${recorderCreateError.message}`);
+                }
+                
+                clipStudioRecordedChunks = [];
+                clipStudioCurrentRecordingExtension = selectedMimeTypeInfo.extension;
+                
+                /* @tweakable improved data handling to prevent memory buildup and freezing */
+                let totalRecordedSize = 0;
+                let lastMemoryCheck = Date.now();
+                
+                clipStudioRecorder.ondataavailable = (event) => {
+                    if (event.data && event.data.size > 0) {
+                        clipStudioRecordedChunks.push(event.data);
+                        totalRecordedSize += event.data.size;
+                        
+                        const now = Date.now();
+                        const elapsedSinceCheck = now - lastMemoryCheck;
+                        
+                        // Periodic memory check
+                        if (elapsedSinceCheck > CLIP_STUDIO_MEMORY_CHECK_INTERVAL) {
+                            const totalSizeMB = totalRecordedSize / (1024 * 1024);
+                            console.log(`Recording size: ${totalSizeMB.toFixed(2)}MB, chunks: ${clipStudioRecordedChunks.length}`);
+                            
+                            if (totalSizeMB > CLIP_STUDIO_MAX_CHUNK_SIZE_MB) {
+                                console.warn(`Recording size exceeded ${CLIP_STUDIO_MAX_CHUNK_SIZE_MB}MB, stopping to prevent freeze`);
+                                showError(`Recording limit reached (${totalSizeMB.toFixed(0)}MB). Stopping to prevent freeze.`, false);
+                                stopClipStudioRecording();
+                            }
+                            
+                            lastMemoryCheck = now;
+                            
+                            // Aggressive cleanup if enabled
+                            if (CLIP_STUDIO_AGGRESSIVE_MEMORY_CLEANUP && typeof window.gc === 'function') {
+                                try {
+                                    window.gc();
+                                } catch (e) {
+                                    // GC not available, ignore
+                                }
+                            }
+                        }
+                    }
+                };
+                
+                clipStudioRecorder.onstop = () => {
+                    // Delay processing to allow proper cleanup
+                    setTimeout(() => {
+                        try {
+                            finishClipStudioRecording(selectedMimeTypeInfo.mime, selectedMimeTypeInfo.extension);
+                        } catch (error) {
+                            showError(`Error processing recording: ${error.message}`, false);
+                            console.error("Recording processing error:", error);
+                            // Clean up on error
+                            clipStudioRecordedChunks = [];
+                        }
+                    }, CLIP_STUDIO_PROCESSING_DELAY);
+                };
+                
+                clipStudioRecorder.onerror = (event) => {
+                    showError(`Clip Studio Recording Error: ${event.error.name}`, false);
+                    stopClipStudioRecording();
+                };
+                
+                // Start with safe timeslice to prevent memory buildup
+                try {
+                    clipStudioRecorder.start(CLIP_STUDIO_SAFE_TIMESLICE);
+                    if (CLIP_STUDIO_SHOW_DETAILED_ERRORS) {
+                        console.log(`Clip Studio: Recording started with timeslice ${CLIP_STUDIO_SAFE_TIMESLICE}ms`);
+                    }
+                } catch (recorderStartError) {
+                    throw new Error(`Failed to start MediaRecorder: ${recorderStartError.message}`);
+                }
+                
+                isClipStudioRecording = true;
+                clipStudioRecordingStartTime = Date.now();
+                
+                clipStudioRecordButton.style.display = 'none';
+                clipStudioStopButton.style.display = 'block';
+                clipStudioRecordButton.classList.add('recording');
+                clipStudioRecordingInfo.classList.add('visible');
+                
+                // Start progress update
+                updateClipStudioProgress();
+                clipStudioProgressInterval = setInterval(updateClipStudioProgress, CLIP_STUDIO_PROGRESS_UPDATE_INTERVAL);
+                
+                // Determine max duration
+                /* @tweakable calculate total duration from queue or audio */
+                let maxDuration = CLIP_STUDIO_SAFE_MAX_DURATION;
+                
+                if (clipStudioAudioElement) {
+                    maxDuration = Math.min(Math.ceil(clipStudioAudioElement.duration), CLIP_STUDIO_SAFE_MAX_DURATION);
+                } else if (clipStudioVideoQueue.length > 0) {
+                    const queueDuration = clipStudioVideoQueue.reduce((sum, v) => sum + v.duration, 0);
+                    maxDuration = Math.min(Math.ceil(queueDuration), CLIP_STUDIO_SAFE_MAX_DURATION);
+                }
+                
+                // Set max duration timeout
+                if (maxDuration > 0) {
+                    clipStudioMaxDurationTimeout = setTimeout(() => {
+                        console.log(`Max recording duration (${maxDuration}s) reached, stopping to prevent freeze`);
+                        stopClipStudioRecording();
+                    }, maxDuration * 1000);
+                    
+                    clipStudioRecordingStatus.textContent = `Recording... (max ${maxDuration}s)`;
+                }
+                
+                console.log("Clip Studio recording started");
+                
+            } catch (error) {
+                const errorMessage = CLIP_STUDIO_SHOW_DETAILED_ERRORS 
+                    ? `Failed to start recording: ${error.message}` 
+                    : "Failed to start recording. Please check console for details.";
+                    
+                showError(errorMessage, false);
+                console.error("Clip Studio recording start error:", error);
+                stopClipStudioRecording();
+            }
+        }
+        
+        // Update recording progress display
+        function updateClipStudioProgress() {
+            if (!isClipStudioRecording) return;
+            
+            const elapsedSeconds = (Date.now() - clipStudioRecordingStartTime) / 1000;
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = Math.floor(elapsedSeconds % 60);
+            
+            clipStudioRecordingTime.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update progress bar based on max duration
+            let maxDuration = CLIP_STUDIO_MAX_DURATION;
+            if (clipStudioAudioElement) {
+                maxDuration = clipStudioAudioElement.duration;
+            } else if (clipStudioVideoQueue.length > 0) {
+                const queueDuration = clipStudioVideoQueue.reduce((sum, v) => sum + v.duration, 0);
+                maxDuration = queueDuration;
+            }
+            
+            if (maxDuration > 0) {
+                const progress = Math.min((elapsedSeconds / maxDuration) * 100, 100);
+                clipStudioRecordingBarFill.style.width = `${progress}%`;
+            }
+        }
+        
+        // Stop clip studio recording
+        function stopClipStudioRecording() {
+            isClipStudioRecording = false;
+            
+            if (clipStudioProgressInterval) {
+                clearInterval(clipStudioProgressInterval);
+                clipStudioProgressInterval = null;
+            }
+            
+            // Stop audio/video first
+            if (clipStudioAudioElement) {
+                try {
+                    clipStudioAudioElement.pause();
+                    clipStudioAudioElement.currentTime = 0;
+                } catch (e) {
+                    console.warn("Error pausing audio:", e);
+                }
+            }
+            
+            if (clipStudioVideoElement) {
+                try {
+                    clipStudioVideoElement.pause();
+                    clipStudioVideoElement.currentTime = 0;
+                } catch (e) {
+                    console.warn("Error pausing video:", e);
+                }
+            }
+            
+            // Disconnect audio nodes
+            if (clipStudioAudioSourceNode) {
+                try {
+                    clipStudioAudioSourceNode.disconnect();
+                } catch (e) {
+                    console.warn("Error disconnecting audio source:", e);
+                }
+                clipStudioAudioSourceNode = null;
+            }
+            
+            // Close audio context
+            if (clipStudioAudioContext && clipStudioAudioContext.state !== 'closed') {
+                try {
+                    clipStudioAudioContext.close();
+                } catch (e) {
+                    console.warn("Error closing audio context:", e);
+                }
+                clipStudioAudioContext = null;
+            }
+            
+            // Stop recorder last
+            if (clipStudioRecorder && clipStudioRecorder.state === "recording") {
+                try {
+                    clipStudioRecorder.stop();
+                } catch (e) {
+                    console.warn("Error stopping recorder:", e);
+                    // If stop fails, trigger finish manually
+                    setTimeout(() => {
+                        try {
+                            if (clipStudioRecorder) {
+                                const mimeType = clipStudioRecorder.mimeType || 'video/webm';
+                                const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+                                finishClipStudioRecording(mimeType, extension);
+                            }
+                        } catch (err) {
+                            console.error("Manual finish failed:", err);
+                            clipStudioRecordedChunks = [];
+                        }
+                    }, CLIP_STUDIO_PROCESSING_DELAY);
+                }
+            }
+            
+            if (clipStudioMaxDurationTimeout) {
+                clearTimeout(clipStudioMaxDurationTimeout);
+                clipStudioMaxDurationTimeout = null;
+            }
+            
+            clipStudioRecordButton.style.display = 'block';
+            clipStudioStopButton.style.display = 'none';
+            clipStudioRecordButton.classList.remove('recording');
+            clipStudioRecordingInfo.classList.remove('visible');
+            
+            console.log("Clip Studio recording stopped");
+        }
+        
+        // Finish recording and create preview
+        function finishClipStudioRecording(mimeType, extension) {
+            if (clipStudioRecordedChunks.length === 0) {
+                console.warn("No clip studio data recorded");
+                showError("No data was recorded. Try recording again.", false);
+                return;
+            }
+            
+            try {
+                // Check total size before creating blob
+                const totalSize = clipStudioRecordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
+                const totalSizeMB = totalSize / (1024 * 1024);
+                
+                console.log(`Creating blob from ${clipStudioRecordedChunks.length} chunks, total size: ${totalSizeMB.toFixed(2)}MB`);
+                
+                if (totalSizeMB > CLIP_STUDIO_MAX_CHUNK_SIZE_MB) {
+                    showError(`Recording too large (${totalSizeMB.toFixed(0)}MB). Try a shorter recording.`, false);
+                    clipStudioRecordedChunks = [];
+                    return;
+                }
+                
+                // Create blob with error handling
+                const blob = new Blob(clipStudioRecordedChunks, { type: mimeType });
+                
+                // Clear chunks immediately to free memory
+                clipStudioRecordedChunks = [];
+                
+                // Clean up previous recording URL
+                if (clipStudioCurrentRecordingUrl) {
+                    try {
+                        URL.revokeObjectURL(clipStudioCurrentRecordingUrl);
+                    } catch (e) {
+                        console.warn("Error revoking previous URL:", e);
+                    }
+                }
+                
+                clipStudioCurrentRecordingUrl = URL.createObjectURL(blob);
+                clipStudioCurrentRecordingExtension = extension;
+                
+                // Show preview
+                clipStudioPreview.src = clipStudioCurrentRecordingUrl;
+                clipStudioPreview.classList.add('visible');
+                clipStudioPreviewControls.classList.add('visible');
+                
+                console.log("Clip Studio recording finished and preview ready");
+                
+            } catch (error) {
+                console.error("Error creating recording blob:", error);
+                showError(`Failed to process recording: ${error.message}`, false);
+                clipStudioRecordedChunks = [];
+            }
+        }
+        
+        // Download the recorded clip
+        clipStudioDownloadButton.addEventListener('click', () => {
+            if (!clipStudioCurrentRecordingUrl) return;
+            
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = clipStudioCurrentRecordingUrl;
+            a.download = `clip_studio_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.${clipStudioCurrentRecordingExtension}`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+            }, 100);
+            
+            console.log("Clip Studio video downloaded");
+        });
+        
+        // Clear the preview and reset
+        clipStudioClearButton.addEventListener('click', () => {
+            if (clipStudioCurrentRecordingUrl) {
+                URL.revokeObjectURL(clipStudioCurrentRecordingUrl);
+                clipStudioCurrentRecordingUrl = null;
+            }
+            
+            clipStudioPreview.src = '';
+            clipStudioPreview.classList.remove('visible');
+            clipStudioPreviewControls.classList.remove('visible');
+            
+            console.log("Clip Studio preview cleared");
+        });
+        
+        // Add event listeners for Clip Studio record buttons
+        clipStudioRecordButton.addEventListener('click', () => {
+            startClipStudioRecording();
+        });
+        
+        clipStudioStopButton.addEventListener('click', () => {
+            stopClipStudioRecording();
+        });
+        
+        // Update the clip studio record button state based on uploaded files
+        function updateClipStudioRecordButton() {
+            const hasAudio = clipStudioAudioElement !== null && 
+                         !clipStudioAudioElement.error && 
+                         clipStudioAudioElement.readyState >= 2;
+            const hasVideo = clipStudioVideoQueue && clipStudioVideoQueue.length > 0;
+            
+            let shouldEnable = false;
+            
+            if (CLIP_STUDIO_REQUIRE_BOTH) {
+                shouldEnable = hasAudio && hasVideo;
+            } else {
+                shouldEnable = (hasAudio && CLIP_STUDIO_ALLOW_AUDIO_ONLY) || 
+                               (hasVideo && CLIP_STUDIO_ALLOW_VIDEO_ONLY);
+            }
+            
+            clipStudioRecordButton.disabled = !shouldEnable;
+        }
+        
+        main();
+    </script>
+</body>
+</html>

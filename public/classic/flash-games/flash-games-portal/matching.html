@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matching Games - Retro Flash Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF9900;
+            --secondary-orange: #FFB84D;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1a;
+            --card-bg: #16213e;
+            --text-light: #eaeaea;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--card-bg) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary-orange);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            color: var(--primary-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--darker-bg);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 26, 46, 0.9), rgba(26, 26, 46, 0.9)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="pairs" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="30" cy="30" r="5" fill="%23ffffff10"/><circle cx="70" cy="30" r="5" fill="%23ffffff10"/><circle cx="50" cy="70" r="5" fill="%23ffffff10"/></pattern></defs><rect width="100" height="100" fill="url(%23pairs)"/></svg>');
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            color: var(--text-dim);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-bg);
+        }
+
+        .game-count {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, var(--darker-bg), var(--card-bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::before {
+            content: '▶';
+            font-size: 3rem;
+            color: var(--primary-orange);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .game-thumbnail:hover::before {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .game-info {
+            padding: 1rem;
+        }
+
+        .game-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .game-category-tag {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--primary-orange);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow: hidden;
+            border: 3px solid var(--primary-orange);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--darker-bg);
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .close-btn {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--secondary-orange);
+        }
+
+        .modal-body {
+            padding: 0;
+            height: calc(90vh - 80px);
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-orange);
+        }
+
+        footer p {
+            color: var(--text-dim);
+        }
+
+        footer a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">RF</div>
+            <h1>RetroFlash</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="action.html">Action</a></li>
+                <li><a href="adventure.html">Adventure</a></li>
+                <li><a href="puzzle.html">Puzzle</a></li>
+                <li><a href="sports.html">Sports</a></li>
+                <li><a href="more.html">More »</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h2>🃏 Matching Games</h2>
+        <p>Test your memory and visual recognition skills with these matching games!</p>
+    </div>
+
+    <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <a href="more.html">More Categories</a>
+        <span>›</span>
+        <span>Matching</span>
+    </div>
+
+    <main>
+        <div class="category-header">
+            <h3>All Matching Games</h3>
+            <span class="game-count">50 Games</span>
+        </div>
+
+        <div class="game-grid">
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Kids! You Can Help... Wipe Out Graffiti"></div>
+                <div class="game-info">
+                    <div class="game-title">Kids! You Can Help... Wipe Out Graffiti</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Space Rings"></div>
+                <div class="game-info">
+                    <div class="game-title">Space Rings</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Cocoa Match"></div>
+                <div class="game-info">
+                    <div class="game-title">Cocoa Match</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="hck_2_0_0"></div>
+                <div class="game-info">
+                    <div class="game-title">hck_2_0_0</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Candy Match"></div>
+                <div class="game-info">
+                    <div class="game-title">Candy Match</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Beach Detectives"></div>
+                <div class="game-info">
+                    <div class="game-title">Beach Detectives</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Open Ocean Habitats"></div>
+                <div class="game-info">
+                    <div class="game-title">Open Ocean Habitats</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Shoreline Habitats"></div>
+                <div class="game-info">
+                    <div class="game-title">Shoreline Habitats</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Slime Mix"></div>
+                <div class="game-info">
+                    <div class="game-title">Slime Mix</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Hello Kitty Matching Pairs"></div>
+                <div class="game-info">
+                    <div class="game-title">Hello Kitty Matching Pairs</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Find Pairs"></div>
+                <div class="game-info">
+                    <div class="game-title">Find Pairs</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Digging Diamonds"></div>
+                <div class="game-info">
+                    <div class="game-title">Digging Diamonds</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Ben and Holly Little Kingdom Match"></div>
+                <div class="game-info">
+                    <div class="game-title">Ben and Holly Little Kingdom Match</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pixel Art"></div>
+                <div class="game-info">
+                    <div class="game-title">Pixel Art</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pixel Art 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Pixel Art 2</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Monster Troubles"></div>
+                <div class="game-info">
+                    <div class="game-title">Monster Troubles</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The LEGO Movie Brix"></div>
+                <div class="game-info">
+                    <div class="game-title">The LEGO Movie Brix</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Link-Em Bamboo!"></div>
+                <div class="game-info">
+                    <div class="game-title">Link-Em Bamboo!</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Birds Cross Beng!!!"></div>
+                <div class="game-info">
+                    <div class="game-title">Birds Cross Beng!!!</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Particle Trap"></div>
+                <div class="game-info">
+                    <div class="game-title">Particle Trap</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Surf's Up: Cody Maverick's Match"></div>
+                <div class="game-info">
+                    <div class="game-title">Surf's Up: Cody Maverick's Match</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Gems Story"></div>
+                <div class="game-info">
+                    <div class="game-title">Gems Story</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pen King"></div>
+                <div class="game-info">
+                    <div class="game-title">Pen King</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pen King 3"></div>
+                <div class="game-info">
+                    <div class="game-title">Pen King 3</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Wonderful Forest Adventures"></div>
+                <div class="game-info">
+                    <div class="game-title">Wonderful Forest Adventures</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Farm Connect 3"></div>
+                <div class="game-info">
+                    <div class="game-title">Farm Connect 3</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Farm Connect 4"></div>
+                <div class="game-info">
+                    <div class="game-title">Farm Connect 4</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Angrybird Defense"></div>
+                <div class="game-info">
+                    <div class="game-title">Angrybird Defense</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Gravity Pearl Elimination"></div>
+                <div class="game-info">
+                    <div class="game-title">Gravity Pearl Elimination</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Superman stool: Clear the stool"></div>
+                <div class="game-info">
+                    <div class="game-title">Superman stool: Clear the stool</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Naruto Match"></div>
+                <div class="game-info">
+                    <div class="game-title">Naruto Match</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pendragon: Unite the Travelers"></div>
+                <div class="game-info">
+                    <div class="game-title">Pendragon: Unite the Travelers</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Scooby-Doo's Creepy Cajun Cooking"></div>
+                <div class="game-info">
+                    <div class="game-title">Scooby-Doo's Creepy Cajun Cooking</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Overhaul"></div>
+                <div class="game-info">
+                    <div class="game-title">Overhaul</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Night At The Colosseum"></div>
+                <div class="game-info">
+                    <div class="game-title">Night At The Colosseum</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Flux"></div>
+                <div class="game-info">
+                    <div class="game-title">Flux</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Vampire Vision"></div>
+                <div class="game-info">
+                    <div class="game-title">Vampire Vision</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Collapse!"></div>
+                <div class="game-info">
+                    <div class="game-title">Collapse!</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Animal Memory"></div>
+                <div class="game-info">
+                    <div class="game-title">Animal Memory</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Blast Magus"></div>
+                <div class="game-info">
+                    <div class="game-title">Blast Magus</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Total Drama Action: Clone Control"></div>
+                <div class="game-info">
+                    <div class="game-title">Total Drama Action: Clone Control</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Poppable Cascade"></div>
+                <div class="game-info">
+                    <div class="game-title">Poppable Cascade</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Maryoku Yummy: Wish 'n Match"></div>
+                <div class="game-info">
+                    <div class="game-title">Maryoku Yummy: Wish 'n Match</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Kickin' It: Breakin' It in China!"></div>
+                <div class="game-info">
+                    <div class="game-title">Kickin' It: Breakin' It in China!</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Popeye Memory"></div>
+                <div class="game-info">
+                    <div class="game-title">Popeye Memory</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Smilie Clicker"></div>
+                <div class="game-info">
+                    <div class="game-title">Smilie Clicker</div>
+                    <span category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Addit Blitz"></div>
+                <div class="game-info">
+                    <div class="game-title">Addit Blitz</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Angry Fruits"></div>
+                <div class="game-info">
+                    <div class="game-title">Angry Fruits</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Flash Pairs"></div>
+                <div class="game-info">
+                    <div class="game-title">Flash Pairs</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Christmas Collapse"></div>
+                <div class="game-info">
+                    <div class="game-title">Christmas Collapse</div>
+                    <span class="game-category-tag">Matching</span>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="close-btn" onclick="closeModal()">✕ Close</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>RetroFlash Portal - Preserving the Best of Flash Gaming</p>
+        <p><a href="index.html">Home</a> | <a href="about.html">About</a> | <a href="contact.html">Contact</a></p>
+    </footer>
+
+    <script>
+        // Game URLs mapping
+        const gameUrls = {
+            "Kids! You Can Help... Wipe Out Graffiti": "https://flashgames.cx/game/kids-you-can-help-wipe-out-graffiti",
+            "Space Rings": "https://flashgames.cx/game/space-rings",
+            "Cocoa Match": "https://flashgames.cx/game/cocoa-match",
+            "hck_2_0_0": "https://flashgames.cx/game/hck-2-0-0",
+            "Candy Match": "https://flashgames.cx/game/candy-match-3",
+            "Beach Detectives": "https://flashgames.cx/game/beach-detectives",
+            "Open Ocean Habitats": "https://flashgames.cx/game/open-ocean-habitats",
+            "Shoreline Habitats": "https://flashgames.cx/game/shoreline-habitats",
+            "Slime Mix": "https://flashgames.cx/game/slime-mix",
+            "Hello Kitty Matching Pairs": "https://flashgames.cx/game/hello-kitty-matching-pairs",
+            "Find Pairs": "https://flashgames.cx/game/find-pairs",
+            "Digging Diamonds": "https://flashgames.cx/game/digging-diamonds",
+            "Ben and Holly Little Kingdom Match": "https://flashgames.cx/game/ben-and-holly-little-kingdom-match",
+            "Pixel Art": "https://flashgames.cx/game/pixel-art",
+            "Pixel Art 2": "https://flashgames.cx/game/pixel-art-2",
+            "Monster Troubles": "https://flashgames.cx/game/monster-troubles",
+            "The LEGO Movie Brix": "https://flashgames.cx/game/the-lego-movie-brix",
+            "Link-Em Bamboo!": "https://flashgames.cx/game/link-em-bamboo",
+            "Birds Cross Beng!!!": "https://flashgames.cx/game/birds-cross-beng",
+            "Particle Trap": "https://flashgames.cx/game/particle-trap",
+            "Surf's Up: Cody Maverick's Match": "https://flashgames.cx/game/surf-s-up-cody-maverick-s-match",
+            "Gems Story": "https://flashgames.cx/game/gems-story",
+            "Pen King": "https://flashgames.cx/game/pen-king",
+            "Pen King 3": "https://flashgames.cx/game/pen-king-3",
+            "Wonderful Forest Adventures": "https://flashgames.cx/game/wonderful-forest-adventures",
+            "Farm Connect 3": "https://flashgames.cx/game/farm-connect-3",
+            "Farm Connect 4": "https://flashgames.cx/game/farm-connect-4",
+            "Angrybird Defense": "https://flashgames.cx/game/angrybird-defense",
+            "Gravity Pearl Elimination": "https://flashgames.cx/game/gravity-pearl-elimination",
+            "Superman stool: Clear the stool": "https://flashgames.cx/game/superman-stool-clear-the-stool",
+            "Naruto Match": "https://flashgames.cx/game/naruto-match",
+            "Pendragon: Unite the Travelers": "https://flashgames.cx/game/pendragon-unite-the-travelers",
+            "Scooby-Doo's Creepy Cajun Cooking": "https://flashgames.cx/game/scooby-doo-s-creepy-cajun-cooking",
+            "Overhaul": "https://flashgames.cx/game/overhaul",
+            "Night At The Colosseum": "https://flashgames.cx/game/night-at-the-colosseum",
+            "Flux": "https://flashgames.cx/game/flux-2",
+            "Vampire Vision": "https://flashgames.cx/game/vampire-vision",
+            "Collapse!": "https://flashgames.cx/game/collapse-2",
+            "Animal Memory": "https://flashgames.cx/game/animal-memory",
+            "Blast Magus": "https://flashgames.cx/game/blast-magus",
+            "Total Drama Action: Clone Control": "https://flashgames.cx/game/total-drama-action-clone-control",
+            "Poppable Cascade": "https://flashgames.cx/game/poppable-cascade",
+            "Maryoku Yummy: Wish 'n Match": "https://flashgames.cx/game/maryoku-yummy-wish-n-match",
+            "Kickin' It: Breakin' It in China!": "https://flashgames.cx/game/kickin-it-breakin-it-in-china",
+            "Popeye Memory": "https://flashgames.cx/game/popeye-memory",
+            "Smilie Clicker": "https://flashgames.cx/game/smilie-clicker",
+            "Addit Blitz": "https://flashgames.cx/game/addit-blitz",
+            "Angry Fruits": "https://flashgames.cx/game/angry-fruits",
+            "Flash Pairs": "https://flashgames.cx/game/flash-pairs",
+            "Christmas Collapse": "https://flashgames.cx/game/christmas-collapse"
+        };
+
+        // Open game modal
+        document.querySelectorAll('.game-thumbnail').forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                const gameName = this.getAttribute('data-game');
+                const gameUrl = gameUrls[gameName];
+                
+                if (gameUrl) {
+                    document.getElementById('modalTitle').textContent = gameName;
+                    document.getElementById('gameFrame').src = gameUrl;
+                    document.getElementById('gameModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        });
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

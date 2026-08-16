@@ -1,0 +1,132 @@
+import * as THREE from 'three';
+
+// First-person festival walk. Drag to look, WASD/arrows to move, or click a
+// person / spot to auto-walk there. Keeps the camera at eye height and inside
+// the field. Auto-walk is cancelled the moment you take manual control.
+export class WalkControls {
+  constructor(camera, { bounds = 42, eye = 1.6, zMin = -18 } = {}) {
+    this.cam = camera;
+    this.bounds = bounds;
+    this.eye = eye;
+    this.zMin = zMin;
+    this.groundAt = () => 0; // floor height under (x,z) — lets you walk up on stage
+    this.yaw = 0;                // face -Z (the stage) on spawn
+    this.pitch = -0.02;
+    this.pos = new THREE.Vector3(-4, eye, 6);
+    this.walkTarget = null;      // THREE.Vector3 | null
+    this.onArrive = null;
+    this.speed = 7.2;
+    // jump / gravity (space to hop; works in the festival and every world)
+    this.vy = 0;
+    this.airborne = false;
+    this.spaceHeld = false;
+    this.gravity = 26;
+    this.jumpV = 8.6;
+    this.keys = new Set();
+    this._tmp = new THREE.Vector3();
+    // subtle walking head-bob (disabled under reduced motion)
+    this.bobEnabled = true;
+    this.bobPhase = 0;
+    this._bob = 0;
+    this._moving = false;
+
+    window.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) {
+        this.keys.add(k); this.walkTarget = null; // manual move cancels auto-walk
+      } else if (k === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        this.spaceHeld = true;
+        if (!this.airborne) { this.vy = this.jumpV; this.airborne = true; } // hop
+      }
+    });
+    window.addEventListener('keyup', (e) => { const k = e.key.toLowerCase(); this.keys.delete(k); if (k === ' ' || e.code === 'Space') this.spaceHeld = false; });
+    this._apply();
+  }
+
+  look(dx, dy) {
+    this.yaw -= dx * 0.0045;
+    this.pitch = THREE.MathUtils.clamp(this.pitch - dy * 0.0045, -0.6, 0.5);
+  }
+
+  walkTo(vec, onArrive = null) {
+    this.walkTarget = new THREE.Vector3(vec.x, this.eye, vec.z);
+    this.onArrive = onArrive;
+  }
+
+  stop() { this.walkTarget = null; }
+
+  update(dt) {
+    if (this.enabled === false) return;
+    const k = this.keys;
+    const forward = (k.has('w') || k.has('arrowup') ? 1 : 0) - (k.has('s') || k.has('arrowdown') ? 1 : 0);
+    const strafe = (k.has('d') || k.has('arrowright') ? 1 : 0) - (k.has('a') || k.has('arrowleft') ? 1 : 0);
+    const run = k.has('shift') ? 1.7 : 1;
+
+    if (forward || strafe) {
+      const sinY = Math.sin(this.yaw), cosY = Math.cos(this.yaw);
+      // forward is -Z in view space
+      const fx = -sinY, fz = -cosY;
+      const rx = cosY, rz = -sinY;
+      const vx = (fx * forward + rx * strafe);
+      const vz = (fz * forward + rz * strafe);
+      const len = Math.hypot(vx, vz) || 1;
+      this.pos.x += (vx / len) * this.speed * run * dt;
+      this.pos.z += (vz / len) * this.speed * run * dt;
+    } else if (this.walkTarget) {
+      // auto-walk toward a clicked destination, turning to face it
+      this._tmp.subVectors(this.walkTarget, this.pos); this._tmp.y = 0;
+      const dist = this._tmp.length();
+      if (dist < 2.4) {
+        const cb = this.onArrive; this.walkTarget = null; this.onArrive = null;
+        if (cb) cb();
+      } else {
+        this._tmp.normalize();
+        this.pos.x += this._tmp.x * this.speed * dt;
+        this.pos.z += this._tmp.z * this.speed * dt;
+        // ease yaw to face travel direction
+        const want = Math.atan2(-this._tmp.x, -this._tmp.z);
+        this.yaw = easeAngle(this.yaw, want, 1 - Math.pow(0.001, dt));
+      }
+    }
+
+    // subtle head-bob while moving, eased so it settles smoothly on stop
+    this._moving = !!(forward || strafe) || !!this.walkTarget;
+    if (this._moving && this.bobEnabled) this.bobPhase += dt * this.speed * run * 1.1;
+    const targetBob = (this._moving && this.bobEnabled) ? Math.sin(this.bobPhase * 2) * 0.045 : 0;
+    this._bob += (targetBob - this._bob) * Math.min(1, dt * 10);
+
+    // clamp to field; zMin lets you reach the stage
+    this.pos.x = THREE.MathUtils.clamp(this.pos.x, -this.bounds, this.bounds);
+    this.pos.z = THREE.MathUtils.clamp(this.pos.z, this.zMin, this.bounds);
+    // vertical: rest on the ground, or arc through a jump under gravity
+    const groundY = this.groundAt(this.pos.x, this.pos.z) + this.eye;
+    if (this.airborne || this.pos.y > groundY + 0.001) {
+      // hold space while falling to GLIDE — gentler gravity + a capped fall speed
+      const gliding = this.airborne && this.vy < 0 && this.spaceHeld;
+      this.vy -= (gliding ? this.gravity * 0.25 : this.gravity) * dt;
+      if (gliding && this.vy < -3.2) this.vy = -3.2;
+      this.pos.y += this.vy * dt;
+      if (this.pos.y <= groundY) { this.pos.y = groundY; this.vy = 0; this.airborne = false; }
+      else { this.airborne = true; }
+    } else {
+      this.pos.y = groundY;
+    }
+    this._apply();
+  }
+
+  _apply() {
+    this.cam.position.set(this.pos.x, this.pos.y + this._bob, this.pos.z);
+    this._tmp.set(
+      this.pos.x - Math.sin(this.yaw) * Math.cos(this.pitch),
+      this.pos.y + Math.sin(this.pitch),
+      this.pos.z - Math.cos(this.yaw) * Math.cos(this.pitch)
+    );
+    this.cam.lookAt(this._tmp);
+  }
+}
+
+function easeAngle(a, b, t) {
+  let d = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
+  return a + d * t;
+}

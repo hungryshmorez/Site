@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jigsaw Games - Retro Flash Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF9900;
+            --secondary-orange: #FFB84D;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1a;
+            --card-bg: #16213e;
+            --text-light: #eaeaea;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--card-bg) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary-orange);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            color: var(--primary-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--darker-bg);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 26, 46, 0.9), rgba(26, 26, 46, 0.9)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="puzzle" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M30 30 L35 30 L35 35 L40 35 L40 30 L45 30 L45 35 L50 35 L50 40 L55 40 L55 45 L60 45 L60 50 L65 50 L65 55 L70 55 L70 60 L75 60 L75 65 L80 65 L80 70 L85 70 L85 75 L90 75 L90 80 L95 80 L95 85 L100 85" stroke="%23ffffff10" fill="none" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23puzzle)"/></svg>');
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            color: var(--text-dim);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-bg);
+        }
+
+        .game-count {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, var(--darker-bg), var(--card-bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::before {
+            content: '▶';
+            font-size: 3rem;
+            color: var(--primary-orange);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .game-thumbnail:hover::before {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .game-info {
+            padding: 1rem;
+        }
+
+        .game-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .game-category-tag {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--primary-orange);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow: hidden;
+            border: 3px solid var(--primary-orange);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--darker-bg);
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .close-btn {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--secondary-orange);
+        }
+
+        .modal-body {
+            padding: 0;
+            height: calc(90vh - 80px);
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-orange);
+        }
+
+        footer p {
+            color: var(--text-dim);
+        }
+
+        footer a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">RF</div>
+            <h1>RetroFlash</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="action.html">Action</a></li>
+                <li><a href="adventure.html">Adventure</a></li>
+                <li><a href="puzzle.html">Puzzle</a></li>
+                <li><a href="sports.html">Sports</a></li>
+                <li><a href="more.html">More »</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h2>🧩 Jigsaw Games</h2>
+        <p>Solve puzzles by assembling pieces to form complete images in these engaging jigsaw puzzle games!</p>
+    </div>
+
+    <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <a href="more.html">More Categories</a>
+        <span>›</span>
+        <span>Jigsaw</span>
+    </div>
+
+    <main>
+        <div class="category-header">
+            <h3>All Jigsaw Games</h3>
+            <span class="game-count">50 Games</span>
+        </div>
+
+        <div class="game-grid">
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Jungle Junction Set the Blocks"></div>
+                <div class="game-info">
+                    <div class="game-title">Jungle Junction Set the Blocks</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Kim Possible Hexagon Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Kim Possible Hexagon Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Jessie Characters Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Jessie Characters Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Jessie Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Jessie Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Buena Suerte Charlie Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Buena Suerte Charlie Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Andi Mack Jigsaw"></div>
+                <div class="game-info">
+                    <div class="game-title">Andi Mack Jigsaw</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Papa Louie Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Papa Louie Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Daniel Tiger Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Daniel Tiger Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Dora and Friends in Città Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Dora and Friends in Città Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Dora l'Esploratrice Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Dora l'Esploratrice Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Fireman Sam Jigsaw - Baa Baa Baby"></div>
+                <div class="game-info">
+                    <div class="game-title">Fireman Sam Jigsaw - Baa Baa Baby</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Fireman Sam Jigsaw - Alarm On The Beach"></div>
+                <div class="game-info">
+                    <div class="game-title">Fireman Sam Jigsaw - Alarm On The Beach</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Fireman Sam Jigsaw - Going Out With a Bang"></div>
+                <div class="game-info">
+                    <div class="game-title">Fireman Sam Jigsaw - Going Out With a Bang</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Fireman Sam Jigsaw - Hot and Cold Running Sniffer Dog"></div>
+                <div class="game-info">
+                    <div class="game-title">Fireman Sam Jigsaw - Hot and Cold Running Sniffer Dog</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Fireman Sam Jigsaw - No Nurse Like You"></div>
+                <div class="game-info">
+                    <div class="game-title">Fireman Sam Jigsaw - No Nurse Like You</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Fireman Sam Jigsaw - Perilous Path"></div>
+                <div class="game-info">
+                    <div class="game-title">Fireman Sam Jigsaw - Perilous Path</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Grizzy E i Lemming Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Grizzy E i Lemming Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Fireman Sam Jigsaw - The New Hero Next Door"></div>
+                <div class="game-info">
+                    <div class="game-title">Fireman Sam Jigsaw - The New Hero Next Door</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Il Trenino Thomas: Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Il Trenino Thomas: Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="LazyTown Jigsaw Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">LazyTown Jigsaw Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Jethro's Jigsaw Japes!"></div>
+                <div class="game-info">
+                    <div class="game-title">Jethro's Jigsaw Japes!</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Paw Patrol Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Paw Patrol Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Sam il Pompiere: Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Sam il Pompiere: Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Sportacus Jigsaw Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Sportacus Jigsaw Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Stephanie Jigsaw Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Stephanie Jigsaw Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Happos Family Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">The Happos Family Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="RedMinima Found Dead Jigsaw Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">RedMinima Found Dead Jigsaw Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Doozers Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Doozers Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Candace Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Candace Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="AlphaZekko 5 no escape"></div>
+                <div class="game-info">
+                    <div class="game-title">AlphaZekko 5 no escape</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Thomas Jigsaw Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Thomas Jigsaw Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Super Mario 3D World Jigsaw"></div>
+                <div class="game-info">
+                    <div class="game-title">Super Mario 3D World Jigsaw</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Northern Lights"></div>
+                <div class="game-info">
+                    <div class="game-title">Northern Lights</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pixel Patch"></div>
+                <div class="game-info">
+                    <div class="game-title">Pixel Patch</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="ジグソーパズル"></div>
+                <div class="game-info">
+                    <div class="game-title">ジグソーパズル</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Jigsaw Puzzle: Advanced"></div>
+                <div class="game-info">
+                    <div class="game-title">Jigsaw Puzzle: Advanced</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Jigsaw Puzzle: Beginner"></div>
+                <div class="game-info">
+                    <div class="game-title">Jigsaw Puzzle: Beginner</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Jigsaw Puzzle: Intermediate"></div>
+                <div class="game-info">
+                    <div class="game-title">Jigsaw Puzzle: Intermediate</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Live Puzzle 2 Christmas Edition"></div>
+                <div class="game-info">
+                    <div class="game-title">Live Puzzle 2 Christmas Edition</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Hex Blocks Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Hex Blocks Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pat's Picture Puzzles"></div>
+                <div class="game-info">
+                    <div class="game-title">Pat's Picture Puzzles</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Barbie Pearl Princess Puzzle Party"></div>
+                <div class="game-info">
+                    <div class="game-title">Barbie Pearl Princess Puzzle Party</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Squizzes Jigsaw Puzzle"></div>
+                <div class="game-info">
+                    <div class="game-title">Squizzes Jigsaw Puzzle</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Monkey Faces"></div>
+                <div class="game-info">
+                    <div class="game-title">Monkey Faces</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="ピスカル"></div>
+                <div class="game-info">
+                    <div class="game-title">ピスカル</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="動くジグソー"></div>
+                <div class="game-info">
+                    <div class="game-title">動くジグソー</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Felix the Cat"></div>
+                <div class="game-info">
+                    <div class="game-title">Felix the Cat</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Simpsons Jigsaw"></div>
+                <div class="game-info">
+                    <div class="game-title">The Simpsons Jigsaw</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Animals Puzzle Series"></div>
+                <div class="game-info">
+                    <div class="game-title">Animals Puzzle Series</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Taz Jigsaw"></div>
+                <div class="game-info">
+                    <div class="game-title">Taz Jigsaw</div>
+                    <span class="game-category-tag">Jigsaw</span>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="close-btn" onclick="closeModal()">✕ Close</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>RetroFlash Portal - Preserving the Best of Flash Gaming</p>
+        <p><a href="index.html">Home</a> | <a href="about.html">About</a> | <a href="contact.html">Contact</a></p>
+    </footer>
+
+    <script>
+        // Game URLs mapping
+        const gameUrls = {
+            "Jungle Junction Set the Blocks": "https://flashgames.cx/game/jungle-junction-set-the-blocks",
+            "Kim Possible Hexagon Puzzle": "https://flashgames.cx/game/kim-possible-hexagon-puzzle",
+            "Jessie Characters Puzzle": "https://flashgames.cx/game/jessie-characters-puzzle",
+            "Jessie Puzzle": "https://flashgames.cx/game/jessie-puzzle-2",
+            "Buena Suerte Charlie Puzzle": "https://flashgames.cx/game/buena-suerte-charlie-puzzle",
+            "Andi Mack Jigsaw": "https://flashgames.cx/game/andi-mack-jigsaw",
+            "Papa Louie Puzzle": "https://flashgames.cx/game/papa-louie-puzzle",
+            "Daniel Tiger Puzzle": "https://flashgames.cx/game/daniel-tiger-puzzle",
+            "Dora and Friends in Città Puzzle": "https://flashgames.cx/game/dora-and-friends-in-citt-puzzle",
+            "Dora l'Esploratrice Puzzle": "https://flashgames.cx/game/dora-l-esploratrice-puzzle",
+            "Fireman Sam Jigsaw - Baa Baa Baby": "https://flashgames.cx/game/fireman-sam-jigsaw-baa-baa-baby",
+            "Fireman Sam Jigsaw - Alarm On The Beach": "https://flashgames.cx/game/fireman-sam-jigsaw-alarm-on-the-beach",
+            "Fireman Sam Jigsaw - Going Out With a Bang": "https://flashgames.cx/game/fireman-sam-jigsaw-going-out-with-a-bang",
+            "Fireman Sam Jigsaw - Hot and Cold Running Sniffer Dog": "https://flashgames.cx/game/fireman-sam-jigsaw-hot-and-cold-running-sniffer-dog",
+            "Fireman Sam Jigsaw - No Nurse Like You": "https://flashgames.cx/game/fireman-sam-jigsaw-no-nurse-like-you",
+            "Fireman Sam Jigsaw - Perilous Path": "https://flashgames.cx/game/fireman-sam-jigsaw-perilous-path",
+            "Grizzy E i Lemming Puzzle": "https://flashgames.cx/game/grizzy-e-i-lemming-puzzle",
+            "Fireman Sam Jigsaw - The New Hero Next Door": "https://flashgames.cx/game/fireman-sam-jigsaw-the-new-hero-next-door",
+            "Il Trenino Thomas: Puzzle": "https://flashgames.cx/game/il-trenino-thomas-puzzle",
+            "LazyTown Jigsaw Puzzle": "https://flashgames.cx/game/lazytown-jigsaw-puzzle",
+            "Jethro's Jigsaw Japes!": "https://flashgames.cx/game/jethro-s-jigsaw-japes",
+            "Paw Patrol Puzzle": "https://flashgames.cx/game/paw-patrol-puzzle-2",
+            "Sam il Pompiere: Puzzle": "https://flashgames.cx/game/sam-il-pompiere-puzzle",
+            "Sportacus Jigsaw Puzzle": "https://flashgames.cx/game/sportacus-jigsaw-puzzle",
+            "Stephanie Jigsaw Puzzle": "https://flashgames.cx/game/stephanie-jigsaw-puzzle",
+            "The Happos Family Puzzle": "https://flashgames.cx/game/the-happos-family-puzzle",
+            "RedMinima Found Dead Jigsaw Puzzle": "https://flashgames.cx/game/redminima-found-dead-jigsaw-puzzle",
+            "Doozers Puzzle": "https://flashgames.cx/game/doozers-puzzle",
+            "Candace Puzzle": "https://flashgames.cx/game/candace-puzzle",
+            "AlphaZekko 5 no escape": "https://flashgames.cx/game/alphazekko-5-no-escape",
+            "Thomas Jigsaw Puzzle": "https://flashgames.cx/game/thomas-jigsaw-puzzle-2",
+            "Super Mario 3D World Jigsaw": "https://flashgames.cx/game/super-mario-3d-world-jigsaw",
+            "Northern Lights": "https://flashgames.cx/game/northern-lights",
+            "Pixel Patch": "https://flashgames.cx/game/pixel-patch",
+            "ジグソーパズル": "https://flashgames.cx/game/ジグソーパズル-2",
+            "Jigsaw Puzzle: Advanced": "https://flashgames.cx/game/jigsaw-puzzle-advanced",
+            "Jigsaw Puzzle: Beginner": "https://flashgames.cx/game/jigsaw-puzzle-beginner",
+            "Jigsaw Puzzle: Intermediate": "https://flashgames.cx/game/jigsaw-puzzle-intermediate",
+            "Live Puzzle 2 Christmas Edition": "https://flashgames.cx/game/live-puzzle-2-christmas-edition",
+            "Hex Blocks Puzzle": "https://flashgames.cx/game/hex-blocks-puzzle",
+            "Pat's Picture Puzzles": "https://flashgames.cx/game/pat-s-picture-puzzles",
+            "Barbie Pearl Princess Puzzle Party": "https://flashgames.cx/game/barbie-pearl-princess-puzzle-party",
+            "Squizzes Jigsaw Puzzle": "https://flashgames.cx/game/squizzes-jigsaw-puzzle",
+            "Monkey Faces": "https://flashgames.cx/game/monkey-faces",
+            "ピスカル": "https://flashgames.cx/game/ピスカル",
+            "動くジグソー": "https://flashgames.cx/game/動くジグソー",
+            "Felix the Cat": "https://flashgames.cx/game/felix-the-cat",
+            "The Simpsons Jigsaw": "https://flashgames.cx/game/the-simpsons-jigsaw",
+            "Animals Puzzle Series": "https://flashgames.cx/game/animals-puzzle-series",
+            "Taz Jigsaw": "https://flashgames.cx/game/taz-jigsaw"
+        };
+
+        // Open game modal
+        document.querySelectorAll('.game-thumbnail').forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                const gameName = this.getAttribute('data-game');
+                const gameUrl = gameUrls[gameName];
+                
+                if (gameUrl) {
+                    document.getElementById('modalTitle').textContent = gameName;
+                    document.getElementById('gameFrame').src = gameUrl;
+                    document.getElementById('gameModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        });
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

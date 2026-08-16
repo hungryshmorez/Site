@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Christmastide Games - Retro Flash Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF9900;
+            --secondary-orange: #FFB84D;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1a;
+            --card-bg: #16213e;
+            --text-light: #eaeaea;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--card-bg) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary-orange);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            color: var(--primary-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--darker-bg);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 26, 46, 0.9), rgba(26, 26, 46, 0.9)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="snow" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23ffffff20"/><circle cx="75" cy="75" r="1.5" fill="%23ffffff20"/><circle cx="50" cy="10" r="1" fill="%23ffffff20"/></pattern></defs><rect width="100" height="100" fill="url(%23snow)"/></svg>');
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            color: var(--text-dim);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-bg);
+        }
+
+        .game-count {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, var(--darker-bg), var(--card-bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::before {
+            content: '▶';
+            font-size: 3rem;
+            color: var(--primary-orange);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .game-thumbnail:hover::before {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .game-info {
+            padding: 1rem;
+        }
+
+        .game-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .game-category-tag {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--primary-orange);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow: hidden;
+            border: 3px solid var(--primary-orange);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--darker-bg);
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .close-btn {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--secondary-orange);
+        }
+
+        .modal-body {
+            padding: 0;
+            height: calc(90vh - 80px);
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-orange);
+        }
+
+        footer p {
+            color: var(--text-dim);
+        }
+
+        footer a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">RF</div>
+            <h1>RetroFlash</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="action.html">Action</a></li>
+                <li><a href="adventure.html">Adventure</a></li>
+                <li><a href="puzzle.html">Puzzle</a></li>
+                <li><a href="sports.html">Sports</a></li>
+                <li><a href="more.html">More »</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h2>🎄 Christmastide Games</h2>
+        <p>Celebrate the holiday season with these festive Christmas-themed games!</p>
+    </div>
+
+    <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <a href="more.html">More Categories</a>
+        <span>›</span>
+        <span>Christmastide</span>
+    </div>
+
+    <main>
+        <div class="category-header">
+            <h3>All Christmastide Games</h3>
+            <span class="game-count">50 Games</span>
+        </div>
+
+        <div class="game-grid">
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="McPixel Christmas Special"></div>
+                <div class="game-info">
+                    <div class="game-title">McPixel Christmas Special</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="A Faulty Christmas"></div>
+                <div class="game-info">
+                    <div class="game-title">A Faulty Christmas</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Santa's Tower Red Beard Attack"></div>
+                <div class="game-info">
+                    <div class="game-title">Santa's Tower Red Beard Attack</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Christmas Castle Defense 5000 Deluxe"></div>
+                <div class="game-info">
+                    <div class="game-title">Christmas Castle Defense 5000 Deluxe</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Gunballs Saves Christmas"></div>
+                <div class="game-info">
+                    <div class="game-title">Gunballs Saves Christmas</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Dibbles 4: A Christmas Crisis"></div>
+                <div class="game-info">
+                    <div class="game-title">Dibbles 4: A Christmas Crisis</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="2016 Santa Gift Bag Escape"></div>
+                <div class="game-info">
+                    <div class="game-title">2016 Santa Gift Bag Escape</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Xmas 2016 Special Santa Rescue"></div>
+                <div class="game-info">
+                    <div class="game-title">Xmas 2016 Special Santa Rescue</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Fat Dora Eat Eat Eat"></div>
+                <div class="game-info">
+                    <div class="game-title">Fat Dora Eat Eat Eat</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Ultimate Santa Battle"></div>
+                <div class="game-info">
+                    <div class="game-title">Ultimate Santa Battle</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Santa Up There"></div>
+                <div class="game-info">
+                    <div class="game-title">Santa Up There</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Christmas Time"></div>
+                <div class="game-info">
+                    <div class="game-title">Christmas Time</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="It's a Wonderful FULP!"></div>
+                <div class="game-info">
+                    <div class="game-title">It's a Wonderful FULP!</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Christmas Crusades"></div>
+                <div class="game-info">
+                    <div class="game-title">Christmas Crusades</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Live Puzzle 2 Christmas Edition"></div>
+                <div class="game-info">
+                    <div class="game-title">Live Puzzle 2 Christmas Edition</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Kids vs. Santa!"></div>
+                <div class="game-info">
+                    <div class="game-title">Kids vs. Santa!</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Starlight Xmas"></div>
+                <div class="game-info">
+                    <div class="game-title">Starlight Xmas</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Sneaky Christmas"></div>
+                <div class="game-info">
+                    <div class="game-title">Sneaky Christmas</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Snowy Night Escape"></div>
+                <div class="game-info">
+                    <div class="game-title">Snowy Night Escape</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Barbie Sister Stocking Stuffer"></div>
+                <div class="game-info">
+                    <div class="game-title">Barbie Sister Stocking Stuffer</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Snow Co Launcho"></div>
+                <div class="game-info">
+                    <div class="game-title">Snow Co Launcho</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Frozen Sleigh - The Busted Papers: Catholic Priest House"></div>
+                <div class="game-info">
+                    <div class="game-title">The Frozen Sleigh - The Busted Papers: Catholic Priest House</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Frozen Sleigh - The Busted Papers: The Priest-1"></div>
+                <div class="game-info">
+                    <div class="game-title">The Frozen Sleigh - The Busted Papers: The Priest-1</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Frozen Sleigh - The Busted Papers: Bishop House"></div>
+                <div class="game-info">
+                    <div class="game-title">The Frozen Sleigh - The Busted Papers: Bishop House</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Zooking Xmas 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Zooking Xmas 2</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Grayscale Escape: Christmas"></div>
+                <div class="game-info">
+                    <div class="game-title">Grayscale Escape: Christmas</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Sneaky Christmas Day 3"></div>
+                <div class="game-info">
+                    <div class="game-title">Sneaky Christmas Day 3</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Snow Day 2: Snowman Jam"></div>
+                <div class="game-info">
+                    <div class="game-title">Snow Day 2: Snowman Jam</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Adventure Time: Seasonal Souvenir Stacker"></div>
+                <div class="game-info">
+                    <div class="game-title">Adventure Time: Seasonal Souvenir Stacker</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Angelos Epithemiou Christmas Party"></div>
+                <div class="game-info">
+                    <div class="game-title">Angelos Epithemiou Christmas Party</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="クリスマスから脱出２"></div>
+                <div class="game-info">
+                    <div class="game-title">クリスマスから脱出２</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="クリスマスから脱出"></div>
+                <div class="game-info">
+                    <div class="game-title">クリスマスから脱出</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Holly Hobbie: Create-a-Snow Globe"></div>
+                <div class="game-info">
+                    <div class="game-title">Holly Hobbie: Create-a-Snow Globe</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="LEGO Star Wars: Advent Calendar"></div>
+                <div class="game-info">
+                    <div class="game-title">LEGO Star Wars: Advent Calendar</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Bad Gifts"></div>
+                <div class="game-info">
+                    <div class="game-title">Bad Gifts</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Christmas Fireplace Quick Escape"></div>
+                <div class="game-info">
+                    <div class="game-title">Christmas Fireplace Quick Escape</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Disney Junior: Holiday Card Creator"></div>
+                <div class="game-info">
+                    <div class="game-title">Disney Junior: Holiday Card Creator</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Christmas Party House 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Christmas Party House 2</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Slenderman Winter Edition"></div>
+                <div class="game-info">
+                    <div class="game-title">Slenderman Winter Edition</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Winter Lily"></div>
+                <div class="game-info">
+                    <div class="game-title">Winter Lily</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Christmas Stacker"></div>
+                <div class="game-info">
+                    <div class="game-title">Christmas Stacker</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Anger Birds Bombers Boom!"></div>
+                <div class="game-info">
+                    <div class="game-title">Anger Birds Bombers Boom!</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Christmas Collapse"></div>
+                <div class="game-info">
+                    <div class="game-title">Christmas Collapse</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Murphy's Gesetz - Kling, Glockchen, Kling"></div>
+                <div class="game-info">
+                    <div class="game-title">Murphy's Gesetz - Kling, Glockchen, Kling</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Plants vs Zombies Christmas"></div>
+                <div class="game-info">
+                    <div class="game-title">Plants vs Zombies Christmas</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Draka 2: No More Christmas"></div>
+                <div class="game-info">
+                    <div class="game-title">Draka 2: No More Christmas</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pimp My Tree"></div>
+                <div class="game-info">
+                    <div class="game-title">Pimp My Tree</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Mr. Splibox: Christmas Story"></div>
+                <div class="game-info">
+                    <div class="game-title">Mr. Splibox: Christmas Story</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Terry Christmas"></div>
+                <div class="game-info">
+                    <div class="game-title">Terry Christmas</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Can You Find the REAL Santa?"></div>
+                <div class="game-info">
+                    <div class="game-title">Can You Find the REAL Santa?</div>
+                    <span class="game-category-tag">Christmastide</span>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="close-btn" onclick="closeModal()">✕ Close</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>RetroFlash Portal - Preserving the Best of Flash Gaming</p>
+        <p><a href="index.html">Home</a> | <a href="about.html">About</a> | <a href="contact.html">Contact</a></p>
+    </footer>
+
+    <script>
+        // Game URLs mapping
+        const gameUrls = {
+            "McPixel Christmas Special": "https://flashgames.cx/game/mcpixel-christmas-special",
+            "A Faulty Christmas": "https://flashgames.cx/game/a-faulty-christmas",
+            "Santa's Tower Red Beard Attack": "https://flashgames.cx/game/santa-s-tower-red-beard-attack",
+            "Christmas Castle Defense 5000 Deluxe": "https://flashgames.cx/game/christmas-castle-defense-5000-deluxe",
+            "Gunballs Saves Christmas": "https://flashgames.cx/game/gunballs-saves-christmas",
+            "Dibbles 4: A Christmas Crisis": "https://flashgames.cx/game/dibbles-4-a-christmas-crisis",
+            "2016 Santa Gift Bag Escape": "https://flashgames.cx/game/2016-santa-gift-bag-escape",
+            "Xmas 2016 Special Santa Rescue": "https://flashgames.cx/game/xmas-2016-special-santa-rescue",
+            "Fat Dora Eat Eat Eat": "https://flashgames.cx/game/fat-dora-eat-eat-eat",
+            "Ultimate Santa Battle": "https://flashgames.cx/game/ultimate-santa-battle",
+            "Santa Up There": "https://flashgames.cx/game/santa-up-there",
+            "Christmas Time": "https://flashgames.cx/game/christmas-time-2",
+            "It's a Wonderful FULP!": "https://flashgames.cx/game/it-s-a-wonderful-fulp",
+            "Christmas Crusades": "https://flashgames.cx/game/christmas-crusades",
+            "Live Puzzle 2 Christmas Edition": "https://flashgames.cx/game/live-puzzle-2-christmas-edition",
+            "Kids vs. Santa!": "https://flashgames.cx/game/kids-vs-santa",
+            "Starlight Xmas": "https://flashgames.cx/game/starlight-xmas",
+            "Sneaky Christmas": "https://flashgames.cx/game/sneaky-christmas",
+            "Snowy Night Escape": "https://flashgames.cx/game/snowy-night-escape",
+            "Barbie Sister Stocking Stuffer": "https://flashgames.cx/game/barbie-sister-stocking-stuffer",
+            "Snow Co Launcho": "https://flashgames.cx/game/snow-co-launcho",
+            "The Frozen Sleigh - The Busted Papers: Catholic Priest House": "https://flashgames.cx/game/the-frozen-sleigh-the-busted-papers-catholic-priest-house",
+            "The Frozen Sleigh - The Busted Papers: The Priest-1": "https://flashgames.cx/game/the-frozen-sleigh-the-busted-papers-the-priest-1",
+            "The Frozen Sleigh - The Busted Papers: Bishop House": "https://flashgames.cx/game/the-frozen-sleigh-the-busted-papers-bishop-house",
+            "Zooking Xmas 2": "https://flashgames.cx/game/zooking-xmas-2",
+            "Grayscale Escape: Christmas": "https://flashgames.cx/game/grayscale-escape-christmas",
+            "Sneaky Christmas Day 3": "https://flashgames.cx/game/sneaky-christmas-day-3",
+            "Snow Day 2: Snowman Jam": "https://flashgames.cx/game/snow-day-2-snowman-jam",
+            "Adventure Time: Seasonal Souvenir Stacker": "https://flashgames.cx/game/adventure-time-seasonal-souvenir-stacker",
+            "Angelos Epithemiou Christmas Party": "https://flashgames.cx/game/angelos-epithemiou-christmas-party",
+            "クリスマスから脱出２": "https://flashgames.cx/game/クリスマスから脱出２",
+            "クリスマスから脱出": "https://flashgames.cx/game/クリスマスから脱出",
+            "Holly Hobbie: Create-a-Snow Globe": "https://flashgames.cx/game/holly-hobbie-create-a-snow-globe",
+            "LEGO Star Wars: Advent Calendar": "https://flashgames.cx/game/lego-star-wars-advent-calendar",
+            "Bad Gifts": "https://flashgames.cx/game/bad-gifts",
+            "Christmas Fireplace Quick Escape": "https://flashgames.cx/game/christmas-fireplace-quick-escape",
+            "Disney Junior: Holiday Card Creator": "https://flashgames.cx/game/disney-junior-holiday-card-creator",
+            "Christmas Party House 2": "https://flashgames.cx/game/christmas-party-house-2",
+            "Slenderman Winter Edition": "https://flashgames.cx/game/slenderman-winter-edition",
+            "Winter Lily": "https://flashgames.cx/game/winter-lily",
+            "Christmas Stacker": "https://flashgames.cx/game/christmas-stacker",
+            "Anger Birds Bombers Boom!": "https://flashgames.cx/game/anger-birds-bombers-boom",
+            "Christmas Collapse": "https://flashgames.cx/game/christmas-collapse",
+            "Murphy's Gesetz - Kling, Glockchen, Kling": "https://flashgames.cx/game/murphy-s-gesetz-kling-glockchen-kling",
+            "Plants vs Zombies Christmas": "https://flashgames.cx/game/plants-vs-zombies-christmas",
+            "Draka 2: No More Christmas": "https://flashgames.cx/game/draka-2-no-more-christmas",
+            "Pimp My Tree": "https://flashgames.cx/game/pimp-my-tree",
+            "Mr. Splibox: Christmas Story": "https://flashgames.cx/game/mr-splibox-christmas-story",
+            "Terry Christmas": "https://flashgames.cx/game/terry-christmas",
+            "Can You Find the REAL Santa?": "https://flashgames.cx/game/can-you-find-the-real-santa"
+        };
+
+        // Open game modal
+        document.querySelectorAll('.game-thumbnail').forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                const gameName = this.getAttribute('data-game');
+                const gameUrl = gameUrls[gameName];
+                
+                if (gameUrl) {
+                    document.getElementById('modalTitle').textContent = gameName;
+                    document.getElementById('gameFrame').src = gameUrl;
+                    document.getElementById('gameModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        });
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

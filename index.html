@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>12matt3r // The Festival</title>
+  <style>
+    :root{
+      --cyan:#00F3FF; --magenta:#FF0055; --green:#39FF14; --ink:#e6e6f0; --muted:#8a8a99;
+      --mono: ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+      --sans: "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;background:#05050e;overflow:hidden;color:var(--ink);font-family:var(--sans);overscroll-behavior:none}
+    canvas{display:block;position:fixed;inset:0;touch-action:none;cursor:grab}
+    canvas.drag{cursor:grabbing}
+    .scan{position:fixed;inset:0;pointer-events:none;z-index:6;opacity:.28;mix-blend-mode:overlay;
+      background:repeating-linear-gradient(0deg,rgba(255,255,255,.05),rgba(255,255,255,.05) 1px,transparent 1px,transparent 3px)}
+    .vig{position:fixed;inset:0;pointer-events:none;z-index:5;
+      background:radial-gradient(120% 95% at 50% 60%,transparent 55%,rgba(0,0,0,.6) 100%)}
+    body.rm .scan{opacity:.14}
+
+    .hud{position:fixed;z-index:10;font-family:var(--mono);letter-spacing:.04em}
+    .top{top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:15px 18px;pointer-events:none}
+    .brand b{font-size:15px;letter-spacing:.14em;text-shadow:1px 0 rgba(255,0,85,.5),-1px 0 rgba(0,243,255,.5)}
+    .brand span{display:block;font-size:9.5px;color:var(--muted);letter-spacing:.3em;margin-top:3px}
+    .clock{pointer-events:none;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--ink);text-transform:uppercase;
+      background:rgba(8,8,18,.5);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:6px 13px;backdrop-filter:blur(6px)}
+    .nowplaying{position:fixed;z-index:10;left:50%;top:58px;transform:translateX(-50%);font-family:var(--mono);font-size:10.5px;
+      letter-spacing:.18em;color:var(--cyan);opacity:.7;pointer-events:none;text-shadow:0 0 8px rgba(0,243,255,.5)}
+
+    /* floating name tags */
+    .tags .tag{position:absolute;top:0;left:0;pointer-events:none;text-align:center;white-space:nowrap;
+      font-family:var(--mono);transition:opacity .2s linear;filter:drop-shadow(0 0 8px color-mix(in srgb, var(--c) 60%, transparent))}
+    .tags .tag b{display:block;font-size:12px;letter-spacing:.14em;color:#fff}
+    .tags .tag span{display:block;font-size:9px;letter-spacing:.12em;color:var(--c);margin-top:1px;text-transform:uppercase}
+    .tags .tag::after{content:"";display:block;width:1px;height:14px;margin:4px auto 0;background:linear-gradient(var(--c),transparent)}
+    .tags .tag.close b{font-size:13px}
+
+    .prompt{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:9;font-family:var(--mono);
+      font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(230,230,240,.7);opacity:0;transition:opacity .25s;
+      pointer-events:none;text-shadow:0 0 10px rgba(0,243,255,.5)}
+    .prompt.on{opacity:1}
+
+    .help{position:fixed;left:16px;bottom:14px;z-index:10;font-family:var(--mono);font-size:10.5px;color:var(--muted);
+      background:rgba(8,8,18,.5);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:7px 11px;backdrop-filter:blur(6px);line-height:1.6}
+    .help kbd{color:var(--ink);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:0 5px;font-size:10px}
+    /* bottom toolbar dock — a flex row that scrolls horizontally on narrow
+       screens so every tool stays reachable (was fixed-px offsets that ran off
+       the left edge on phones) */
+    .dock{position:fixed;right:14px;bottom:12px;z-index:10;display:flex;gap:8px;align-items:center;
+      max-width:calc(100vw - 92px);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:3px;-webkit-overflow-scrolling:touch}
+    .dock::-webkit-scrollbar{display:none}
+    .rmbtn{flex:0 0 auto;white-space:nowrap;z-index:10;font-family:var(--mono);font-size:11px;color:var(--ink);
+      background:rgba(10,10,20,.7);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:8px 11px;cursor:pointer;backdrop-filter:blur(6px)}
+    .rmbtn:hover{border-color:var(--cyan)}
+    .rmbtn.active{color:#ff71ce;border-color:#ff71ce;text-shadow:0 0 10px rgba(255,113,206,.6)}
+    /* spatial distortion: screen bends while inside a field.
+       NB1: never CSS-`filter` the #scene WebGL canvas — iOS Safari blanks it.
+       NB2: the class is `bending`, NOT `warp` — `.warp` is the portal overlay
+       (opacity:0) and would match `body.warp`, turning the whole page black. */
+    @keyframes warpwob{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}}
+    body.bending::after{content:'';position:fixed;inset:0;z-index:6;pointer-events:none;mix-blend-mode:screen;
+      background:radial-gradient(circle at 50% 50%,transparent 34%,rgba(120,40,190,.22) 72%,rgba(30,0,60,.42) 100%);
+      animation:warpwob 1.5s ease-in-out infinite}
+    body.rm.bending::after{animation:none;opacity:.5}
+    .fxpanel{position:fixed;right:16px;bottom:52px;z-index:11;width:210px;background:rgba(8,8,16,.92);border:1px solid rgba(255,255,255,.14);
+      border-radius:11px;padding:8px;backdrop-filter:blur(8px);display:none;flex-direction:column;gap:4px;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+    .fxpanel.open{display:flex}
+    .fxhead{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--cyan);padding:4px 6px 6px;display:flex;justify-content:space-between}
+    .fxhead span{color:var(--muted)}
+    .fxrow{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink);text-align:left;background:rgba(255,255,255,.04);
+      border:1px solid transparent;border-radius:7px;padding:9px 10px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+    .fxrow:hover{border-color:rgba(255,255,255,.25)}
+    .fxrow.on{color:#05050e;background:var(--cyan);font-weight:700}
+    .fxrow.locked{color:var(--muted);cursor:default;background:transparent}
+    .fxhint{font-size:9px;letter-spacing:.06em;color:#55555f}
+    .fwchips{display:flex;gap:6px;padding:4px 6px 8px;flex-wrap:wrap}
+    .fwchip{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.2);cursor:pointer;padding:0}
+    .fwchip.on{border-color:#fff;box-shadow:0 0 10px rgba(255,255,255,.5)}
+
+    /* destination panel */
+    .panel{position:fixed;z-index:11;left:50%;bottom:22px;transform:translate(-50%,14px);
+      width:min(560px,calc(100vw - 28px));background:linear-gradient(180deg,rgba(10,10,20,.85),rgba(6,6,14,.93));
+      border:1px solid var(--c,rgba(0,243,255,.4));border-radius:15px;padding:18px 20px;backdrop-filter:blur(12px);
+      box-shadow:0 0 40px -10px var(--c,rgba(0,243,255,.4));opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+    .panel.on{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+    body.rm .panel{transition:opacity .01s}
+    .panel .role{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--c,var(--cyan))}
+    .panel h2{font-family:var(--mono);font-size:23px;letter-spacing:.02em;margin:5px 0 6px;text-shadow:1.5px 0 rgba(255,0,85,.4),-1.5px 0 rgba(0,243,255,.4)}
+    .panel p{color:#c7c7d4;font-size:14px;line-height:1.6;max-width:52ch}
+    .panel .row{display:flex;gap:10px;align-items:center;margin-top:14px}
+    .panel .cta{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:#05050e;font-weight:700;background:var(--c,var(--cyan));
+      border:none;border-radius:9px;padding:10px 16px;cursor:pointer}
+    .panel .close{position:absolute;top:11px;right:13px;width:26px;height:26px;border-radius:7px;background:transparent;
+      border:1px solid rgba(255,255,255,.14);color:var(--muted);cursor:pointer;font-family:var(--mono)}
+    .panel .close:hover{color:var(--ink);border-color:var(--c,var(--cyan))}
+
+    /* trash-hunt: progress pill (hidden until you pick up your first piece) */
+    .trashpill{position:fixed;z-index:10;top:90px;right:18px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+      color:var(--green);background:rgba(8,14,8,.6);border:1px solid rgba(57,255,20,.35);border-radius:999px;
+      padding:6px 13px;backdrop-filter:blur(6px);opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s;
+      pointer-events:none;text-shadow:0 0 8px rgba(57,255,20,.4)}
+    .trashpill.on{opacity:1;transform:translateY(0)}
+    .ponghud{top:170px;color:#e6c04a;background:rgba(20,16,6,.6);border-color:rgba(230,192,74,.4);text-shadow:0 0 8px rgba(230,192,74,.4)}
+    .vjhud{top:290px;color:#00f3ff;background:rgba(6,16,20,.6);border-color:rgba(0,243,255,.4);text-shadow:0 0 8px rgba(0,243,255,.4)}
+    .carryhud{top:210px;color:#b967ff;background:rgba(16,8,24,.6);border-color:rgba(185,103,255,.4);text-shadow:0 0 8px rgba(185,103,255,.4)}
+    .drughud{top:250px;color:#ff5aa8;background:rgba(22,8,16,.6);border-color:rgba(255,90,168,.45);text-shadow:0 0 8px rgba(255,90,168,.45)}
+    .trashpill #tCarry{color:var(--ink);opacity:.7}
+    .trashpill #tCarry.carrying{color:var(--green);opacity:1}
+
+    /* transient feedback toast */
+    .toast{position:fixed;z-index:12;left:50%;bottom:120px;transform:translate(-50%,8px);font-family:var(--mono);
+      font-size:11px;letter-spacing:.1em;color:var(--ink);background:rgba(8,8,18,.8);border:1px solid rgba(57,255,20,.35);
+      border-radius:9px;padding:8px 14px;backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+    .toast.on{opacity:1;transform:translate(-50%,0)}
+
+    /* secret-download reward overlay */
+    .reward{position:fixed;inset:0;z-index:31;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;
+      background:radial-gradient(70% 60% at 50% 45%,rgba(6,26,10,.6),rgba(4,8,6,.94));opacity:0;pointer-events:none;transition:opacity .5s}
+    .reward.on{opacity:1;pointer-events:auto}
+    .reward .card{max-width:460px;background:linear-gradient(180deg,rgba(10,18,10,.9),rgba(4,10,6,.96));
+      border:1px solid rgba(57,255,20,.5);border-radius:16px;padding:30px 28px;box-shadow:0 0 60px -12px rgba(57,255,20,.5)}
+    .reward .k{font-family:var(--mono);font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--green)}
+    .reward h2{font-family:var(--mono);font-size:24px;margin:10px 0 12px;letter-spacing:.02em;
+      text-shadow:1.5px 0 rgba(255,0,85,.35),-1.5px 0 rgba(0,243,255,.35)}
+    .reward p{color:#bfe0c2;font-size:14px;line-height:1.65;margin-bottom:20px}
+    .reward .dl{display:inline-block;font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:#05100a;font-weight:700;
+      background:var(--green);border:none;border-radius:10px;padding:13px 26px;cursor:pointer;text-decoration:none;box-shadow:0 0 30px -6px var(--green)}
+    .reward .dl:hover{background:#fff}
+    .reward .rclose{display:block;margin:16px auto 0;background:transparent;border:none;color:var(--muted);font-family:var(--mono);
+      font-size:11px;letter-spacing:.16em;cursor:pointer}
+    .reward .rclose:hover{color:var(--ink)}
+
+    /* lab porta-potty portal HUD (shown only while inside) */
+    .portahud{display:none}
+    body.inportal .portahud{display:block}
+    body.inportal .tags,body.inportal .prompt,body.inportal .help,body.inportal .trashpill,
+    body.inportal .triptoggle,body.inportal .nowplaying,body.inportal .clock,body.inportal .panel,
+    body.inportal .boardhint,body.inportal .boardpanel{display:none !important}
+    .portahud .pprompt{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);z-index:11;font-family:var(--mono);
+      font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);pointer-events:none;text-shadow:0 0 10px rgba(57,255,20,.55)}
+    .portahud .pexit{position:fixed;top:16px;left:16px;z-index:11;font-family:var(--mono);font-size:11px;color:var(--ink);
+      background:rgba(8,14,8,.6);border:1px solid rgba(57,255,20,.4);border-radius:9px;padding:8px 12px;cursor:pointer;backdrop-filter:blur(6px)}
+    .portahud .pexit:hover{border-color:var(--green);color:#fff}
+
+    /* TRI-PPY rainbow warp — scored from the dealer, echoes doesntmatter.us */
+    .trippy{position:fixed;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .9s;mix-blend-mode:hue;overflow:hidden}
+    .trippy.on{opacity:.9}
+    .trippy .a,.trippy .b{position:absolute;inset:-25%}
+    .trippy .a{filter:blur(46px);animation:trip1 19s linear infinite;
+      background:conic-gradient(from 0deg,#ff0055,#ff6b35,#e6c04a,#39ff14,#00f3ff,#6a6cff,#b967ff,#ff0055)}
+    .trippy .b{filter:blur(64px);opacity:.55;mix-blend-mode:screen;animation:trip2 27s ease-in-out infinite;
+      background:repeating-linear-gradient(115deg,#ff0055 0%,#39ff14 22%,#00f3ff 44%,#b967ff 66%,#ff6b35 88%,#ff0055 100%)}
+    @keyframes trip1{to{transform:rotate(360deg) scale(1.25)}}
+    @keyframes trip2{0%,100%{transform:translate(-8%,0)}50%{transform:translate(8%,-6%)}}
+    body.rm .trippy .a,body.rm .trippy .b{animation:none}
+    body.rm .trippy.on{opacity:.5}
+
+    .triptoggle{position:fixed;z-index:10;top:52px;right:18px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+      color:var(--cyan);background:rgba(8,14,18,.6);border:1px solid rgba(0,243,255,.5);border-radius:8px;padding:6px 12px;
+      cursor:pointer;backdrop-filter:blur(6px);opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s;pointer-events:none;
+      text-shadow:0 0 8px rgba(0,243,255,.4)}
+    .triptoggle.shown{opacity:1;transform:translateY(0);pointer-events:auto}
+    .triptoggle:hover{border-color:var(--cyan);color:#fff}
+    .triptoggle.active{color:#ff71ce;border-color:#ff71ce;text-shadow:0 0 10px rgba(255,113,206,.6)}
+    .triptoggle.tripcam{top:128px}
+    /* VJ clip switcher — appears when the stage screen is live */
+    .vjbar{position:fixed;z-index:11;left:50%;bottom:92px;transform:translateX(-50%) translateY(8px);display:flex;align-items:center;gap:10px;
+      font-family:var(--mono);font-size:12px;letter-spacing:.16em;color:var(--cyan);background:rgba(8,14,18,.7);
+      border:1px solid rgba(0,243,255,.5);border-radius:10px;padding:8px 14px;backdrop-filter:blur(6px);
+      opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;text-shadow:0 0 8px rgba(0,243,255,.4)}
+    .vjbar.shown{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+    .vjbar button{font-size:16px;background:none;border:0;color:inherit;cursor:pointer;padding:2px 6px;text-shadow:inherit}
+    .vjbar button:hover{color:#fff}
+    .vjbar button.txt{font-size:11px;letter-spacing:.08em}
+    .vjbar button.on{color:#ff71ce;text-shadow:0 0 10px rgba(255,113,206,.6)}
+    .vjbar .sep{width:1px;height:16px;background:rgba(255,255,255,.18)}
+
+    /* portal warp — plays before loading an EPK on its own page */
+    .warp{position:fixed;inset:0;z-index:40;overflow:hidden;opacity:0;pointer-events:none;transition:opacity .2s}
+    .warp.go{opacity:1;pointer-events:auto}
+    .warp .rings{position:absolute;inset:-60%;opacity:0;mix-blend-mode:screen;
+      background:repeating-radial-gradient(circle at 50% 50%, color-mix(in srgb,var(--c,#0ff) 85%,transparent) 0 2px, transparent 2px 30px)}
+    .warp.go .rings{animation:warpRings .82s ease-in forwards}
+    .warp .core{position:absolute;left:50%;top:50%;width:22px;height:22px;border-radius:50%;transform:translate(-50%,-50%) scale(0);
+      background:radial-gradient(circle,#fff 0%,var(--c,#0ff) 55%,transparent 72%);filter:blur(1px)}
+    .warp.go .core{animation:warpCore .82s cubic-bezier(.6,0,.85,1) forwards}
+    .warp .label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;font-family:var(--mono);
+      font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:#05050e;opacity:0;white-space:nowrap;text-shadow:0 0 12px rgba(255,255,255,.6)}
+    .warp.go .label{animation:warpLabel .82s ease-out forwards}
+    @keyframes warpRings{0%{opacity:0;transform:scale(1) rotate(0)}25%{opacity:.9}100%{opacity:1;transform:scale(4.2) rotate(55deg)}}
+    @keyframes warpCore{0%{transform:translate(-50%,-50%) scale(0);opacity:0}18%{opacity:1}100%{transform:translate(-50%,-50%) scale(130);opacity:1}}
+    @keyframes warpLabel{0%,45%{opacity:0}70%{opacity:1}100%{opacity:1}}
+    .warp.rm .rings,.warp.rm .core,.warp.rm .label{animation-duration:.16s}
+
+    /* 12matt3r hub board: news + guest book */
+    .boardhint{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);z-index:9;font-family:var(--mono);font-size:11px;
+      letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);opacity:0;transition:opacity .25s;pointer-events:none;text-shadow:0 0 10px rgba(0,243,255,.5)}
+    .boardhint.on{opacity:.85}
+    .boardpanel{position:fixed;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;padding:20px;
+      background:rgba(4,4,10,.72);opacity:0;pointer-events:none;transition:opacity .3s}
+    .boardpanel.on{opacity:1;pointer-events:auto}
+    .boardpanel .bcard{width:min(680px,100%);max-height:88vh;overflow-y:auto;position:relative;padding:26px 26px 30px;
+      background:linear-gradient(180deg,rgba(12,12,22,.97),rgba(6,6,14,.98));border:1px solid rgba(0,243,255,.4);border-radius:16px;
+      box-shadow:0 0 50px -12px rgba(0,243,255,.4)}
+    .boardpanel .bk{font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--cyan)}
+    .boardpanel h2{font-family:var(--mono);font-size:22px;margin:6px 0 20px;letter-spacing:.02em;text-transform:uppercase;
+      text-shadow:1.5px 0 rgba(255,0,85,.35),-1.5px 0 rgba(0,243,255,.35)}
+    .boardpanel .bclose{position:absolute;top:14px;right:16px;width:28px;height:28px;border-radius:8px;background:transparent;
+      border:1px solid rgba(255,255,255,.15);color:var(--muted);cursor:pointer;font-family:var(--mono)}
+    .boardpanel .bclose:hover{color:var(--ink);border-color:var(--cyan)}
+    .bsection{margin-bottom:22px}
+    .blabel{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+    .notes{display:flex;flex-wrap:wrap;gap:12px}
+    .note{width:150px;min-height:104px;padding:12px 13px;border-radius:3px;color:#181810;font-family:var(--sans);font-size:13px;
+      line-height:1.42;box-shadow:2px 4px 12px rgba(0,0,0,.45);transform:rotate(var(--r,-1deg))}
+    .note .nd{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;opacity:.6;margin-bottom:6px;text-transform:uppercase}
+    .note .nn{font-weight:700;margin-bottom:3px}
+    .note.cyan{background:#8fe1ff}.note.pink{background:#ff8fb1}.note.green{background:#9dffa3}.note.yellow{background:#ffe14d}
+    .gform{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+    .gform input{flex:1;min-width:130px;font-family:var(--mono);font-size:13px;color:var(--ink);background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:10px 12px}
+    .gform input:focus{outline:none;border-color:var(--cyan)}
+    .gform button{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:#05050e;font-weight:700;background:var(--cyan);
+      border:none;border-radius:8px;padding:10px 20px;cursor:pointer}
+    .gform button:hover{background:#fff}
+    .gempty{font-family:var(--mono);font-size:11px;color:var(--muted);opacity:.7}
+    /* artist directory cards */
+    .acards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+    .acard{border:1px solid var(--edge);border-radius:12px;padding:13px 14px;background:linear-gradient(160deg,rgba(255,255,255,.04),rgba(255,255,255,.01))}
+    .acard .an{font-family:var(--mono);font-size:14px;letter-spacing:.04em;color:var(--ink)}
+    .acard .ag{font-size:11px;color:var(--muted);margin:3px 0 10px}
+    .acard .alnks{display:flex;flex-wrap:wrap;gap:6px}
+    .acard .alnks button{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--cyan);cursor:pointer;
+      background:rgba(0,243,255,.07);border:1px solid rgba(0,243,255,.3);border-radius:7px;padding:5px 9px}
+    .acard .alnks button:hover{color:#05050e;background:var(--cyan);border-color:var(--cyan)}
+    .acard .alnks button.epk{color:#05050e;background:var(--cyan);font-weight:700}
+    .acard .alnks button.epk:hover{background:#fff}
+
+    /* start overlay */
+    .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+      text-align:center;padding:24px;overflow-y:auto;background:radial-gradient(70% 60% at 50% 45%,rgba(14,10,34,.5),rgba(4,4,10,.96));transition:opacity .8s}
+    .start.gone{opacity:0;pointer-events:none}
+    .start .g{font-family:var(--mono);font-size:clamp(28px,7vw,60px);letter-spacing:.08em;text-shadow:3px 0 var(--magenta),-3px 0 var(--cyan)}
+    .start .s{font-family:var(--mono);font-size:clamp(12px,1.5vw,14.5px);letter-spacing:.06em;color:var(--ink);max-width:64ch;line-height:1.75;opacity:.92}
+    .start .s3{font-family:var(--mono);font-size:clamp(10.5px,1.2vw,12.5px);letter-spacing:.04em;color:var(--muted);max-width:64ch;line-height:1.7}
+    .start .s2{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--cyan);text-transform:uppercase;opacity:.75;margin-top:4px}
+    .start .enter{font-family:var(--mono);font-size:14px;letter-spacing:.18em;color:#05050e;font-weight:700;background:var(--cyan);
+      border:none;border-radius:11px;padding:14px 32px;cursor:pointer;box-shadow:0 0 34px -4px var(--cyan)}
+    .start .enter:hover{background:#fff}
+    .start .classic{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--muted);
+      border-bottom:1px dotted rgba(255,255,255,.25);padding-bottom:2px;transition:color .15s}
+    .start .classic:hover{color:var(--cyan);border-color:var(--cyan)}
+    .start .foot{font-family:var(--mono);font-size:10px;color:#55555f;letter-spacing:.16em}
+    :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+    @media (max-width:560px){ .help{display:none} .rmbtn{padding:7px 9px;font-size:10px} .dock{max-width:calc(100vw - 74px);right:8px;bottom:10px} }
+  </style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <audio id="track" loop preload="auto" src="static-drift-anthem.mp3"></audio>
+  <div class="vig"></div>
+  <div class="trippy" id="trippy"><div class="a"></div><div class="b"></div></div>
+  <div class="scan"></div>
+
+  <div class="portahud" id="portaHud">
+    <button class="pexit" id="portaExit">✕ back to the festival</button>
+    <div class="pprompt">click the old screen to read the codex</div>
+  </div>
+
+  <button class="triptoggle tripcam" id="tripcamToggle" title="Toggle the trippy cam">TRIPPY CAM: OFF</button>
+  <button class="triptoggle rand" id="randBtn" style="top:166px" title="Randomize everything">🎲 RANDOMIZE</button>
+
+  <div class="hud top">
+    <div class="brand"><b>12MATT3R</b><span>THE FESTIVAL</span></div>
+    <div class="clock" id="clock">🌌 night</div>
+  </div>
+  <div class="hud tags" id="tags"></div>
+  <div class="prompt" id="prompt"></div>
+
+  <div class="trashpill" id="trashHud">🗑 <span id="tClean">0</span>/<span id="tTotal">10</span> cleaned <span id="tCarry"></span></div>
+  <div class="trashpill ponghud" id="pongHud">🍺 beer pong — click to toss</div>
+  <div class="trashpill vjhud" id="vjHud">🎬 click the VJ board to run the stage screens</div>
+  <div class="trashpill carryhud" id="carryHud">💊 carrying an orb</div>
+  <div class="trashpill drughud" id="drugHud">💊 tripping</div>
+  <div class="toast" id="toast"></div>
+
+  <div class="help">
+    <kbd>W A S D</kbd> walk · <kbd>space</kbd> jump <span style="opacity:.7">(hold to glide)</span> · <kbd>drag</kbd> look · <b>click a name</b> to walk to them · <kbd>[ ]</kbd> time of day
+  </div>
+  <div class="vjbar" id="vjBar">
+    <button id="vjPrev" title="Previous clip">⏮</button><span>VJ</span><button id="vjNext" title="Next clip">⏭</button>
+    <div class="sep"></div>
+    <button id="vjLink" class="txt" title="Play any YouTube link on the screens">🔗 link</button>
+    <button id="vjListen" class="txt" title="Hear the VJ feed (ducks the festival audio)">🔇 VJ audio</button>
+  </div>
+  <div class="dock" id="dock">
+    <button class="rmbtn" id="sizeToggle" title="Resize yourself">📐 size</button>
+    <button class="rmbtn" id="laserToggle" title="Aimable laser show — look to aim">🔦 laser</button>
+    <button class="rmbtn" id="fwToggle" title="Fireworks launcher">🎆 fw</button>
+    <button class="rmbtn" id="todToggle" title="Time of day">🕑 time</button>
+    <button class="rmbtn" id="photobtn" title="Save a snapshot">📷 photo</button>
+    <button class="rmbtn" id="mutebtn" title="Sound">🔊 sound</button>
+    <button class="rmbtn" id="rmbtn" title="Reduced motion">◐ motion</button>
+  </div>
+  <div class="fxpanel" id="dealerPanel"></div>
+  <div class="fxpanel" id="todPanel"></div>
+  <div class="fxpanel" id="fwPanel"></div>
+  <div class="fxpanel" id="sizePanel"></div>
+  <div class="nowplaying" id="nowplaying">♪ Static Drift Anthem</div>
+
+  <div class="panel" id="panel" role="dialog" aria-labelledby="pTitle">
+    <button class="close" id="pClose" aria-label="Back">✕</button>
+    <div class="role" id="pRole">—</div>
+    <h2 id="pTitle">—</h2>
+    <p id="pBody">—</p>
+    <div class="row"><button class="cta" id="pCta">Enter</button></div>
+  </div>
+
+  <div class="reward" id="reward" role="dialog" aria-labelledby="rTitle">
+    <div class="card">
+      <div class="k">secret unlocked</div>
+      <h2 id="rTitle">You cleaned up the festival</h2>
+      <p>Every last piece of trash, in the dumpster. You left it better than you found it — here's something just for you.</p>
+      <a class="dl" id="rewardDl" href="secret/cleanup-reward.txt" download>▼ Grab the secret drop</a>
+      <button class="rclose" id="rewardClose">keep exploring</button>
+    </div>
+  </div>
+
+  <div class="warp" id="warp" aria-hidden="true">
+    <div class="rings"></div>
+    <div class="core"></div>
+    <div class="label" id="warpLabel"></div>
+  </div>
+
+  <div class="boardhint" id="boardHint">click the board</div>
+  <div class="boardpanel" id="boardPanel" role="dialog" aria-labelledby="boardTitle">
+    <div class="bcard">
+      <button class="bclose" id="boardClose" aria-label="Close">✕</button>
+      <div class="bk">12matt3r // the board</div>
+      <h2 id="boardTitle">artists · news · guest book</h2>
+      <div class="bsection">
+        <div class="blabel">🎤 the artists — tap one to open their EPK &amp; links</div>
+        <div class="acards" id="artistCards"></div>
+      </div>
+      <div class="bsection">
+        <div class="blabel">📌 news &amp; updates</div>
+        <div class="notes" id="newsNotes"></div>
+      </div>
+      <div class="bsection">
+        <div class="blabel">✍ leave a message · sign the guest book</div>
+        <form class="gform" id="guestForm">
+          <input id="guestName" maxlength="24" placeholder="your name" autocomplete="off" />
+          <input id="guestMsg" maxlength="140" placeholder="leave a message…" autocomplete="off" />
+          <button type="submit">pin it</button>
+        </form>
+        <div class="notes" id="guestNotes"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="start" id="start">
+    <div class="g">12matt3r</div>
+    <div class="s">12matt3r is a genre-defying experience design collective where the digital, the analog, and the algorithmic collide. Comprised of video artists, rappers, and producers, the group dismantles the barriers between live performance and new media.</div>
+    <div class="s3">The name is a dual-layered philosophy: it bridges the concept of &ldquo;12&rdquo; as a symbol of cosmic completeness with the raw physical &ldquo;matter&rdquo; of our world&mdash;all while acknowledging the ultimate freedom found in the fact that, at the end of the day, a dozen or a zero, it simply doesn&rsquo;t matter.</div>
+    <div class="s2">walk the festival · reach anyone to step into their world</div>
+    <button class="enter" id="enterBtn">▶ ENTER</button>
+    <a class="classic" href="classic/index.html">prefer a classic site? → open the classic 12matt3r website</a>
+    <a class="classic" href="codex.html">read the codex → the full encyclopedia of the festival</a>
+    <div class="foot">a 12matt3r experience</div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

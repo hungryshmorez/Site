@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promotional Games - Retro Flash Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF9900;
+            --secondary-orange: #FFB84D;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1a;
+            --card-bg: #16213e;
+            --text-light: #eaeaea;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--card-bg) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary-orange);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            color: var(--primary-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--darker-bg);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 26, 46, 0.9), rgba(26, 26, 46, 0.9)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="30" r="1" fill="%23ffffff20"/><circle cx="80" cy="70" r="1.5" fill="%23ffffff20"/><circle cx="50" cy="50" r="1" fill="%23ffffff20"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>');
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            color: var(--text-dim);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-bg);
+        }
+
+        .game-count {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, var(--darker-bg), var(--card-bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::before {
+            content: '▶';
+            font-size: 3rem;
+            color: var(--primary-orange);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .game-thumbnail:hover::before {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .game-info {
+            padding: 1rem;
+        }
+
+        .game-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .game-category-tag {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--primary-orange);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow: hidden;
+            border: 3px solid var(--primary-orange);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--darker-bg);
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .close-btn {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--secondary-orange);
+        }
+
+        .modal-body {
+            padding: 0;
+            height: calc(90vh - 80px);
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-orange);
+        }
+
+        footer p {
+            color: var(--text-dim);
+        }
+
+        footer a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">RF</div>
+            <h1>RetroFlash</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="action.html">Action</a></li>
+                <li><a href="adventure.html">Adventure</a></li>
+                <li><a href="puzzle.html">Puzzle</a></li>
+                <li><a href="sports.html">Sports</a></li>
+                <li><a href="more.html">More »</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h2>🎬 Promotional Games</h2>
+        <p>Experience games created for marketing campaigns, brand promotions, and product launches!</p>
+    </div>
+
+    <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <a href="more.html">More Categories</a>
+        <span>›</span>
+        <span>Promotional</span>
+    </div>
+
+    <main>
+        <div class="category-header">
+            <h3>All Promotional Games</h3>
+            <span class="game-count">50 Games</span>
+        </div>
+
+        <div class="game-grid">
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Выиграй приз от Smirnoff!!!"></div>
+                <div class="game-info">
+                    <div class="game-title">Выиграй приз от Smirnoff!!!</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Disney Princess Enchanted Tales: Find Merryweather's Magical Wand"></div>
+                <div class="game-info">
+                    <div class="game-title">Disney Princess Enchanted Tales: Find Merryweather's Magical Wand</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Diary of a Wimpy Kid: Rodrick Rules - Party Pooper"></div>
+                <div class="game-info">
+                    <div class="game-title">Diary of a Wimpy Kid: Rodrick Rules - Party Pooper</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="G-Force: Darwin's Zip Line"></div>
+                <div class="game-info">
+                    <div class="game-title">G-Force: Darwin's Zip Line</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Explore Rio to Find the Hiding Characters"></div>
+                <div class="game-info">
+                    <div class="game-title">Explore Rio to Find the Hiding Characters</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Surf's Up: Cody Maverick's Match"></div>
+                <div class="game-info">
+                    <div class="game-title">Surf's Up: Cody Maverick's Match</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pendragon: Ibara Dado Attack"></div>
+                <div class="game-info">
+                    <div class="game-title">Pendragon: Ibara Dado Attack</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pendragon: Cloral Submarine Attack"></div>
+                <div class="game-info">
+                    <div class="game-title">Pendragon: Cloral Submarine Attack</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pendragon: Unite the Travelers"></div>
+                <div class="game-info">
+                    <div class="game-title">Pendragon: Unite the Travelers</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Soccer Mobile - Championship 2010"></div>
+                <div class="game-info">
+                    <div class="game-title">Soccer Mobile - Championship 2010</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Monotriangolare - Championship 2009"></div>
+                <div class="game-info">
+                    <div class="game-title">Monotriangolare - Championship 2009</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="ITP Thursday Night Out Invitation 2"></div>
+                <div class="game-info">
+                    <div class="game-title">ITP Thursday Night Out Invitation 2</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="My plane design"></div>
+                <div class="game-info">
+                    <div class="game-title">My plane design</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Kendi Çatını Kendin Yarat!"></div>
+                <div class="game-info">
+                    <div class="game-title">Kendi Çatını Kendin Yarat!</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Mapa interaktywna powiatu grudziądzkiego"></div>
+                <div class="game-info">
+                    <div class="game-title">Mapa interaktywna powiatu grudziądzkiego</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Anxiety Crusher"></div>
+                <div class="game-info">
+                    <div class="game-title">Anxiety Crusher</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Expendables 2: Deploy and Destroy"></div>
+                <div class="game-info">
+                    <div class="game-title">The Expendables 2: Deploy and Destroy</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Lucky Charms: Lucky Bowling"></div>
+                <div class="game-info">
+                    <div class="game-title">Lucky Charms: Lucky Bowling</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Zombies Ate My Phone"></div>
+                <div class="game-info">
+                    <div class="game-title">Zombies Ate My Phone</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Expendables III: Deploy & Destroy Reloaded"></div>
+                <div class="game-info">
+                    <div class="game-title">The Expendables III: Deploy & Destroy Reloaded</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Juicy Fruit Flavor Fling"></div>
+                <div class="game-info">
+                    <div class="game-title">Juicy Fruit Flavor Fling</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Spiderwick Chronicles The Online Game"></div>
+                <div class="game-info">
+                    <div class="game-title">The Spiderwick Chronicles The Online Game</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="AxeBusters: The Axe Effect"></div>
+                <div class="game-info">
+                    <div class="game-title">AxeBusters: The Axe Effect</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Sam Vs. Sour Demons"></div>
+                <div class="game-info">
+                    <div class="game-title">Sam Vs. Sour Demons</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Cars 2 Carchinko"></div>
+                <div class="game-info">
+                    <div class="game-title">Cars 2 Carchinko</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Shaun the Sheep's Beauty Baahn"></div>
+                <div class="game-info">
+                    <div class="game-title">Shaun the Sheep's Beauty Baahn</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Mouth Full Of Happy"></div>
+                <div class="game-info">
+                    <div class="game-title">Mouth Full Of Happy</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Degree Men Adrenaline Lab"></div>
+                <div class="game-info">
+                    <div class="game-title">Degree Men Adrenaline Lab</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Gauntlet of Danger"></div>
+                <div class="game-info">
+                    <div class="game-title">Gauntlet of Danger</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Outta the Way!"></div>
+                <div class="game-info">
+                    <div class="game-title">Outta the Way!</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Popsicle Find It!"></div>
+                <div class="game-info">
+                    <div class="game-title">Popsicle Find It!</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Beat the Clock"></div>
+                <div class="game-info">
+                    <div class="game-title">Beat the Clock</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Power Panacea"></div>
+                <div class="game-info">
+                    <div class="game-title">Power Panacea</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Popsicle Bowl"></div>
+                <div class="game-info">
+                    <div class="game-title">Popsicle Bowl</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Central Smashdown"></div>
+                <div class="game-info">
+                    <div class="game-title">Central Smashdown</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="VXR Racer"></div>
+                <div class="game-info">
+                    <div class="game-title">VXR Racer</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="G-Force - Blaster's Bull's-Eye"></div>
+                <div class="game-info">
+                    <div class="game-title">G-Force - Blaster's Bull's-Eye</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Monsters University: Beastly Breakfast Blitz"></div>
+                <div class="game-info">
+                    <div class="game-title">Monsters University: Beastly Breakfast Blitz</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Crank Deathmatch"></div>
+                <div class="game-info">
+                    <div class="game-title">Crank Deathmatch</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Sorcerer's Fiery Frenzy"></div>
+                <div class="game-info">
+                    <div class="game-title">Sorcerer's Fiery Frenzy</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="G-Force: Juaraz Packs a Punch"></div>
+                <div class="game-info">
+                    <div class="game-title">G-Force: Juaraz Packs a Punch</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Paint By Cheetos"></div>
+                <div class="game-info">
+                    <div class="game-title">Paint By Cheetos</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Rambo: The Fight Continues"></div>
+                <div class="game-info">
+                    <div class="game-title">Rambo: The Fight Continues</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Iron Man 3 Microsite"></div>
+                <div class="game-info">
+                    <div class="game-title">Iron Man 3 Microsite</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Mission POPable"></div>
+                <div class="game-info">
+                    <div class="game-title">Mission POPable</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Sonic X - Speed Spotter"></div>
+                <div class="game-info">
+                    <div class="game-title">Sonic X - Speed Spotter</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Where in the World is Cobra Starship?"></div>
+                <div class="game-info">
+                    <div class="game-title">Where in the World is Cobra Starship?</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Best Player: Black Hole"></div>
+                <div class="game-info">
+                    <div class="game-title">Best Player: Black Hole</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Bottle Baby Puzzler"></div>
+                <div class="game-info">
+                    <div class="game-title">Bottle Baby Puzzler</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Transformers: Dark of the Moon: Dark Racers"></div>
+                <div class="game-info">
+                    <div class="game-title">Transformers: Dark of the Moon: Dark Racers</div>
+                    <span class="game-category-tag">Promotional</span>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="close-btn" onclick="closeModal()">✕ Close</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>RetroFlash Portal - Preserving the Best of Flash Gaming</p>
+        <p><a href="index.html">Home</a> | <a href="about.html">About</a> | <a href="contact.html">Contact</a></p>
+    </footer>
+
+    <script>
+        // Game URLs mapping
+        const gameUrls = {
+            "Выиграй приз от Smirnoff!!!": "https://flashgames.cx/game/smirnoff",
+            "Disney Princess Enchanted Tales: Find Merryweather's Magical Wand": "https://flashgames.cx/game/disney-princess-enchanted-tales-find-merryweather-s-magical-wand",
+            "Diary of a Wimpy Kid: Rodrick Rules - Party Pooper": "https://flashgames.cx/game/diary-of-a-wimpy-kid-rodrick-rules-party-pooper",
+            "G-Force: Darwin's Zip Line": "https://flashgames.cx/game/g-force-darwin-s-zip-line",
+            "Explore Rio to Find the Hiding Characters": "https://flashgames.cx/game/explore-rio-to-find-the-hiding-characters",
+            "Surf's Up: Cody Maverick's Match": "https://flashgames.cx/game/surf-s-up-cody-maverick-s-match",
+            "Pendragon: Ibara Dado Attack": "https://flashgames.cx/game/pendragon-ibara-dado-attack",
+            "Pendragon: Cloral Submarine Attack": "https://flashgames.cx/game/pendragon-cloral-submarine-attack",
+            "Pendragon: Unite the Travelers": "https://flashgames.cx/game/pendragon-unite-the-travelers",
+            "Soccer Mobile - Championship 2010": "https://flashgames.cx/game/soccer-mobile-championship-2010",
+            "Monotriangolare - Championship 2009": "https://flashgames.cx/game/monotriangolare-championship-2009",
+            "ITP Thursday Night Out Invitation 2": "https://flashgames.cx/game/itp-thursday-night-out-invitation-2",
+            "My plane design": "https://flashgames.cx/game/my-plane-design",
+            "Kendi Çatını Kendin Yarat!": "https://flashgames.cx/game/kendi-at-n-kendin-yarat",
+            "Mapa interaktywna powiatu grudziądzkiego": "https://flashgames.cx/game/mapa-interaktywna-powiatu-grudzi-dzkiego",
+            "Anxiety Crusher": "https://flashgames.cx/game/anxiety-crusher",
+            "The Expendables 2: Deploy and Destroy": "https://flashgames.cx/game/the-expendables-2-deploy-and-destroy",
+            "Lucky Charms: Lucky Bowling": "https://flashgames.cx/game/lucky-charms-lucky-bowling",
+            "Zombies Ate My Phone": "https://flashgames.cx/game/zombies-ate-my-phone",
+            "The Expendables III: Deploy & Destroy Reloaded": "https://flashgames.cx/game/the-expendables-iii-deploy-destroy-reloaded",
+            "Juicy Fruit Flavor Fling": "https://flashgames.cx/game/juicy-fruit-flavor-fling",
+            "The Spiderwick Chronicles The Online Game": "https://flashgames.cx/game/the-spiderwick-chronicles-the-online-game",
+            "AxeBusters: The Axe Effect": "https://flashgames.cx/game/axebusters-the-axe-effect",
+            "Sam Vs. Sour Demons": "https://flashgames.cx/game/sam-vs-sour-demons",
+            "Cars 2 Carchinko": "https://flashgames.cx/game/cars-2-carchinko",
+            "Shaun the Sheep's Beauty Baahn": "https://flashgames.cx/game/shaun-the-sheep-s-beauty-baahn",
+            "Mouth Full Of Happy": "https://flashgames.cx/game/mouth-full-of-happy",
+            "Degree Men Adrenaline Lab": "https://flashgames.cx/game/degree-men-adrenaline-lab",
+            "Gauntlet of Danger": "https://flashgames.cx/game/gauntlet-of-danger",
+            "Outta the Way!": "https://flashgames.cx/game/outta-the-way",
+            "Popsicle Find It!": "https://flashgames.cx/game/popsicle-find-it",
+            "Beat the Clock": "https://flashgames.cx/game/beat-the-clock-2",
+            "Power Panacea": "https://flashgames.cx/game/power-panacea",
+            "Popsicle Bowl": "https://flashgames.cx/game/popsicle-bowl",
+            "Central Smashdown": "https://flashgames.cx/game/central-smashdown",
+            "VXR Racer": "https://flashgames.cx/game/vxr-racer",
+            "G-Force - Blaster's Bull's-Eye": "https://flashgames.cx/game/g-force-blaster-s-bull-s-eye",
+            "Monsters University: Beastly Breakfast Blitz": "https://flashgames.cx/game/monsters-university-beastly-breakfast-blitz",
+            "Crank Deathmatch": "https://flashgames.cx/game/crank-deathmatch",
+            "Sorcerer's Fiery Frenzy": "https://flashgames.cx/game/sorcerer-s-fiery-frenzy",
+            "G-Force: Juaraz Packs a Punch": "https://flashgames.cx/game/g-force-juaraz-packs-a-punch",
+            "Paint By Cheetos": "https://flashgames.cx/game/paint-by-cheetos",
+            "Rambo: The Fight Continues": "https://flashgames.cx/game/rambo-the-fight-continues",
+            "Iron Man 3 Microsite": "https://flashgames.cx/game/iron-man-3-microsite",
+            "Mission POPable": "https://flashgames.cx/game/mission-popable",
+            "Sonic X - Speed Spotter": "https://flashgames.cx/game/sonic-x-speed-spotter",
+            "Where in the World is Cobra Starship?": "https://flashgames.cx/game/where-in-the-world-is-cobra-starship",
+            "Best Player: Black Hole": "https://flashgames.cx/game/best-player-black-hole",
+            "Bottle Baby Puzzler": "https://flashgames.cx/game/bottle-baby-puzzler",
+            "Transformers: Dark of the Moon: Dark Racers": "https://flashgames.cx/game/transformers-dark-of-the-moon-dark-racers"
+        };
+
+        // Open game modal
+        document.querySelectorAll('.game-thumbnail').forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                const gameName = this.getAttribute('data-game');
+                const gameUrl = gameUrls[gameName];
+                
+                if (gameUrl) {
+                    document.getElementById('modalTitle').textContent = gameName;
+                    document.getElementById('gameFrame').src = gameUrl;
+                    document.getElementById('gameModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        });
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

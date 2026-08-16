@@ -1,0 +1,214 @@
+// ── 12matt3r CANONICAL CATALOG ───────────────────────────────────────────────
+// Single source of truth for every alias, link, game, story, and tool. Mirrors
+// the collective's own dataset (the old classic site's defaultData). The classic
+// page and the Lab are generated from this; edit links HERE, not in the UI.
+
+// The personas. Each name links to its EPK; `links` are that artist's own links,
+// shown on their tab in the classic page.
+export const ALIASES = [
+  {
+    name: 'SOFA KING SAD BOI', genre: 'Dubstep / Weird Bass',
+    epk: 'https://sofa-king-sad-boi-official-epk--sofakingsadboi.on.websim.com/',
+    links: [
+      { name: 'Spotify', url: 'https://open.spotify.com/artist/0gI4DEY1dhARmuER7aPSJY' },
+      { name: 'Apple Music', url: 'https://music.apple.com/us/artist/sofa-king-sad-boi/1629010074' },
+      { name: 'SoundCloud', url: 'https://soundcloud.com/sofakingsadboi' },
+      { name: 'Tidal', url: 'https://tidal.com/browse/artist/32847341' },
+      { name: 'Instagram', url: 'https://instagram.com/sofakingsadboi' },
+      { name: 'TikTok', url: 'https://tiktok.com/@sofakingsadboi' },
+      { name: 'Guns.lol', url: 'https://guns.lol/sofakingsadboi' },
+      { name: 'Viberate', url: 'http://www.viberate.com/artist/sofa-king-sad-boi-1' },
+    ],
+  },
+  {
+    name: 'DRIFTWAVE STATIC', genre: 'Slushwave / Ambient / Vaporwave',
+    epk: 'https://staticcorp--sofakingsadboi.on.websim.com/',
+    links: [
+      { name: 'VAPORSTUDIO (generative music studio)', url: 'https://bl8ig28k7482x.space.minimax.io' },
+      { name: 'Bandcamp', url: 'https://driftwavestatic.bandcamp.com/' },
+      { name: 'Slushwave Catalog (every band camp)', url: 'https://slushwave.on.websim.com' },
+      { name: 'Booting DreamOS (Global Pattern)', url: 'https://globalpatterndigital.bandcamp.com/album/b-o-o-t-i-n-g-d-r-e-a-m-o-s-b-a-r-d-o-f-a-c-t-o-r-y-r-e-s-e-t' },
+      { name: 'Midnight Vapor Circuit (Freshwater)', url: 'https://freshwatermedia.bandcamp.com/album/midnight-vapor-circuit' },
+    ],
+  },
+  {
+    name: 'RAVE CHARLES', genre: 'Rapper / DJ',
+    epk: 'https://express.adobe.com/page/s43NCJty7DfTO/',
+    links: [{ name: 'Snapchat', url: 'https://snapchat.com/add/notravecharles' }],
+  },
+  {
+    name: 'TANKY JOHNSON', genre: 'Country',
+    epk: 'https://tanky-johnson-epk--sofakingsadboi.on.websim.com/',
+    links: [],
+  },
+  {
+    name: 'SHMOREZ', genre: 'Animated electronic marshmallow squish of fire',
+    epk: 'https://shmorez-official-epk--sofakingsadboi.on.websim.com/#visuals',
+    links: [],
+  },
+  {
+    name: '12MATT3R', genre: 'Glitch Art / Coding',
+    epk: 'https://12matt3r.univer.se/',
+    links: [
+      { name: 'Instagram', url: 'https://www.instagram.com/12matt3r/' },
+      { name: 'GitHub', url: 'https://github.com/12Matt3r' },
+      { name: 'Glitch Portfolio', url: 'https://glitch-portfolio--sofakingsadboi.on.websim.com/' },
+    ],
+  },
+];
+
+// The collective's own links (not tied to one persona), grouped.
+export const LINKS = {
+  'Central Hubs': {
+    'Main Portfolio': 'https://12matt3r.univer.se/',
+    'Project History': 'https://12matt3r.univer.se/history',
+    'AI Art Gallery': 'https://12matt3r.univer.se/ai-art',
+    'Video Art Gallery': 'https://12matt3r.univer.se/video-art',
+  },
+  'Developer': {
+    'GitHub': 'https://github.com/12Matt3r',
+    'Discord': 'https://discord.gg/cxMW3aSmKX',
+    'Roblox': 'https://roblox.com/users/7311598713/profile',
+  },
+  'Web3 & Assets': {
+    'OpenSea': 'https://opensea.io/12matt3r',
+    'Drip.haus': 'https://drip.haus/12matt3r',
+    'Glif App': 'https://glif.app/@12matt3r',
+  },
+  'Support': {
+    'CashApp': 'https://cash.app/$12matt3r',
+    'PayPal': 'https://paypal.me/sofakingsadboi',
+  },
+};
+
+// The Lab / catalog folders — each becomes a section in the classic page and a
+// folder in the Lab terminal. `special` gets a distinct accent.
+export const LAB = {
+  'DreamOS Ecosystem': [
+    { name: 'Ultimate Main DreamOS', url: 'https://23qvtyf8nwfq.space.minimax.io/' },
+    { name: 'DreamOS Wake-Up Node', url: 'https://dreamos-w-a-k-e-u-p.on.websim.com' },
+    { name: 'DreamOS Interface', url: 'https://dream-os--sofakingsadboi.on.websim.com' },
+    { name: 'Inside DreamOS', url: 'https://insidedreamos.on.websim.com/' },
+    { name: 'TrippyKit', url: 'https://trippykit.on.websim.com/' },
+    { name: 'Supervisor AI', url: 'https://dnhunosjbldz.space.minimax.io/' },
+    { name: 'Roost Desktop', url: 'https://roost.on.websim.com' },
+  ],
+  'Wake Up Series': [
+    { name: 'Wake Up: Cursed Island', url: 'https://wakeupandrun.on.websim.com/?v=43' },
+    { name: 'Wake Up, Please', url: 'https://wakeup-please.on.websim.com' },
+    { name: 'Please Wake Up', url: 'https://cursor-sharing-with-youtube--sofakingsadboi.on.websim.com' },
+    { name: 'Wake Up: Dreamworld', url: 'https://dreams.on.websim.com' },
+    { name: 'Wake Up: In Between', url: 'https://wakeup-story.on.websim.com/' },
+    { name: 'Wake Up and Drive', url: 'https://wakeup-drive.on.websim.com/' },
+    { name: 'Wake Up and Fight (FPS)', url: 'https://wakeupfps.on.websim.com' },
+    { name: 'Wake Up Again', url: 'https://wakeup-again.on.websim.com' },
+    { name: 'Wake Up: Theme Park', url: 'https://wakeup-themepark.on.websim.com' },
+    { name: 'The Liminal Sidewalk', url: 'https://wakeupordont.on.websim.com' },
+    { name: 'Where the Sidewalk Ends', url: 'https://where-the-sidewalk-ends-2--sofakingsadboi.on.websim.com' },
+    { name: 'Chilling in My Dreams', url: 'https://lofi-chillin.on.websim.com' },
+    { name: 'Wake Up and Work', url: 'https://wakeupwork.on.websim.com' },
+    { name: 'Never Sleep Wake Up', url: 'https://multiplayer-office-exploration--sofakingsadboi.on.websim.com' },
+    { name: 'Wake Up Nightmare', url: 'https://minimalist-3d-multiplayer-movement-16--sofakingsadboi.on.websim.com' },
+    { name: 'Wake Up in the Backrooms', url: 'https://the-backrooms-found-footage-2--sofakingsadboi.on.websim.com' },
+    { name: 'Wake Up Destruction', url: 'https://bean-city-destruction--sofakingsadboi.on.websim.com' },
+    { name: 'Wake Up 10', url: 'https://wake-up-10--sofakingsadboi.on.websim.com' },
+  ],
+  'Games': [
+    { name: 'WebSim 500 (Racing)', url: 'https://websim500.on.websim.com/' },
+    { name: 'Liminal (3D Terrain)', url: 'https://3d-terrain-explorer--sofakingsadboi.on.websim.com/' },
+    { name: 'Chroma Killer', url: 'https://chroma-award.on.websim.com/' },
+    { name: 'Bikini Bottom Anomaly Hunt', url: 'https://fright-night.on.websim.com/' },
+    { name: 'Cope (3D Survival)', url: 'https://3d-survival-room--datboodiebreadham.on.websim.com/' },
+    { name: 'Crime Scene Response', url: 'https://crime-scene-response--sofakingsadboi.on.websim.com/' },
+    { name: "Mariah's Rage", url: 'https://mariah--hollowaya.on.websim.com' },
+    { name: 'NPC Therapy (Chroma winner)', url: 'https://npctherapy.on.websim.com/' },
+    { name: 'Beavis & Butthead Commentary', url: 'https://beavis-butt-head-music-video-commentary--sofakingsadboi.on.websim.com/' },
+    { name: 'Trippy Racing', url: 'https://dreamworld-cattle-racing-game--sofakingsadboi.on.websim.com/' },
+    { name: 'Steal a WebSim', url: 'https://steal-a-websim--sofakingsadboi.on.websim.com/' },
+    { name: 'Sauce Lab DJ Battle', url: 'https://saucelab-dj.on.websim.com/' },
+    { name: 'Backrooms Expedition (3D)', url: 'https://liminal-geo-the-backrooms-expedition--sofakingsadboi.on.websim.com/?v=12' },
+  ],
+  'Stories & Experiences': [
+    { name: 'GTA VI: Leonida 360 (choose-your-story)', url: 'https://leonida-360-vice-city-crime-simulator--sofakingsadboi.on.websim.com' },
+    { name: 'ChromaShift (Chroma Awards)', url: 'https://chromashift-hyper-surreal-dreamscape-3--sofakingsadboi.on.websim.com' },
+    { name: 'ChrØmaShift (scary version)', url: 'https://chromashift-hyper-surreal-dreamscape-9--sofakingsadboi.on.websim.com/' },
+    { name: "The Monkey's Paw (SOFA KING SAD BOI)", url: 'https://3jnyhlyqkqq1e.space.minimax.io/' },
+    { name: 'Curse of the Monkey Paw', url: 'https://wish.on.websim.com/' },
+    { name: 'The Ultimate Guide to Thriving', url: 'https://the-ultimate-guide-to-thriving-in-life--sofakingsadboi.on.websim.com/' },
+    { name: 'Back Rooms', url: 'https://aibackroomssimulator.on.websim.com/?v=432' },
+    { name: 'DreamOS For Him', url: 'https://dreamos-the-unwaking--sofakingsadboi.on.websim.com/' },
+    { name: 'Discord Horror', url: 'https://discord-horror.on.websim.com/' },
+    { name: 'The Confessional', url: 'https://confessional.on.websim.com/' },
+    { name: 'Camp', url: 'https://camp.on.websim.com/' },
+  ],
+  'Deadnet': [
+    { name: 'Deadnet Portal', url: 'https://deadnet-portal.on.websim.com/', special: true },
+    { name: 'The Void', url: 'https://the-void-2-0--sofakingsadboi.on.websim.com/', special: true },
+    { name: 'Dark Web Simulator', url: 'https://dark-web-simulator--sofakingsadboi.on.websim.com/', special: true },
+    { name: 'Liminal Space Explorer', url: 'https://liminal-space-explorer-2--sofakingsadboi.on.websim.com/', special: true },
+  ],
+  'Tools': [
+    { name: 'VAPORSTUDIO (generative lo-fi / vaporwave / mallsoft studio)', url: 'https://bl8ig28k7482x.space.minimax.io' },
+    { name: 'Simsplicer (fuse websims into a prompt)', url: 'https://fuse2.on.websim.com' },
+    { name: 'Creative Idea Expander', url: 'https://creative-idea.on.websim.com' },
+    { name: 'VJ Application', url: 'https://saucelab-vj-application--sofakingsadboi.on.websim.com' },
+    { name: 'Trippy Cam', url: 'https://g5kgb2qtzw2s.space.minimax.io/' },
+    { name: 'Trippy Kit', url: 'https://surreal.on.websim.com/' },
+    { name: 'Trippy Effects Tool', url: 'https://trippyeffectstool.on.websim.com/' },
+    { name: 'Aesthetic Audio (Synthwave Studio)', url: 'https://synthwave-sound-studio--sofakingsadboi.on.websim.com/' },
+    { name: 'Driftwave Vaporizer', url: 'https://6r8q0wwdn0a1.space.minimax.io/' },
+    { name: 'Flash Games Portal', url: 'https://flash-games-collection--sofakingsadboi.on.websim.com/' },
+    { name: 'Newgrounds Portal', url: 'https://newgrounds.on.websim.com' },
+
+    // ── LoRAs (HuggingFace model packs) — live under Tools ──
+    { name: 'LoRA · Retro Cartoon Style', url: 'https://huggingface.co/glif-loradex-trainer/12matt3r_retro_cartoon' },
+    { name: 'LoRA · Phonk Bro', url: 'https://huggingface.co/glif-loradex-trainer/12matt3r_phonk_bro' },
+    { name: 'LoRA · Dank Horror (Children’s Horror)', url: 'https://huggingface.co/glif-loradex-trainer/12matt3r_childrens_horror' },
+    { name: 'LoRA · No Emotion', url: 'https://huggingface.co/glif-loradex-trainer/12matt3r_Noemotion' },
+    { name: 'LoRA · TrippyAF', url: 'https://huggingface.co/glif-loradex-trainer/12matt3r_flux_dev_trippyAF' },
+    { name: 'LoRA · Glitch Art Aesthetic', url: 'https://huggingface.co/glif-loradex-trainer/12matt3r_Glitch_Art_Aesthetic' },
+    { name: 'LoRA · Slushwave Social Club', url: 'https://huggingface.co/glif-loradex-trainer/12matt3r_SLUSHWAVESOCIALCLUB' },
+    { name: 'LoRA · Slushwave', url: 'https://huggingface.co/glif-loradex-trainer/12matt3r_slushwave' },
+    { name: 'LoRA · Buttface Factory', url: 'https://huggingface.co/glif-loradex-trainer/12matt3r_buttface' },
+    { name: 'LoRA · GTA San Andreas', url: 'https://huggingface.co/glif-loradex-trainer/bulbul_GTA_San_Andreas' },
+    { name: 'LoRA · Skibidi Toilet', url: 'https://huggingface.co/glif-loradex-trainer/bulbul_SKIBIDI_TOILET' },
+    { name: 'LoRA · Datamosh V2', url: 'https://huggingface.co/glif-loradex-trainer/kklors_flux_dev_data_moshingV2' },
+    { name: 'LoRA · Weirdcore (Weirdlite)', url: 'https://huggingface.co/glif-loradex-trainer/chrysolite_Weirdlite' },
+    { name: 'LoRA · Pixel Fighters', url: 'https://huggingface.co/glif-loradex-trainer/fabian3000_pixelfighters' },
+    { name: 'LoRA · Ch13f Cel Shader (big model)', url: 'https://huggingface.co/glif-loradex-trainer/fatman2021b_Outlined_Cel_shader_with_Texture_by_Ch13f' },
+    { name: 'LoRA · Stylized Comic (C0micz2)', url: 'https://huggingface.co/glif-loradex-trainer/insectagon_stylized_comic' },
+    { name: 'LoRA · Nudibranch', url: 'https://huggingface.co/glif-loradex-trainer/insectagon_nudibranch1' },
+    { name: 'LoRA · Water Brush Pens', url: 'https://huggingface.co/glif-loradex-trainer/swap_flux_dev_water_brushpens_v1' },
+    { name: 'LoRA · 1920s Cartoon', url: 'https://huggingface.co/glif-loradex-trainer/insectagon_1920s_cartoon' },
+    { name: 'LoRA · Pootoo', url: 'https://huggingface.co/glif-loradex-trainer/insectagon_pootoo1' },
+    { name: 'LoRA · Seussian', url: 'https://huggingface.co/INSECTAGON/Seussian' },
+    { name: 'LoRA · Dramatic Photo', url: 'https://huggingface.co/glif-loradex-trainer/insectagon_insectagon_fashion_photos' },
+    { name: 'LoRA · Drama Toys', url: 'https://huggingface.co/glif-loradex-trainer/insectagon_Drama_toys' },
+  ],
+};
+
+// DreamOS TV channels (YouTube ids + websim channels) — the theater's lineup.
+export const TV_CHANNELS = [
+  { id: 'zsjxfIQEaT8', name: 'ENTER THE VOID 3' },
+  { id: 'Vsl6zXS7jBU', name: 'VOID TV: SOFA KING' },
+  { id: 'hteHKz0NYVI', name: 'VOID CITY BUMPFEST' },
+  { id: 'NL1nSv63wOQ', name: 'VOID MOON' },
+  { id: 'TPn_ZcazaEE', name: 'MTHRBORD' },
+  { id: 'xYnauJbpdnc', name: 'TANKY JOHNSON 2025' },
+  { id: '3xqe_EDOXAE', name: 'BIOMECHANICAL SAMURAI' },
+  { id: 'i-ehCBD_z1Y', name: 'CLOUDPUNK 2025' },
+  { id: 'K03ZuRjcMoc', name: 'SLUSHWAVE VOL 6' },
+  { id: '6-X6J7ZP7Bc', name: 'GLITCH CYBERTAPE' },
+  { id: 'kPwmTV288ew', name: 'VIDEO MIXER PRO' },
+  { id: 'aCyiGt6kxXA', name: 'SPACE JESUS JAM' },
+  { id: 'YwwefX7-0r0', name: 'BENT BROKEN 2024' },
+  { id: 'R3buJ1dqZN4', name: 'SSCC VOL 5' },
+  { id: 'MeW42PuTTk0', name: 'DISCARDED DREAMS' },
+  { id: 'BkTZWDlbHug', name: 'VOIDTV: SOFA KING' },
+  { id: 'GOjr3p10wXo', name: 'VOID TV: EP 5' },
+  { id: 'Ip2ajcVdmuI', name: 'BUMP TV: EP 6' },
+  { id: '-BofMq2_e_4', name: 'BUMP: EP 5' },
+  { id: 'h-B77YzTUPQ', name: 'CYBERTAPE 12MATT3R' },
+  { id: 'ufYws78_t1U', name: 'BUMP: EP 4' },
+  { id: 'F335672e88I', name: 'BUMPFEST 2023' },
+];

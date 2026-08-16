@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toy Games - Retro Flash Portal</title>
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --secondary: #f7c59f;
+            --bg-dark: #1a1a2e;
+            --bg-medium: #16213e;
+            --bg-light: #0f3460;
+            --text-light: #e8e8e8;
+            --accent-green: #4ecca3;
+            --accent-pink: #ff2e63;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Scanline effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1) 0px,
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(180deg, var(--bg-medium) 0%, var(--bg-dark) 100%);
+            padding: 20px;
+            border-bottom: 3px solid var(--primary);
+            position: relative;
+        }
+        
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-pink), var(--accent-green));
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+            letter-spacing: 2px;
+        }
+        
+        nav ul {
+            display: flex;
+            gap: 15px;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 8px 16px;
+            background: var(--bg-light);
+            border: 2px solid var(--accent-green);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        nav a:hover {
+            background: var(--accent-green);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--accent-green);
+        }
+        
+        /* Main content */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .category-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .category-header h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .category-header p {
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+        
+        /* Games grid */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .game-card {
+            background: var(--bg-medium);
+            border: 2px solid var(--bg-light);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,107,53,0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .game-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255,107,53,0.3);
+        }
+        
+        .game-card:hover::before {
+            opacity: 1;
+        }
+        
+        .game-card h3 {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .game-card .play-btn {
+            display: inline-block;
+            padding: 8px 20px;
+            background: var(--accent-green);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .game-card .play-btn:hover {
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--bg-medium);
+            border: 3px solid var(--primary);
+            border-radius: 10px;
+            max-width: 850px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--bg-light);
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .modal-header h2 {
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+        
+        .close-btn {
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            background: #cc2450;
+            transform: scale(1.1);
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: calc(90vh - 150px);
+            overflow-y: auto;
+        }
+        
+        .modal-body iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+            border-radius: 5px;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            background: var(--bg-medium);
+            border-top: 2px solid var(--accent-green);
+            margin-top: 50px;
+        }
+        
+        footer p {
+            color: var(--secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav ul {
+                justify-content: center;
+            }
+            
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .modal-body iframe {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">&lt;RETRO FLASH&gt;</div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="adventure.html">Adventure</a></li>
+                    <li><a href="arcade.html">Arcade</a></li>
+                    <li><a href="puzzle.html">Puzzle</a></li>
+                    <li><a href="action.html">Action</a></li>
+                    <li><a href="shooter.html">Shooter</a></li>
+                    <li><a href="sports.html">Sports</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <main>
+        <div class="category-header">
+            <h1>TOY GAMES</h1>
+            <p>Play creative and interactive toy games!</p>
+        </div>
+        
+        <div class="games-grid">
+            
+            <div class="game-card" onclick="openGame('¡Mucha Lucha!: Build Your Own Wrestler', 'https://flashgames.cx/game/mucha-lucha-build-your-own-wrestler')">
+                <h3>¡Mucha Lucha!: Build Your Own Wrestler</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Pleasant Goat and Big Big Wolf: Wolf Romantic Marriage Proposal', 'https://flashgames.cx/game/pleasant-goat-and-big-big-wolf-wolf-romantic-marriage-proposal')">
+                <h3>Pleasant Goat and Big Big Wolf: Wolf Romantic Marriage Proposal</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Northern Korean Sister Dressups', 'https://flashgames.cx/game/northern-korean-sister-dressups')">
+                <h3>Northern Korean Sister Dressups</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Build a Robot', 'https://flashgames.cx/game/build-a-robot')">
+                <h3>Build a Robot</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Hedgehog Designer', 'https://flashgames.cx/game/hedgehog-designer')">
+                <h3>Hedgehog Designer</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Brianne', 'https://flashgames.cx/game/brianne')">
+                <h3>Brianne</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('The Circular Blot 2', 'https://flashgames.cx/game/the-circular-blot-2')">
+                <h3>The Circular Blot 2</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Pets House', 'https://flashgames.cx/game/pets-house')">
+                <h3>Pets House</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Summer Sunny Girl', 'https://flashgames.cx/game/summer-sunny-girl')">
+                <h3>Summer Sunny Girl</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('My plane design', 'https://flashgames.cx/game/my-plane-design')">
+                <h3>My plane design</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Offroad Transporter', 'https://flashgames.cx/game/offroad-transporter')">
+                <h3>Offroad Transporter</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('DUI', 'https://flashgames.cx/game/dui')">
+                <h3>DUI</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Sonic Scene Creator 5', 'https://flashgames.cx/game/sonic-scene-creator-5')">
+                <h3>Sonic Scene Creator 5</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('The Four Elements Scene Maker', 'https://flashgames.cx/game/the-four-elements-scene-maker')">
+                <h3>The Four Elements Scene Maker</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Pencil Racer', 'https://flashgames.cx/game/pencil-racer')">
+                <h3>Pencil Racer</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('StarShine II: Puzzle Master', 'https://flashgames.cx/game/starshine-ii-puzzle-master')">
+                <h3>StarShine II: Puzzle Master</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Square Face Icon Generator', 'https://flashgames.cx/game/square-face-icon-generator')">
+                <h3>Square Face Icon Generator</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Viking Woman', 'https://flashgames.cx/game/viking-woman')">
+                <h3>Viking Woman</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Screwball Cat Pinball Adventure', 'https://flashgames.cx/game/screwball-cat-pinball-adventure')">
+                <h3>Screwball Cat Pinball Adventure</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Dream Car Racing Evo', 'https://flashgames.cx/game/dream-car-racing-evo')">
+                <h3>Dream Car Racing Evo</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Toy Factory', 'https://flashgames.cx/game/toy-factory')">
+                <h3>Toy Factory</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Circuli', 'https://flashgames.cx/game/circuli')">
+                <h3>Circuli</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Otomata', 'https://flashgames.cx/game/otomata')">
+                <h3>Otomata</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame("Manny's Pinata Birthday Bash", 'https://flashgames.cx/game/manny-s-pinata-birthday-bash')">
+                <h3>Manny's Pinata Birthday Bash</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Barbie A+ Art Teacher', 'https://flashgames.cx/game/barbie-a-art-teacher')">
+                <h3>Barbie A+ Art Teacher</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Barbie Rock n\' Harmony', 'https://flashgames.cx/game/barbie-rock-n-harmony')">
+                <h3>Barbie Rock n' Harmony</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Barbie Amazing Architect', 'https://flashgames.cx/game/barbie-amazing-architect')">
+                <h3>Barbie Amazing Architect</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Sesame Street - Elmo\'s World: Books', 'https://flashgames.cx/game/sesame-street-elmo-s-world-books')">
+                <h3>Sesame Street - Elmo's World: Books</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Create a Ride', 'https://flashgames.cx/game/create-a-ride')">
+                <h3>Create a Ride</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('加菲猫漫画制作', 'https://flashgames.cx/game/加菲猫漫画制作')">
+                <h3>加菲猫漫画制作</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Phineas and Ferb\'s Coolest Coaster Designer Ever', 'https://flashgames.cx/game/phineas-and-ferb-s-coolest-coaster-designer-ever')">
+                <h3>Phineas and Ferb's Coolest Coaster Designer Ever</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Game Builder', 'https://flashgames.cx/game/game-builder')">
+                <h3>Game Builder</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Pixel Art Avatar Icon Generator', 'https://flashgames.cx/game/pixel-art-avatar-icon-generator')">
+                <h3>Pixel Art Avatar Icon Generator</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Silly Song Machine', 'https://flashgames.cx/game/silly-song-machine')">
+                <h3>Silly Song Machine</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('MySnowflake', 'https://flashgames.cx/game/mysnowflake')">
+                <h3>MySnowflake</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Myscene Dazzling Nails', 'https://flashgames.cx/game/myscene-dazzling-nails')">
+                <h3>Myscene Dazzling Nails</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Handy Manny: Manny\'s Pit Stop Shop', 'https://flashgames.cx/game/handy-manny-manny-s-pit-stop-shop')">
+                <h3>Handy Manny: Manny's Pit Stop Shop</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Drumkit Simulator', 'https://flashgames.cx/game/drumkit-simulator')">
+                <h3>Drumkit Simulator</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Create Your Own Panwapa Kid!', 'https://flashgames.cx/game/create-your-own-panwapa-kid')">
+                <h3>Create Your Own Panwapa Kid!</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Austin & Ally: Sonic Boom Lounge', 'https://flashgames.cx/game/austin-ally-sonic-boom-lounge')">
+                <h3>Austin & Ally: Sonic Boom Lounge</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Print Center: The Jungle Book', 'https://flashgames.cx/game/print-center-the-jungle-book')">
+                <h3>Print Center: The Jungle Book</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Disney Junior: Holiday Card Creator', 'https://flashgames.cx/game/disney-junior-holiday-card-creator')">
+                <h3>Disney Junior: Holiday Card Creator</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Oso\'s Digi-Medal Painter', 'https://flashgames.cx/game/oso-s-digi-medal-painter')">
+                <h3>Oso's Digi-Medal Painter</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Movers Music Party', 'https://flashgames.cx/game/movers-music-party')">
+                <h3>Movers Music Party</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Fish Hooks: Minisodes', 'https://flashgames.cx/game/fish-hooks-minisodes')">
+                <h3>Fish Hooks: Minisodes</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Cars 2: Music Maker', 'https://flashgames.cx/game/cars-2-music-maker')">
+                <h3>Cars 2: Music Maker</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Fuzzy Things: FVF', 'https://flashgames.cx/game/fuzzy-things-fvf')">
+                <h3>Fuzzy Things: FVF</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('The Dirty Punk Anarchy Machine', 'https://flashgames.cx/game/the-dirty-punk-anarchy-machine')">
+                <h3>The Dirty Punk Anarchy Machine</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Custom Sports Car', 'https://flashgames.cx/game/custom-sports-car')">
+                <h3>Custom Sports Car</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Scooby-Doo!: Coloring Page', 'https://flashgames.cx/game/scooby-doo-coloring-page')">
+                <h3>Scooby-Doo!: Coloring Page</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 Retro Flash Portal - Preserving the Classics</p>
+    </footer>
+    
+    <!-- Modal for game playing -->
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Game Title</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function openGame(title, url) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('gameFrame').src = url;
+            document.getElementById('gameModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

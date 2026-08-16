@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time-Attack Games - Retro Flash Portal</title>
+    <style>
+        :root {
+            --primary: #ff6b35;
+            --secondary: #f7c59f;
+            --bg-dark: #1a1a2e;
+            --bg-medium: #16213e;
+            --bg-light: #0f3460;
+            --text-light: #e8e8e8;
+            --accent-green: #4ecca3;
+            --accent-pink: #ff2e63;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Scanline effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1) 0px,
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(180deg, var(--bg-medium) 0%, var(--bg-dark) 100%);
+            padding: 20px;
+            border-bottom: 3px solid var(--primary);
+            position: relative;
+        }
+        
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-pink), var(--accent-green));
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+            letter-spacing: 2px;
+        }
+        
+        nav ul {
+            display: flex;
+            gap: 15px;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 8px 16px;
+            background: var(--bg-light);
+            border: 2px solid var(--accent-green);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        nav a:hover {
+            background: var(--accent-green);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--accent-green);
+        }
+        
+        /* Main content */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .category-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .category-header h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .category-header p {
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+        
+        /* Games grid */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .game-card {
+            background: var(--bg-medium);
+            border: 2px solid var(--bg-light);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,107,53,0.1) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .game-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255,107,53,0.3);
+        }
+        
+        .game-card:hover::before {
+            opacity: 1;
+        }
+        
+        .game-card h3 {
+            color: var(--text-light);
+            font-size: 1rem;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .game-card .play-btn {
+            display: inline-block;
+            padding: 8px 20px;
+            background: var(--accent-green);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .game-card .play-btn:hover {
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--bg-medium);
+            border: 3px solid var(--primary);
+            border-radius: 10px;
+            max-width: 850px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--bg-light);
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .modal-header h2 {
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+        
+        .close-btn {
+            background: var(--accent-pink);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            background: #cc2450;
+            transform: scale(1.1);
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: calc(90vh - 150px);
+            overflow-y: auto;
+        }
+        
+        .modal-body iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+            border-radius: 5px;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            background: var(--bg-medium);
+            border-top: 2px solid var(--accent-green);
+            margin-top: 50px;
+        }
+        
+        footer p {
+            color: var(--secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav ul {
+                justify-content: center;
+            }
+            
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .modal-body iframe {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">&lt;RETRO FLASH&gt;</div>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="adventure.html">Adventure</a></li>
+                    <li><a href="arcade.html">Arcade</a></li>
+                    <li><a href="puzzle.html">Puzzle</a></li>
+                    <li><a href="action.html">Action</a></li>
+                    <li><a href="shooter.html">Shooter</a></li>
+                    <li><a href="sports.html">Sports</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <main>
+        <div class="category-header">
+            <h1>TIME-ATTACK GAMES</h1>
+            <p>Race against the clock in these fast-paced challenges!</p>
+        </div>
+        
+        <div class="games-grid">
+            
+            <div class="game-card" onclick="openGame('Balloon Clown', 'https://flashgames.cx/game/balloon-clown')">
+                <h3>Balloon Clown</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Shoot The Duck', 'https://flashgames.cx/game/shoot-the-duck')">
+                <h3>Shoot The Duck</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('My Switch', 'https://flashgames.cx/game/my-switch')">
+                <h3>My Switch</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Colorful Box Puzzle', 'https://flashgames.cx/game/colorful-box-puzzle')">
+                <h3>Colorful Box Puzzle</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Scooby-Doo\'s Creepy Cajun Cooking', 'https://flashgames.cx/game/scooby-doo-s-creepy-cajun-cooking')">
+                <h3>Scooby-Doo's Creepy Cajun Cooking</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Monotriangolare - Championship 2009', 'https://flashgames.cx/game/monotriangolare-championship-2009')">
+                <h3>Monotriangolare - Championship 2009</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('熱血籃球', 'https://flashgames.cx/game/熱血籃球')">
+                <h3>熱血籃球</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Achievement Unlocked 2', 'https://flashgames.cx/game/achievement-unlocked-2')">
+                <h3>Achievement Unlocked 2</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Achievement Unlocked 3', 'https://flashgames.cx/game/achievement-unlocked-3')">
+                <h3>Achievement Unlocked 3</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Exit Path 2', 'https://flashgames.cx/game/exit-path-2')">
+                <h3>Exit Path 2</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('ORANGE TREE & GIRL', 'https://flashgames.cx/game/orange-tree-girl')">
+                <h3>ORANGE TREE & GIRL</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Gems Swap Fall Feast', 'https://flashgames.cx/game/gems-swap-fall-feast')">
+                <h3>Gems Swap Fall Feast</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Sugarcore', 'https://flashgames.cx/game/sugarcore')">
+                <h3>Sugarcore</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Bloodungeon', 'https://flashgames.cx/game/bloodungeon')">
+                <h3>Bloodungeon</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Scramball', 'https://flashgames.cx/game/scramball')">
+                <h3>Scramball</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Scramball 2', 'https://flashgames.cx/game/scramball-2')">
+                <h3>Scramball 2</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Kill the Plumber', 'https://flashgames.cx/game/kill-the-plumber')">
+                <h3>Kill the Plumber</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Kill the Plumber 2', 'https://flashgames.cx/game/kill-the-plumber-2')">
+                <h3>Kill the Plumber 2</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Reach The Toilet 2', 'https://flashgames.cx/game/reach-the-toilet-2')">
+                <h3>Reach The Toilet 2</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Shark Lifting', 'https://flashgames.cx/game/shark-lifting')">
+                <h3>Shark Lifting</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('A Faulty Christmas', 'https://flashgames.cx/game/a-faulty-christmas')">
+                <h3>A Faulty Christmas</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('James the Space Zebra', 'https://flashgames.cx/game/james-the-space-zebra')">
+                <h3>James the Space Zebra</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Orb 2', 'https://flashgames.cx/game/orb-2-3')">
+                <h3>Orb 2</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('シュタゲタイピング', 'https://flashgames.cx/game/シュタゲタイピング')">
+                <h3>シュタゲタイピング</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Xmas 2016 Special Santa Rescue', 'https://flashgames.cx/game/xmas-2016-special-santa-rescue')">
+                <h3>Xmas 2016 Special Santa Rescue</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('厄神さまを右に', 'https://flashgames.cx/game/厄神さまを右に')">
+                <h3>厄神さまを右に</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Beat the Clock', 'https://flashgames.cx/game/beat-the-clock-2')">
+                <h3>Beat the Clock</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Gold Miner Special Edition', 'https://flashgames.cx/game/gold-miner-special-edition')">
+                <h3>Gold Miner Special Edition</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Blast Billiards', 'https://flashgames.cx/game/blast-billiards')">
+                <h3>Blast Billiards</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('オレンジ争奪ゲーム', 'https://flashgames.cx/game/オレンジ争奪ゲーム')">
+                <h3>オレンジ争奪ゲーム</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Excite Marathon', 'https://flashgames.cx/game/excite-marathon')">
+                <h3>Excite Marathon</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('BatMen', 'https://flashgames.cx/game/batmen')">
+                <h3>BatMen</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Polar Patrol', 'https://flashgames.cx/game/polar-patrol')">
+                <h3>Polar Patrol</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Hiroshi\'s Bakuhatsu Panic Mini!', 'https://flashgames.cx/game/hiroshi-s-bakuhatsu-panic-mini')">
+                <h3>Hiroshi's Bakuhatsu Panic Mini!</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Ninja Castle', 'https://flashgames.cx/game/ninja-castle-2')">
+                <h3>Ninja Castle</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Rickshaw City Parking Game', 'https://flashgames.cx/game/rickshaw-city-parking-game')">
+                <h3>Rickshaw City Parking Game</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Sonic VS. Knuckles (GMZ-Gamez)', 'https://flashgames.cx/game/sonic-vs-knuckles-gmz-gamez')">
+                <h3>Sonic VS. Knuckles (GMZ-Gamez)</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Pucca Pursuit', 'https://flashgames.cx/game/pucca-pursuit')">
+                <h3>Pucca Pursuit</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('G-Force: Juaraz Packs a Punch', 'https://flashgames.cx/game/g-force-juaraz-packs-a-punch')">
+                <h3>G-Force: Juaraz Packs a Punch</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('1x1Flip', 'https://flashgames.cx/game/1x1flip')">
+                <h3>1x1Flip</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Lazer Squarez', 'https://flashgames.cx/game/lazer-squarez')">
+                <h3>Lazer Squarez</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Hopper Beetle', 'https://flashgames.cx/game/hopper-beetle')">
+                <h3>Hopper Beetle</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('25 Boxes', 'https://flashgames.cx/game/25-boxes')">
+                <h3>25 Boxes</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Jellyfish', 'https://flashgames.cx/game/jellyfish')">
+                <h3>Jellyfish</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Demolition Derby', 'https://flashgames.cx/game/demolition-derby')">
+                <h3>Demolition Derby</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Hungry Spider', 'https://flashgames.cx/game/hungry-spider')">
+                <h3>Hungry Spider</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Crazy Jeep', 'https://flashgames.cx/game/crazy-jeep')">
+                <h3>Crazy Jeep</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Crazy Police Car', 'https://flashgames.cx/game/crazy-police-car')">
+                <h3>Crazy Police Car</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Crazy Ambulance', 'https://flashgames.cx/game/crazy-ambulance')">
+                <h3>Crazy Ambulance</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+            <div class="game-card" onclick="openGame('Racing is Magic', 'https://flashgames.cx/game/racing-is-magic')">
+                <h3>Racing is Magic</h3>
+                <button class="play-btn">PLAY</button>
+            </div>
+            
+        </div>
+    </main>
+    
+    <footer>
+        <p>&copy; 2025 Retro Flash Portal - Preserving the Classics</p>
+    </footer>
+    
+    <!-- Modal for game playing -->
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Game Title</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function openGame(title, url) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('gameFrame').src = url;
+            document.getElementById('gameModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+        
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

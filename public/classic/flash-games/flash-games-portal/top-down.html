@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top-Down Games - Retro Flash Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF9900;
+            --secondary-orange: #FFB84D;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1a;
+            --card-bg: #16213e;
+            --text-light: #eaeaea;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--card-bg) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary-orange);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            color: var(--primary-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--darker-bg);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 26, 46, 0.9), rgba(26, 26, 46, 0.9)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M50 0 L50 100 M0 50 L100 50" stroke="%23ffffff10" fill="none"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            color: var(--text-dim);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-bg);
+        }
+
+        .game-count {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, var(--darker-bg), var(--card-bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::before {
+            content: '▶';
+            font-size: 3rem;
+            color: var(--primary-orange);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .game-thumbnail:hover::before {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .game-info {
+            padding: 1rem;
+        }
+
+        .game-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .game-category-tag {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--primary-orange);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow: hidden;
+            border: 3px solid var(--primary-orange);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--darker-bg);
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .close-btn {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--secondary-orange);
+        }
+
+        .modal-body {
+            padding: 0;
+            height: calc(90vh - 80px);
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-orange);
+        }
+
+        footer p {
+            color: var(--text-dim);
+        }
+
+        footer a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">RF</div>
+            <h1>RetroFlash</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="action.html">Action</a></li>
+                <li><a href="adventure.html">Adventure</a></li>
+                <li><a href="puzzle.html">Puzzle</a></li>
+                <li><a href="sports.html">Sports</a></li>
+                <li><a href="more.html">More »</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h2>⬆️ Top-Down Games</h2>
+        <p>Experience classic overhead view gaming with RPGs, strategy games, and shooters viewed from above!</p>
+    </div>
+
+    <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <a href="more.html">More Categories</a>
+        <span>›</span>
+        <span>Top-Down</span>
+    </div>
+
+    <main>
+        <div class="category-header">
+            <h3>All Top-Down Games</h3>
+            <span class="game-count">50 Games</span>
+        </div>
+
+        <div class="game-grid">
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Nuclear Gun"></div>
+                <div class="game-info">
+                    <div class="game-title">Nuclear Gun</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Tower of the Archmage"></div>
+                <div class="game-info">
+                    <div class="game-title">Tower of the Archmage</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Besieged"></div>
+                <div class="game-info">
+                    <div class="game-title">Besieged</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Disease Warrior: Rampage"></div>
+                <div class="game-info">
+                    <div class="game-title">Disease Warrior: Rampage</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Doodle Defense"></div>
+                <div class="game-info">
+                    <div class="game-title">Doodle Defense</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="DungeonUp"></div>
+                <div class="game-info">
+                    <div class="game-title">DungeonUp</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Davey Jones: TD"></div>
+                <div class="game-info">
+                    <div class="game-title">Davey Jones: TD</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Terra God"></div>
+                <div class="game-info">
+                    <div class="game-title">Terra God</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Deluxe Pool"></div>
+                <div class="game-info">
+                    <div class="game-title">Deluxe Pool</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Momentum Missile Mayhem 2015"></div>
+                <div class="game-info">
+                    <div class="game-title">Momentum Missile Mayhem 2015</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Gunballs Saves Christmas"></div>
+                <div class="game-info">
+                    <div class="game-title">Gunballs Saves Christmas</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Generator Rex - Evo Showdown"></div>
+                <div class="game-info">
+                    <div class="game-title">Generator Rex - Evo Showdown</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="まどか☆トレイン"></div>
+                <div class="game-info">
+                    <div class="game-title">まどか☆トレイン</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Dungeon Defender"></div>
+                <div class="game-info">
+                    <div class="game-title">Dungeon Defender</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Bunny Charm"></div>
+                <div class="game-info">
+                    <div class="game-title">Bunny Charm</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Cardinal Quest Demo"></div>
+                <div class="game-info">
+                    <div class="game-title">Cardinal Quest Demo</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Christmas Crusades"></div>
+                <div class="game-info">
+                    <div class="game-title">Christmas Crusades</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Bang! Bang! Undead!"></div>
+                <div class="game-info">
+                    <div class="game-title">Bang! Bang! Undead!</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Ghost Castle"></div>
+                <div class="game-info">
+                    <div class="game-title">Ghost Castle</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Team of Robbers"></div>
+                <div class="game-info">
+                    <div class="game-title">Team of Robbers</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Mauled Zero"></div>
+                <div class="game-info">
+                    <div class="game-title">Mauled Zero</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="BitDungeon"></div>
+                <div class="game-info">
+                    <div class="game-title">BitDungeon</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Knights Beasts & Magic 3: Rise of Anton"></div>
+                <div class="game-info">
+                    <div class="game-title">Knights Beasts & Magic 3: Rise of Anton</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Central Smashdown"></div>
+                <div class="game-info">
+                    <div class="game-title">Central Smashdown</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Sweatshop"></div>
+                <div class="game-info">
+                    <div class="game-title">Sweatshop</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="LABYRINTH"></div>
+                <div class="game-info">
+                    <div class="game-title">LABYRINTH</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Create Your own Tower Defense 3"></div>
+                <div class="game-info">
+                    <div class="game-title">Create Your own Tower Defense 3</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Total Drama Action: Krappy Karts"></div>
+                <div class="game-info">
+                    <div class="game-title">Total Drama Action: Krappy Karts</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Tower of Goluaga"></div>
+                <div class="game-info">
+                    <div class="game-title">Tower of Goluaga</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="シンプルRTS"></div>
+                <div class="game-info">
+                    <div class="game-title">シンプルRTS</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="暴走特急285系"></div>
+                <div class="game-info">
+                    <div class="game-title">暴走特急285系</div>
+                    <span class="game-category-tag">Top-Down</span>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="close-btn" onclick="closeModal()">✕ Close</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>RetroFlash Portal - Preserving the Best of Flash Gaming</p>
+        <p><a href="index.html">Home</a> | <a href="about.html">About</a> | <a href="contact.html">Contact</a></p>
+    </footer>
+
+    <script>
+        // Game URLs mapping
+        const gameUrls = {
+            "Nuclear Gun": "https://flashgames.cx/game/nuclear-gun",
+            "Tower of the Archmage": "https://flashgames.cx/game/tower-of-the-archmage",
+            "Besieged": "https://flashgames.cx/game/besieged",
+            "Disease Warrior: Rampage": "https://flashgames.cx/game/disease-warrior-rampage",
+            "Doodle Defense": "https://flashgames.cx/game/doodle-defense",
+            "DungeonUp": "https://flashgames.cx/game/dungeonup",
+            "Davey Jones: TD": "https://flashgames.cx/game/davey-jones-td",
+            "Terra God": "https://flashgames.cx/game/terra-god",
+            "Deluxe Pool": "https://flashgames.cx/game/deluxe-pool",
+            "Momentum Missile Mayhem 2015": "https://flashgames.cx/game/momentum-missile-mayhem-2015",
+            "Gunballs Saves Christmas": "https://flashgames.cx/game/gunballs-saves-christmas",
+            "Generator Rex - Evo Showdown": "https://flashgames.cx/game/generator-rex-evo-showdown",
+            "まどか☆トレイン": "https://flashgames.cx/game/まどか☆トレイン",
+            "Dungeon Defender": "https://flashgames.cx/game/dungeon-defender",
+            "Bunny Charm": "https://flashgames.cx/game/bunny-charm",
+            "Cardinal Quest Demo": "https://flashgames.cx/game/cardinal-quest-demo",
+            "Christmas Crusades": "https://flashgames.cx/game/christmas-crusades",
+            "Bang! Bang! Undead!": "https://flashgames.cx/game/bang-bang-undead",
+            "Ghost Castle": "https://flashgames.cx/game/ghost-castle-2",
+            "Team of Robbers": "https://flashgames.cx/game/team-of-robbers",
+            "Mauled Zero": "https://flashgames.cx/game/mauled-zero",
+            "BitDungeon": "https://flashgames.cx/game/bitdungeon",
+            "Knights Beasts & Magic 3: Rise of Anton": "https://flashgames.cx/game/knights-beasts-magic-3-rise-of-anton",
+            "Central Smashdown": "https://flashgames.cx/game/central-smashdown",
+            "Sweatshop": "https://flashgames.cx/game/sweatshop",
+            "LABYRINTH": "https://flashgames.cx/game/labyrinth-5",
+            "Create Your own Tower Defense 3": "https://flashgames.cx/game/create-your-own-tower-defense-3",
+            "Total Drama Action: Krappy Karts": "https://flashgames.cx/game/total-drama-action-krappy-karts",
+            "Tower of Goluaga": "https://flashgames.cx/game/tower-of-goluaga",
+            "シンプルRTS": "https://flashgames.cx/game/rts",
+            "暴走特急285系": "https://flashgames.cx/game/285-8"
+        };
+
+        // Open game modal
+        document.querySelectorAll('.game-thumbnail').forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                const gameName = this.getAttribute('data-game');
+                const gameUrl = gameUrls[gameName];
+                
+                if (gameUrl) {
+                    document.getElementById('modalTitle').textContent = gameName;
+                    document.getElementById('gameFrame').src = gameUrl;
+                    document.getElementById('gameModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        });
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

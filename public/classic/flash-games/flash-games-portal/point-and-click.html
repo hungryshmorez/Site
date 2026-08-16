@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Point and Click Games - Retro Flash Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF9900;
+            --secondary-orange: #FFB84D;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1a;
+            --card-bg: #16213e;
+            --text-light: #eaeaea;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--card-bg) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary-orange);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            color: var(--primary-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--darker-bg);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 26, 46, 0.9), rgba(26, 26, 46, 0.9)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="click" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="2" fill="%23ffffff20"/><circle cx="30" cy="30" r="1" fill="%23ffffff20"/><circle cx="70" cy="70" r="1.5" fill="%23ffffff20"/></pattern></defs><rect width="100" height="100" fill="url(%23click)"/></svg>');
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            color: var(--text-dim);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-bg);
+        }
+
+        .game-count {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, var(--darker-bg), var(--card-bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::before {
+            content: '▶';
+            font-size: 3rem;
+            color: var(--primary-orange);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .game-thumbnail:hover::before {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .game-info {
+            padding: 1rem;
+        }
+
+        .game-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .game-category-tag {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--primary-orange);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow: hidden;
+            border: 3px solid var(--primary-orange);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--darker-bg);
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .close-btn {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--secondary-orange);
+        }
+
+        .modal-body {
+            padding: 0;
+            height: calc(90vh - 80px);
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-orange);
+        }
+
+        footer p {
+            color: var(--text-dim);
+        }
+
+        footer a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">RF</div>
+            <h1>RetroFlash</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="action.html">Action</a></li>
+                <li><a href="adventure.html">Adventure</a></li>
+                <li><a href="puzzle.html">Puzzle</a></li>
+                <li><a href="sports.html">Sports</a></li>
+                <li><a href="more.html">More »</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h2>👆 Point and Click Games</h2>
+        <p>Explore immersive narratives and solve puzzles with simple mouse clicks in these engaging adventure games!</p>
+    </div>
+
+    <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <a href="more.html">More Categories</a>
+        <span>›</span>
+        <span>Point and Click</span>
+    </div>
+
+    <main>
+        <div class="category-header">
+            <h3>All Point and Click Games</h3>
+            <span class="game-count">50 Games</span>
+        </div>
+
+        <div class="game-grid">
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Harry Quantum 3: Cheese Carnival"></div>
+                <div class="game-info">
+                    <div class="game-title">Harry Quantum 3: Cheese Carnival</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Forgotten Hill: Fall"></div>
+                <div class="game-info">
+                    <div class="game-title">Forgotten Hill: Fall</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Hospital 46"></div>
+                <div class="game-info">
+                    <div class="game-title">Hospital 46</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Humanoid 47"></div>
+                <div class="game-info">
+                    <div class="game-title">Humanoid 47</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Mysterious Island 49"></div>
+                <div class="game-info">
+                    <div class="game-title">Mysterious Island 49</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Mother of the Bird Men"></div>
+                <div class="game-info">
+                    <div class="game-title">The Mother of the Bird Men</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Earl Octopusor"></div>
+                <div class="game-info">
+                    <div class="game-title">The Earl Octopusor</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Queen of Snakes"></div>
+                <div class="game-info">
+                    <div class="game-title">The Queen of Snakes</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Harry Quantum Episode 1: TV Go Home"></div>
+                <div class="game-info">
+                    <div class="game-title">Harry Quantum Episode 1: TV Go Home</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Harry Quantum Unmasked"></div>
+                <div class="game-info">
+                    <div class="game-title">Harry Quantum Unmasked</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Great Biohazard Escape"></div>
+                <div class="game-info">
+                    <div class="game-title">The Great Biohazard Escape</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pico's Cousin 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Pico's Cousin 2</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Last Door: Prologue"></div>
+                <div class="game-info">
+                    <div class="game-title">The Last Door: Prologue</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Kidnapped by Pirates"></div>
+                <div class="game-info">
+                    <div class="game-title">Kidnapped by Pirates</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Insanity"></div>
+                <div class="game-info">
+                    <div class="game-title">The Insanity</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Insanity 2"></div>
+                <div class="game-info">
+                    <div class="game-title">The Insanity 2</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="StormWinds: The Mary Reed Chronicles"></div>
+                <div class="game-info">
+                    <div class="game-title">StormWinds: The Mary Reed Chronicles</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Supernatural"></div>
+                <div class="game-info">
+                    <div class="game-title">Supernatural</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Nephi's Adventure 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Nephi's Adventure 2</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Pirates of the Undead Sea"></div>
+                <div class="game-info">
+                    <div class="game-title">Pirates of the Undead Sea</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Holiday Sim"></div>
+                <div class="game-info">
+                    <div class="game-title">Holiday Sim</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Gay Kiss"></div>
+                <div class="game-info">
+                    <div class="game-title">Gay Kiss</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Samsung - The Inside Job"></div>
+                <div class="game-info">
+                    <div class="game-title">Samsung - The Inside Job</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Frozen Blackberry Lemon Chiffon Pie"></div>
+                <div class="game-info">
+                    <div class="game-title">Frozen Blackberry Lemon Chiffon Pie</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Salted Caramel Brownies"></div>
+                <div class="game-info">
+                    <div class="game-title">Salted Caramel Brownies</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="WindowsNG"></div>
+                <div class="game-info">
+                    <div class="game-title">WindowsNG</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Scorpion Box"></div>
+                <div class="game-info">
+                    <div class="game-title">The Scorpion Box</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Fugue"></div>
+                <div class="game-info">
+                    <div class="game-title">Fugue</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Blue Bird Girl Escape"></div>
+                <div class="game-info">
+                    <div class="game-title">Blue Bird Girl Escape</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Redneck VS Zombies"></div>
+                <div class="game-info">
+                    <div class="game-title">Redneck VS Zombies</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="クリスマスから脱出２"></div>
+                <div class="game-info">
+                    <div class="game-title">クリスマスから脱出２</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="CHIKA室からの脱出"></div>
+                <div class="game-info">
+                    <div class="game-title">CHIKA室からの脱出</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="箱からの脱出"></div>
+                <div class="game-info">
+                    <div class="game-title">箱からの脱出</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="クリスマスから脱出"></div>
+                <div class="game-info">
+                    <div class="game-title">クリスマスから脱出</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="愚離院からの脱出"></div>
+                <div class="game-info">
+                    <div class="game-title">愚離院からの脱出</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="エレベーターで脱出"></div>
+                <div class="game-info">
+                    <div class="game-title">エレベーターで脱出</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Mental Showtime"></div>
+                <div class="game-info">
+                    <div class="game-title">Mental Showtime</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The Journey"></div>
+                <div class="game-info">
+                    <div class="game-title">The Journey</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Where's the Clitoris?"></div>
+                <div class="game-info">
+                    <div class="game-title">Where's the Clitoris?</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Spider-Man Save The Town"></div>
+                <div class="game-info">
+                    <div class="game-title">Spider-Man Save The Town</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="A Day At High School"></div>
+                <div class="game-info">
+                    <div class="game-title">A Day At High School</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Cubi Kill 3"></div>
+                <div class="game-info">
+                    <div class="game-title">Cubi Kill 3</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Ultimate Babysitter"></div>
+                <div class="game-info">
+                    <div class="game-title">Ultimate Babysitter</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Fabrico"></div>
+                <div class="game-info">
+                    <div class="game-title">Fabrico</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Doraemon Mystery"></div>
+                <div class="game-info">
+                    <div class="game-title">Doraemon Mystery</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Clostrum"></div>
+                <div class="game-info">
+                    <div class="game-title">Clostrum</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Escape Mad Scientist Workshop"></div>
+                <div class="game-info">
+                    <div class="game-title">Escape Mad Scientist Workshop</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Draka 2: No More Christmas"></div>
+                <div class="game-info">
+                    <div class="game-title">Draka 2: No More Christmas</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="A Sticks Quest"></div>
+                <div class="game-info">
+                    <div class="game-title">A Sticks Quest</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Gazzyboy Popeye Escape"></div>
+                <div class="game-info">
+                    <div class="game-title">Gazzyboy Popeye Escape</div>
+                    <span class="game-category-tag">Point and Click</span>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="close-btn" onclick="closeModal()">✕ Close</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>RetroFlash Portal - Preserving the Best of Flash Gaming</p>
+        <p><a href="index.html">Home</a> | <a href="about.html">About</a> | <a href="contact.html">Contact</a></p>
+    </footer>
+
+    <script>
+        // Game URLs mapping
+        const gameUrls = {
+            "Harry Quantum 3: Cheese Carnival": "https://flashgames.cx/game/harry-quantum-3-cheese-carnival",
+            "Forgotten Hill: Fall": "https://flashgames.cx/game/forgotten-hill-fall",
+            "Hospital 46": "https://flashgames.cx/game/hospital-46",
+            "Humanoid 47": "https://flashgames.cx/game/humanoid-47",
+            "Mysterious Island 49": "https://flashgames.cx/game/mysterious-island-49",
+            "The Mother of the Bird Men": "https://flashgames.cx/game/the-mother-of-the-bird-men",
+            "The Earl Octopusor": "https://flashgames.cx/game/the-earl-octopusor",
+            "The Queen of Snakes": "https://flashgames.cx/game/the-queen-of-snakes",
+            "Harry Quantum Episode 1: TV Go Home": "https://flashgames.cx/game/harry-quantum-episode-1-tv-go-home",
+            "Harry Quantum Unmasked": "https://flashgames.cx/game/harry-quantum-unmasked",
+            "The Great Biohazard Escape": "https://flashgames.cx/game/the-great-biohazard-escape",
+            "Pico's Cousin 2": "https://flashgames.cx/game/pico-s-cousin-2",
+            "The Last Door: Prologue": "https://flashgames.cx/game/the-last-door-prologue",
+            "Kidnapped by Pirates": "https://flashgames.cx/game/kidnapped-by-pirates",
+            "The Insanity": "https://flashgames.cx/game/the-insanity",
+            "The Insanity 2": "https://flashgames.cx/game/the-insanity-2",
+            "StormWinds: The Mary Reed Chronicles": "https://flashgames.cx/game/stormwinds-the-mary-reed-chronicles",
+            "Supernatural": "https://flashgames.cx/game/supernatural",
+            "Nephi's Adventure 2": "https://flashgames.cx/game/nephi-s-adventure-2",
+            "Pirates of the Undead Sea": "https://flashgames.cx/game/pirates-of-the-undead-sea",
+            "Holiday Sim": "https://flashgames.cx/game/holiday-sim",
+            "Gay Kiss": "https://flashgames.cx/game/gay-kiss",
+            "Samsung - The Inside Job": "https://flashgames.cx/game/samsung-the-inside-job",
+            "Frozen Blackberry Lemon Chiffon Pie": "https://flashgames.cx/game/frozen-blackberry-lemon-chiffon-pie",
+            "Salted Caramel Brownies": "https://flashgames.cx/game/salted-caramel-brownies",
+            "WindowsNG": "https://flashgames.cx/game/windowsng",
+            "The Scorpion Box": "https://flashgames.cx/game/the-scorpion-box",
+            "Fugue": "https://flashgames.cx/game/fugue",
+            "Blue Bird Girl Escape": "https://flashgames.cx/game/blue-bird-girl-escape",
+            "Redneck VS Zombies": "https://flashgames.cx/game/redneck-vs-zombies",
+            "クリスマスから脱出２": "https://flashgames.cx/game/クリスマスから脱出２",
+            "CHIKA室からの脱出": "https://flashgames.cx/game/chika",
+            "箱からの脱出": "https://flashgames.cx/game/箱からの脱出",
+            "クリスマスから脱出": "https://flashgames.cx/game/クリスマスから脱出",
+            "愚離院からの脱出": "https://flashgames.cx/game/愚離院からの脱出",
+            "エレベーターで脱出": "https://flashgames.cx/game/エレベーターで脱出",
+            "Mental Showtime": "https://flashgames.cx/game/mental-showtime",
+            "The Journey": "https://flashgames.cx/game/the-journey",
+            "Where's the Clitoris?": "https://flashgames.cx/game/where-s-the-clitoris",
+            "Spider-Man Save The Town": "https://flashgames.cx/game/spider-man-save-the-town",
+            "A Day At High School": "https://flashgames.cx/game/a-day-at-high-school",
+            "Cubi Kill 3": "https://flashgames.cx/game/cubi-kill-3",
+            "Ultimate Babysitter": "https://flashgames.cx/game/ultimate-babysitter",
+            "Fabrico": "https://flashgames.cx/game/fabrico",
+            "Doraemon Mystery": "https://flashgames.cx/game/doraemon-mystery",
+            "Clostrum": "https://flashgames.cx/game/clostrum",
+            "Escape Mad Scientist Workshop": "https://flashgames.cx/game/escape-mad-scientist-workshop",
+            "Draka 2: No More Christmas": "https://flashgames.cx/game/draka-2-no-more-christmas",
+            "A Sticks Quest": "https://flashgames.cx/game/a-sticks-quest",
+            "Gazzyboy Popeye Escape": "https://flashgames.cx/game/gazzyboy-popeye-escape"
+        };
+
+        // Open game modal
+        document.querySelectorAll('.game-thumbnail').forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                const gameName = this.getAttribute('data-game');
+                const gameUrl = gameUrls[gameName];
+                
+                if (gameUrl) {
+                    document.getElementById('modalTitle').textContent = gameName;
+                    document.getElementById('gameFrame').src = gameUrl;
+                    document.getElementById('gameModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        });
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

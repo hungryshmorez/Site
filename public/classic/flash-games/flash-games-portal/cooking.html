@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cooking Games - FlashVault Arcade</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FFA500;
+            --dark-orange: #CC8400;
+            --bg-dark: #1a1a1a;
+            --bg-darker: #0f0f0f;
+            --text-light: #f0f0f0;
+            --text-dim: #888;
+            --border-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+            border-right: 2px solid var(--border-color);
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            text-align: center;
+            padding: 0 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-orange);
+            text-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .logo-sub {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 4px;
+            margin-top: 5px;
+        }
+
+        .nav-section {
+            margin-bottom: 15px;
+        }
+
+        .nav-section-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            padding: 0 20px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin: 2px 10px;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            color: var(--text-light);
+            text-decoration: none;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            font-size: 13px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 165, 0, 0.1);
+            color: var(--primary-orange);
+            transform: translateX(5px);
+        }
+
+        .nav-links a.active {
+            background: linear-gradient(90deg, var(--primary-orange), var(--dark-orange));
+            color: #000;
+            font-weight: bold;
+        }
+
+        .nav-icon {
+            width: 20px;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 30px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark) 100%);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-orange), var(--dark-orange), var(--primary-orange));
+        }
+
+        .category-title {
+            font-size: 32px;
+            color: var(--primary-orange);
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 165, 0, 0.3);
+        }
+
+        .category-description {
+            color: var(--text-dim);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .game-count {
+            display: inline-block;
+            background: var(--primary-orange);
+            color: #000;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .tank-button {
+            background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 50%, #1a1a1a 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            color: var(--text-light);
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #0a0a0a, 0 6px 10px rgba(0,0,0,0.5);
+            margin: 5px;
+        }
+
+        .tank-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #0a0a0a, 0 8px 15px rgba(0,0,0,0.5);
+            color: var(--primary-orange);
+        }
+
+        .tank-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #0a0a0a, 0 3px 5px rgba(0,0,0,0.5);
+        }
+
+        .tank-button.primary {
+            background: linear-gradient(180deg, var(--primary-orange) 0%, var(--dark-orange) 50%, #996600 100%);
+            color: #000;
+            font-weight: bold;
+        }
+
+        .games-section {
+            margin-top: 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: var(--primary-orange);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background: var(--bg-darker);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 165, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 135px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::before {
+            content: "▶";
+            font-size: 40px;
+            color: var(--primary-orange);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .game-card:hover .game-thumbnail::before {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .game-info {
+            padding: 12px;
+        }
+
+        .game-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .game-category {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-top: 5px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-darker);
+            border: 3px solid var(--primary-orange);
+            border-radius: 15px;
+            width: 100%;
+            max-width: 850px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(255, 165, 0, 0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(90deg, var(--primary-orange), var(--dark-orange));
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .close-button {
+            background: #000;
+            color: var(--primary-orange);
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-button:hover {
+            background: #fff;
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 0;
+        }
+
+        .game-frame {
+            width: 100%;
+            height: 600px;
+            border: none;
+            background: #000;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .container {
+                flex-direction: column;
+            }
+
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+
+            .game-frame {
+                height: 400px;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(255, 165, 0, 0); }
+        }
+
+        .game-card::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 10px;
+            height: 10px;
+            background: var(--primary-orange);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">FLASHVAULT</div>
+                <div class="logo-sub">ARCADE COLLECTION</div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <ul class="nav-links">
+                    <li><a href="index.html" class="nav-icon">🏠</a><a href="index.html">Home</a></li>
+                    <li><a href="all-games.html" class="nav-icon">🎮</a><a href="all-games.html">All Games</a></li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Categories</div>
+                <ul class="nav-links">
+                    <li><a href="adventure.html" class="nav-icon">🗺️</a><a href="adventure.html">Adventure</a></li>
+                    <li><a href="arcade.html" class="nav-icon">🕹️</a><a href="arcade.html">Arcade</a></li>
+                    <li><a href="puzzle.html" class="nav-icon">🧩</a><a href="puzzle.html">Puzzle</a></li>
+                    <li><a href="action.html" class="nav-icon">⚡</a><a href="action.html">Action</a></li>
+                    <li><a href="shooter.html" class="nav-icon">🎯</a><a href="shooter.html">Shooter</a></li>
+                    <li><a href="sports.html" class="nav-icon">⚽</a><a href="sports.html">Sports</a></li>
+                    <li><a href="strategy.html" class="nav-icon">♟️</a><a href="strategy.html">Strategy</a></li>
+                    <li><a href="fighting.html" class="nav-icon">🥊</a><a href="fighting.html">Fighting</a></li>
+                    <li><a href="educational.html" class="nav-icon">📚</a><a href="educational.html">Educational</a></li>
+                    <li><a href="cooking.html" class="nav-icon active">👨‍🍳</a><a href="cooking.html" class="active">Cooking</a></li>
+                    <li><a href="dress-up.html" class="nav-icon">👗</a><a href="dress-up.html">Dress Up</a></li>
+                    <li><a href="driving.html" class="nav-icon">🚗</a><a href="driving.html">Driving</a></li>
+                    <li><a href="racing.html" class="nav-icon">🏎️</a><a href="racing.html">Racing</a></li>
+                    <li><a href="hidden-objects.html" class="nav-icon">🔍</a><a href="hidden-objects.html">Hidden Objects</a></li>
+                    <li><a href="jigsaw.html" class="nav-icon">🧩</a><a href="jigsaw.html">Jigsaw</a></li>
+                    <li><a href="make-up.html" class="nav-icon">💄</a><a href="make-up.html">Make Up</a></li>
+                    <li><a href="halloween.html" class="nav-icon">🎃</a><a href="halloween.html">Halloween</a></li>
+                    <li><a href="christmas.html" class="nav-icon">🎄</a><a href="christmas.html">Christmas</a></li>
+                    <li><a href="memory.html" class="nav-icon">🧠</a><a href="memory.html">Memory</a></li>
+                    <li><a href="fantasy.html" class="nav-icon">🐉</a><a href="fantasy.html">Fantasy</a></li>
+                    <li><a href="space.html" class="nav-icon">🚀</a><a href="space.html">Space</a></li>
+                    <li><a href="running.html" class="nav-icon">🏃</a><a href="running.html">Running</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="category-title">👨‍🍳 Cooking Games</h1>
+                <p class="category-description">Ready to be a master chef? These cooking games let you prepare delicious meals, bake cakes, follow recipes, and manage your own restaurant kitchen!</p>
+                <span class="game-count">50 Games Available</span>
+            </header>
+
+            <section class="games-section">
+                <div class="games-grid" id="gamesGrid">
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="close-button" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <iframe class="game-frame" id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cookingGames = [
+            { title: "Beach ice cream", iframe: "<iframe src=\"https://flashgames.cx/game/beach-ice-cream\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Fruit Salad Festival", iframe: "<iframe src=\"https://flashgames.cx/game/fruit-salad-festival\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Christmas Pretzels", iframe: "<iframe src=\"https://flashgames.cx/game/christmas-pretzels\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Turkey Cake Pops", iframe: "<iframe src=\"https://flashgames.cx/game/turkey-cake-pops\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Pleasant Goat Make Cookie", iframe: "<iframe src=\"https://flashgames.cx/game/pleasant-goat-and-big-big-wolf-pretty-goat-make-cookie\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Pleasant Goat Making Mooncake", iframe: "<iframe src=\"https://flashgames.cx/game/pleasant-goat-and-big-big-wolf-pretty-goat-making-mooncake\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Fried Chicken", iframe: "<iframe src=\"https://flashgames.cx/game/fried-chicken\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Fathers Day Quesadillas", iframe: "<iframe src=\"https://flashgames.cx/game/fathers-day-quesadillas\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Ice Cream Sundae", iframe: "<iframe src=\"https://flashgames.cx/game/ice-cream-sundae\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "New Year Confetti Cake", iframe: "<iframe src=\"https://flashgames.cx/game/new-year-confetti-cake\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "大閘蟹的究極吃法", iframe: "<iframe src=\"https://flashgames.cx/game/大閘蟹的究極吃法\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Bugs Bunny Juice", iframe: "<iframe src=\"https://flashgames.cx/game/bugs-bunny-juice\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Egg Curry Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/egg-curry-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Make Egg Curry Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/make-egg-curry-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Pizza Margarita Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/pizza-margarita-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "French Crepes Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/french-crepes-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Chole Garbanzo Bean Curry Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/chole-garbanzo-bean-curry-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Gulab Jamun Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/gulab-jamun-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Make Macaronic Cheese", iframe: "<iframe src=\"https://flashgames.cx/game/make-macaronic-cheese\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Make Onion Ring", iframe: "<iframe src=\"https://flashgames.cx/game/make-onion-ring\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Malaysian Chicken Satay Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/malaysian-chicken-satay-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Moussaka Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/moussaka-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Mousse Cake Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/mousse-cake-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Shrimp Toast Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/shrimp-toast-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Chilli Con Carne Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/chilli-con-carne-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Chocolate Almond Cake Recipe", iframe: "<iframe src=\"https://flashgames.cx/game/chocolate-almond-cake-recipe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Classic Chicken Curry", iframe: "<iframe src=\"https://flashgames.cx/game/classic-chicken-curry\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Caribbean Conch Fritters", iframe: "<iframe src=\"https://flashgames.cx/game/caribbean-conch-fritters\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Make Fish Fingers", iframe: "<iframe src=\"https://flashgames.cx/game/make-fish-fingers\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Make Macaroni Salad", iframe: "<iframe src=\"https://flashgames.cx/game/make-macaroni-salad\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "土用丑", iframe: "<iframe src=\"https://flashgames.cx/game/土用丑\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Ratatouille Eats Crepes", iframe: "<iframe src=\"https://flashgames.cx/game/ratatouille-eats-crepes\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Pou Girl Pizza", iframe: "<iframe src=\"https://flashgames.cx/game/pou-girl-pizza\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Pou Cooking Pie", iframe: "<iframe src=\"https://flashgames.cx/game/pou-cooking-pie\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "越前おろしそばゲーム", iframe: "<iframe src=\"https://flashgames.cx/game/越前おろしそばゲーム\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Orange Cake", iframe: "<iframe src=\"https://flashgames.cx/game/orange-cake\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "H.K. Cafe", iframe: "<iframe src=\"https://flashgames.cx/game/h-k-cafe\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Maggie's Bakery", iframe: "<iframe src=\"https://flashgames.cx/game/maggie-s-bakery\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Sushi Oishi", iframe: "<iframe src=\"https://flashgames.cx/game/sushi-oishi\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Barbie Cakery Bakery", iframe: "<iframe src=\"https://flashgames.cx/game/barbie-cakery-bakery\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Tasty Chicken Buffalo Calzone", iframe: "<iframe src=\"https://flashgames.cx/game/tasty-chicken-buffalo-calzone\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Frozen Blackberry Lemon Chiffon Pie", iframe: "<iframe src=\"https://flashgames.cx/game/frozen-blackberry-lemon-chiffon-pie\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Salted Caramel Brownies", iframe: "<iframe src=\"https://flashgames.cx/game/salted-caramel-brownies\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Shrimp Sandwich Twin", iframe: "<iframe src=\"https://flashgames.cx/game/shrimp-sandwich-twin\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Cooking Vanilla Ice Cream", iframe: "<iframe src=\"https://flashgames.cx/game/cooking-vanilla-ice-cream\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Katpow Express", iframe: "<iframe src=\"https://flashgames.cx/game/katpow-express\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Cooking Frenzy Pretzels", iframe: "<iframe src=\"https://flashgames.cx/game/cooking-frenzy-pretzels\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Surgery Squad: How to Cook a Turkey", iframe: "<iframe src=\"https://flashgames.cx/game/surgery-squad-how-to-cook-a-turkey\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "Sweet Doughnuts", iframe: "<iframe src=\"https://flashgames.cx/game/sweet-doughnuts\" width=\"800\" height=\"600\"></iframe>" },
+            { title: "꾼감 꾼고마", iframe: "<iframe src=\"https://flashgames.cx/game/꾼감 꾼고마\" width=\"800\" height=\"600\"></iframe>" }
+        ];
+
+        function populateGames() {
+            const grid = document.getElementById('gamesGrid');
+            
+            cookingGames.forEach((game, index) => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.onclick = () => openGame(index);
+                
+                card.innerHTML = `
+                    <div class="game-thumbnail">
+                        <span style="font-size: 40px;">👨‍🍳</span>
+                    </div>
+                    <div class="game-info">
+                        <div class="game-title">${game.title}</div>
+                        <div class="game-category">Cooking</div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function openGame(index) {
+            const game = cookingGames[index];
+            const modal = document.getElementById('gameModal');
+            const title = document.getElementById('modalTitle');
+            const frame = document.getElementById('gameFrame');
+            
+            title.textContent = game.title;
+            frame.srcdoc = game.iframe;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('gameModal');
+            modal.classList.remove('active');
+            document.getElementById('gameFrame').srcdoc = '';
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        document.getElementById('gameModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('gameModal')) {
+                closeModal();
+            }
+        });
+
+        populateGames();
+    </script>
+</body>
+</html>

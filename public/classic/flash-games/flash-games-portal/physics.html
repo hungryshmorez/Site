@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Games - Retro Flash Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-orange: #FF9900;
+            --secondary-orange: #FFB84D;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1a;
+            --card-bg: #16213e;
+            --text-light: #eaeaea;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--card-bg) 100%);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary-orange);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            color: var(--primary-orange);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--darker-bg);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(26, 26, 46, 0.9), rgba(26, 26, 46, 0.9)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="gravity" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="20" r="3" fill="%23ffffff10"/><circle cx="30" cy="50" r="2" fill="%23ffffff10"/><circle cx="70" cy="80" r="4" fill="%23ffffff10"/></pattern></defs><rect width="100" height="100" fill="url(%23gravity)"/></svg>');
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .hero h2 {
+            font-size: 2.5rem;
+            color: var(--primary-orange);
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            color: var(--text-dim);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-bg);
+        }
+
+        .game-count {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Game Grid */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-orange);
+            box-shadow: 0 10px 30px rgba(255, 153, 0, 0.2);
+        }
+
+        .game-thumbnail {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, var(--darker-bg), var(--card-bg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-thumbnail::before {
+            content: '▶';
+            font-size: 3rem;
+            color: var(--primary-orange);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .game-thumbnail:hover::before {
+            transform: scale(1.2);
+            opacity: 1;
+        }
+
+        .game-info {
+            padding: 1rem;
+        }
+
+        .game-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .game-category-tag {
+            display: inline-block;
+            background: rgba(255, 153, 0, 0.2);
+            color: var(--primary-orange);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow: hidden;
+            border: 3px solid var(--primary-orange);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--darker-bg);
+            border-bottom: 2px solid var(--primary-orange);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .close-btn {
+            background: var(--primary-orange);
+            color: var(--darker-bg);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--secondary-orange);
+        }
+
+        .modal-body {
+            padding: 0;
+            height: calc(90vh - 80px);
+        }
+
+        .modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--darker-bg);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-orange);
+        }
+
+        footer p {
+            color: var(--text-dim);
+        }
+
+        footer a {
+            color: var(--primary-orange);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .game-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">RF</div>
+            <h1>RetroFlash</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="action.html">Action</a></li>
+                <li><a href="adventure.html">Adventure</a></li>
+                <li><a href="puzzle.html">Puzzle</a></li>
+                <li><a href="sports.html">Sports</a></li>
+                <li><a href="more.html">More »</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h2>⚛️ Physics Games</h2>
+        <p>Master realistic physics simulations and manipulate physical principles to solve puzzles!</p>
+    </div>
+
+    <div class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span>›</span>
+        <a href="more.html">More Categories</a>
+        <span>›</span>
+        <span>Physics</span>
+    </div>
+
+    <main>
+        <div class="category-header">
+            <h3>All Physics Games</h3>
+            <span class="game-count">50 Games</span>
+        </div>
+
+        <div class="game-grid">
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Doctor Acorn"></div>
+                <div class="game-info">
+                    <div class="game-title">Doctor Acorn</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Dream Car Racing Evo"></div>
+                <div class="game-info">
+                    <div class="game-title">Dream Car Racing Evo</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Jump Out! The Box"></div>
+                <div class="game-info">
+                    <div class="game-title">Jump Out! The Box</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Optika"></div>
+                <div class="game-info">
+                    <div class="game-title">Optika</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Roly-Poly Cannon: Bloody Monsters Pack 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Roly-Poly Cannon: Bloody Monsters Pack 2</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Simple Motions 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Simple Motions 2</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Ragdoll Course"></div>
+                <div class="game-info">
+                    <div class="game-title">Ragdoll Course</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Ragdoll Course 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Ragdoll Course 2</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="The WTF Game Experience"></div>
+                <div class="game-info">
+                    <div class="game-title">The WTF Game Experience</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Ballooner"></div>
+                <div class="game-info">
+                    <div class="game-title">Ballooner</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Georg Gearløs' Opfinderspel"></div>
+                <div class="game-info">
+                    <div class="game-title">Georg Gearløs' Opfinderspel</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Zooking Xmas 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Zooking Xmas 2</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Physics Demo"></div>
+                <div class="game-info">
+                    <div class="game-title">Physics Demo</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Angry Animals 3"></div>
+                <div class="game-info">
+                    <div class="game-title">Angry Animals 3</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Angry Animals: aliens come in"></div>
+                <div class="game-info">
+                    <div class="game-title">Angry Animals: aliens come in</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Cuboy Quest 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Cuboy Quest 2</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="UNCF"></div>
+                <div class="game-info">
+                    <div class="game-title">UNCF</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="箱積み部屋"></div>
+                <div class="game-info">
+                    <div class="game-title">箱積み部屋</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="HERO10"></div>
+                <div class="game-info">
+                    <div class="game-title">HERO10</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Cats'n'Fish"></div>
+                <div class="game-info">
+                    <div class="game-title">Cats'n'Fish</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="O.S.S."></div>
+                <div class="game-info">
+                    <div class="game-title">O.S.S.</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Chocolate Tower"></div>
+                <div class="game-info">
+                    <div class="game-title">Chocolate Tower</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Multiball"></div>
+                <div class="game-info">
+                    <div class="game-title">Multiball</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Saving Toasty"></div>
+                <div class="game-info">
+                    <div class="game-title">Saving Toasty</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Cat Stretch"></div>
+                <div class="game-info">
+                    <div class="game-title">Cat Stretch</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Dummy Crusher 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Dummy Crusher 2</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Ragdoll Rooftops"></div>
+                <div class="game-info">
+                    <div class="game-title">Ragdoll Rooftops</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Snowman Destroyer"></div>
+                <div class="game-info">
+                    <div class="game-title">Snowman Destroyer</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+            <div class="game-card">
+                <div class="game-thumbnail" data-game="Jolly Jong 2"></div>
+                <div class="game-info">
+                    <div class="game-title">Jolly Jong 2</div>
+                    <span class="game-category-tag">Physics</span>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">Game Title</span>
+                <button class="close-btn" onclick="closeModal()">✕ Close</button>
+            </div>
+            <div class="modal-body">
+                <iframe id="gameFrame" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>RetroFlash Portal - Preserving the Best of Flash Gaming</p>
+        <p><a href="index.html">Home</a> | <a href="about.html">About</a> | <a href="contact.html">Contact</a></p>
+    </footer>
+
+    <script>
+        // Game URLs mapping
+        const gameUrls = {
+            "Doctor Acorn": "https://flashgames.cx/game/doctor-acorn",
+            "Dream Car Racing Evo": "https://flashgames.cx/game/dream-car-racing-evo",
+            "Jump Out! The Box": "https://flashgames.cx/game/jump-out-the-box",
+            "Optika": "https://flashgames.cx/game/optika",
+            "Roly-Poly Cannon: Bloody Monsters Pack 2": "https://flashgames.cx/game/roly-poly-cannon-bloody-monsters-pack-2",
+            "Simple Motions 2": "https://flashgames.cx/game/simple-motions-2",
+            "Ragdoll Course": "https://flashgames.cx/game/ragdoll-course",
+            "Ragdoll Course 2": "https://flashgames.cx/game/ragdoll-course-2",
+            "The WTF Game Experience": "https://flashgames.cx/game/the-wtf-game-experience",
+            "Ballooner": "https://flashgames.cx/game/ballooner",
+            "Georg Gearløs' Opfinderspel": "https://flashgames.cx/game/georg-gearl-s-opfinderspel",
+            "Zooking Xmas 2": "https://flashgames.cx/game/zooking-xmas-2",
+            "Physics Demo": "https://flashgames.cx/game/physics-demo",
+            "Angry Animals 3": "https://flashgames.cx/game/angry-animals-3",
+            "Angry Animals: aliens come in": "https://flashgames.cx/game/angry-animals-aliens-come-in",
+            "Cuboy Quest 2": "https://flashgames.cx/game/cuboy-quest-2",
+            "UNCF": "https://flashgames.cx/game/uncf",
+            "箱積み部屋": "https://flashgames.cx/game/箱積み部屋",
+            "HERO10": "https://flashgames.cx/game/hero10",
+            "Cats'n'Fish": "https://flashgames.cx/game/cats-n-fish",
+            "O.S.S.": "https://flashgames.cx/game/o-s-s",
+            "Chocolate Tower": "https://flashgames.cx/game/chocolate-tower",
+            "Multiball": "https://flashgames.cx/game/multiball-2",
+            "Saving Toasty": "https://flashgames.cx/game/saving-toasty",
+            "Cat Stretch": "https://flashgames.cx/game/cat-stretch",
+            "Dummy Crusher 2": "https://flashgames.cx/game/dummy-crusher-2",
+            "Ragdoll Rooftops": "https://flashgames.cx/game/ragdoll-rooftops",
+            "Snowman Destroyer": "https://flashgames.cx/game/snowman-destroyer-2",
+            "Jolly Jong 2": "https://flashgames.cx/game/jolly-jong-2"
+        };
+
+        // Open game modal
+        document.querySelectorAll('.game-thumbnail').forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                const gameName = this.getAttribute('data-game');
+                const gameUrl = gameUrls[gameName];
+                
+                if (gameUrl) {
+                    document.getElementById('modalTitle').textContent = gameName;
+                    document.getElementById('gameFrame').src = gameUrl;
+                    document.getElementById('gameModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        });
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameFrame').src = '';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('gameModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
