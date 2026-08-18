@@ -246,7 +246,7 @@ const PORTALS = [
   { name: 'ARCADE + KARAOKE', col: 0xff0055, url: 'arcade.html', x: -5, z: -5 },
   { name: 'IMMERSIVE THEATER', col: 0xff8a2a, url: 'tv.html', x: 5, z: -5 },
   { name: 'AUDIO / VIDEO BOOTHS', col: 0x00f3ff, url: 'dj.html', x: 15, z: -5 },
-  { name: 'SURREAL LO-FI', col: 0xb967ff, soon: true, x: -15, z: -19 },
+  { name: 'SURREAL LO-FI', col: 0xb967ff, url: 'lofi.html', x: -15, z: -19 },
   { name: 'HORRORCORE CRAWLSPACE', col: 0xff2b2b, soon: true, x: -5, z: -19 },
   { name: 'ABSTRACT PSYCHEDELIC', col: 0x00ffa8, soon: true, x: 5, z: -19 },
   { name: 'FESTIVAL FRENZY', col: 0xe6c04a, url: 'index.html', x: 15, z: -19 },

@@ -27,6 +27,7 @@ export default defineConfig({
         tv: resolve(__dirname, 'tv.html'),
         dj: resolve(__dirname, 'dj.html'),
         warehouse: resolve(__dirname, 'warehouse.html'),
+        lofi: resolve(__dirname, 'lofi.html'),
       },
     },
   },
