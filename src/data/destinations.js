@@ -121,4 +121,12 @@ export const DESTINATIONS = [
     blurb: 'A row of festival porta-potties, one glowing an unhealthy green. Step inside and boot the old screen to read the Codex — the full encyclopedia of the festival.',
     cta: 'Read the Codex',
   },
+  {
+    id: 'complex', name: 'THE COMPLEX', model: 'complex',
+    role: 'the warehouse // immersive experience', accent: PALETTE.cyan,
+    pos: [24, 0, -2], tag: 'entrance hall · hub · themed rooms',
+    page: 'warehouse.html',
+    blurb: 'A rusty neon warehouse on a foggy street — the 12matt3r immersive experience complex. The door creaks open as you approach, into a projection-lined entrance hall and a vast central hub: a checkerboard gallery of floating golden frames around a levitating heart, its glowing portals radiating out to every themed room.',
+    cta: 'Step inside the complex',
+  },
 ];
