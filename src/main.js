@@ -232,6 +232,9 @@ const controls = new WalkControls(camera, { bounds: 24, eye: 1.6, zMin: -30 });
 // spawn in the bottom-left corner for a diagonal entry toward the dancefloor
 controls.pos.set(-18, 1.6, 18);
 if (controls.yaw !== undefined) controls.yaw = -Math.PI * 0.75; // face into the grounds
+// hold your place: returning from a room drops you back where you were on the grounds
+try { const s = JSON.parse(sessionStorage.getItem('fest.pos') || 'null'); if (s && isFinite(s.x) && isFinite(s.z)) { controls.pos.set(s.x, 1.6, s.z); if (isFinite(s.y) && controls.yaw !== undefined) controls.yaw = s.y; } } catch (e) {}
+addEventListener('pagehide', () => { try { sessionStorage.setItem('fest.pos', JSON.stringify({ x: controls.pos.x, z: controls.pos.z, y: controls.yaw })); } catch (e) {} });
 
 // beer pong asks before it grabs your clicks, then stands you at the table
 const gamezones = createGameZones({ controls, camera });

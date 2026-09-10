@@ -51,12 +51,14 @@ const moon = new THREE.DirectionalLight(0x9aa2d0, 0.55); moon.position.set(-12, 
 // ---------- ground: wet asphalt outside, poured-concrete inside ----------
 {
   const cv = document.createElement('canvas'); cv.width = cv.height = 256; const x = cv.getContext('2d');
-  x.fillStyle = '#0c0d15'; x.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 120; i++) { x.fillStyle = `rgba(${20 + Math.random() * 26 | 0},${22 + Math.random() * 26 | 0},${34 + Math.random() * 30 | 0},0.5)`; const s = 6 + Math.random() * 30; x.fillRect(Math.random() * 256, Math.random() * 256, s, s * 0.8); }
-  for (let i = 0; i < 40; i++) { x.strokeStyle = 'rgba(0,0,0,0.4)'; x.beginPath(); x.moveTo(Math.random() * 256, Math.random() * 256); x.lineTo(Math.random() * 256, Math.random() * 256); x.stroke(); } // cracks
+  x.fillStyle = '#22242f'; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 120; i++) { x.fillStyle = `rgba(${44 + Math.random() * 30 | 0},${48 + Math.random() * 30 | 0},${60 + Math.random() * 34 | 0},0.5)`; const s = 6 + Math.random() * 30; x.fillRect(Math.random() * 256, Math.random() * 256, s, s * 0.8); }
+  for (let i = 0; i < 40; i++) { x.strokeStyle = 'rgba(0,0,0,0.35)'; x.beginPath(); x.moveTo(Math.random() * 256, Math.random() * 256); x.lineTo(Math.random() * 256, Math.random() * 256); x.stroke(); } // cracks
   const tex = new THREE.CanvasTexture(cv); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(30, 30); tex.colorSpace = THREE.SRGBColorSpace;
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), std({ map: tex, roughness: 0.7, metalness: 0.2, emissive: C(0x0a0c18), emissiveIntensity: 0.2 }));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), std({ map: tex, roughness: 0.8, metalness: 0.15, emissive: C(0x1a1e30), emissiveIntensity: 0.5 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+  // broad soft fill over the whole approach so the street isn't pitch-black
+  const streetFill = new THREE.PointLight(0x9aa2d8, 4, 70, 2); streetFill.position.set(0, 20, 30); scene.add(streetFill);
 }
 
 // ---------- HUB checkerboard floor (inside, z < 8) ----------
@@ -120,14 +122,14 @@ function buildExterior() {
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 8, 8), std({ color: 0x14161f, metalness: 0.6 })); pole.position.set(lx, 4, lz); g.add(pole);
     const armM = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 2), std({ color: 0x14161f })); armM.position.set(lx + (lx < 0 ? 1 : -1), 7.8, lz); g.add(armM);
     const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.3, 1.1), std({ color: 0x1a1c26, emissive: C(0xffdca0), emissiveIntensity: 1.2 })); head.position.set(lx + (lx < 0 ? 1.9 : -1.9), 7.7, lz); g.add(head);
-    const ll = new THREE.PointLight(0xffdca0, 7.5, 34, 2); ll.position.set(head.position.x, 7.4, lz); g.add(ll); lamps.push(ll);
+    const ll = new THREE.PointLight(0xffdca0, 16, 55, 2); ll.position.set(head.position.x, 7.4, lz); g.add(ll); lamps.push(ll);
   }
 
   updaters.push((dt, t) => {
     // erratic neon flicker
     const f = Math.random() < 0.06 ? 0.2 : 1; neon.material.opacity = 0.75 + 0.25 * f; neonGlow.intensity = 4.5 + f * 3 + Math.sin(t * 7) * 0.6;
     const of = (Math.sin(t * 3) > 0.2 && Math.random() > 0.03) ? 1 : 0.15; openSign.material.opacity = of; openGlow.intensity = of * 3;
-    lamps.forEach((l, i) => l.intensity = 7 + Math.sin(t * 20 + i * 2) * (Math.random() < 0.04 ? 2.8 : 0.4));
+    lamps.forEach((l, i) => l.intensity = 15 + Math.sin(t * 20 + i * 2) * (Math.random() < 0.04 ? 4 : 0.6));
     // slide the doors toward their target (open when the player is close)
     const s = openTarget * 5.0;
     doorL.position.x += ((-1.65 - s) - doorL.position.x) * Math.min(1, dt * 3.2);
@@ -305,6 +307,9 @@ updaters.push(addHaze(scene, { color: 0x3a3e8a, count: 6, center: [0, 2, -12], a
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: 30, eye: 1.6, zMin: -26 });
 controls.pos.set(0, 1.6, 29); controls.yaw = 0;
+// hold your place: coming back from a room drops you where you were, not outside
+try { const s = JSON.parse(sessionStorage.getItem('wh.pos') || 'null'); if (s && isFinite(s.x) && isFinite(s.z)) { controls.pos.set(s.x, 1.6, s.z); if (isFinite(s.y)) controls.yaw = s.y; openTarget = 1; } } catch (e) {}
+addEventListener('pagehide', () => { try { sessionStorage.setItem('wh.pos', JSON.stringify({ x: controls.pos.x, z: controls.pos.z, y: controls.yaw })); } catch (e) {} });
 
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'warehouse', overhead: { ax: 34, az: 26, cz: -4 },
