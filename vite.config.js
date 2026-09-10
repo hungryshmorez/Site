@@ -30,6 +30,7 @@ export default defineConfig({
         lofi: resolve(__dirname, 'lofi.html'),
         horrorcore: resolve(__dirname, 'horrorcore.html'),
         abstract: resolve(__dirname, 'abstract.html'),
+        rooftop: resolve(__dirname, 'rooftop.html'),
       },
     },
   },

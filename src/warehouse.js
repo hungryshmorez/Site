@@ -250,6 +250,7 @@ const PORTALS = [
   { name: 'HORRORCORE CRAWLSPACE', col: 0xff2b2b, url: 'horrorcore.html', x: -5, z: -19 },
   { name: 'ABSTRACT PSYCHEDELIC', col: 0x00ffa8, url: 'abstract.html', x: 5, z: -19 },
   { name: 'FESTIVAL FRENZY', col: 0xe6c04a, url: 'index.html', x: 15, z: -19 },
+  { name: 'ROOFTOP ▲', col: 0x4ad0c0, url: 'rooftop.html', x: 0, z: -24.5 },
 ];
 const portalDiscs = [];
 function buildPortals() {
