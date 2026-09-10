@@ -29,6 +29,7 @@ export default defineConfig({
         warehouse: resolve(__dirname, 'warehouse.html'),
         lofi: resolve(__dirname, 'lofi.html'),
         horrorcore: resolve(__dirname, 'horrorcore.html'),
+        abstract: resolve(__dirname, 'abstract.html'),
       },
     },
   },

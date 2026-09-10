@@ -248,7 +248,7 @@ const PORTALS = [
   { name: 'AUDIO / VIDEO BOOTHS', col: 0x00f3ff, url: 'dj.html', x: 15, z: -5 },
   { name: 'SURREAL LO-FI', col: 0xb967ff, url: 'lofi.html', x: -15, z: -19 },
   { name: 'HORRORCORE CRAWLSPACE', col: 0xff2b2b, url: 'horrorcore.html', x: -5, z: -19 },
-  { name: 'ABSTRACT PSYCHEDELIC', col: 0x00ffa8, soon: true, x: 5, z: -19 },
+  { name: 'ABSTRACT PSYCHEDELIC', col: 0x00ffa8, url: 'abstract.html', x: 5, z: -19 },
   { name: 'FESTIVAL FRENZY', col: 0xe6c04a, url: 'index.html', x: 15, z: -19 },
 ];
 const portalDiscs = [];
