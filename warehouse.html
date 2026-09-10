@@ -31,6 +31,8 @@
     .toast{left:50%;top:74px;transform:translateX(-50%);font-size:12px;letter-spacing:.1em;color:#0a0b16;
       background:linear-gradient(90deg,var(--cyan),var(--indigo));border-radius:9px;padding:9px 16px;opacity:0;transition:opacity .3s;pointer-events:none;font-weight:700}
     .toast.show{opacity:1}
+    .progress{right:16px;top:44px;font-size:10.5px;letter-spacing:.1em;color:var(--muted);text-align:right}
+    .progress b{color:var(--gold)}
     .back{right:16px;bottom:14px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink);cursor:pointer;
       background:rgba(8,8,18,.72);border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:9px 14px;backdrop-filter:blur(6px)}
     .back:hover{border-color:var(--indigo);color:#fff}
@@ -58,6 +60,7 @@
   <div class="hud zone" id="zone"></div>
   <div class="hud vo" id="vo"></div>
   <div class="hud toast" id="toast"></div>
+  <div class="hud progress" id="progress"></div>
   <div class="hud hint" id="hint">walk to a portal · tap it or press E to enter</div>
   <div class="hud help">
     <kbd>W A S D</kbd> walk · <kbd>space</kbd> jump · <kbd>drag</kbd> look · step through the door, follow the arrows in, pick a portal in the hub

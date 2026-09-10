@@ -9,6 +9,8 @@ import { createAdmin } from './scene/admin.js';
 // Web Audio) so you can tap out lo-fi live. Tap the turntable to start a loop.
 
 const canvas = document.getElementById('scene');
+// mark this room explored (unlocks the hub's hidden door once all are found)
+try { const K = '12m.explored'; const s = new Set(JSON.parse(localStorage.getItem(K) || '[]')); s.add('lofi'); localStorage.setItem(K, JSON.stringify([...s])); } catch (e) {}
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
 const std = (o) => new THREE.MeshStandardMaterial(o);
 const C = (h) => new THREE.Color(h);

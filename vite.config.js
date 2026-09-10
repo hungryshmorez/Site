@@ -32,6 +32,7 @@ export default defineConfig({
         abstract: resolve(__dirname, 'abstract.html'),
         rooftop: resolve(__dirname, 'rooftop.html'),
         builder: resolve(__dirname, 'builder.html'),
+        hidden: resolve(__dirname, 'hidden.html'),
       },
     },
   },

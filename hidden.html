@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>THE HIDDEN ROOM // you found it</title>
+  <meta name="description" content="The secret post-endgame sanctum — unlocked after exploring the whole complex. A reverent void around a glowing monolith, ringed with plinths that sing, where you paint the void with light. It takes on the color you built your room in." />
+  <style>
+    :root{--a:#e6c04a;--ink:#f4eede;--muted:#a89f86;--mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;background:#05050a;overflow:hidden;color:var(--ink);font-family:var(--sans);touch-action:none}
+    canvas{display:block;position:fixed;inset:0;cursor:crosshair}
+    canvas.drag{cursor:grabbing}
+    .vig{position:fixed;inset:0;pointer-events:none;z-index:3;background:radial-gradient(130% 100% at 50% 46%,transparent 46%,rgba(2,2,6,.86) 100%)}
+    .hud{position:fixed;z-index:6;font-family:var(--mono)}
+    .brand{top:15px;left:18px;font-size:13px;letter-spacing:.16em}
+    .brand b{text-shadow:1.5px 0 #fff,-1.5px 0 var(--a)}
+    .brand span{display:block;font-size:9px;color:var(--muted);letter-spacing:.22em;margin-top:3px}
+    .zone{top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;letter-spacing:.4em;color:var(--a);
+      text-shadow:0 0 18px rgba(230,192,74,.7);opacity:0;transition:opacity .6s;text-align:center;pointer-events:none}
+    .zone.show{opacity:.9}
+    .hint{left:50%;bottom:62px;transform:translateX(-50%);font-size:11px;letter-spacing:.12em;color:var(--ink);
+      background:rgba(8,8,14,.55);border:1px solid rgba(230,192,74,.4);border-radius:9px;padding:7px 13px;opacity:.8;white-space:nowrap}
+    .back{right:16px;bottom:14px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink);cursor:pointer;
+      background:rgba(8,8,14,.72);border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:9px 14px;backdrop-filter:blur(6px)}
+    .back:hover{border-color:var(--a);color:#fff}
+    .help{left:50%;bottom:16px;transform:translateX(-50%);font-size:10.5px;letter-spacing:.1em;color:var(--muted);opacity:.6;text-align:center}
+    .help kbd{font-family:var(--mono);background:rgba(255,255,255,.08);border-radius:4px;padding:1px 5px}
+    .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+      text-align:center;padding:24px;background:radial-gradient(70% 60% at 50% 44%,rgba(40,34,14,.55),rgba(4,4,10,.99));transition:opacity .9s}
+    .start.gone{opacity:0;pointer-events:none}
+    .start .g{font-family:var(--mono);font-size:30px;letter-spacing:.06em;color:var(--a);text-shadow:2px 0 #fff,-2px 0 #7a5}
+    .start .s{max-width:540px;font-size:14px;color:var(--muted);line-height:1.6}
+    .start .e{margin-top:8px;font-family:var(--mono);font-size:14px;letter-spacing:.14em;color:#141008;background:var(--a);
+      border:none;border-radius:10px;padding:13px 30px;cursor:pointer}
+    .start .e:hover{background:#fff}
+    .warp{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(230,192,74,.9),rgba(4,4,10,.99));transition:opacity .48s}
+    .warp.go{opacity:1}
+  </style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div class="vig"></div>
+
+  <div class="hud brand"><b>THE HIDDEN ROOM</b><span>POST-ENDGAME · YOU FOUND IT</span></div>
+  <div class="hud zone" id="zone"></div>
+  <div class="hud hint" id="hint">tap the plinths to make them sing · tap the void to leave stars</div>
+  <div class="hud help"><kbd>W A S D</kbd> walk · <kbd>drag</kbd> look</div>
+  <button class="back" id="backBtn">← back to the complex</button>
+
+  <div class="start" id="start">
+    <div class="g">YOU FOUND IT</div>
+    <div class="s">Past every room, a door you weren't meant to see. This is the sanctum — a quiet void around a monolith that hums, ringed by plinths that <b>sing</b> when you touch them. Paint the dark with <b>stars</b>. It wears the color you built your room in. Everything the complex is, distilled to a single calm place.</div>
+    <button class="e" id="enterBtn">step in</button>
+  </div>
+  <div class="warp" id="warp"></div>
+
+  <script type="module" src="/src/hidden.js"></script>
+</body>
+</html>

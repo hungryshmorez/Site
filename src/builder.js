@@ -7,6 +7,7 @@ import { WalkControls } from './player/controls.js';
 // so the room returns exactly how you left it. (procedural + Web Audio)
 
 const canvas = document.getElementById('scene');
+try { const K = '12m.explored'; const s = new Set(JSON.parse(localStorage.getItem(K) || '[]')); s.add('builder'); localStorage.setItem(K, JSON.stringify([...s])); } catch (e) {}
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
 const std = (o) => new THREE.MeshStandardMaterial(o);
 const C = (h) => new THREE.Color(h);

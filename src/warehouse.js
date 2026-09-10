@@ -277,6 +277,15 @@ function buildPortals() {
   return g;
 }
 
+// hidden-door unlock: reveal a secret portal once every new room has been explored
+const REQUIRED = ['lofi', 'horrorcore', 'abstract', 'rooftop', 'builder'];
+let exploredSet = new Set();
+try { exploredSet = new Set(JSON.parse(localStorage.getItem('12m.explored') || '[]')); } catch (e) {}
+const doneN = REQUIRED.filter((r) => exploredSet.has(r)).length;
+const unlocked = doneN >= REQUIRED.length;
+if (unlocked) PORTALS.push({ name: '▾ THE HIDDEN ROOM', col: 0xe6c04a, url: 'hidden.html', x: 0, z: -9 });
+{ const pe = document.getElementById('progress'); if (pe) pe.innerHTML = unlocked ? '✦ <b>hidden door revealed</b>' : `explored <b>${doneN}/${REQUIRED.length}</b> · find them all to reveal a hidden door`; }
+
 // build everything
 const _ext = buildExterior();
 const _hall = buildEntranceHall();
