@@ -721,6 +721,26 @@ function updateSeeker2(dt, t) {
   cone2Mesh.material.opacity = seeing ? 0.14 : 0.06; cone2Floor.material.opacity = 0.3 + Math.sin(t * 6) * 0.1;
 }
 
+// ================= HEARING — movement makes noise the seekers can follow =================
+// Sprint and you're loud; walk and you're quiet; crouch (or stand still) and you're silent.
+// A seeker within your noise radius is drawn to investigate, even if it can't see you.
+const _lastPP = new THREE.Vector3(); let _hadLast = false, noisy = 0;
+function updateHearing(dt) {
+  const pp = controls.pos;
+  if (!_hadLast) { _lastPP.set(pp.x, 0, pp.z); _hadLast = true; noisy = 0; return; }
+  const spd = Math.hypot(pp.x - _lastPP.x, pp.z - _lastPP.z) / Math.max(dt, 1e-3);
+  _lastPP.set(pp.x, 0, pp.z);
+  noisy = crouched ? 0 : (spd > 9 ? 7 : spd > 1.5 ? 3.5 : 0);   // sprint = loud, walk = soft, crouch/still = silent
+  if (!game.on || game.freeze > 0 || noisy === 0) return;
+  for (const s of [seeker.group, seeker2.group]) {
+    if (!s) continue;
+    if (Math.hypot(pp.x - s.position.x, pp.z - s.position.z) < noisy) {
+      game.detect += dt * 1.6; seeker.lastSeen.set(pp.x, 0, pp.z); seeker.hasLast = true;
+      if (game.state === 'patrol') { game.state = 'search'; seeker.sweep = 0; }
+    }
+  }
+}
+
 // ---- HUD (built in JS so no HTML edits needed) ----
 const hs = document.createElement('div'); hs.style.cssText = 'position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:7;text-align:center;font-family:ui-monospace,monospace;pointer-events:none';
 hs.innerHTML = '<div id="hsTimer" style="font-size:26px;letter-spacing:.08em;color:#eaeaf5;text-shadow:0 0 14px rgba(0,243,255,.6);opacity:0;transition:opacity .3s"></div><div id="hsStealth" style="margin-top:4px;font-size:13px;letter-spacing:.22em;opacity:0;transition:opacity .3s"></div>';
@@ -731,22 +751,36 @@ hsBtn.style.cssText = 'position:fixed;left:50%;bottom:104px;transform:translateX
 document.body.appendChild(hsBtn);
 hsBtn.onclick = (e) => { e.stopPropagation(); startGame(); };
 
+// ---- persistent stats: best survival streak + record (remembered across visits) ----
+const HS_STATS = '12m.hsStats';
+let stats = { plays: 0, wins: 0, streak: 0, best: 0 };
+try { const s = JSON.parse(localStorage.getItem(HS_STATS) || 'null'); if (s) stats = Object.assign(stats, s); } catch (e) {}
+function saveStats() { try { localStorage.setItem(HS_STATS, JSON.stringify(stats)); } catch (e) {} }
+const statEl = document.createElement('div');
+statEl.style.cssText = 'position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:8;font:600 12px ui-monospace,monospace;letter-spacing:.12em;color:#9fb2d8;opacity:0;transition:opacity .3s;pointer-events:none;text-shadow:0 0 8px rgba(0,0,0,.7)';
+document.body.appendChild(statEl);
+function renderStats() { statEl.textContent = stats.plays > 0 ? `🏆 best streak ${stats.best} · survived ${stats.wins}/${stats.plays}` : 'first run — survive 60 seconds'; }
+renderStats();
+
 function startGame() {
   game.on = true; game.time = 60; game.state = 'patrol'; game.detect = 0; game.freeze = 3; game.hb = 0; game._prev = 'patrol'; game._tick = 4;
   seeker.wp = 0; seeker.pauseT = 0; seeker.hasLast = false; seeker2.wp = 0; seeker2.pauseT = 0;
   controls.pos.set(ENTRY.x, 1.6, ENTRY.z); controls.yaw = Math.PI;
   seeker.group.position.set(0, 2.6, -18); seeker2.group.position.set(0, 1.6, -11);
-  hsBtn.style.opacity = '0'; hsTimerEl.style.opacity = '1'; hsStealthEl.style.opacity = '1';
+  hsBtn.style.opacity = '0'; statEl.style.opacity = '0'; hsTimerEl.style.opacity = '1'; hsStealthEl.style.opacity = '1';
+  _hadLast = false;   // don't count the spawn teleport as movement noise
   AC(); toast('👁 GET READY — run and hide! crouch (C) behind cover or in a green ring');
 }
 function endGame(msg) { game.on = false; game.state = 'off'; game.freeze = 0; hsTimerEl.style.opacity = '0'; hsStealthEl.style.opacity = '0'; toast(msg); }
 function caught() {
-  sfxCaught(); endGame('💥 CAUGHT! back to the entrance');
+  sfxCaught(); stats.plays++; stats.streak = 0; saveStats(); renderStats();
+  endGame('💥 CAUGHT! back to the entrance');
   controls.pos.set(ENTRY.x, 1.6, ENTRY.z); controls.yaw = Math.PI;
 }
 function winGame() {
   game.best = Math.max(game.best, 60); sfxWin();
-  endGame('🏆 YOU SURVIVED! the arena is yours');
+  stats.plays++; stats.wins++; stats.streak++; stats.best = Math.max(stats.best, stats.streak); saveStats(); renderStats();
+  endGame(stats.streak > 1 ? `🏆 YOU SURVIVED! ${stats.streak} in a row` : '🏆 YOU SURVIVED! the arena is yours');
   heartBaseI = 8; setTimeout(() => { heartBaseI = 3; }, 2500);
 }
 function updateGame(dt) {
@@ -764,7 +798,7 @@ function updateGame(dt) {
   hsTimerEl.textContent = '⏱ ' + Math.ceil(game.time) + 's';
   const lvl = concealed() ? ['🛡 CONCEALED', '#39ffcc']
     : (game.detect >= 1.5 ? ['DETECTED', '#ff2020'] : (game.detect >= 0.35 ? ['CAUTION', '#ff9030'] : ['HIDDEN', '#39ff88']));
-  hsStealthEl.textContent = '● ' + lvl[0]; hsStealthEl.style.color = lvl[1];
+  hsStealthEl.textContent = '● ' + lvl[0] + (noisy > 0 ? '  🔊' : ''); hsStealthEl.style.color = lvl[1];
   // alarm sting the moment a seeker locks onto you
   if (game.state === 'chase' && game._prev !== 'chase') sfxAlarm();
   game._prev = game.state;
@@ -896,11 +930,12 @@ function frame() {
   updateSeeker(dt, t);
   updateSeeker2(dt, t);
   updateCams(dt, t);
+  updateHearing(dt);
   updateGame(dt);
   // chamber thresholds → explored X/5 (and the secret door at 5/5)
   { const pp = controls.pos; for (const th of thresholds) { if (!exploredCh.has(th.id) && pp.x > th.box.x0 && pp.x < th.box.x1 && pp.z > th.box.z0 && pp.z < th.box.z1) explore(th.id); } }
   // show the start button when you're inside the arena and not already playing
-  if (hsBtn) hsBtn.style.opacity = (!game.on && controls.pos.z < 6) ? '1' : '0';
+  { const showStart = (!game.on && controls.pos.z < 6) ? '1' : '0'; if (hsBtn) hsBtn.style.opacity = showStart; if (statEl) statEl.style.opacity = showStart; }
   // door opens as you near it; heart reacts to how close you are
   openTarget += (((controls.pos.z < 25 && controls.pos.z > 8 && Math.abs(controls.pos.x) < 9) ? 1 : 0) - openTarget) * Math.min(1, dt * 3);
   const dH = Math.hypot(controls.pos.x - 0, controls.pos.z - (-12));
@@ -926,7 +961,7 @@ document.getElementById('enterBtn').onclick = () => {
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
-if (import.meta.env.DEV) window.__wh = { controls, scene, PORTALS, game, seeker, seeker2, startGame, walls, updateSeeker, updateSeeker2, updateGame, updateCams, exploredCh, thresholds, explore, resolveCollision, hideSpots, searchCams, concealed, setCrouch: (v) => { crouched = v; controls.eye = v ? 0.95 : 1.6; } };
+if (import.meta.env.DEV) window.__wh = { controls, scene, PORTALS, game, seeker, seeker2, startGame, walls, updateSeeker, updateSeeker2, updateGame, updateCams, updateHearing, exploredCh, thresholds, explore, resolveCollision, hideSpots, searchCams, concealed, setCrouch: (v) => { crouched = v; controls.eye = v ? 0.95 : 1.6; } };
 
 // __world hook — overhead-screenshot harness only (activated with ?shot).
 if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('shot')) {
