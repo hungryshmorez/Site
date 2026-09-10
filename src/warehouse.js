@@ -551,30 +551,33 @@ function buildSeeker() {
 }
 buildSeeker();
 
-function seekerCanSee() {
-  if (concealed()) return 0;   // ducked into a hide spot → invisible
-  _sv.copy(seeker.group.position);
+// generic vision test from any watcher (eye position + heading + cone/range) to the player
+function visFrom(ox, oy, oz, yaw, cone, range) {
+  if (concealed()) return 0;   // ducked into a hide spot → invisible to everyone
+  _sv.set(ox, oy, oz);
   _pv.set(controls.pos.x, crouched ? 1.0 : 1.55, controls.pos.z);
   const dx = _pv.x - _sv.x, dz = _pv.z - _sv.z; const dist = Math.hypot(dx, dz);
-  if (dist > RANGE) return 0;
-  const fx = -Math.sin(seeker.yaw), fz = -Math.cos(seeker.yaw);
+  if (dist > range) return 0;
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
   const ang = Math.acos(THREE.MathUtils.clamp((dx * fx + dz * fz) / (dist || 1), -1, 1));
-  if (ang > CONE) return 0;
+  if (ang > cone) return 0;
   // line of sight — tall cover always blocks the eye; low cover only hides a croucher
   const dir = _pv.clone().sub(_sv); const len = dir.length(); dir.normalize();
   _rc.set(_sv, dir); _rc.far = len - 0.5;
   if (_rc.intersectObjects(losTargets, false).length) return 0;
   if (crouched) { _rc.set(_sv, dir); _rc.far = len - 0.5; if (_rc.intersectObjects(lowTargets, false).length) return 0; }
   // visible. crouching cuts your profile; closer + centred in cone = stronger
-  let vis = (1 - dist / RANGE) * (1 - ang / CONE) + 0.35;
+  let vis = (1 - dist / range) * (1 - ang / cone) + 0.35;
   if (crouched) vis *= 0.45;
   return THREE.MathUtils.clamp(vis, 0, 1);
 }
+function seekerCanSee() { return visFrom(seeker.group.position.x, seeker.group.position.y, seeker.group.position.z, seeker.yaw, CONE, RANGE); }
 
 function updateSeeker(dt, t) {
   const g = seeker.group; if (!g) return;
   g.position.y = 2.6 + Math.sin(t * 1.5) * 0.12;
   if (!game.on) { g.rotation.y += dt * 0.3; seeker.yaw = g.rotation.y; coneMesh.material.opacity = 0.03; seekLight.intensity = 0; eyeIris.material.color.setHex(0x662233); coneFloor.material.opacity = 0; return; }
+  if (game.freeze > 0) { g.rotation.y += dt * 0.5; seeker.yaw = g.rotation.y; coneMesh.material.opacity = 0.05; seekLight.intensity = 1.5; eyeIris.material.color.setHex(0x883344); coneFloor.material.opacity = 0.1; return; }   // head-start: seeker idles while you hide
   const pp = controls.pos; const vis = seekerCanSee();
   const rush = game.time < 15 ? 1.3 : 1;   // final stretch — the seeker gets desperate
   if (vis > 0) { seeker.lastSeen.set(pp.x, 0, pp.z); seeker.hasLast = true; }   // remember where you were
@@ -651,12 +654,71 @@ function updateCams(dt, t) {
       game.detect += dt * 2.2; seeker.lastSeen.set(pp.x, 0, pp.z); seeker.hasLast = true;
       if (game.state === 'patrol') { game.state = 'search'; seeker.sweep = 0; }
     }
+    if (seeing && !c.wasSeeing) sfxBeep(); c.wasSeeing = seeing;
     const col = seeing ? 0xff3040 : 0xfff2c0;
     c.light.color.setHex(col); c.beam.material.color.setHex(col); c.disc.material.color.setHex(col);
     c.light.intensity = game.on ? (seeing ? 9 : 5) : 2.5;
     c.beam.material.opacity = game.on ? (seeing ? 0.11 : 0.05) : 0.03;
     c.disc.material.opacity = (game.on ? 0.22 : 0.12) + (seeing ? 0.15 : 0) + Math.sin(t * 5) * 0.04;
   }
+}
+
+// ================= GAME AUDIO (Web Audio, lazy on first start) =================
+let _ac = null;
+function AC() { if (!_ac) { try { _ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { _ac = null; } } if (_ac && _ac.state === 'suspended') _ac.resume(); return _ac; }
+function tone(freq, dur, type = 'sine', gain = 0.2, slideTo = null) {
+  const a = AC(); if (!a) return; const o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, a.currentTime);
+  if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo), a.currentTime + dur);
+  g.gain.setValueAtTime(0.0001, a.currentTime); g.gain.exponentialRampToValueAtTime(gain, a.currentTime + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
+  o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + dur + 0.03);
+}
+function sfxThump(f) { tone(f, 0.16, 'sine', 0.3); }
+function sfxAlarm() { tone(900, 0.14, 'square', 0.13, 480); setTimeout(() => tone(900, 0.14, 'square', 0.13, 480), 160); }
+function sfxWin() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.5, 'triangle', 0.2), i * 130)); }
+function sfxCaught() { tone(220, 0.6, 'sawtooth', 0.26, 55); tone(160, 0.62, 'sawtooth', 0.2, 45); }
+function sfxBeep() { tone(1500, 0.06, 'square', 0.07); }
+function sfxTick(go) { tone(go ? 1200 : 760, 0.14, 'square', 0.16); }
+
+// ================= SECOND SEEKER — "THE SENTINEL" (patrol drone) =================
+// A methodical ground drone: it doesn't chase, but it sweeps its own routes, alerts the
+// main seeker when it spots you, and nabs you on contact. Bounded to the atrium like the eye.
+const seeker2 = { group: null, yaw: 0, wp: 0, pauseT: 0 };
+const WAYPOINTS2 = [[10, -3], [-10, -4], [-10, -17], [10, -18], [0, -10], [6, -14], [-6, -8]];
+const CONE2 = 0.5, RANGE2 = 11;
+let cone2Mesh, cone2Floor, eye2;
+function buildSeeker2() {
+  const g = new THREE.Group(); g.position.set(0, 1.6, -10); scene.add(g); seeker2.group = g;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.62, 0.7, 6), std({ color: 0x0a1016, roughness: 0.4, metalness: 0.6, emissive: C(0x00303f), emissiveIntensity: 0.4 })); g.add(body);
+  eye2 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 12), new THREE.MeshBasicMaterial({ color: 0x00f3ff })); eye2.position.set(0, 0.12, 0.46); g.add(eye2);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.05, 8, 20), new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false })); ring.rotation.x = Math.PI / 2; ring.position.y = 0.42; g.add(ring);
+  cone2Mesh = new THREE.Mesh(new THREE.ConeGeometry(RANGE2 * Math.tan(CONE2), RANGE2, 20, 1, true), new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.06, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
+  cone2Mesh.rotation.x = -Math.PI / 2; g.add(cone2Mesh);
+  cone2Floor = new THREE.Mesh(new THREE.RingGeometry(0.2, 1.8, 24), new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); cone2Floor.rotation.x = -Math.PI / 2; cone2Floor.position.y = -1.55; scene.add(cone2Floor);
+  return g;
+}
+buildSeeker2();
+function updateSeeker2(dt, t) {
+  const g = seeker2.group; if (!g) return;
+  g.position.y = 1.6 + Math.sin(t * 2) * 0.06;
+  if (!game.on || game.freeze > 0) { g.rotation.y += dt * 0.6; seeker2.yaw = g.rotation.y; cone2Mesh.material.opacity = 0.03; cone2Floor.material.opacity = 0; eye2.material.color.setHex(0x224a55); return; }
+  const vis = visFrom(g.position.x, g.position.y, g.position.z, seeker2.yaw, CONE2, RANGE2);
+  const rush = game.time < 15 ? 1.25 : 1;
+  const [wx, wz] = WAYPOINTS2[seeker2.wp]; const dx = wx - g.position.x, dz = wz - g.position.z, d = Math.hypot(dx, dz);
+  let travel = seeker2.yaw;
+  if (d < 1.1) { seeker2.pauseT -= dt; if (seeker2.pauseT <= 0) { seeker2.wp = (seeker2.wp + 1) % WAYPOINTS2.length; seeker2.pauseT = 0.5 + Math.random(); } }
+  else { const spd = 3.2 * rush * dt; g.position.x += dx / d * spd; g.position.z += dz / d * spd; travel = Math.atan2(-dx, -dz); }
+  seeker2.yaw = travel + Math.sin(t * 1.3 + 2) * 0.5;
+  g.position.x = THREE.MathUtils.clamp(g.position.x, ATR.x0 + 1, ATR.x1 - 1);
+  g.position.z = THREE.MathUtils.clamp(g.position.z, ATR.z0 + 1, ATR.z1 - 1);
+  g.rotation.y = seeker2.yaw;
+  if (vis > 0) { game.detect += dt * 2.2; seeker.lastSeen.set(controls.pos.x, 0, controls.pos.z); seeker.hasLast = true; if (game.state === 'patrol') { game.state = 'search'; seeker.sweep = 0; } }
+  if (vis > 0 && Math.hypot(controls.pos.x - g.position.x, controls.pos.z - g.position.z) < 1.5) return caught();
+  const fx = -Math.sin(seeker2.yaw), fz = -Math.cos(seeker2.yaw);
+  cone2Floor.position.set(g.position.x + fx * 5, 0.05, g.position.z + fz * 5);
+  const seeing = vis > 0, col = seeing ? 0xff3040 : 0x00f3ff;
+  cone2Mesh.material.color.setHex(col); cone2Floor.material.color.setHex(col); eye2.material.color.setHex(col);
+  cone2Mesh.material.opacity = seeing ? 0.14 : 0.06; cone2Floor.material.opacity = 0.3 + Math.sin(t * 6) * 0.1;
 }
 
 // ---- HUD (built in JS so no HTML edits needed) ----
@@ -670,29 +732,46 @@ document.body.appendChild(hsBtn);
 hsBtn.onclick = (e) => { e.stopPropagation(); startGame(); };
 
 function startGame() {
-  game.on = true; game.time = 60; game.state = 'patrol'; game.detect = 0; seeker.wp = 0; seeker.pauseT = 0;
+  game.on = true; game.time = 60; game.state = 'patrol'; game.detect = 0; game.freeze = 3; game.hb = 0; game._prev = 'patrol'; game._tick = 4;
+  seeker.wp = 0; seeker.pauseT = 0; seeker.hasLast = false; seeker2.wp = 0; seeker2.pauseT = 0;
   controls.pos.set(ENTRY.x, 1.6, ENTRY.z); controls.yaw = Math.PI;
-  seeker.group.position.set(0, 2.6, -18);
+  seeker.group.position.set(0, 2.6, -18); seeker2.group.position.set(0, 1.6, -11);
   hsBtn.style.opacity = '0'; hsTimerEl.style.opacity = '1'; hsStealthEl.style.opacity = '1';
-  toast('👁 HIDE! survive 60s — crouch (C), duck behind crates, and hide in the green rings');
+  AC(); toast('👁 GET READY — run and hide! crouch (C) behind cover or in a green ring');
 }
-function endGame(msg) { game.on = false; game.state = 'off'; hsTimerEl.style.opacity = '0'; hsStealthEl.style.opacity = '0'; toast(msg); }
+function endGame(msg) { game.on = false; game.state = 'off'; game.freeze = 0; hsTimerEl.style.opacity = '0'; hsStealthEl.style.opacity = '0'; toast(msg); }
 function caught() {
-  endGame('💥 CAUGHT! back to the entrance');
+  sfxCaught(); endGame('💥 CAUGHT! back to the entrance');
   controls.pos.set(ENTRY.x, 1.6, ENTRY.z); controls.yaw = Math.PI;
 }
 function winGame() {
-  game.best = Math.max(game.best, 60);
+  game.best = Math.max(game.best, 60); sfxWin();
   endGame('🏆 YOU SURVIVED! the arena is yours');
   heartBaseI = 8; setTimeout(() => { heartBaseI = 3; }, 2500);
 }
 function updateGame(dt) {
   if (!game.on) return;
+  // head-start countdown — you get a few seconds to hide before the hunt begins
+  if (game.freeze > 0) {
+    game.freeze -= dt;
+    const n = Math.ceil(game.freeze);
+    if (n !== game._tick) { game._tick = n; if (n > 0) sfxTick(false); else sfxTick(true); }
+    hsTimerEl.textContent = game.freeze > 0 ? 'HIDE! ' + n : 'GO';
+    hsStealthEl.textContent = '● GET READY'; hsStealthEl.style.color = '#39ff88';
+    return;
+  }
   game.time -= dt;
   hsTimerEl.textContent = '⏱ ' + Math.ceil(game.time) + 's';
   const lvl = concealed() ? ['🛡 CONCEALED', '#39ffcc']
     : (game.detect >= 1.5 ? ['DETECTED', '#ff2020'] : (game.detect >= 0.35 ? ['CAUTION', '#ff9030'] : ['HIDDEN', '#39ff88']));
   hsStealthEl.textContent = '● ' + lvl[0]; hsStealthEl.style.color = lvl[1];
+  // alarm sting the moment a seeker locks onto you
+  if (game.state === 'chase' && game._prev !== 'chase') sfxAlarm();
+  game._prev = game.state;
+  // tension heartbeat — faster & lower the closer you are to being found
+  const iv = concealed() ? 0 : (game.detect >= 1.5 ? 0.34 : (game.detect >= 0.35 ? 0.62 : 0));
+  game.hb -= dt;
+  if (iv > 0 && game.hb <= 0) { const hot = game.detect >= 1.5; sfxThump(hot ? 64 : 52); if (hot) setTimeout(() => sfxThump(48), 150); game.hb = iv; }
   if (game.time <= 0) winGame();
 }
 
@@ -815,6 +894,7 @@ function frame() {
   if (!admin.active) resolveCollision(controls.pos);   // walls + cover block movement
   admin.update(dt);
   updateSeeker(dt, t);
+  updateSeeker2(dt, t);
   updateCams(dt, t);
   updateGame(dt);
   // chamber thresholds → explored X/5 (and the secret door at 5/5)
@@ -846,7 +926,7 @@ document.getElementById('enterBtn').onclick = () => {
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
-if (import.meta.env.DEV) window.__wh = { controls, scene, PORTALS, game, seeker, startGame, walls, updateSeeker, updateGame, updateCams, exploredCh, thresholds, explore, resolveCollision, hideSpots, searchCams, concealed, setCrouch: (v) => { crouched = v; controls.eye = v ? 0.95 : 1.6; } };
+if (import.meta.env.DEV) window.__wh = { controls, scene, PORTALS, game, seeker, seeker2, startGame, walls, updateSeeker, updateSeeker2, updateGame, updateCams, exploredCh, thresholds, explore, resolveCollision, hideSpots, searchCams, concealed, setCrouch: (v) => { crouched = v; controls.eye = v ? 0.95 : 1.6; } };
 
 // __world hook — overhead-screenshot harness only (activated with ?shot).
 if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('shot')) {
