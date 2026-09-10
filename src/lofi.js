@@ -264,7 +264,7 @@ function buildWallArt() {
       float s=sin(a*3.0+t*0.6-r*3.0); vec3 c=0.5+0.5*cos(vec3(0.0,2.0,4.0)+a*1.5+t*0.4+r*2.0); gl_FragColor=vec4(c*(0.5+0.5*s),1.0);} `,
   });
   const art = new THREE.Mesh(new THREE.PlaneGeometry(8, 4.6), artMat); art.position.set(0, 5.4, 0.35); g.add(art);
-  const cap = textPlane('SO FA KING · LO-FI TAPES', '#c9b6ff', 512, 56); cap.position.set(0, 8.4, 0.4); cap.scale.set(7, 0.7, 1); g.add(cap);
+  const cap = textPlane('SOFA KING SAD BOI · LO-FI TAPES', '#c9b6ff', 640, 56); cap.position.set(0, 8.4, 0.4); cap.scale.set(8, 0.62, 1); g.add(cap);
   const l = new THREE.PointLight(0xb967ff, 4, 22, 2); l.position.set(0, 5, 6); g.add(l);
   updaters.push((dt, t) => { artMat.uniforms.t.value = t; });
   return g;

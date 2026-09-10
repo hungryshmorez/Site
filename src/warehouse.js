@@ -22,7 +22,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.18;
+renderer.toneMappingExposure = 1.34;
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x080a14, 0.028);
@@ -44,8 +44,9 @@ const updaters = [];
   const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
   scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xaab0e0, size: 0.5, transparent: true, opacity: 0.7 })));
 }
-scene.add(new THREE.HemisphereLight(0x3a3e6a, 0x05060e, 0.85));
-const moon = new THREE.DirectionalLight(0x8890c0, 0.35); moon.position.set(-12, 20, 22); scene.add(moon);
+scene.add(new THREE.HemisphereLight(0x545a8c, 0x0e1020, 1.35));
+scene.add(new THREE.AmbientLight(0x2a2e4a, 0.55));
+const moon = new THREE.DirectionalLight(0x9aa2d0, 0.55); moon.position.set(-12, 20, 22); scene.add(moon);
 
 // ---------- ground: wet asphalt outside, poured-concrete inside ----------
 {
@@ -95,7 +96,7 @@ function buildExterior() {
   // roof parapet
   const para = new THREE.Mesh(new THREE.BoxGeometry(48, 0.9, 2.2), std({ color: 0x241a14, roughness: 0.9 })); para.position.set(0, WH + 0.4, FZ); g.add(para);
   // graffiti tags on the facade
-  const tag = textPlane('SO FA KING', '#ff2b8f', 512, 128); tag.position.set(-13, 3.4, FZ + 0.42); tag.scale.set(7, 1.7, 1); tag.rotation.z = 0.04; g.add(tag);
+  const tag = textPlane('SOFA KING SAD BOI', '#ff2b8f', 512, 128); tag.position.set(-13, 3.4, FZ + 0.42); tag.scale.set(8, 1.4, 1); tag.rotation.z = 0.04; g.add(tag);
   const tag2 = textPlane('▓ 12m ▓', '#39ff14', 256, 128); tag2.position.set(12, 2.7, FZ + 0.42); tag2.scale.set(4.4, 2.2, 1); tag2.rotation.z = -0.05; g.add(tag2);
 
   // sliding door panels (two halves that part when you approach)
@@ -155,16 +156,18 @@ function buildEntranceHall() {
   // low ceiling with slot light-beams
   const ceil = new THREE.Mesh(new THREE.BoxGeometry(HX * 2 + 0.8, 0.4, HZ0 - HZ1), std({ color: 0x080910, roughness: 1 })); ceil.position.set(0, 8, (HZ0 + HZ1) / 2); g.add(ceil);
   const beams = [];
-  for (let i = 0; i < 4; i++) { const z = HZ1 + 2 + i * 3.4; const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 1.2, 7.6, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0x6a6cff, transparent: true, opacity: 0.06, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })); beam.position.set(0, 4, z); g.add(beam);
-    const pl = new THREE.PointLight(0x6a6cff, 2, 8, 2); pl.position.set(0, 7, z); g.add(pl); beams.push(pl); }
-  // glowing floor arrows pointing inward (toward -z)
+  for (let i = 0; i < 5; i++) { const z = HZ1 + 1.5 + i * 2.9; const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 1.3, 7.6, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0x9a9cff, transparent: true, opacity: 0.12, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })); beam.position.set(0, 4, z); g.add(beam);
+    const pl = new THREE.PointLight(0xbfc4ff, 6, 16, 2); pl.position.set(0, 6.6, z); g.add(pl); beams.push(pl); }
+  // warm floor-level wash so the corridor actually reads
+  for (const z of [HZ1 + 3, HZ1 + 8, HZ0 - 1.5]) { const wl = new THREE.PointLight(0xdfe2ff, 3, 12, 2); wl.position.set(0, 2.2, z); g.add(wl); }
+  // glowing floor arrows pointing inward (toward -z) — bigger + brighter
   const arrows = [];
-  const arrowMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false });
-  for (let i = 0; i < 5; i++) { const a = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.1, 3), arrowMat.clone()); a.rotation.x = -Math.PI / 2; a.position.set(0, 0.04, HZ1 + 1 + i * 2.6); a.rotation.z = Math.PI; g.add(a); arrows.push(a); }
+  const arrowMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
+  for (let i = 0; i < 6; i++) { const a = new THREE.Mesh(new THREE.ConeGeometry(0.72, 1.5, 3), arrowMat.clone()); a.rotation.x = -Math.PI / 2; a.position.set(0, 0.05, HZ1 + 0.5 + i * 2.3); a.rotation.z = Math.PI; g.add(a); arrows.push(a); }
   updaters.push((dt, t) => {
     projMats.forEach((m) => m.uniforms.t.value = t);
-    beams.forEach((b, i) => b.intensity = 1.5 + Math.sin(t * 3 + i) * 1.2);
-    arrows.forEach((a, i) => { a.material.opacity = 0.3 + 0.6 * Math.max(0, Math.sin(t * 3 - i * 0.7)); });
+    beams.forEach((b, i) => b.intensity = 5 + Math.sin(t * 3 + i) * 1.5);
+    arrows.forEach((a, i) => { a.material.opacity = 0.5 + 0.5 * Math.max(0, Math.sin(t * 3 - i * 0.7)); });
   });
   return g;
 }

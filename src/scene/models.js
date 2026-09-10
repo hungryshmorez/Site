@@ -832,7 +832,7 @@ export function buildComplex(accent = '#00f3ff') {
   const neon = textPlane('12MATT3R', accent); neon.position.set(0, 4.4, DZ + 0.45); neon.scale.set(4.6, 0.7, 1); g.add(neon);
   const open = textPlane('OPEN', '#ff0055'); open.position.set(W / 2 - 0.9, 3.0, DZ + 0.45); open.scale.set(1.5, 0.6, 1); g.add(open);
   // graffiti tag
-  const tag = textPlane('SO FA KING', '#39ff14'); tag.position.set(-(W / 2 - 1.2), 1.1, DZ + 0.42); tag.scale.set(2.6, 0.5, 1); tag.rotation.z = 0.05; g.add(tag);
+  const tag = textPlane('SOFA KING SAD BOI', '#39ff14'); tag.position.set(-(W / 2 - 1.4), 1.1, DZ + 0.42); tag.scale.set(3.4, 0.42, 1); tag.rotation.z = 0.05; g.add(tag);
   // glowing threshold on the ground
   const thresh = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.5), new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
   thresh.rotation.x = -Math.PI / 2; thresh.position.set(0, 0.07, DZ + 1.0); g.add(thresh);
