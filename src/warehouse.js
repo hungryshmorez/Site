@@ -299,6 +299,205 @@ const _frames = buildGoldenFrames();
 const _heartG = buildHeart();
 const _portalsG = buildPortals();
 
+// ================= COLLISION SYSTEM (AABB walls + push-out) =================
+const walls = [];       // { x0,x1,z0,z1 }
+const losTargets = [];  // TALL cover — blocks the floating eye's view of anyone
+const lowTargets = [];  // WAIST-HIGH cover — only hides a CROUCHED player
+const PR = 0.45;        // player radius
+function addWall(cx, cz, w, d, h, mat, y) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(cx, y != null ? y : h / 2, cz); m.castShadow = m.receiveShadow = true; scene.add(m); walls.push({ x0: cx - w / 2, x1: cx + w / 2, z0: cz - d / 2, z1: cz + d / 2 }); losTargets.push(m); return m; }
+function resolveCollision(pos) {
+  for (const w of walls) {
+    if (pos.x > w.x0 - PR && pos.x < w.x1 + PR && pos.z > w.z0 - PR && pos.z < w.z1 + PR) {
+      const pL = pos.x - (w.x0 - PR), pRr = (w.x1 + PR) - pos.x, pB = pos.z - (w.z0 - PR), pT = (w.z1 + PR) - pos.z;
+      const m = Math.min(pL, pRr, pB, pT);
+      if (m === pL) pos.x = w.x0 - PR; else if (m === pRr) pos.x = w.x1 + PR; else if (m === pB) pos.z = w.z0 - PR; else pos.z = w.z1 + PR;
+    }
+  }
+}
+
+// ================= ATRIUM COVER (sightline breaks, with collision) =================
+const ATR = { x0: -22, x1: 22, z0: -26, z1: 6 };   // seeker stays inside this
+function buildCover() {
+  const g = new THREE.Group(); scene.add(g);
+  const crtMat = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 } },
+    vertexShader: `varying vec2 v; void main(){ v=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+    fragmentShader: `varying vec2 v; uniform float t; float h(vec2 p){return fract(sin(dot(p,vec2(41.3,289.1)))*43758.5);} void main(){ float n=h(floor(v*vec2(60.0,80.0))+floor(t*10.0)); float sc=step(0.5,fract(v.y*40.0+t)); vec3 c=vec3(0.2,0.5,0.9)*n+vec3(0.9,0.2,0.5)*sc*0.3; gl_FragColor=vec4(c,1.0);} `,
+  });
+  const crtMats = [];
+  // CRT video walls (cover) — a stack of screens on a solid block
+  const crtWall = (cx, cz, ry) => {
+    const grp = new THREE.Group(); grp.position.set(cx, 0, cz); grp.rotation.y = ry; g.add(grp);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(4, 3, 0.6), std({ color: 0x0c0d16, roughness: 0.7 })); body.position.y = 1.6; grp.add(body);
+    for (let i = 0; i < 4; i++) { const m = crtMat.clone(); m.uniforms = { t: { value: 0 } }; crtMats.push(m); const s = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 1.3), m); s.position.set(-0.95 + (i % 2) * 1.9, 1 + ((i / 2) | 0) * 1.4, 0.33); grp.add(s); }
+    const gl = new THREE.PointLight(0x3a6cff, 1.6, 8, 2); gl.position.set(0, 1.8, 1); grp.add(gl);
+    // collider along the rotated footprint (approx as axis box)
+    const cos = Math.abs(Math.cos(ry)), sin = Math.abs(Math.sin(ry));
+    walls.push({ x0: cx - (2 * cos + 0.3 * sin), x1: cx + (2 * cos + 0.3 * sin), z0: cz - (2 * sin + 0.3 * cos), z1: cz + (2 * sin + 0.3 * cos) });
+    losTargets.push(body);
+  };
+  crtWall(-8, -3, 0.35); crtWall(9, -14, -0.4);
+  // tall pillar racks
+  const pillar = (cx, cz) => {
+    const grp = new THREE.Group(); grp.position.set(cx, 0, cz); g.add(grp);
+    for (let i = 0; i < 3; i++) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.8, 4.5, 0.8), std({ color: 0x16182a, roughness: 0.6, metalness: 0.4, emissive: C(0x1a2c5a), emissiveIntensity: 0.3 })); p.position.set((i - 1) * 0.9, 2.25, 0); grp.add(p); losTargets.push(p); }
+    walls.push({ x0: cx - 1.5, x1: cx + 1.5, z0: cz - 0.6, z1: cz + 0.6 });
+  };
+  pillar(-9, -15); pillar(10, -3);
+  // half-wall partitions (waist-high — you can peek over, not walk through)
+  const half = (cx, cz, w, ry) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 1.3, 0.4), std({ color: 0x12141f, roughness: 0.8, emissive: C(0x0a2a3a), emissiveIntensity: 0.3 })); m.position.set(cx, 0.65, cz); m.rotation.y = ry; g.add(m); const cos = Math.abs(Math.cos(ry)), sin = Math.abs(Math.sin(ry)); walls.push({ x0: cx - (w / 2 * cos + 0.2 * sin), x1: cx + (w / 2 * cos + 0.2 * sin), z0: cz - (w / 2 * sin + 0.2 * cos), z1: cz + (w / 2 * sin + 0.2 * cos) }); lowTargets.push(m); };
+  half(0, -6, 5, 0); half(-3, -18, 5, 0.5); half(4, -9, 4, 1.2);
+  // holographic billboards (tall glowing panels — visual cover + landmarks)
+  const bbMat = new THREE.ShaderMaterial({ transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: { t: { value: 0 } },
+    vertexShader: `varying vec2 v; void main(){ v=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+    fragmentShader: `varying vec2 v; uniform float t; void main(){ float b=sin(v.y*20.0-t*3.0)*0.5+0.5; vec3 c=0.5+0.5*cos(vec3(0.0,2.0,4.0)+v.y*4.0+t); gl_FragColor=vec4(c*b, (1.0-v.y)*0.5);} `,
+  });
+  const bbMats = [];
+  for (const [bx, bz] of [[-14, -10], [14, -8]]) { const m = bbMat.clone(); m.uniforms = { t: { value: 0 } }; bbMats.push(m); const bb = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 5), m); bb.position.set(bx, 3, bz); g.add(bb); const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 6, 8), std({ color: 0x14161f })); post.position.set(bx, 3, bz + 0.1); g.add(post); walls.push({ x0: bx - 0.3, x1: bx + 0.3, z0: bz - 0.3, z1: bz + 0.3 }); }
+  // curved lounge seating (cover near the entry)
+  const lounge = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.5, 10, 24, Math.PI), std({ color: 0x2a2f4a, roughness: 0.9, emissive: C(0x141a3a), emissiveIntensity: 0.25 })); lounge.position.set(0, 0.5, 1.5); lounge.rotation.x = Math.PI / 2; g.add(lounge);
+  for (let a = -1.2; a <= 1.2; a += 0.4) { walls.push({ x0: Math.sin(a) * 2.4 - 0.6, x1: Math.sin(a) * 2.4 + 0.6, z0: 1.5 - Math.cos(a) * 2.4 - 0.6, z1: 1.5 - Math.cos(a) * 2.4 + 0.6 }); }
+  updaters.push((dt, t) => { crtMats.forEach((m) => m.uniforms.t.value = t); bbMats.forEach((m) => m.uniforms.t.value = t); });
+  return g;
+}
+const _cover = buildCover();
+
+// ================= SEEKER BOT + HIDE-AND-SEEK GAME =================
+const game = { on: false, time: 0, state: 'off', detect: 0, best: 0 };
+const ENTRY = new THREE.Vector3(0, 1.6, 4);
+let crouched = false;
+const seeker = { group: null, yaw: 0, wp: 0, sweep: 0, pauseT: 0 };
+const WAYPOINTS = [[-12, -3], [12, -6], [8, -20], [-8, -20], [0, -12], [-14, -14], [14, -16], [0, -3], [-6, -10], [6, -12]];
+const CONE = 0.6, RANGE = 16;
+const _rc = new THREE.Raycaster(), _sv = new THREE.Vector3(), _pv = new THREE.Vector3();
+let coneMesh, seekLight, seekLightTarget, coneFloor, eyeIris;
+function buildSeeker() {
+  const g = new THREE.Group(); g.position.set(0, 2.6, -18); scene.add(g); seeker.group = g;
+  const shell = new THREE.Mesh(new THREE.SphereGeometry(0.55, 20, 16), std({ color: 0x0a0a12, roughness: 0.3, metalness: 0.6, emissive: C(0x300010), emissiveIntensity: 0.4 })); g.add(shell);
+  eyeIris = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 14), new THREE.MeshBasicMaterial({ color: 0xff2a2a })); eyeIris.position.z = 0.34; g.add(eyeIris);
+  const ringM = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.06, 8, 24), new THREE.MeshBasicMaterial({ color: 0xff3040, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false })); ringM.rotation.x = Math.PI / 2; g.add(ringM);
+  // vision cone (from eye out to the floor ahead)
+  coneMesh = new THREE.Mesh(new THREE.ConeGeometry(RANGE * Math.tan(CONE), RANGE, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xff3040, transparent: true, opacity: 0.08, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
+  coneMesh.rotation.x = -Math.PI / 2; coneMesh.position.z = 0; g.add(coneMesh);
+  seekLight = new THREE.SpotLight(0xff5060, 0, 26, CONE * 1.1, 0.5, 1.2); seekLight.position.set(0, 0, 0); g.add(seekLight); seekLightTarget = new THREE.Object3D(); scene.add(seekLightTarget); seekLight.target = seekLightTarget;
+  coneFloor = new THREE.Mesh(new THREE.RingGeometry(0.2, 2.4, 28), new THREE.MeshBasicMaterial({ color: 0xff3040, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); coneFloor.rotation.x = -Math.PI / 2; coneFloor.position.y = -2.55; scene.add(coneFloor);
+  return g;
+}
+buildSeeker();
+
+function seekerCanSee() {
+  _sv.copy(seeker.group.position);
+  _pv.set(controls.pos.x, crouched ? 1.0 : 1.55, controls.pos.z);
+  const dx = _pv.x - _sv.x, dz = _pv.z - _sv.z; const dist = Math.hypot(dx, dz);
+  if (dist > RANGE) return 0;
+  const fx = -Math.sin(seeker.yaw), fz = -Math.cos(seeker.yaw);
+  const ang = Math.acos(THREE.MathUtils.clamp((dx * fx + dz * fz) / (dist || 1), -1, 1));
+  if (ang > CONE) return 0;
+  // line of sight — tall cover always blocks the eye; low cover only hides a croucher
+  const dir = _pv.clone().sub(_sv); const len = dir.length(); dir.normalize();
+  _rc.set(_sv, dir); _rc.far = len - 0.5;
+  if (_rc.intersectObjects(losTargets, false).length) return 0;
+  if (crouched) { _rc.set(_sv, dir); _rc.far = len - 0.5; if (_rc.intersectObjects(lowTargets, false).length) return 0; }
+  // visible. crouching cuts your profile; closer + centred in cone = stronger
+  let vis = (1 - dist / RANGE) * (1 - ang / CONE) + 0.35;
+  if (crouched) vis *= 0.45;
+  return THREE.MathUtils.clamp(vis, 0, 1);
+}
+
+function updateSeeker(dt, t) {
+  const g = seeker.group; if (!g) return;
+  g.position.y = 2.6 + Math.sin(t * 1.5) * 0.12;
+  if (!game.on) { g.rotation.y += dt * 0.3; seeker.yaw = g.rotation.y; coneMesh.material.opacity = 0.03; seekLight.intensity = 0; eyeIris.material.color.setHex(0x662233); coneFloor.material.opacity = 0; return; }
+  const pp = controls.pos; const vis = seekerCanSee();
+  // state machine
+  if (game.state === 'chase') {
+    // home in on the player (bounded to atrium); if they break LOS for a while, back to search
+    const dx = pp.x - g.position.x, dz = pp.z - g.position.z; const d = Math.hypot(dx, dz);
+    seeker.yaw = Math.atan2(-dx, -dz);
+    const spd = 7 * dt; g.position.x += (dx / (d || 1)) * spd; g.position.z += (dz / (d || 1)) * spd;
+    game.detect = Math.min(2.4, game.detect + dt * (vis > 0 ? 2 : 0.4));
+    if (vis <= 0) { game.detect -= dt * 1.2; if (game.detect < 1.0) { game.state = 'search'; seeker.sweep = 0; } }
+    if (d < 1.4) return caught();
+  } else if (game.state === 'search') {
+    seeker.sweep += dt; seeker.yaw += Math.sin(seeker.sweep * 2.2) * dt * 2.4;   // sweep the light around
+    game.detect += dt * (vis > 0 ? 2.5 : -0.9);
+    if (game.detect >= 1.5) { game.state = 'chase'; }
+    else if (game.detect <= 0) { game.detect = 0; game.state = 'patrol'; }
+  } else { // patrol — roam waypoints while scanning the cone side to side
+    const [wx, wz] = WAYPOINTS[seeker.wp]; const dx = wx - g.position.x, dz = wz - g.position.z; const d = Math.hypot(dx, dz);
+    let travel = seeker.yaw;
+    if (d < 1.2) { seeker.pauseT -= dt; if (seeker.pauseT <= 0) { seeker.wp = (seeker.wp + 1 + (Math.random() * 2 | 0)) % WAYPOINTS.length; seeker.pauseT = 0.6 + Math.random(); } }
+    else { const spd = 4 * dt; g.position.x += (dx / d) * spd; g.position.z += (dz / d) * spd; travel = Math.atan2(-dx, -dz); }
+    seeker.yaw = travel + Math.sin(t * 1.6) * 0.6;   // sweep the vision cone as it moves
+    game.detect += dt * (vis > 0 ? 3.0 : -0.7);
+    if (game.detect > 0.35) game.state = 'search';
+    if (game.detect < 0) game.detect = 0;
+  }
+  // keep the seeker inside the atrium (never into the wings/hall)
+  g.position.x = THREE.MathUtils.clamp(g.position.x, ATR.x0 + 1, ATR.x1 - 1);
+  g.position.z = THREE.MathUtils.clamp(g.position.z, ATR.z0 + 1, ATR.z1 - 1);
+  g.rotation.y = seeker.yaw;
+  // visuals: cone + spotlight point where it looks
+  const fx = -Math.sin(seeker.yaw), fz = -Math.cos(seeker.yaw);
+  seekLightTarget.position.set(g.position.x + fx * 8, 0, g.position.z + fz * 8);
+  seekLight.intensity = game.state === 'chase' ? 14 : 8;
+  const col = game.state === 'chase' ? 0xff2020 : (game.state === 'search' ? 0xff8030 : 0xff5060);
+  seekLight.color.setHex(col); coneMesh.material.color.setHex(col); coneFloor.material.color.setHex(col); eyeIris.material.color.setHex(col);
+  coneMesh.material.opacity = game.state === 'chase' ? 0.16 : 0.09;
+  coneFloor.position.set(g.position.x + fx * 6, 0.04, g.position.z + fz * 6); coneFloor.material.opacity = 0.35 + Math.sin(t * 6) * 0.1;
+}
+
+// ---- HUD (built in JS so no HTML edits needed) ----
+const hs = document.createElement('div'); hs.style.cssText = 'position:fixed;top:96px;left:50%;transform:translateX(-50%);z-index:7;text-align:center;font-family:ui-monospace,monospace;pointer-events:none';
+hs.innerHTML = '<div id="hsTimer" style="font-size:26px;letter-spacing:.08em;color:#eaeaf5;text-shadow:0 0 14px rgba(0,243,255,.6);opacity:0;transition:opacity .3s"></div><div id="hsStealth" style="margin-top:4px;font-size:13px;letter-spacing:.22em;opacity:0;transition:opacity .3s"></div>';
+document.body.appendChild(hs);
+const hsTimerEl = hs.querySelector('#hsTimer'), hsStealthEl = hs.querySelector('#hsStealth');
+const hsBtn = document.createElement('button'); hsBtn.textContent = '▶ START HIDE-AND-SEEK';
+hsBtn.style.cssText = 'position:fixed;left:50%;bottom:104px;transform:translateX(-50%);z-index:8;font:700 13px ui-monospace,monospace;letter-spacing:.1em;color:#08101c;background:#ff3040;border:none;border-radius:10px;padding:11px 20px;cursor:pointer;box-shadow:0 8px 30px rgba(255,48,64,.4);opacity:0;transition:opacity .3s;pointer-events:auto';
+document.body.appendChild(hsBtn);
+hsBtn.onclick = (e) => { e.stopPropagation(); startGame(); };
+
+function startGame() {
+  game.on = true; game.time = 60; game.state = 'patrol'; game.detect = 0; seeker.wp = 0; seeker.pauseT = 0;
+  controls.pos.set(ENTRY.x, 1.6, ENTRY.z); controls.yaw = Math.PI;
+  seeker.group.position.set(0, 2.6, -18);
+  hsBtn.style.opacity = '0'; hsTimerEl.style.opacity = '1'; hsStealthEl.style.opacity = '1';
+  toast('👁 HIDE! survive 60 seconds — crouch (C) behind cover');
+}
+function endGame(msg) { game.on = false; game.state = 'off'; hsTimerEl.style.opacity = '0'; hsStealthEl.style.opacity = '0'; toast(msg); }
+function caught() {
+  endGame('💥 CAUGHT! back to the entrance');
+  controls.pos.set(ENTRY.x, 1.6, ENTRY.z); controls.yaw = Math.PI;
+}
+function winGame() {
+  game.best = Math.max(game.best, 60);
+  endGame('🏆 YOU SURVIVED! the arena is yours');
+  heartBaseI = 8; setTimeout(() => { heartBaseI = 3; }, 2500);
+}
+function updateGame(dt) {
+  if (!game.on) return;
+  game.time -= dt;
+  hsTimerEl.textContent = '⏱ ' + Math.ceil(game.time) + 's';
+  const lvl = game.detect >= 1.5 ? ['DETECTED', '#ff2020'] : (game.detect >= 0.35 ? ['CAUTION', '#ff9030'] : ['HIDDEN', '#39ff88']);
+  hsStealthEl.textContent = '● ' + lvl[0]; hsStealthEl.style.color = lvl[1];
+  if (game.time <= 0) winGame();
+}
+
+// start terminal near the centre floor
+let termProxy = null;
+{
+  const g = new THREE.Group(); g.position.set(0, 0, 3); scene.add(g);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 1.0, 8), std({ color: 0x14161f, roughness: 0.5, metalness: 0.4 })); base.position.y = 0.5; g.add(base);
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.5), std({ color: 0x05060a, emissive: C(0xff3040), emissiveIntensity: 0.8 })); scr.position.set(0, 1.05, 0.32); scr.rotation.x = -0.5; g.add(scr);
+  const cap = textPlane('HIDE & SEEK', '#ff3040', 512, 48); cap.position.set(0, 1.7, 0); cap.scale.set(2.2, 0.32, 1); g.add(cap);
+  const gl = new THREE.PointLight(0xff3040, 2, 8, 2); gl.position.set(0, 1.4, 0.6); g.add(gl);
+  termProxy = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 2, 8), new THREE.MeshBasicMaterial({ visible: false })); termProxy.position.set(0, 1, 3); scene.add(termProxy);
+  walls.push({ x0: -0.6, x1: 0.6, z0: 2.4, z1: 3.6 });
+  updaters.push((dt, t) => { gl.intensity = 1.6 + Math.sin(t * 4) * 0.6; });
+}
+
+// crouch toggle
+addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'c') { crouched = !crouched; controls.eye = crouched ? 0.95 : 1.6; toast(crouched ? '🧎 crouched — harder to spot' : '🧍 standing'); } });
+
 // ambient: cool motes inside, ground fog on the street
 updaters.push(addMotes(scene, { color: 0x8890e0, count: 220, area: [50, 12, 60], center: [0, 5, -6], rise: 0.4, opacity: 0.4 }));
 updaters.push(addHaze(scene, { color: 0x2a3060, count: 10, center: [0, 1, 30], area: [60, 3, 24], scale: 12, opacity: 0.09 }));   // street fog
@@ -342,6 +541,7 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
+  if (termProxy && ray.intersectObject(termProxy, false)[0]) { startGame(); return; }
   const hit = ray.intersectObjects(portalDiscs, false)[0];
   if (hit && hit.object.userData.portal) { activate(hit.object.userData.portal); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
@@ -399,7 +599,12 @@ function frame() {
   const t = clock.elapsedTime;
   const p = Math.pow(1 - ((t * (90 / 60)) % 1), 2.0);
   controls.update(dt);
+  if (!admin.active) resolveCollision(controls.pos);   // walls + cover block movement
   admin.update(dt);
+  updateSeeker(dt, t);
+  updateGame(dt);
+  // show the start button when you're inside the arena and not already playing
+  if (hsBtn) hsBtn.style.opacity = (!game.on && controls.pos.z < 6) ? '1' : '0';
   // door opens as you near it; heart reacts to how close you are
   openTarget += (((controls.pos.z < 25 && controls.pos.z > 8 && Math.abs(controls.pos.x) < 9) ? 1 : 0) - openTarget) * Math.min(1, dt * 3);
   const dH = Math.hypot(controls.pos.x - 0, controls.pos.z - (-12));
@@ -425,7 +630,7 @@ document.getElementById('enterBtn').onclick = () => {
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
-if (import.meta.env.DEV) window.__wh = { controls, scene, PORTALS };
+if (import.meta.env.DEV) window.__wh = { controls, scene, PORTALS, game, seeker, startGame, walls, updateSeeker, updateGame };
 
 // __world hook — overhead-screenshot harness only (activated with ?shot).
 if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('shot')) {
