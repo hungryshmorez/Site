@@ -255,6 +255,7 @@ const PORTALS = [
   { name: 'FESTIVAL FRENZY', col: 0xe6c04a, url: 'index.html', x: 22, z: -17 },
   { name: 'IMMERSIVE THEATER', col: 0xff8a2a, url: 'tv.html', x: 18, z: -18.5 },
   { name: 'ROOFTOP', col: 0x4ad0c0, url: 'rooftop.html', x: 28, z: -18.5 },
+  { name: 'VJ · PERFORMANCE STAGE', col: 0x8a5cff, url: 'vj.html', x: 9, z: -1 },
 ];
 const portalDiscs = [];
 function buildPortals() {

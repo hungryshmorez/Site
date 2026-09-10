@@ -33,6 +33,7 @@ export default defineConfig({
         rooftop: resolve(__dirname, 'rooftop.html'),
         builder: resolve(__dirname, 'builder.html'),
         hidden: resolve(__dirname, 'hidden.html'),
+        vj: resolve(__dirname, 'vj.html'),
       },
     },
   },
