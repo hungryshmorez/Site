@@ -576,7 +576,10 @@ function seekerCanSee() { return visFrom(seeker.group.position.x, seeker.group.p
 function updateSeeker(dt, t) {
   const g = seeker.group; if (!g) return;
   g.position.y = 2.6 + Math.sin(t * 1.5) * 0.12;
-  if (!game.on) { g.rotation.y += dt * 0.3; seeker.yaw = g.rotation.y; coneMesh.material.opacity = 0.03; seekLight.intensity = 0; eyeIris.material.color.setHex(0x662233); coneFloor.material.opacity = 0; return; }
+  if (!game.on) { // dormant: drift back to the dock by the vendor, powered down
+    g.position.x += (-12 - g.position.x) * Math.min(1, dt * 1.2); g.position.z += (1 - g.position.z) * Math.min(1, dt * 1.2);
+    g.rotation.y += dt * 0.3; seeker.yaw = g.rotation.y; coneMesh.material.opacity = 0.03; seekLight.intensity = 0; eyeIris.material.color.setHex(0x552233); coneFloor.material.opacity = 0; return;
+  }
   if (game.freeze > 0) { g.rotation.y += dt * 0.5; seeker.yaw = g.rotation.y; coneMesh.material.opacity = 0.05; seekLight.intensity = 1.5; eyeIris.material.color.setHex(0x883344); coneFloor.material.opacity = 0.1; return; }   // head-start: seeker idles while you hide
   const pp = controls.pos; const vis = seekerCanSee();
   const rush = game.time < 15 ? 1.3 : 1;   // final stretch — the seeker gets desperate
@@ -701,7 +704,10 @@ buildSeeker2();
 function updateSeeker2(dt, t) {
   const g = seeker2.group; if (!g) return;
   g.position.y = 1.6 + Math.sin(t * 2) * 0.06;
-  if (!game.on || game.freeze > 0) { g.rotation.y += dt * 0.6; seeker2.yaw = g.rotation.y; cone2Mesh.material.opacity = 0.03; cone2Floor.material.opacity = 0; eye2.material.color.setHex(0x224a55); return; }
+  if (!game.on || game.freeze > 0) {
+    if (!game.on) { g.position.x += (-10 - g.position.x) * Math.min(1, dt * 1.2); g.position.z += (2 - g.position.z) * Math.min(1, dt * 1.2); }   // dock by the vendor when idle
+    g.rotation.y += dt * 0.6; seeker2.yaw = g.rotation.y; cone2Mesh.material.opacity = 0.03; cone2Floor.material.opacity = 0; eye2.material.color.setHex(0x224a55); return;
+  }
   const vis = visFrom(g.position.x, g.position.y, g.position.z, seeker2.yaw, CONE2, RANGE2);
   const rush = game.time < 15 ? 1.25 : 1;
   const [wx, wz] = WAYPOINTS2[seeker2.wp]; const dx = wx - g.position.x, dz = wz - g.position.z, d = Math.hypot(dx, dz);
@@ -746,10 +752,7 @@ const hs = document.createElement('div'); hs.style.cssText = 'position:fixed;top
 hs.innerHTML = '<div id="hsTimer" style="font-size:26px;letter-spacing:.08em;color:#eaeaf5;text-shadow:0 0 14px rgba(0,243,255,.6);opacity:0;transition:opacity .3s"></div><div id="hsStealth" style="margin-top:4px;font-size:13px;letter-spacing:.22em;opacity:0;transition:opacity .3s"></div>';
 document.body.appendChild(hs);
 const hsTimerEl = hs.querySelector('#hsTimer'), hsStealthEl = hs.querySelector('#hsStealth');
-const hsBtn = document.createElement('button'); hsBtn.textContent = '▶ START HIDE-AND-SEEK';
-hsBtn.style.cssText = 'position:fixed;left:50%;bottom:104px;transform:translateX(-50%);z-index:8;font:700 13px ui-monospace,monospace;letter-spacing:.1em;color:#08101c;background:#ff3040;border:none;border-radius:10px;padding:11px 20px;cursor:pointer;box-shadow:0 8px 30px rgba(255,48,64,.4);opacity:0;transition:opacity .3s;pointer-events:auto';
-document.body.appendChild(hsBtn);
-hsBtn.onclick = (e) => { e.stopPropagation(); startGame(); };
+// (no floating start button — the game is started from the Hide & Seek vendor booth)
 
 // ---- persistent stats: best survival streak + record (remembered across visits) ----
 const HS_STATS = '12m.hsStats';
@@ -767,7 +770,7 @@ function startGame() {
   seeker.wp = 0; seeker.pauseT = 0; seeker.hasLast = false; seeker2.wp = 0; seeker2.pauseT = 0;
   controls.pos.set(ENTRY.x, 1.6, ENTRY.z); controls.yaw = Math.PI;
   seeker.group.position.set(0, 2.6, -18); seeker2.group.position.set(0, 1.6, -11);
-  hsBtn.style.opacity = '0'; statEl.style.opacity = '0'; hsTimerEl.style.opacity = '1'; hsStealthEl.style.opacity = '1';
+  statEl.style.opacity = '0'; hsTimerEl.style.opacity = '1'; hsStealthEl.style.opacity = '1';
   _hadLast = false;   // don't count the spawn teleport as movement noise
   AC(); toast('👁 GET READY — run and hide! crouch (C) behind cover or in a green ring');
 }
@@ -809,17 +812,29 @@ function updateGame(dt) {
   if (game.time <= 0) winGame();
 }
 
-// start terminal near the centre floor
-let termProxy = null;
+// HIDE & SEEK VENDOR — a little booth off to the side of the entrance. The arena is a
+// normal space to walk; the game only starts if you go to the vendor and choose to play.
+let vendorProxy = null; const VENDOR = { x: -8, z: 0 };
 {
-  const g = new THREE.Group(); g.position.set(0, 0, 3); scene.add(g);
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 1.0, 8), std({ color: 0x14161f, roughness: 0.5, metalness: 0.4 })); base.position.y = 0.5; g.add(base);
-  const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.5), std({ color: 0x05060a, emissive: C(0xff3040), emissiveIntensity: 0.8 })); scr.position.set(0, 1.05, 0.32); scr.rotation.x = -0.5; g.add(scr);
-  const cap = textPlane('HIDE & SEEK', '#ff3040', 512, 48); cap.position.set(0, 1.7, 0); cap.scale.set(2.2, 0.32, 1); g.add(cap);
-  const gl = new THREE.PointLight(0xff3040, 2, 8, 2); gl.position.set(0, 1.4, 0.6); g.add(gl);
-  termProxy = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 2, 8), new THREE.MeshBasicMaterial({ visible: false })); termProxy.position.set(0, 1, 3); scene.add(termProxy);
-  walls.push({ x0: -0.6, x1: 0.6, z0: 2.4, z1: 3.6 });
-  updaters.push((dt, t) => { gl.intensity = 1.6 + Math.sin(t * 4) * 0.6; });
+  const g = new THREE.Group(); g.position.set(VENDOR.x, 0, VENDOR.z); g.rotation.y = 0.4; scene.add(g);
+  const counter = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.0, 0.9), std({ color: 0x1a1030, roughness: 0.6, metalness: 0.3, emissive: C(0x2a0a3a), emissiveIntensity: 0.32 })); counter.position.set(0, 0.5, 0); counter.castShadow = counter.receiveShadow = true; g.add(counter);
+  const top = new THREE.Mesh(new THREE.BoxGeometry(2.85, 0.12, 1.1), std({ color: 0x2a1a40, roughness: 0.5 })); top.position.set(0, 1.06, 0); g.add(top);
+  // striped canopy + posts
+  for (let i = 0; i < 5; i++) { const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.06, 1.4), std({ color: i % 2 ? 0xff2bd0 : 0xf5f5ff, emissive: C(i % 2 ? 0x3a0020 : 0x222233), emissiveIntensity: 0.4 })); stripe.position.set(-1.12 + i * 0.56, 2.3, -0.15); stripe.rotation.x = -0.28; g.add(stripe); }
+  for (const px of [-1.32, 1.32]) { const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 2.4, 8), std({ color: 0x14161f, metalness: 0.5 })); post.position.set(px, 1.2, -0.35); g.add(post); }
+  // neon sign
+  const sign = textPlane('HIDE & SEEK', '#ff3040', 512, 60); sign.position.set(0, 1.92, 0.12); sign.scale.set(2.6, 0.5, 1); g.add(sign);
+  const sub = textPlane('wanna play?', '#ffe14a', 512, 44); sub.position.set(0, 1.5, 0.52); sub.scale.set(1.7, 0.26, 1); sub.rotation.x = -0.35; g.add(sub);
+  // the vendor — a little glowing character behind the counter
+  const vg = new THREE.Group(); vg.position.set(0, 0, -0.45); g.add(vg);
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.34, 0.5, 6, 12), std({ color: 0x2a2f6a, roughness: 0.7, emissive: C(0x101a4a), emissiveIntensity: 0.35 })); body.position.y = 1.15; vg.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 18, 14), std({ color: 0xf0e6d0, roughness: 0.6 })); head.position.y = 1.78; vg.add(head);
+  for (const ex of [-0.11, 0.11]) { const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), new THREE.MeshBasicMaterial({ color: 0x101018 })); eye.position.set(ex, 1.81, 0.27); vg.add(eye); }
+  const q = textPlane('?', '#39ff88', 128, 96); q.position.set(0.55, 2.25, 0.3); q.scale.set(0.5, 0.6, 1); vg.add(q);
+  const gl = new THREE.PointLight(0xff5090, 2.4, 10, 2); gl.position.set(0, 2, 0.8); g.add(gl);
+  vendorProxy = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 2.6, 8), new THREE.MeshBasicMaterial({ visible: false })); vendorProxy.position.set(VENDOR.x, 1.2, VENDOR.z); scene.add(vendorProxy);
+  walls.push({ x0: VENDOR.x - 1.5, x1: VENDOR.x + 1.5, z0: VENDOR.z - 0.7, z1: VENDOR.z + 0.7 });
+  updaters.push((dt, t) => { gl.intensity = 1.8 + Math.sin(t * 3) * 0.5; q.position.y = 2.25 + Math.sin(t * 2.5) * 0.12; head.rotation.y = Math.sin(t * 0.8) * 0.35; });
 }
 
 // crouch toggle
@@ -867,15 +882,15 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
-  if (termProxy && ray.intersectObject(termProxy, false)[0]) { startGame(); return; }
+  if (vendorProxy && ray.intersectObject(vendorProxy, false)[0]) { if (!game.on) startGame(); return; }
   const hit = ray.intersectObjects(portalDiscs, false)[0];
   if (hit && hit.object.userData.portal) { activate(hit.object.userData.portal); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -38, 38); g.z = THREE.MathUtils.clamp(g.z, -31, 29); controls.walkTo(g); }
 }
 
-let nearPortal = null;
-addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'e' && nearPortal) activate(nearPortal); });
+let nearPortal = null, nearVendor = false;
+addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'e') { if (nearVendor && !game.on) startGame(); else if (nearPortal) activate(nearPortal); } });
 
 const toastEl = document.getElementById('toast');
 let toastT = 0;
@@ -934,8 +949,9 @@ function frame() {
   updateGame(dt);
   // chamber thresholds → explored X/5 (and the secret door at 5/5)
   { const pp = controls.pos; for (const th of thresholds) { if (!exploredCh.has(th.id) && pp.x > th.box.x0 && pp.x < th.box.x1 && pp.z > th.box.z0 && pp.z < th.box.z1) explore(th.id); } }
-  // show the start button when you're inside the arena and not already playing
-  { const showStart = (!game.on && controls.pos.z < 6) ? '1' : '0'; if (hsBtn) hsBtn.style.opacity = showStart; if (statEl) statEl.style.opacity = showStart; }
+  // near the vendor (and not already playing) → offer the game + show your record
+  nearVendor = !game.on && Math.hypot(controls.pos.x - VENDOR.x, controls.pos.z - VENDOR.z) < 3.4;
+  if (statEl) statEl.style.opacity = nearVendor ? '1' : '0';
   // door opens as you near it; heart reacts to how close you are
   openTarget += (((controls.pos.z < 25 && controls.pos.z > 8 && Math.abs(controls.pos.x) < 9) ? 1 : 0) - openTarget) * Math.min(1, dt * 3);
   const dH = Math.hypot(controls.pos.x - 0, controls.pos.z - (-12));
@@ -943,7 +959,11 @@ function frame() {
   // nearest portal for the hint / E key
   nearPortal = null; let best = 3.2;
   for (const p2 of PORTALS) { const d = Math.hypot(controls.pos.x - p2.x, controls.pos.z - p2.z); if (d < best) { best = d; nearPortal = p2; } }
-  if (hintEl) { if (nearPortal) { hintEl.textContent = nearPortal.soon ? `${nearPortal.name} — opening in phase 2` : `▸ enter ${nearPortal.name}  ·  tap / E`; hintEl.classList.add('show'); } else hintEl.classList.remove('show'); }
+  if (hintEl) {
+    if (nearVendor) { hintEl.textContent = '🎪 Hide & Seek — wanna play?  ·  tap / E'; hintEl.classList.add('show'); }
+    else if (nearPortal) { hintEl.textContent = nearPortal.soon ? `${nearPortal.name} — opening in phase 2` : `▸ enter ${nearPortal.name}  ·  tap / E`; hintEl.classList.add('show'); }
+    else hintEl.classList.remove('show');
+  }
   if (toastT > 0) { toastT -= dt; if (toastT <= 0 && toastEl) toastEl.classList.remove('show'); }
   for (const u of updaters) u(dt, t, p, prox);
   updateZone(controls.pos);
