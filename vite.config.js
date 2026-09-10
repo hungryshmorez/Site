@@ -28,6 +28,7 @@ export default defineConfig({
         dj: resolve(__dirname, 'dj.html'),
         warehouse: resolve(__dirname, 'warehouse.html'),
         lofi: resolve(__dirname, 'lofi.html'),
+        horrorcore: resolve(__dirname, 'horrorcore.html'),
       },
     },
   },
