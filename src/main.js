@@ -152,6 +152,7 @@ const secret = buildSecret(scene, {
 const DUMPSTER_POS = [-22, -20];
 const trash = buildTrash(scene, {
   dumpsterPos: DUMPSTER_POS,
+  store: '12m.trash',    // dumped pieces persist across visits — no more restarting the clean-up
   onPickup: (label, s) => { flash(`picked up ${label}`); trashHudUpdate(s); },
   onDeposit: (n, s) => { flash(n === 1 ? 'tossed it in the dumpster' : `dumped ${n} pieces`); trashHudUpdate(s); },
   onComplete: (s) => { trashHudUpdate(s); unlockReward(); },
@@ -802,6 +803,9 @@ function trashHudUpdate(s) {
     tCarryEl.classList.toggle('carrying', s.held > 0);
   }
 }
+
+// returning with clean-up already underway → show the counter right away
+{ const s0 = trash.state(); if (s0.dumped > 0) trashHudUpdate(s0); }
 
 function unlockReward() {
   try { localStorage.setItem(REWARD_KEY, '1'); } catch (e) { /* private mode */ }
