@@ -31,6 +31,7 @@ export default defineConfig({
         horrorcore: resolve(__dirname, 'horrorcore.html'),
         abstract: resolve(__dirname, 'abstract.html'),
         rooftop: resolve(__dirname, 'rooftop.html'),
+        builder: resolve(__dirname, 'builder.html'),
       },
     },
   },
