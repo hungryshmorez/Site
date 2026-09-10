@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { buildCowboy } from './scene/models.js';
+import { buildTailgate as buildBeerPongTable } from './scene/tailgate.js';
+import { createGameZones } from './scene/gamezones.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
@@ -212,6 +214,16 @@ updaters.push((dt, t, p) => { if (tj.update) tj.update(t, p); });
 const controls = new WalkControls(camera, { bounds: 30, eye: 1.6, zMin: -26 });
 controls.pos.set(0, 1.6, 14); controls.yaw = 0;
 
+// ---------- BEER PONG by the tailgate (moved here from the festival) ----------
+const pongHudEl = document.createElement('div');
+pongHudEl.style.cssText = 'position:fixed;top:52px;left:50%;transform:translateX(-50%);z-index:6;font:600 13px ui-monospace,monospace;letter-spacing:.06em;color:#e6c04a;text-shadow:0 0 12px rgba(230,192,74,.6);opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap';
+document.body.appendChild(pongHudEl);
+let pongHudT = 0;
+function pongSay(msg) { pongHudEl.textContent = msg; pongHudEl.style.opacity = '1'; pongHudT = 2.6; }
+const beerpong = buildBeerPongTable(scene, { truck: false, pos: [17, 10], pongPos: [17, 10], pongRot: 0, accent: '#e6c04a', onState: (msg) => pongSay(msg) });
+const gamezones = createGameZones({ controls, camera });
+gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => beerpong.near(p), spotFn: () => beerpong.playSpot(), play: (cam, ray) => beerpong.throwBall(cam, ray) });
+
 const epkRef = { url: EPK_URL };
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'tanky', overhead: { ax: 32, az: 19, cz: -3 },
@@ -241,6 +253,7 @@ function tap(sx, sy) {
   ray.setFromCamera(ndc, camera);
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('TANKY JOHNSON — EPK', epkRef.url); return; }
+  if (gamezones.onTap(ray)) return; // beer pong throw while playing
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -29, 29); g.z = THREE.MathUtils.clamp(g.z, -25, 29); controls.walkTo(g); }
 }
@@ -274,6 +287,9 @@ function frame() {
   controls.update(dt);
   admin.update(dt);
   for (const u of updaters) u(dt, t, p);
+  beerpong.update(dt, t, p);
+  gamezones.update(controls.pos);
+  if (pongHudT > 0) { pongHudT -= dt; if (pongHudT <= 0) pongHudEl.style.opacity = '0'; }
   updateZone(controls.pos);
   renderer.render(scene, admin.active ? admin.cam : camera);
 }

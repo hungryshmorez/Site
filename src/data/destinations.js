@@ -72,14 +72,8 @@ export const DESTINATIONS = [
     blurb: 'The vendor working the merch tent. Productized packages — visual identity, audio branding, a web-OS build like this one — with pricing, a tip jar, and an intake + NDA flow. Where the experience converts.',
     cta: 'Browse commissions',
   },
-  {
-    id: 'dreamtv', name: 'TV', model: 'doorway',
-    role: 'the big CRT // theater', accent: PALETTE.magenta,
-    pos: [-25, 0, -15], tag: 'walk-in cinema',
-    page: 'tv.html',
-    blurb: 'A lit doorway off the side of the grounds, glowing from underneath like a vendor stand. Step through into DreamOS TV — a movie theater with a big screen, a crowd, and popcorn in the air.',
-    cta: 'Step through',
-  },
+  // DreamOS TV theater moved into THE COMPLEX (reached from the warehouse hub's
+  // IMMERSIVE THEATER portal), so it's no longer a doorway on the festival grounds.
   {
     id: 'decks', name: 'THE DECKS', model: 'decks',
     role: 'the DJ rig // center stage', accent: PALETTE.cyan,
@@ -88,14 +82,8 @@ export const DESTINATIONS = [
     blurb: 'A DJ booth open to anyone. Step up to $AUCELAB — two decks, EQ, filters, crossfader, tempo, cue, sync and loops. Upload your own tracks and mix live.',
     cta: 'Take the decks',
   },
-  {
-    id: 'arcade', name: 'ARCADE', model: 'circustent',
-    role: 'the arcade tent // all the games', accent: PALETTE.magenta,
-    pos: [27, 0, -10], tag: 'the carnival arcade · every game',
-    page: 'arcade.html',
-    blurb: 'A striped carnival tent built into the wall, humming with attract-mode neon — the entrance to THE MIDWAY. Every game lives inside under one big top: cabinets for the flash portal, the Wake Up saga, the games library and the stories, a Monkey\'s Paw machine, a basketball hoop you bank off the backboard, and a shooting gallery. Step right up.',
-    cta: 'Step into the midway',
-  },
+  // The carnival ARCADE moved into THE COMPLEX (warehouse hub's ARCADE + KARAOKE
+  // portal), so the tent no longer stands on the festival grounds.
   {
     id: 'labs', name: 'THE LAB', model: 'labsstage',
     role: 'the side stage // experiments', accent: PALETTE.green,

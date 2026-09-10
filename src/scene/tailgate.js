@@ -7,7 +7,7 @@ import * as THREE from 'three';
 
 const std = (o) => new THREE.MeshStandardMaterial(o);
 
-export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = null, pongRot = null, accent = '#e6c04a', onState } = {}) {
+export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = null, pongRot = null, accent = '#e6c04a', onState, truck: withTruck = true } = {}) {
   const col = new THREE.Color(accent);
   const bodyMat = std({ color: 0x7a1424, metalness: 0.6, roughness: 0.28 });   // glossy deep red
   const glass = std({ color: 0x05080f, metalness: 0.4, roughness: 0.15, emissive: col, emissiveIntensity: 0.05 });
@@ -17,23 +17,26 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = nul
   // ---- lifted truck (its own group; rear/tailgate faces +Z) ----
   const group = new THREE.Group();
   group.position.set(pos[0], 0, pos[1]); group.rotation.y = rot; scene.add(group);
-  const truck = new THREE.Group(); truck.position.set(0, 0, 0); group.add(truck);
-  const L = 1.15; // lift
-  const bed = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.7, 2.6), bodyMat); bed.position.set(0, L + 0.35, 0.8); bed.castShadow = true; truck.add(bed);
-  const cooler = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.5, 0.75), std({ color: 0xd6d8dc, roughness: 0.6 })); cooler.position.set(-0.5, L + 0.95, 0.9); cooler.castShadow = true; truck.add(cooler);
-  const lid = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.09, 0.78), std({ color: 0xc02f2f, roughness: 0.5 })); lid.position.set(-0.5, L + 1.24, 0.9); truck.add(lid);
-  const cab = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.1, 2.0), bodyMat); cab.position.set(0, L + 0.55, -1.1); cab.castShadow = true; truck.add(cab);
-  const cabTop = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.9, 1.7), glass); cabTop.position.set(0, L + 1.4, -1.05); truck.add(cabTop);
-  const hood = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.7, 1.2), bodyMat); hood.position.set(0, L + 0.35, -2.6); hood.castShadow = true; truck.add(hood);
-  const gate = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.7, 0.1), bodyMat); gate.position.set(0, L + 0.03, 2.15); gate.rotation.x = -Math.PI / 2; truck.add(gate);
-  const bumper = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.25, 0.2), chrome); bumper.position.set(0, L - 0.1, -3.25); truck.add(bumper);
-  for (const sx of [-0.85, 0.85]) { const hl = new THREE.Mesh(new THREE.CircleGeometry(0.17, 16), new THREE.MeshBasicMaterial({ color: 0xfff2c0 })); hl.position.set(sx, L + 0.35, -3.21); hl.rotation.y = Math.PI; truck.add(hl); }
-  for (const sx of [-0.9, 0.9]) { const tl = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.18), new THREE.MeshBasicMaterial({ color: 0xff2a2a })); tl.position.set(sx, L + 0.45, 2.11); truck.add(tl); }
-  for (const [tx, tz] of [[-1.25, -2.0], [1.25, -2.0], [-1.25, 1.3], [1.25, 1.3]]) {
-    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 0.55, 20), tire); w.rotation.z = Math.PI / 2; w.position.set(tx, 0.72, tz); w.castShadow = true; truck.add(w);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.57, 10), chrome); hub.rotation.z = Math.PI / 2; hub.position.set(tx, 0.72, tz); truck.add(hub);
+  let underglow = null;
+  if (withTruck) {
+    const truck = new THREE.Group(); truck.position.set(0, 0, 0); group.add(truck);
+    const L = 1.15; // lift
+    const bed = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.7, 2.6), bodyMat); bed.position.set(0, L + 0.35, 0.8); bed.castShadow = true; truck.add(bed);
+    const cooler = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.5, 0.75), std({ color: 0xd6d8dc, roughness: 0.6 })); cooler.position.set(-0.5, L + 0.95, 0.9); cooler.castShadow = true; truck.add(cooler);
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.98, 0.09, 0.78), std({ color: 0xc02f2f, roughness: 0.5 })); lid.position.set(-0.5, L + 1.24, 0.9); truck.add(lid);
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.1, 2.0), bodyMat); cab.position.set(0, L + 0.55, -1.1); cab.castShadow = true; truck.add(cab);
+    const cabTop = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.9, 1.7), glass); cabTop.position.set(0, L + 1.4, -1.05); truck.add(cabTop);
+    const hood = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.7, 1.2), bodyMat); hood.position.set(0, L + 0.35, -2.6); hood.castShadow = true; truck.add(hood);
+    const gate = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.7, 0.1), bodyMat); gate.position.set(0, L + 0.03, 2.15); gate.rotation.x = -Math.PI / 2; truck.add(gate);
+    const bumper = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.25, 0.2), chrome); bumper.position.set(0, L - 0.1, -3.25); truck.add(bumper);
+    for (const sx of [-0.85, 0.85]) { const hl = new THREE.Mesh(new THREE.CircleGeometry(0.17, 16), new THREE.MeshBasicMaterial({ color: 0xfff2c0 })); hl.position.set(sx, L + 0.35, -3.21); hl.rotation.y = Math.PI; truck.add(hl); }
+    for (const sx of [-0.9, 0.9]) { const tl = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.18), new THREE.MeshBasicMaterial({ color: 0xff2a2a })); tl.position.set(sx, L + 0.45, 2.11); truck.add(tl); }
+    for (const [tx, tz] of [[-1.25, -2.0], [1.25, -2.0], [-1.25, 1.3], [1.25, 1.3]]) {
+      const w = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.72, 0.55, 20), tire); w.rotation.z = Math.PI / 2; w.position.set(tx, 0.72, tz); w.castShadow = true; truck.add(w);
+      const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.57, 10), chrome); hub.rotation.z = Math.PI / 2; hub.position.set(tx, 0.72, tz); truck.add(hub);
+    }
+    underglow = new THREE.PointLight(accent, 2, 6, 2); underglow.position.set(0, 0.2, -1); truck.add(underglow);
   }
-  const underglow = new THREE.PointLight(accent, 2, 6, 2); underglow.position.set(0, 0.2, -1); truck.add(underglow);
 
   // ---- beer-pong table: its OWN group, placed independently ----
   const pong = new THREE.Group();
@@ -211,7 +214,7 @@ export function buildTailgate(scene, { pos = [15, -7], rot = -0.9, pongPos = nul
   }
 
   function update(dt, time, pulse) {
-    underglow.intensity = 1.6 + pulse * 1.4;
+    if (underglow) underglow.intensity = 1.6 + pulse * 1.4;
     marker.material.opacity = 0.55 + Math.sin(time * 3) * 0.25 + pulse * 0.2;
     marker.position.y = 2.2 + Math.sin(time * 1.6) * 0.12;
     if (turn === 'ai' && !inFlight) { aiTimer -= dt; if (aiTimer <= 0) aiThrow(); }

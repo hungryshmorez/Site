@@ -215,11 +215,40 @@ function hitPad(pad) {
   const mix = document.getElementById('mix'); if (mix) mix.innerHTML = 'soundboard: <b>' + (active.length ? active.join(' · ') : 'silent') + '</b>';
 }
 
+// ---------- DJ booth (tap the decks to open the full DJ rig) ----------
+function buildDJBooth() {
+  const g = new THREE.Group(); g.position.set(-8, 0, -2); g.rotation.y = 0.5; scene.add(g);
+  for (const [lx, lz] of [[-1.2, -0.4], [1.2, -0.4], [-1.2, 0.4], [1.2, 0.4]]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 1.0, 8), std({ color: 0x14161f })); leg.position.set(lx, 0.5, lz); g.add(leg); }
+  const table = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.18, 1.1), std({ color: 0x14202e, roughness: 0.5, metalness: 0.35 })); table.position.y = 1.05; table.castShadow = true; g.add(table);
+  // two spinning platters + a center mixer
+  const platters = [];
+  for (const sx of [-0.9, 0.9]) {
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.06, 0.9), std({ color: 0x0a0d14, roughness: 0.5 })); deck.position.set(sx, 1.16, 0); g.add(deck);
+    const plat = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.05, 32), std({ color: 0x05060a, emissive: C(0x4ad0c0), emissiveIntensity: 0.5, roughness: 0.4 })); plat.position.set(sx, 1.21, 0); g.add(plat);
+    const dot = new THREE.Mesh(new THREE.CircleGeometry(0.05, 12), new THREE.MeshBasicMaterial({ color: 0xffe08a })); dot.rotation.x = -Math.PI / 2; dot.position.set(sx + 0.18, 1.24, 0); plat.add(dot);
+    platters.push(plat);
+  }
+  const mixer = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.1, 0.9), std({ color: 0x0e1620, roughness: 0.5, emissive: C(0x4ad0c0), emissiveIntensity: 0.12 })); mixer.position.set(0, 1.16, 0); g.add(mixer);
+  for (const fx of [-0.15, 0, 0.15]) { const fader = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.04, 0.28), std({ color: 0x2a3546 })); fader.position.set(fx, 1.22, 0); g.add(fader); const knob = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.06, 0.07), std({ color: 0xffe08a, emissive: C(0xffe08a), emissiveIntensity: 0.4 })); knob.position.set(fx, 1.25, (Math.random() - 0.5) * 0.2); g.add(knob); }
+  // little VU screen
+  const scrMat = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 } },
+    vertexShader: `varying vec2 v; void main(){ v=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);} `,
+    fragmentShader: `varying vec2 v; uniform float t; void main(){ float b=step(v.y, 0.5+0.45*sin(v.x*10.0+t*4.0)); vec3 c=mix(vec3(0.1,0.5,0.5),vec3(1.0,0.7,0.3),v.x); gl_FragColor=vec4(c*b,1.0);} `,
+  });
+  const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.5), scrMat); scr.position.set(0, 1.9, -0.55); g.add(scr);
+  const cap = textPlane('DJ DECKS · tap to mix', '#4ad0c0', 512, 48); cap.position.set(0, 2.4, -0.4); cap.scale.set(3.2, 0.34, 1); g.add(cap);
+  const gl = new THREE.PointLight(0x4ad0c0, 2.6, 10, 2); gl.position.set(0, 1.8, 0.8); g.add(gl);
+  const proxy = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.6, 1.4), new THREE.MeshBasicMaterial({ visible: false })); proxy.position.set(0, 1.3, 0); g.add(proxy);
+  updaters.push((dt, t) => { scrMat.uniforms.t.value = t; platters.forEach((p) => p.rotation.y += dt * 2.2); gl.intensity = 2.2 + Math.sin(t * 3) * 0.5; });
+  return { g, proxy };
+}
+
 // build
 const _dress = buildDressing();
 const _seat = buildSeating();
 const _holo = buildHolos();
 const _board = buildSoundboard();
+const _dj = buildDJBooth();
 updaters.push(addMotes(scene, { color: 0xbfc8ff, count: 160, area: [40, 14, 40], center: [0, 5, -2], rise: 0.25, opacity: 0.4 }));
 
 // ---------- controls ----------
@@ -233,6 +262,7 @@ const admin = createAdmin({
     { id: 'seating', label: 'Seating', obj: _seat },
     { id: 'holos', label: 'Holo art', obj: _holo },
     { id: 'board', label: 'Soundboard', obj: _board },
+    { id: 'dj', label: 'DJ booth', obj: _dj.g },
   ],
 });
 
@@ -256,6 +286,7 @@ function tap(sx, sy) {
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   const ph = ray.intersectObjects(pads, false)[0];
   if (ph) { hitPad(ph.object); return; }
+  if (_dj.proxy && ray.intersectObject(_dj.proxy, false)[0]) { const w = document.getElementById('warp'); if (w) w.classList.add('go'); setTimeout(() => { window.location.href = 'dj.html'; }, 470); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -RX + 1, RX - 1); g.z = THREE.MathUtils.clamp(g.z, RZ1 + 1, RZ0 - 1); controls.walkTo(g); }
 }
