@@ -65,9 +65,9 @@ const moon = new THREE.DirectionalLight(0x9aa2d0, 0.55); moon.position.set(-12, 
 {
   const cv = document.createElement('canvas'); cv.width = cv.height = 128; const x = cv.getContext('2d');
   for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) { x.fillStyle = (i + j) % 2 ? '#0a0a12' : '#e7e8f2'; x.fillRect(i * 64, j * 64, 64, 64); }
-  const tex = new THREE.CanvasTexture(cv); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(26, 20); tex.colorSpace = THREE.SRGBColorSpace; tex.magFilter = THREE.NearestFilter;
-  const hubFloor = new THREE.Mesh(new THREE.PlaneGeometry(52, 40), std({ map: tex, roughness: 0.35, metalness: 0.25, emissive: C(0x1a1c30), emissiveIntensity: 0.14 }));
-  hubFloor.rotation.x = -Math.PI / 2; hubFloor.position.set(0, 0.015, -10); scene.add(hubFloor);
+  const tex = new THREE.CanvasTexture(cv); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(15, 12); tex.colorSpace = THREE.SRGBColorSpace; tex.magFilter = THREE.NearestFilter;
+  const hubFloor = new THREE.Mesh(new THREE.PlaneGeometry(30, 24), std({ map: tex, roughness: 0.35, metalness: 0.25, emissive: C(0x1a1c30), emissiveIntensity: 0.14 }));
+  hubFloor.rotation.x = -Math.PI / 2; hubFloor.position.set(0, 0.016, -9); scene.add(hubFloor);
 }
 
 function textPlane(text, color, w = 512, h = 72) {
@@ -177,11 +177,8 @@ function buildEntranceHall() {
 // ---------- CENTRAL HUB: shell, golden frames, heart orb, portals ----------
 function buildHubShell() {
   const g = new THREE.Group(); scene.add(g);
-  const wall = std({ color: 0x0c0d16, roughness: 0.95, metalness: 0.15, emissive: C(0x10122a), emissiveIntensity: 0.12 });
-  // side + back walls of the hall
-  const side = (sx) => { const w = new THREE.Mesh(new THREE.BoxGeometry(0.6, 12, 36), wall); w.position.set(sx, 6, -10); g.add(w); };
-  side(-25.6); side(25.6);
-  const backW = new THREE.Mesh(new THREE.BoxGeometry(52, 12, 0.6), wall); backW.position.set(0, 6, -28); g.add(backW);
+  // (the atrium's own collidable perimeter is built in buildAtrium; here we keep
+  // just the roof, trusses and dramatic spotlights over the arena)
   const roof = new THREE.Mesh(new THREE.BoxGeometry(52, 0.6, 36), std({ color: 0x070810, roughness: 1 })); roof.position.set(0, 12, -10); g.add(roof);
   // exposed truss beams overhead
   for (let i = -3; i <= 3; i++) { const tb = new THREE.Mesh(new THREE.BoxGeometry(51, 0.4, 0.4), std({ color: 0x1a1c28, metalness: 0.6 })); tb.position.set(0, 11.4, -10 + i * 5); g.add(tb); }
@@ -246,17 +243,18 @@ function buildHeart() {
 }
 
 // ---------- PORTALS: radiating sigils that lead to each themed room ----------
+// portals now live inside their dedicated maze chambers (see buildMaze)
 const PORTALS = [
-  { name: 'GLITCH ART', col: 0x39ff14, url: 'studio.html', x: -15, z: -5 },
-  { name: 'ARCADE + KARAOKE', col: 0xff0055, url: 'arcade.html', x: -5, z: -5 },
-  { name: 'IMMERSIVE THEATER', col: 0xff8a2a, url: 'tv.html', x: 5, z: -5 },
-  { name: 'AUDIO / VIDEO BOOTHS', col: 0x00f3ff, url: 'dj.html', x: 15, z: -5 },
-  { name: 'SURREAL LO-FI', col: 0xb967ff, url: 'lofi.html', x: -15, z: -19 },
-  { name: 'HORRORCORE CRAWLSPACE', col: 0xff2b2b, url: 'horrorcore.html', x: -5, z: -19 },
-  { name: 'ABSTRACT PSYCHEDELIC', col: 0x00ffa8, url: 'abstract.html', x: 5, z: -19 },
-  { name: 'FESTIVAL FRENZY', col: 0xe6c04a, url: 'index.html', x: 15, z: -19 },
-  { name: 'ROOFTOP ▲', col: 0x4ad0c0, url: 'rooftop.html', x: -6, z: -24.5 },
-  { name: 'ROOM BUILDER ✦', col: 0xffffff, url: 'builder.html', x: 6, z: -24.5 },
+  { name: 'GLITCH ART', col: 0x39ff14, url: 'studio.html', x: -23, z: 1 },
+  { name: 'HORRORCORE', col: 0xff2b2b, url: 'horrorcore.html', x: -23, z: -14 },
+  { name: 'ARCADE + KARAOKE', col: 0xff0055, url: 'arcade.html', x: 23, z: -1 },
+  { name: 'DJ DECKS', col: 0x00f3ff, url: 'dj.html', x: 28, z: 1 },
+  { name: 'SURREAL LO-FI', col: 0xb967ff, url: 'lofi.html', x: 18, z: 1.5 },
+  { name: 'ABSTRACT PSYCHEDELIC', col: 0x00ffa8, url: 'abstract.html', x: 23, z: -9 },
+  { name: 'ROOM BUILDER', col: 0xffffff, url: 'builder.html', x: 28, z: -10 },
+  { name: 'FESTIVAL FRENZY', col: 0xe6c04a, url: 'index.html', x: 22, z: -17 },
+  { name: 'IMMERSIVE THEATER', col: 0xff8a2a, url: 'tv.html', x: 18, z: -18.5 },
+  { name: 'ROOFTOP', col: 0x4ad0c0, url: 'rooftop.html', x: 28, z: -18.5 },
 ];
 const portalDiscs = [];
 function buildPortals() {
@@ -282,20 +280,15 @@ function buildPortals() {
   return g;
 }
 
-// hidden-door unlock: reveal a secret portal once every new room has been explored
-const REQUIRED = ['lofi', 'horrorcore', 'abstract', 'rooftop', 'builder'];
-let exploredSet = new Set();
-try { exploredSet = new Set(JSON.parse(localStorage.getItem('12m.explored') || '[]')); } catch (e) {}
-const doneN = REQUIRED.filter((r) => exploredSet.has(r)).length;
-const unlocked = doneN >= REQUIRED.length;
-if (unlocked) PORTALS.push({ name: '▾ THE HIDDEN ROOM', col: 0xe6c04a, url: 'hidden.html', x: 0, z: -9 });
-{ const pe = document.getElementById('progress'); if (pe) pe.innerHTML = unlocked ? '✦ <b>hidden door revealed</b>' : `explored <b>${doneN}/${REQUIRED.length}</b> · find them all to reveal a hidden door`; }
+// chamber exploration → 5/5 reveals the secret door (wired in buildMaze)
+const CHAMBERS = ['glitch', 'horrorcore', 'arcade', 'abstract', 'festival'];
+let exploredCh = new Set();
+try { exploredCh = new Set((JSON.parse(localStorage.getItem('12m.chambers') || '[]')).filter((c) => CHAMBERS.includes(c))); } catch (e) {}
 
 // build everything
 const _ext = buildExterior();
 const _hall = buildEntranceHall();
 const _shell = buildHubShell();
-const _frames = buildGoldenFrames();
 const _heartG = buildHeart();
 const _portalsG = buildPortals();
 
@@ -316,7 +309,7 @@ function resolveCollision(pos) {
 }
 
 // ================= ATRIUM COVER (sightline breaks, with collision) =================
-const ATR = { x0: -22, x1: 22, z0: -26, z1: 6 };   // seeker stays inside this
+const ATR = { x0: -13, x1: 13, z0: -20, z1: 2 };    // seeker stays inside the atrium (never the maze)
 function buildCover() {
   const g = new THREE.Group(); scene.add(g);
   const crtMat = new THREE.ShaderMaterial({ uniforms: { t: { value: 0 } },
@@ -354,12 +347,130 @@ function buildCover() {
   const bbMats = [];
   for (const [bx, bz] of [[-14, -10], [14, -8]]) { const m = bbMat.clone(); m.uniforms = { t: { value: 0 } }; bbMats.push(m); const bb = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 5), m); bb.position.set(bx, 3, bz); g.add(bb); const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 6, 8), std({ color: 0x14161f })); post.position.set(bx, 3, bz + 0.1); g.add(post); walls.push({ x0: bx - 0.3, x1: bx + 0.3, z0: bz - 0.3, z1: bz + 0.3 }); }
   // curved lounge seating (cover near the entry)
-  const lounge = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.5, 10, 24, Math.PI), std({ color: 0x2a2f4a, roughness: 0.9, emissive: C(0x141a3a), emissiveIntensity: 0.25 })); lounge.position.set(0, 0.5, 1.5); lounge.rotation.x = Math.PI / 2; g.add(lounge);
-  for (let a = -1.2; a <= 1.2; a += 0.4) { walls.push({ x0: Math.sin(a) * 2.4 - 0.6, x1: Math.sin(a) * 2.4 + 0.6, z0: 1.5 - Math.cos(a) * 2.4 - 0.6, z1: 1.5 - Math.cos(a) * 2.4 + 0.6 }); }
+  const LGX = -9, LGZ = -5;   // tucked to the side, clear of the entry + archways
+  const lounge = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.5, 10, 24, Math.PI), std({ color: 0x2a2f4a, roughness: 0.9, emissive: C(0x141a3a), emissiveIntensity: 0.25 })); lounge.position.set(LGX, 0.5, LGZ); lounge.rotation.x = Math.PI / 2; g.add(lounge);
+  for (let a = -1.0; a <= 1.0; a += 0.5) { walls.push({ x0: LGX + Math.sin(a) * 2.2 - 0.5, x1: LGX + Math.sin(a) * 2.2 + 0.5, z0: LGZ - Math.cos(a) * 2.2 - 0.5, z1: LGZ - Math.cos(a) * 2.2 + 0.5 }); }
   updaters.push((dt, t) => { crtMats.forEach((m) => m.uniforms.t.value = t); bbMats.forEach((m) => m.uniforms.t.value = t); });
   return g;
 }
 const _cover = buildCover();
+
+// ================= ATRIUM SHELL + PERIMETER MAZE (spec §2–3) =================
+const wallMat = std({ color: 0x0c0d16, roughness: 0.95, metalness: 0.15, emissive: C(0x10122a), emissiveIntensity: 0.14 });
+const WALLH = 7;
+function wallSeg(x0, z0, x1, z1, mat) { const w = Math.max(0.6, Math.abs(x1 - x0)), d = Math.max(0.6, Math.abs(z1 - z0)); addWall((x0 + x1) / 2, (z0 + z1) / 2, w, d, WALLH, mat || wallMat); }
+const thresholds = [];
+const _secret = { mesh: null, wall: null, open: false, y: WALLH / 2 };
+
+// base floor under the whole complex (chambers + corridors need ground)
+{
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64; const x = cv.getContext('2d'); x.fillStyle = '#0e0f18'; x.fillRect(0, 0, 64, 64);
+  for (let i = 0; i < 40; i++) { x.fillStyle = `rgba(${30 + Math.random() * 20 | 0},${32 + Math.random() * 20 | 0},${48 + Math.random() * 24 | 0},0.5)`; x.fillRect(Math.random() * 64, Math.random() * 64, 6, 6); }
+  const tex = new THREE.CanvasTexture(cv); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(40, 40); tex.colorSpace = THREE.SRGBColorSpace;
+  const base = new THREE.Mesh(new THREE.PlaneGeometry(96, 84), std({ map: tex, roughness: 0.9, emissive: C(0x0e1428), emissiveIntensity: 0.35 })); base.rotation.x = -Math.PI / 2; base.position.set(0, -0.02, -14); base.receiveShadow = true; scene.add(base);
+}
+
+function chamberFX(cx, cz, col, i, range) {
+  const g = new THREE.Group(); g.position.set(cx, 0, cz); scene.add(g);
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(3.6, 32), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false })); disc.rotation.x = -Math.PI / 2; disc.position.y = 0.05; g.add(disc);
+  const lite = new THREE.PointLight(col, i || 3.5, range || 16, 2); lite.position.set(0, 4, 0); g.add(lite);
+  return { g, lite };
+}
+function chamberLabel(txt, col, x, z, ry) { const l = textPlane(txt, col, 512, 52); l.position.set(x, 4.4, z); l.rotation.y = ry; l.scale.set(5, 0.55, 1); scene.add(l); }
+
+function buildAtrium() {
+  // south (hall gap x[-4,4]); north (secret gap x[-3,3])
+  wallSeg(-15, 3, -4, 3); wallSeg(4, 3, 15, 3);
+  wallSeg(-15, -21, -3, -21); wallSeg(3, -21, 15, -21);
+  // west: archway z[-3,3] → glitch; re-entry z[-18,-14] ← horrorcore
+  wallSeg(-15, -21, -15, -18); wallSeg(-15, -14, -15, -3);
+  // east: archway z[-3,3] → arcade; re-entry z[-18,-14] ← festival
+  wallSeg(15, -21, 15, -18); wallSeg(15, -14, 15, -3);
+  chamberLabel('◄ WEST WING', '#39ff14', -14.6, 0, Math.PI / 2);
+  chamberLabel('EAST WING ►', '#ff0055', 14.6, 0, -Math.PI / 2);
+  // secret door (north gap) — a panel that stays shut until 5/5
+  const dm = new THREE.Mesh(new THREE.BoxGeometry(6.2, WALLH, 0.7), std({ color: 0x1a1020, roughness: 0.5, metalness: 0.4, emissive: C(0x3a0820), emissiveIntensity: 0.5 }));
+  dm.position.set(0, WALLH / 2, -21); scene.add(dm); _secret.mesh = dm;
+  _secret.wall = { x0: -3.1, x1: 3.1, z0: -21.35, z1: -20.65 }; walls.push(_secret.wall);
+  const sc = textPlane('✦ ? ✦', '#e6c04a', 256, 64); sc.position.set(0, 4.4, -20.6); sc.scale.set(2, 0.5, 1); scene.add(sc);
+}
+
+function buildMaze() {
+  // ---- WEST WING: GLITCH (z[-7,7]) → HORRORCORE (z[-21,-7]) ----
+  // glitch walls
+  wallSeg(-31, -7, -31, 7); wallSeg(-31, 7, -15, 7);
+  wallSeg(-31, -7, -26, -7); wallSeg(-22, -7, -15, -7);   // north gap x[-26,-22] → horrorcore
+  // horrorcore walls
+  wallSeg(-31, -21, -31, -7); wallSeg(-31, -21, -15, -21);
+  // ---- EAST WING: ARCADE (z[-5,3]) → ABSTRACT (z[-13,-5]) → FESTIVAL (z[-21,-13]) ----
+  wallSeg(31, -5, 31, 3); wallSeg(15, 3, 31, 3);
+  wallSeg(15, -5, 22, -5); wallSeg(26, -5, 31, -5);       // arcade↕abstract gap x[22,26]
+  wallSeg(31, -13, 31, -5);
+  wallSeg(15, -13, 22, -13); wallSeg(26, -13, 31, -13);   // abstract↕festival gap
+  wallSeg(31, -21, 31, -13); wallSeg(15, -21, 31, -21);
+
+  // ---- themed chamber interiors ----
+  // GLITCH: electric-cyan spot, CRT stacks, a jittering wireframe
+  { const fx = chamberFX(-23, 0, 0x39ff14, 3.5, 16); chamberLabel('GLITCH ART', '#39ff14', -23, 6.6, 0);
+    for (const sx of [-29, -29]) { } // (screens below)
+    const scMat = new THREE.MeshBasicMaterial({ color: 0x39ff14, transparent: true, opacity: 0.6 });
+    for (const [zx, zz] of [[-30.4, -3], [-30.4, 3]]) { const crt = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.4, 1.4), std({ color: 0x0a0a12 })); crt.position.set(zx, 1.6, zz); scene.add(crt); const s = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), scMat.clone()); s.position.set(zx + 0.25, 1.6, zz); s.rotation.y = Math.PI / 2; scene.add(s); }
+    const wire = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1, 1), new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true })); wire.position.set(-23, 2, -3); scene.add(wire);
+    updaters.push((dt, t) => { wire.rotation.x += dt; wire.rotation.y += dt * 1.3; wire.position.x = -23 + (Math.random() - 0.5) * 0.2; fx.lite.intensity = 3 + Math.random() * 1.5; }); }
+  // HORRORCORE: crimson underlight, flicker, pipes
+  { const fx = chamberFX(-23, -14, 0xc81e2a, 2.4, 15); chamberLabel('HORRORCORE', '#c81e2a', -23, 6.6, -14);
+    const under = new THREE.PointLight(0xc81e2a, 3, 12, 2); under.position.set(-23, 0.4, -14); scene.add(under);
+    for (const px of [-30, -16]) { const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 13, 8), std({ color: 0x2a2420, roughness: 0.6, metalness: 0.6 })); pipe.rotation.x = Math.PI / 2; pipe.position.set(px, 5.6, -14); scene.add(pipe); }
+    updaters.push((dt, t) => { const f = Math.random() < 0.12 ? 0.2 + Math.random() * 0.5 : 1; fx.lite.intensity = 2.4 * f; under.intensity = 3 * f; }); }
+  // ARCADE + KARAOKE: neon magenta/cyan, cabinets, pulsing
+  { const fx = chamberFX(23, -1, 0xff0055, 3, 15); chamberLabel('ARCADE + KARAOKE', '#ff2bd0', 23, 6.6, -1);
+    const cols = [0xff2bd0, 0x00f3ff, 0xffe14a];
+    for (let i = 0; i < 4; i++) { const cx = 17 + i * 3.6, cz = i % 2 ? -3.6 : 1.6; const cab = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.2, 0.9), std({ color: 0x0c0d16, roughness: 0.4, metalness: 0.4 })); cab.position.set(cx, 1.1, cz); scene.add(cab); const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.0), std({ color: 0x05060a, emissive: C(cols[i % 3]), emissiveIntensity: 1.2 })); scr.position.set(cx, 1.5, cz + 0.47); scene.add(scr); }
+    const beat = new THREE.PointLight(0x00f3ff, 2, 12, 2); beat.position.set(23, 3.5, -1); scene.add(beat);
+    updaters.push((dt, t) => { const b = 0.6 + Math.sin(t * 6) * 0.4; fx.lite.intensity = 3 * b; beat.intensity = 2 + Math.sin(t * 5 + 1) * 1.5; }); }
+  // ABSTRACT / ROOM BUILDER: prismatic light, floating rings
+  { const fx = chamberFX(23, -9, 0x00ffa8, 3, 15); chamberLabel('ABSTRACT · ROOM BUILDER', '#00ffa8', 23, 6.6, -9);
+    const rings = []; for (let i = 0; i < 3; i++) { const r = new THREE.Mesh(new THREE.TorusGeometry(1.2 + i * 0.5, 0.06, 10, 32), new THREE.MeshBasicMaterial({ color: 0x00ffa8, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false })); r.position.set(23, 2.5, -9); r.rotation.set(Math.random(), Math.random(), 0); scene.add(r); rings.push(r); }
+    updaters.push((dt, t) => { fx.lite.color.setHSL((t * 0.1) % 1, 0.8, 0.6); rings.forEach((r, i) => { r.rotation.x += dt * (0.3 + i * 0.1); r.rotation.y += dt * (0.4 - i * 0.1); }); }); }
+  // FESTIVAL / THEATER: velour arch, amber spots, stage + gold shafts
+  { const fx = chamberFX(23, -17, 0xe6c04a, 3, 15); chamberLabel('FESTIVAL · THEATER', '#e6c04a', 23, 6.6, -17);
+    const stage = new THREE.Mesh(new THREE.BoxGeometry(10, 0.6, 3), std({ color: 0x2a1a2a, roughness: 0.8 })); stage.position.set(23, 0.3, -19.5); scene.add(stage);
+    const screen = new THREE.Mesh(new THREE.PlaneGeometry(8, 3.4), new THREE.MeshBasicMaterial({ color: 0xffe1b0 })); screen.position.set(23, 3, -20.7); scene.add(screen);
+    const shafts = []; for (const sx of [19, 27]) { const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 1.4, 6, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xffcf6a, transparent: true, opacity: 0.14, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })); sh.position.set(sx, 3, -18); scene.add(sh); shafts.push(sh); const sl = new THREE.PointLight(0xffcf6a, 3, 12, 2); sl.position.set(sx, 5, -18); scene.add(sl); }
+    updaters.push((dt, t) => { fx.lite.intensity = 3 + Math.sin(t * 2) * 0.5; shafts.forEach((s, i) => s.material.opacity = 0.1 + Math.sin(t * 2 + i) * 0.06); }); }
+
+  // chamber threshold trigger boxes (crossing → explored++)
+  thresholds.push({ id: 'glitch', box: { x0: -30, x1: -16, z0: -6, z1: 6 } });
+  thresholds.push({ id: 'horrorcore', box: { x0: -30, x1: -16, z0: -20, z1: -8 } });
+  thresholds.push({ id: 'arcade', box: { x0: 16, x1: 30, z0: -4, z1: 2 } });
+  thresholds.push({ id: 'abstract', box: { x0: 16, x1: 30, z0: -12, z1: -6 } });
+  thresholds.push({ id: 'festival', box: { x0: 16, x1: 30, z0: -20, z1: -14 } });
+
+  // ---- secret area behind The Heart ----
+  wallSeg(-6, -31, -6, -21); wallSeg(6, -31, 6, -21); wallSeg(-6, -31, 6, -31);
+}
+
+// hidden portal beyond the secret door (locked until 5/5)
+PORTALS.push({ name: '▾ THE HIDDEN ROOM', col: 0xe6c04a, url: 'hidden.html', x: 0, z: -26, locked: true });
+
+buildAtrium(); buildMaze();
+
+function updateProgress() { const pe = document.getElementById('progress'); if (pe) pe.innerHTML = exploredCh.size >= 5 ? '✦ <b>secret door open — behind The Heart</b>' : `explored <b>${exploredCh.size}/5</b> chambers · find them all`; }
+function openSecret() {
+  if (_secret.open) return; _secret.open = true;
+  if (_secret.wall) { _secret.wall.z0 = 9990; _secret.wall.z1 = 9991; }   // disable collider
+  const hp = PORTALS.find((p) => p.locked); if (hp) hp.locked = false;
+  toast('✦ THE SECRET DOOR OPENS behind The Heart');
+}
+function explore(id) {
+  if (exploredCh.has(id)) return; exploredCh.add(id);
+  try { localStorage.setItem('12m.chambers', JSON.stringify([...exploredCh])); } catch (e) {}
+  updateProgress(); toast(`✦ ${id.toUpperCase()} chamber discovered (${exploredCh.size}/5)`);
+  if (exploredCh.size >= 5) openSecret();
+}
+updateProgress();
+if (exploredCh.size >= 5) { openSecret(); _secret.y = WALLH + 2; if (_secret.mesh) _secret.mesh.position.y = WALLH + 2; }
+updaters.push((dt) => { if (_secret.open && _secret.mesh) { _secret.y += (WALLH + 2 - _secret.y) * Math.min(1, dt * 2); _secret.mesh.position.y = _secret.y; } });
 
 // ================= SEEKER BOT + HIDE-AND-SEEK GAME =================
 const game = { on: false, time: 0, state: 'off', detect: 0, best: 0 };
@@ -504,7 +615,7 @@ updaters.push(addHaze(scene, { color: 0x2a3060, count: 10, center: [0, 1, 30], a
 updaters.push(addHaze(scene, { color: 0x3a3e8a, count: 6, center: [0, 2, -12], area: [40, 5, 26], scale: 10, opacity: 0.045 })); // hub haze
 
 // ---------- controls ----------
-const controls = new WalkControls(camera, { bounds: 30, eye: 1.6, zMin: -26 });
+const controls = new WalkControls(camera, { bounds: 40, eye: 1.6, zMin: -32 });
 controls.pos.set(0, 1.6, 29); controls.yaw = 0;
 // hold your place: coming back from a room drops you where you were, not outside
 try { const s = JSON.parse(sessionStorage.getItem('wh.pos') || 'null'); if (s && isFinite(s.x) && isFinite(s.z)) { controls.pos.set(s.x, 1.6, s.z); if (isFinite(s.y)) controls.yaw = s.y; openTarget = 1; } } catch (e) {}
@@ -516,7 +627,6 @@ const admin = createAdmin({
     { id: 'exterior', label: 'Exterior + door', obj: _ext },
     { id: 'hall', label: 'Entrance hall', obj: _hall },
     { id: 'shell', label: 'Hub shell', obj: _shell },
-    { id: 'frames', label: 'Golden frames', obj: _frames },
     { id: 'heart', label: 'The heart', obj: _heartG },
     { id: 'portals', label: 'Portals', obj: _portalsG },
   ],
@@ -545,7 +655,7 @@ function tap(sx, sy) {
   const hit = ray.intersectObjects(portalDiscs, false)[0];
   if (hit && hit.object.userData.portal) { activate(hit.object.userData.portal); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
-  if (g) { g.x = THREE.MathUtils.clamp(g.x, -29, 29); g.z = THREE.MathUtils.clamp(g.z, -25, 29); controls.walkTo(g); }
+  if (g) { g.x = THREE.MathUtils.clamp(g.x, -38, 38); g.z = THREE.MathUtils.clamp(g.z, -31, 29); controls.walkTo(g); }
 }
 
 let nearPortal = null;
@@ -603,6 +713,8 @@ function frame() {
   admin.update(dt);
   updateSeeker(dt, t);
   updateGame(dt);
+  // chamber thresholds → explored X/5 (and the secret door at 5/5)
+  { const pp = controls.pos; for (const th of thresholds) { if (!exploredCh.has(th.id) && pp.x > th.box.x0 && pp.x < th.box.x1 && pp.z > th.box.z0 && pp.z < th.box.z1) explore(th.id); } }
   // show the start button when you're inside the arena and not already playing
   if (hsBtn) hsBtn.style.opacity = (!game.on && controls.pos.z < 6) ? '1' : '0';
   // door opens as you near it; heart reacts to how close you are
@@ -630,7 +742,7 @@ document.getElementById('enterBtn').onclick = () => {
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
-if (import.meta.env.DEV) window.__wh = { controls, scene, PORTALS, game, seeker, startGame, walls, updateSeeker, updateGame };
+if (import.meta.env.DEV) window.__wh = { controls, scene, PORTALS, game, seeker, startGame, walls, updateSeeker, updateGame, exploredCh, thresholds, explore, resolveCollision };
 
 // __world hook — overhead-screenshot harness only (activated with ?shot).
 if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('shot')) {
