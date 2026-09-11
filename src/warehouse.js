@@ -272,8 +272,22 @@ function buildDoors() {
   const para = new THREE.Mesh(new THREE.BoxGeometry(HALF * 2 + 2, 0.9, TH + 1.4), std({ color: 0x241a2a, roughness: 0.9 })); para.position.set(0, WH + 0.4, Z); g.add(para);
   // big sign facing the warehouse
   const sign = textPlane('THE 12MATT3R ROOMS', '#00f3ff', 512, 90); sign.position.set(0, WH - 1.4, Z - 0.55); sign.rotation.y = Math.PI; sign.scale.set(13, 2.0, 1); g.add(sign);
-  // wall-wash so the doors read at night
-  for (const lx of [-18, -9, 0, 9, 18]) { const wl = new THREE.PointLight(0xbfc4ff, 2.2, 22, 2); wl.position.set(lx, 6, Z - 4); g.add(wl); }
+  const signGlow = new THREE.PointLight(0x00f3ff, 3, 22, 2); signGlow.position.set(0, WH - 1.4, Z - 2.4); g.add(signGlow);
+  // wall-wash so the doors read at night (brighter + tinted to each door's colour)
+  for (const d of defs) { const wl = new THREE.PointLight(d.color, 2.6, 16, 2); wl.position.set(d.x, 3.4, Z - 2.6); g.add(wl); }
+  for (const lx of [-13.5, 13.5]) { const wl = new THREE.PointLight(0xbfc4ff, 3, 24, 2); wl.position.set(lx, 7, Z - 5); g.add(wl); }
+  // glowing baseboard strip along the wall base
+  const baseStrip = new THREE.Mesh(new THREE.BoxGeometry(HALF * 2, 0.16, 0.16), new THREE.MeshBasicMaterial({ color: 0x00f3ff })); baseStrip.position.set(0, 0.2, Z - 0.55); g.add(baseStrip);
+  const glowBar = new THREE.Mesh(new THREE.PlaneGeometry(HALF * 2, 3.5), new THREE.MeshBasicMaterial({ color: 0x2aa0ff, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); glowBar.position.set(0, 0.05, Z - 2.2); glowBar.rotation.x = -Math.PI / 2; g.add(glowBar);
+  // two streetlamps flanking the wall, throwing warm pools onto the approach
+  for (const lx of [-23, 23]) {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 9, 8), std({ color: 0x14161f, metalness: 0.6 })); pole.position.set(lx, 4.5, Z - 6); g.add(pole);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.3, 1.4), std({ color: 0x1a1c26, emissive: C(0xffdca0), emissiveIntensity: 1.3 })); head.position.set(lx + (lx < 0 ? 1.6 : -1.6), 8.6, Z - 6); g.add(head);
+    const ll = new THREE.PointLight(0xffdca0, 12, 44, 2); ll.position.set(head.position.x, 8.2, Z - 6.5); g.add(ll);
+  }
+  // ground haze drifting along the wall's approach
+  updaters.push(addHaze(scene, { color: 0x2a3a6a, count: 8, center: [0, 1, Z - 6], area: [50, 3, 10], scale: 11, opacity: 0.07 }));
+  updaters.push((dt, t) => { signGlow.intensity = 2.4 + Math.sin(t * 2) * 0.6; baseStrip.material.color.setHSL((t * 0.05) % 1, 0.8, 0.55); });
   // the doors themselves, set into the openings, facing the warehouse (-Z)
   for (const d of defs) { doors.push(buildDoor(g, { x: d.x, z: Z - 0.55, ry: Math.PI, label: d.label, sub: d.sub, url: d.url, color: d.color })); }
   return g;
