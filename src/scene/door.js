@@ -58,11 +58,23 @@ export function buildDoor(scene, {
   // a glowing seam + threshold strip on the floor
   const seam = new THREE.Mesh(new THREE.PlaneGeometry(width, 0.5), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
   seam.rotation.x = -Math.PI / 2; seam.position.set(0, 0.03, 0); g.add(seam);
-  // lit lintel sign
-  if (label) { const s = textPlane(label, '#' + col.getHexString(), 512, 64); s.position.set(0, height + 0.85, 0.28); s.scale.set(Math.min(6.2, Math.max(2.4, label.length * 0.34)), 0.62, 1); g.add(s); }
-  if (sub) { const s2 = textPlane(sub, '#9fb0d8', 512, 44); s2.position.set(0, height + 0.35, 0.3); s2.scale.set(3.4, 0.3, 1); g.add(s2); }
-  // accent light in the doorway
-  const gl = new THREE.PointLight(color, 2.2, 9, 2); gl.position.set(0, height * 0.6, 0.6); g.add(gl);
+  // a soft "welcome mat" of light on the approach side + chevrons drawing you in
+  const mat = new THREE.Mesh(new THREE.PlaneGeometry(width + 0.6, 3.2), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  mat.rotation.x = -Math.PI / 2; mat.position.set(0, 0.02, 1.7); g.add(mat);
+  const chevs = [];
+  for (let i = 0; i < 3; i++) { const ch = textPlane('▾', '#' + col.getHexString(), 64, 64); ch.rotation.x = -Math.PI / 2; ch.position.set(0, 0.04, 2.6 - i * 0.7); ch.scale.set(0.6, 0.6, 1); g.add(ch); chevs.push({ ch, ph: i * 0.5 }); }
+  // inner glow so the opening reads as lit from within
+  const inner = new THREE.Mesh(new THREE.PlaneGeometry(width - 0.2, height - 0.4), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.14, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  inner.position.set(0, height / 2, -0.2); g.add(inner);
+  // lit lintel sign + backing bar
+  if (label) {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(width + jw * 2, 0.7, 0.12), std({ color: 0x08080e, roughness: 0.5, emissive: col.clone().multiplyScalar(0.4), emissiveIntensity: 0.6 })); bar.position.set(0, height + 0.85, 0.24); g.add(bar);
+    const s = textPlane(label, '#' + col.getHexString(), 512, 64); s.position.set(0, height + 0.85, 0.32); s.scale.set(Math.min(6.2, Math.max(2.4, label.length * 0.34)), 0.62, 1); g.add(s);
+  }
+  if (sub) { const s2 = textPlane(sub, '#9fb0d8', 512, 44); s2.position.set(0, height + 0.35, 0.34); s2.scale.set(3.4, 0.3, 1); g.add(s2); }
+  // accent light in the doorway + a spill onto the approach
+  const gl = new THREE.PointLight(color, 2.4, 10, 2); gl.position.set(0, height * 0.6, 0.4); g.add(gl);
+  const spill = new THREE.PointLight(color, 1.4, 8, 2); spill.position.set(0, 1.2, 2.2); g.add(spill);
 
   // tap proxy spanning the opening
   const proxy = new THREE.Mesh(new THREE.BoxGeometry(width + jw, height, 1.2), new THREE.MeshBasicMaterial({ visible: false }));
@@ -82,6 +94,9 @@ export function buildDoor(scene, {
     pR.position.x = width / 4 + open * (width / 2 - 0.05);
     gl.intensity = 1.8 + open * 1.2 + Math.sin(t * 3) * 0.3;
     seam.material.opacity = 0.35 + Math.sin(t * 4) * 0.12 + open * 0.2;
+    mat.material.opacity = 0.1 + open * 0.14 + Math.sin(t * 3) * 0.03;
+    spill.intensity = 0.8 + open * 1.4;
+    for (const c of chevs) c.ch.material.opacity = 0.35 + 0.5 * Math.max(0, Math.sin(t * 3 - c.ph * 2.2));   // marching toward the door
   }
   function tryEnter(playerPos) {
     if (!playerPos || !armed) return false;

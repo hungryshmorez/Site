@@ -10,8 +10,11 @@ const R = createRoom({
 });
 const { scene, updaters, std, C, textPlane, THREE } = R;
 
-scene.add(new THREE.HemisphereLight(0x24303a, 0x05080c, 0.7));
-const amber = new THREE.PointLight(0xffb020, 1.6, 24, 2); amber.position.set(0, 6, 0); scene.add(amber);
+scene.add(new THREE.HemisphereLight(0x3a4a5c, 0x0a0e14, 1.15));
+scene.add(new THREE.AmbientLight(0x2a3644, 0.5));
+const amber = new THREE.PointLight(0xffb020, 3.0, 34, 2); amber.position.set(0, 6, 0); scene.add(amber);
+const coolL = new THREE.PointLight(0x4a80c0, 2.0, 26, 2); coolL.position.set(-7, 5, 4); scene.add(coolL);
+const coolR = new THREE.PointLight(0x4a80c0, 2.0, 26, 2); coolR.position.set(7, 5, 4); scene.add(coolR);
 
 // ---- floor (grating) + walls ----
 {

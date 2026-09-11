@@ -10,8 +10,11 @@ const R = createRoom({
 });
 const { scene, updaters, std, C, textPlane, THREE } = R;
 
-scene.add(new THREE.HemisphereLight(0x6a5a44, 0x1a1410, 0.8));
-const warm = new THREE.PointLight(0xffcf9a, 2.6, 30, 2); warm.position.set(0, 6, 2); scene.add(warm);
+scene.add(new THREE.HemisphereLight(0x8a7458, 0x241a12, 1.15));
+scene.add(new THREE.AmbientLight(0x40342a, 0.55));
+const warm = new THREE.PointLight(0xffcf9a, 3.2, 34, 2); warm.position.set(0, 6, 2); scene.add(warm);
+const warm2 = new THREE.PointLight(0xffb877, 2.2, 24, 2); warm2.position.set(-4, 4, 4); scene.add(warm2);
+const warm3 = new THREE.PointLight(0xffd8a0, 1.8, 20, 2); warm3.position.set(6, 4, -6); scene.add(warm3);
 
 // ---- room shell: warm carpeted floor + walls ----
 {
