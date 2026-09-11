@@ -252,13 +252,14 @@ let hiddenDoor = null;   // secret room door behind the Heart — active only at
 function buildDoors() {
   const g = new THREE.Group(); scene.add(g);
   // warehouse-area rooms — doors set into little street-side structures
+  // spread down the street so they line the approach (you walk past them toward the
+  // warehouse), not crammed in front of the front door
   const list = [
-    { label: 'DREAM OS · THEATER', url: 'tv.html', x: -12, z: 33, ry: -Math.PI / 2, color: 0xff8a2a },
-    { label: 'VJ · STAGE', url: 'vj.html', x: -12, z: 26, ry: -Math.PI / 2, color: 0x8a5cff },
-    { label: 'ARCADE + KARAOKE', url: 'arcade.html', x: 12, z: 33, ry: Math.PI / 2, color: 0xff2bd0 },
-    { label: 'ROOM BUILDER', url: 'builder.html', x: 12, z: 26, ry: Math.PI / 2, color: 0xffffff },
-    // the loop entrance — leads into the first looped room (DJ decks)
-    { label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'dj.html', x: 7.5, z: 22.5, ry: 0, color: 0x00f3ff },
+    { label: 'DREAM OS · THEATER', url: 'tv.html', x: -12, z: 40, ry: -Math.PI / 2, color: 0xff8a2a },
+    { label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'dj.html', x: 12, z: 40, ry: Math.PI / 2, color: 0x00f3ff },
+    { label: 'VJ · STAGE', url: 'vj.html', x: -12, z: 32, ry: -Math.PI / 2, color: 0x8a5cff },
+    { label: 'ARCADE + KARAOKE', url: 'arcade.html', x: 12, z: 32, ry: Math.PI / 2, color: 0xff2bd0 },
+    { label: 'ROOM BUILDER', url: 'builder.html', x: -12, z: 24, ry: -Math.PI / 2, color: 0xffffff },
   ];
   for (const d of list) { doors.push(buildDoor(g, { ...d, wall: true })); }
   return g;
@@ -829,8 +830,8 @@ updaters.push(addHaze(scene, { color: 0x2a3060, count: 10, center: [0, 1, 30], a
 updaters.push(addHaze(scene, { color: 0x3a3e8a, count: 6, center: [0, 2, -12], area: [40, 5, 26], scale: 10, opacity: 0.045 })); // hub haze
 
 // ---------- controls ----------
-const controls = new WalkControls(camera, { bounds: 40, eye: 1.6, zMin: -32 });
-controls.pos.set(0, 1.6, 29); controls.yaw = 0;
+const controls = new WalkControls(camera, { bounds: 46, eye: 1.6, zMin: -32 });
+controls.pos.set(0, 1.6, 44); controls.yaw = 0;   // spawn back on the street; doors line the approach ahead
 // hold your place: coming back from a room drops you where you were, not outside
 try { const s = JSON.parse(sessionStorage.getItem('wh.pos') || 'null'); if (s && isFinite(s.x) && isFinite(s.z)) { controls.pos.set(s.x, 1.6, s.z); if (isFinite(s.y)) controls.yaw = s.y; openTarget = 1; } } catch (e) {}
 addEventListener('pagehide', () => { try { sessionStorage.setItem('wh.pos', JSON.stringify({ x: controls.pos.x, z: controls.pos.z, y: controls.yaw })); } catch (e) {} });
