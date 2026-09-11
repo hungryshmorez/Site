@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from '../player/controls.js';
 import { buildLoopDoors } from '../data/loop.js';
 import { buildDJDeck } from './djdeck.js';
+import { addMotes, addHaze } from './ambientfx.js';
 
 // Boilerplate for a simple walkable LOOP room: renderer + scene + camera, first-person
 // controls, the back/forward loop doors, a DJ deck, drag-look + tap-to-walk input, the
@@ -20,6 +21,7 @@ export function createRoom({
   id, hook = '__room', fog = null, exposure = 1.2,
   bounds = 13, zMin = -13, spawn = [0, 1.6, 11], yaw = 0,
   backAt, nextAt, deckAt, deckColor = 0x00f3ff,
+  motes = null, haze = null,
 }) {
   const canvas = document.getElementById('scene');
   try { const K = '12m.explored'; const s = new Set(JSON.parse(localStorage.getItem(K) || '[]')); s.add(id); localStorage.setItem(K, JSON.stringify([...s])); } catch (e) {}
@@ -33,6 +35,9 @@ export function createRoom({
   const controls = new WalkControls(camera, { bounds, eye: 1.6, zMin }); controls.pos.set(spawn[0], spawn[1], spawn[2]); controls.yaw = yaw;
   const loopDoors = buildLoopDoors(scene, id, { back: backAt, next: nextAt });
   const deck = deckAt ? buildDJDeck(scene, { x: deckAt[0], z: deckAt[1], ry: deckAt[2] || 0, color: deckColor }) : null;
+  // ambient atmosphere — floating motes + optional low haze
+  if (motes) updaters.push(addMotes(scene, { color: 0xbfc8ff, count: 130, area: [24, 10, 24], center: [0, 4, 0], rise: 0.28, opacity: 0.4, ...motes }));
+  if (haze) updaters.push(addHaze(scene, { color: 0x2a3060, count: 6, center: [0, 1.5, 0], area: [24, 4, 24], scale: 9, opacity: 0.05, ...haze }));
 
   // ---- input ----
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
