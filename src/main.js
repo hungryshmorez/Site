@@ -553,6 +553,19 @@ addProp('dealer', dealer.group, labelById.dealer);
 addProp('campfire', campfire.group, labelById.campfire);
 addProp('truck', tailgate.group, labelById.truck);
 addProp('lounge', lounge.group, labelById.lounge);
+// Weld Sofa King Sad Boi to his lounge: parent his figure into the lounge group
+// (attach() keeps his world transform), then drop his separate editor handle so
+// the two move as a single item. Moving the LOUNGE now carries the sad king too.
+{
+  const sof = characters.list.find((c) => c.dest.id === 'sofaboi');
+  if (sof) {
+    lounge.group.attach(sof.group);
+    const i = adminItems.findIndex((it) => it.id === 'dest_sofaboi');
+    if (i >= 0) adminItems.splice(i, 1);
+    const lit = adminItems.find((it) => it.id === 'lounge'); if (lit) lit.label = 'SOFA KING · LOUNGE';
+    if (labelById['dest_sofaboi']) labelById['dest_sofaboi'].visible = false;
+  }
+}
 addProp('board', board.group, labelById.board);
 addProp('vjboard', vjboard.group, labelById.vjboard);
 addProp('photobooth', djbooth.group, labelById.photo);
@@ -571,6 +584,15 @@ const arcadeDest = DESTINATIONS.find((d) => d.id === 'arcade');
 const _arcadeCenter = (characters.list.find((c) => c.dest.id === 'arcade') || {}).worldPos;
 const arcadeWP = _arcadeCenter
   ? _arcadeCenter.clone().addScaledVector(new THREE.Vector3(0 - _arcadeCenter.x, 0, -4 - _arcadeCenter.z).normalize(), 5.3)
+  : null;
+
+// THE COMPLEX pavilion sits right on the walk bounds (x≈24), so a trigger centred
+// on it is unreachable — you get stopped a couple units short. Same fix as the
+// arcade: a waypoint pulled a few units toward the field, in front of its doorway.
+const complexDest = DESTINATIONS.find((d) => d.id === 'complex');
+const _complexCenter = (characters.list.find((c) => c.dest.id === 'complex') || {}).worldPos;
+const complexWP = _complexCenter
+  ? _complexCenter.clone().addScaledVector(new THREE.Vector3(0 - _complexCenter.x, 0, -4 - _complexCenter.z).normalize(), 5.3)
   : null;
 
 // ---- lab portal: a porta-potty interior you step into; click the old CRT to
@@ -745,6 +767,8 @@ function frame() {
     if (pongHudEl) pongHudEl.classList.toggle('on', gamezones.isPlaying());
     // walk through the arcade tent's doorway → step right into the arcade
     if (!warping && !admin.active && arcadeWP && controls.pos.distanceTo(arcadeWP) < 4) enterDestination(arcadeDest);
+    // walk up to THE COMPLEX pavilion's doorway → step inside (into the hub)
+    if (!warping && !admin.active && complexWP && controls.pos.distanceTo(complexWP) < 4) enterDestination(complexDest);
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
