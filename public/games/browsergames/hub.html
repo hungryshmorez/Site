@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MINI GAMES // the midway</title>
+  <style>
+    :root{--cyan:#00f3ff;--magenta:#ff0055;--green:#39ff14;--purple:#b967ff;--gold:#ffd24a;
+      --ink:#e9fbff;--muted:#8aa0ac;--mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%}
+    body{background:#05060c;color:var(--ink);font-family:var(--mono);min-height:100%;
+      background-image:radial-gradient(90% 60% at 50% 0%,rgba(0,243,255,.10),transparent 60%),
+        repeating-linear-gradient(0deg,rgba(255,255,255,.03),rgba(255,255,255,.03) 1px,transparent 1px,transparent 3px)}
+    header{padding:26px 20px 8px;text-align:center}
+    header h1{font-size:26px;letter-spacing:.28em;text-shadow:2px 0 var(--magenta),-2px 0 var(--cyan)}
+    header p{color:var(--muted);font-size:11.5px;letter-spacing:.18em;margin-top:8px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;
+      max-width:1000px;margin:22px auto;padding:0 18px 40px}
+    a.card{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:inherit;
+      background:linear-gradient(180deg,rgba(16,18,34,.9),rgba(8,8,16,.9));border:1px solid rgba(0,243,255,.28);
+      border-radius:12px;padding:16px;transition:.15s;position:relative;overflow:hidden}
+    a.card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 10px 30px -8px var(--accent)}
+    a.card .emoji{font-size:30px}
+    a.card b{font-size:14px;letter-spacing:.12em}
+    a.card span{font-size:11px;color:var(--muted);line-height:1.5;letter-spacing:.04em}
+    a.card .bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MINI GAMES</h1>
+    <p>GENERATIVE TOYS &amp; ARCADE CLASSICS · p5.js</p>
+  </header>
+  <div class="grid" id="grid"></div>
+  <script>
+    const GAMES = [
+      { name:'Snake', file:'SnakeGame/Snake.html', emoji:'🐍', desc:'The classic. Eat, grow, don’t bite yourself.', accent:'#39ff14' },
+      { name:'Minesweeper', file:'Minesweeper/Minesweeper.html', emoji:'💣', desc:'Flag the mines, clear the board.', accent:'#ff0055' },
+      { name:'Fireworks', file:'Fireworks/Fireworks.html', emoji:'🎆', desc:'Click to launch a particle firework.', accent:'#ffd24a' },
+      { name:'Flow Field', file:'FlowField/PerlinNoiseField.html', emoji:'🌊', desc:'Perlin-noise flow field of drifting particles.', accent:'#00f3ff' },
+      { name:'Perlin Noise', file:'PerlinNoise/noise.html', emoji:'🌫️', desc:'Living noise, animated.', accent:'#b967ff' },
+      { name:'Mandelbrot', file:'Mandelbrot/index.html', emoji:'🌀', desc:'Zoom the infinite fractal set.', accent:'#00f3ff' },
+      { name:'Polar', file:'Polar/index.html', emoji:'❄️', desc:'Polar-coordinate spirograph patterns.', accent:'#ff7ad9' },
+      { name:'Random Walker', file:'RandomWalker/index.html', emoji:'🚶', desc:'A drunkard’s walk painting itself.', accent:'#39ff14' },
+      { name:'Circles', file:'Circles/index.html', emoji:'⭕', desc:'Packed generative circles.', accent:'#ffd24a' },
+      { name:'Evolution', file:'Evolution/Evolution.html', emoji:'🧬', desc:'Little creatures, evolving.', accent:'#b967ff' },
+    ];
+    const grid = document.getElementById('grid');
+    for (const g of GAMES) {
+      const a = document.createElement('a');
+      a.className = 'card'; a.href = g.file; a.style.setProperty('--accent', g.accent);
+      a.innerHTML = `<span class="bar"></span><div class="emoji">${g.emoji}</div><b>${g.name}</b><span>${g.desc}</span>`;
+      grid.appendChild(a);
+    }
+  </script>
+</body>
+</html>
