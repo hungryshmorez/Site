@@ -243,25 +243,39 @@ function buildHeart() {
   return g;
 }
 
-// ---------- DOORS: real walk-through doors out on the street/approach ----------
-// The radiating light-beam portals are gone. Four "warehouse-area" rooms and the
-// entrance to the big room-loop are now real doors flanking the street approach.
-// (The rest of the rooms are chained room-to-room by doors inside the loop.)
+// ---------- DOORS: a wall of real doors across the street, facing the warehouse ----------
+// The radiating light-beam portals are gone. Behind where you spawn stands a big wall
+// facing the warehouse's main door; set into it are the four "warehouse-area" rooms and
+// the entrance to the big room-loop. Walk out to it and step through.
 const doors = [];
 let hiddenDoor = null;   // secret room door behind the Heart — active only at 5/5
 function buildDoors() {
   const g = new THREE.Group(); scene.add(g);
-  // warehouse-area rooms — doors set into little street-side structures
-  // spread down the street so they line the approach (you walk past them toward the
-  // warehouse), not crammed in front of the front door
-  const list = [
-    { label: 'DREAM OS · THEATER', url: 'tv.html', x: -12, z: 40, ry: -Math.PI / 2, color: 0xff8a2a },
-    { label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'dj.html', x: 12, z: 40, ry: Math.PI / 2, color: 0x00f3ff },
-    { label: 'VJ · STAGE', url: 'vj.html', x: -12, z: 32, ry: -Math.PI / 2, color: 0x8a5cff },
-    { label: 'ARCADE + KARAOKE', url: 'arcade.html', x: 12, z: 32, ry: Math.PI / 2, color: 0xff2bd0 },
-    { label: 'ROOM BUILDER', url: 'builder.html', x: -12, z: 24, ry: -Math.PI / 2, color: 0xffffff },
+  const Z = 54, WH = 13, TH = 1.0, HALF = 26, GAP = 2.4, DOORH = 3.9;
+  const wm = std({ color: 0x1a1a26, roughness: 0.85, metalness: 0.35, emissive: C(0x14142a), emissiveIntensity: 0.28 });
+  const defs = [
+    { x: -18, label: 'DREAM OS · THEATER', url: 'tv.html', color: 0xff8a2a },
+    { x: -9, label: 'VJ · STAGE', url: 'vj.html', color: 0x8a5cff },
+    { x: 0, label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'dj.html', color: 0x00f3ff },
+    { x: 9, label: 'ARCADE + KARAOKE', url: 'arcade.html', color: 0xff2bd0 },
+    { x: 18, label: 'ROOM BUILDER', url: 'builder.html', color: 0xffffff },
   ];
-  for (const d of list) { doors.push(buildDoor(g, { ...d, wall: true })); }
+  // solid wall segments between/around the door openings (with collision)
+  const edges = [-HALF]; for (const d of defs) { edges.push(d.x - GAP, d.x + GAP); } edges.push(HALF);
+  for (let i = 0; i < edges.length; i += 2) {
+    const a = edges[i], b = edges[i + 1]; if (b - a < 0.05) continue; const w = b - a, cx = (a + b) / 2;
+    const seg = new THREE.Mesh(new THREE.BoxGeometry(w, WH, TH), wm); seg.position.set(cx, WH / 2, Z); seg.castShadow = seg.receiveShadow = true; g.add(seg);
+    walls.push({ x0: cx - w / 2, x1: cx + w / 2, z0: Z - TH / 2 - 0.1, z1: Z + TH / 2 + 0.1 });
+  }
+  // lintels above each door opening + a parapet across the top
+  for (const d of defs) { const lin = new THREE.Mesh(new THREE.BoxGeometry(GAP * 2, WH - DOORH, TH), wm); lin.position.set(d.x, DOORH + (WH - DOORH) / 2, Z); g.add(lin); }
+  const para = new THREE.Mesh(new THREE.BoxGeometry(HALF * 2 + 2, 0.9, TH + 1.4), std({ color: 0x241a2a, roughness: 0.9 })); para.position.set(0, WH + 0.4, Z); g.add(para);
+  // big sign facing the warehouse
+  const sign = textPlane('THE 12MATT3R ROOMS', '#00f3ff', 512, 90); sign.position.set(0, WH - 1.4, Z - 0.55); sign.rotation.y = Math.PI; sign.scale.set(13, 2.0, 1); g.add(sign);
+  // wall-wash so the doors read at night
+  for (const lx of [-18, -9, 0, 9, 18]) { const wl = new THREE.PointLight(0xbfc4ff, 2.2, 22, 2); wl.position.set(lx, 6, Z - 4); g.add(wl); }
+  // the doors themselves, set into the openings, facing the warehouse (-Z)
+  for (const d of defs) { doors.push(buildDoor(g, { x: d.x, z: Z - 0.55, ry: Math.PI, label: d.label, sub: d.sub, url: d.url, color: d.color })); }
   return g;
 }
 
@@ -275,7 +289,6 @@ const _ext = buildExterior();
 const _hall = buildEntranceHall();
 const _shell = buildHubShell();
 const _heartG = buildHeart();
-const _doorsG = buildDoors();
 
 // ================= COLLISION SYSTEM (AABB walls + push-out) =================
 const walls = [];       // { x0,x1,z0,z1 }
@@ -339,6 +352,7 @@ function buildCover() {
   return g;
 }
 const _cover = buildCover();
+const _doorsG = buildDoors();   // built after the collision system exists (the wall segments add colliders)
 
 // ===== ARENA EXTRAS: denser cover + hiding spots + sweeping searchlights (additive) =====
 // Fleshes the central arena into a full hide-and-seek playfield. Purely additive —
@@ -830,8 +844,8 @@ updaters.push(addHaze(scene, { color: 0x2a3060, count: 10, center: [0, 1, 30], a
 updaters.push(addHaze(scene, { color: 0x3a3e8a, count: 6, center: [0, 2, -12], area: [40, 5, 26], scale: 10, opacity: 0.045 })); // hub haze
 
 // ---------- controls ----------
-const controls = new WalkControls(camera, { bounds: 46, eye: 1.6, zMin: -32 });
-controls.pos.set(0, 1.6, 44); controls.yaw = 0;   // spawn back on the street; doors line the approach ahead
+const controls = new WalkControls(camera, { bounds: 58, eye: 1.6, zMin: -32 });
+controls.pos.set(0, 1.6, 40); controls.yaw = 0;   // spawn mid-street facing the warehouse; the wall of room-doors is behind you
 // hold your place: coming back from a room drops you where you were, not outside
 try { const s = JSON.parse(sessionStorage.getItem('wh.pos') || 'null'); if (s && isFinite(s.x) && isFinite(s.z)) { controls.pos.set(s.x, 1.6, s.z); if (isFinite(s.y)) controls.yaw = s.y; openTarget = 1; } } catch (e) {}
 addEventListener('pagehide', () => { try { sessionStorage.setItem('wh.pos', JSON.stringify({ x: controls.pos.x, z: controls.pos.z, y: controls.yaw })); } catch (e) {} });
