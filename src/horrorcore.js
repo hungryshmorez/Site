@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
+import { buildLoopDoors } from './data/loop.js';
+import { buildDJDeck } from './scene/djdeck.js';
 
 // HORRORCORE CRAWLSPACE — a dim concrete basement under one swinging, flickering
 // bulb. Pipes drip in the dark, framed scenes whisper when you tap them, and a
@@ -238,6 +240,8 @@ updaters.push(addHaze(scene, { color: 0x2a1a14, count: 8, center: [0, 1.5, -8], 
 const track = document.getElementById('track');
 const controls = new WalkControls(camera, { bounds: RX - 1, eye: 1.6, zMin: RZ1 + 1.5 });
 controls.pos.set(0, 1.6, 7); controls.yaw = 0;
+const loopDoors = buildLoopDoors(scene, 'horrorcore', { back: [0, 10, Math.PI], next: [0, -16, 0] });
+const deck = buildDJDeck(scene, { x: 9, z: 3, ry: -Math.PI / 2, color: 0xff2b2b });
 
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'horrorcore', overhead: { ax: 16, az: 16, cz: -5 },
@@ -268,6 +272,8 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
+  for (const d of loopDoors) { if (d.tap(ray)) return; }
+  if (deck.tap(ray)) return;
   const th = ray.intersectObjects(tapeMeshes(), false)[0];
   if (th && th.object.userData.tape != null) { collectTape(th.object.userData.tape); return; }
   const fh = ray.intersectObjects(frames.map((f) => f.mesh), false)[0];
@@ -308,6 +314,8 @@ function frame() {
   const t = clock.elapsedTime;
   controls.update(dt);
   admin.update(dt);
+  for (const d of loopDoors) { d.update(dt, t, controls.pos); d.tryEnter(controls.pos); }
+  deck.update(dt, t);
   for (const u of updaters) u(dt, t, 0);
   updateZone(controls.pos);
   if (subT > 0) { subT -= dt; if (subT <= 0 && subEl) subEl.classList.remove('show'); }

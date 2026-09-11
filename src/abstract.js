@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { createAdmin } from './scene/admin.js';
+import { buildLoopDoors } from './data/loop.js';
+import { buildDJDeck } from './scene/djdeck.js';
 
 // ABSTRACT PSYCHEDELIC — a swirling immersive void. The dome and floor are living
 // shaders that shift with where you stand, glowing entities drift past, and every
@@ -116,7 +118,9 @@ updaters.push((dt, t) => { for (const s of dabList) { s.material.opacity = 0.55 
 
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: R - 3, eye: 1.6, zMin: -(R - 3) });
-controls.pos.set(0, 1.6, 10); controls.yaw = Math.PI;
+controls.pos.set(0, 1.6, 21); controls.yaw = 0;   // spawn at the entry (back) door, facing in
+const loopDoors = buildLoopDoors(scene, 'abstract', { back: [0, 23.5, Math.PI], next: [0, -23.5, 0] });
+const deck = buildDJDeck(scene, { x: 16, z: 6, ry: -Math.PI / 2, color: 0x00ffa8 });
 
 const _ents = buildEntities();
 const admin = createAdmin({
@@ -146,6 +150,8 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
+  for (const d of loopDoors) { if (d.tap(ray)) return; }
+  if (deck.tap(ray)) return;
   // nearest of floor / dome
   let best = null, bestD = Infinity, normal = new THREE.Vector3(0, 1, 0);
   const fh = ray.intersectObject(floorMesh, false)[0];
@@ -188,6 +194,8 @@ function frame() {
   controls.update(dt);
   PLAYER.copy(controls.pos);
   admin.update(dt);
+  for (const d of loopDoors) { d.update(dt, t, controls.pos); d.tryEnter(controls.pos); }
+  deck.update(dt, t);
   for (const u of updaters) u(dt, t, 0);
   updateZone(controls.pos);
   renderer.render(scene, admin.active ? admin.cam : camera);

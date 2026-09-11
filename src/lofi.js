@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
+import { buildLoopDoors } from './data/loop.js';
+import { buildDJDeck } from './scene/djdeck.js';
 
 // SURREAL LO-FI ROOM — a cozy dreamscape for the lo-fi tapes. Mismatched
 // furniture on a warm rug under kaleidoscopic skies, clouds wearing headphones
@@ -283,7 +285,11 @@ updaters.push(addHaze(scene, { color: 0x6a4a9a, count: 8, center: [0, 3, -6], ar
 
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: 22, eye: 1.6, zMin: -16 });
-controls.pos.set(0, 1.6, 8); controls.yaw = 0;
+controls.pos.set(0, 1.6, 16); controls.yaw = 0;   // spawn at the entry (back) door, facing into the room
+
+// big loop: back door (previous room) behind you, forward door (next room) across the room
+const loopDoors = buildLoopDoors(scene, 'lofi', { back: [0, 19.2, Math.PI], next: [0, -14.5, 0] });
+const deck = buildDJDeck(scene, { x: 10, z: 4, ry: -Math.PI / 2, color: 0xb967ff });
 
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'lofi', overhead: { ax: 26, az: 20, cz: -3 },
@@ -317,6 +323,8 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
+  for (const d of loopDoors) { if (d.tap(ray)) return; }
+  if (deck.tap(ray)) return;
   const padHit = ray.intersectObjects(pads, false)[0];
   if (padHit) { hitPad(padHit.object); return; }
   if (_tt.proxy && ray.intersectObject(_tt.proxy, false)[0]) { toggleTrack(); return; }
@@ -359,6 +367,8 @@ function frame() {
   const p = Math.pow(1 - ((t * (78 / 60)) % 1), 2.0);
   controls.update(dt);
   admin.update(dt);
+  for (const d of loopDoors) { d.update(dt, t, controls.pos); d.tryEnter(controls.pos); }
+  deck.update(dt, t);
   for (const u of updaters) u(dt, t, p);
   updateZone(controls.pos);
   renderer.render(scene, admin.active ? admin.cam : camera);

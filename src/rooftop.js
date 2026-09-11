@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { addMotes } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
+import { buildLoopDoors } from './data/loop.js';
+import { buildDJDeck } from './scene/djdeck.js';
 
 // ROOFTOP CHILL ZONE — a serene rooftop under a slowly turning galaxy. City lights
 // below the parapet, holographic art drifting overhead, cozy seating, and a
@@ -253,7 +255,9 @@ updaters.push(addMotes(scene, { color: 0xbfc8ff, count: 160, area: [40, 14, 40],
 
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: RX - 1, eye: 1.6, zMin: RZ1 + 1 });
-controls.pos.set(0, 1.6, 9); controls.yaw = Math.PI;
+controls.pos.set(0, 1.6, 10); controls.yaw = 0;   // spawn at the entry (back) door, facing into the room
+const loopDoors = buildLoopDoors(scene, 'rooftop', { back: [0, 11, Math.PI], next: [0, -14, 0] });
+const deck = buildDJDeck(scene, { x: 10, z: 4, ry: -Math.PI / 2, color: 0x4ad0c0 });
 
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'rooftop', overhead: { ax: 30, az: 26, cz: -2 },
@@ -284,9 +288,10 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
+  for (const d of loopDoors) { if (d.tap(ray)) return; }
+  if (deck.tap(ray)) return;
   const ph = ray.intersectObjects(pads, false)[0];
   if (ph) { hitPad(ph.object); return; }
-  if (_dj.proxy && ray.intersectObject(_dj.proxy, false)[0]) { const w = document.getElementById('warp'); if (w) w.classList.add('go'); setTimeout(() => { window.location.href = 'dj.html'; }, 470); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -RX + 1, RX - 1); g.z = THREE.MathUtils.clamp(g.z, RZ1 + 1, RZ0 - 1); controls.walkTo(g); }
 }
@@ -316,6 +321,8 @@ function frame() {
   const t = clock.elapsedTime;
   controls.update(dt);
   admin.update(dt);
+  for (const d of loopDoors) { d.update(dt, t, controls.pos); d.tryEnter(controls.pos); }
+  deck.update(dt, t);
   schedule();
   for (const u of updaters) u(dt, t, 0);
   updateZone(controls.pos);
