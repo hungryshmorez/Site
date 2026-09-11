@@ -4,6 +4,7 @@ import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createAdmin } from './scene/admin.js';
+import { buildDoor } from './scene/door.js';
 const ambience = createAmbience(AMBIENCE.studio);
 
 // THE 12MATT3R IMMERSIVE EXPERIENCE COMPLEX — a rusty neon WAREHOUSE on a foggy
@@ -242,42 +243,24 @@ function buildHeart() {
   return g;
 }
 
-// ---------- PORTALS: radiating sigils that lead to each themed room ----------
-// portals now live inside their dedicated maze chambers (see buildMaze)
-const PORTALS = [
-  { name: 'GLITCH ART', col: 0x39ff14, url: 'studio.html', x: -23, z: 1 },
-  { name: 'HORRORCORE', col: 0xff2b2b, url: 'horrorcore.html', x: -23, z: -14 },
-  { name: 'ARCADE + KARAOKE', col: 0xff0055, url: 'arcade.html', x: 23, z: -1 },
-  { name: 'DJ DECKS', col: 0x00f3ff, url: 'dj.html', x: 28, z: 1 },
-  { name: 'SURREAL LO-FI', col: 0xb967ff, url: 'lofi.html', x: 18, z: 1.5 },
-  { name: 'ABSTRACT PSYCHEDELIC', col: 0x00ffa8, url: 'abstract.html', x: 23, z: -9 },
-  { name: 'ROOM BUILDER', col: 0xffffff, url: 'builder.html', x: 28, z: -10 },
-  { name: 'FESTIVAL FRENZY', col: 0xe6c04a, url: 'index.html', x: 22, z: -17 },
-  { name: 'IMMERSIVE THEATER', col: 0xff8a2a, url: 'tv.html', x: 18, z: -18.5 },
-  { name: 'ROOFTOP', col: 0x4ad0c0, url: 'rooftop.html', x: 28, z: -18.5 },
-  { name: 'VJ · PERFORMANCE STAGE', col: 0x8a5cff, url: 'vj.html', x: 9, z: -1 },
-];
-const portalDiscs = [];
-function buildPortals() {
+// ---------- DOORS: real walk-through doors out on the street/approach ----------
+// The radiating light-beam portals are gone. Four "warehouse-area" rooms and the
+// entrance to the big room-loop are now real doors flanking the street approach.
+// (The rest of the rooms are chained room-to-room by doors inside the loop.)
+const doors = [];
+let hiddenDoor = null;   // secret room door behind the Heart — active only at 5/5
+function buildDoors() {
   const g = new THREE.Group(); scene.add(g);
-  for (const p of PORTALS) {
-    const col = C(p.col);
-    const grp = new THREE.Group(); grp.position.set(p.x, 0, p.z); g.add(grp);
-    // floor sigil: ring + inner disc
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.11, 12, 40), new THREE.MeshBasicMaterial({ color: p.col, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false }));
-    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.06; grp.add(ring);
-    const disc = new THREE.Mesh(new THREE.CircleGeometry(1.4, 40), new THREE.MeshBasicMaterial({ color: p.col, transparent: true, opacity: p.soon ? 0.12 : 0.24, blending: THREE.AdditiveBlending, depthWrite: false }));
-    disc.rotation.x = -Math.PI / 2; disc.position.y = 0.05; disc.userData.portal = p; grp.add(disc); portalDiscs.push(disc);
-    // upward light beam
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 1.4, 8, 16, 1, true), new THREE.MeshBasicMaterial({ color: p.col, transparent: true, opacity: p.soon ? 0.05 : 0.12, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
-    beam.position.y = 4; grp.add(beam);
-    const pl = new THREE.PointLight(p.col, p.soon ? 1 : 2.4, 10, 2); pl.position.y = 1.6; grp.add(pl);
-    // floating label + status
-    const label = textPlane(p.name, '#' + col.getHexString(), 512, 64); label.position.set(0, 3.1, 0); label.scale.set(Math.min(6, p.name.length * 0.42), 0.62, 1); grp.add(label);
-    if (p.soon) { const s = textPlane('opening in phase 2', '#9aa0c8', 512, 48); s.position.set(0, 2.5, 0); s.scale.set(3.4, 0.34, 1); grp.add(s); }
-    grp.userData = { p, ring, disc, pl, label };
-    updaters.push((dt, t) => { ring.rotation.z += dt * (p.soon ? 0.2 : 0.6); const b = 0.6 + Math.sin(t * 2 + p.x) * 0.25; ring.material.opacity = (p.soon ? 0.4 : 0.85) * b; pl.intensity = (p.soon ? 1 : 2.4) + Math.sin(t * 3 + p.z) * 0.6; label.position.y = 3.1 + Math.sin(t * 1.2 + p.x) * 0.06; });
-  }
+  // warehouse-area rooms — doors set into little street-side structures
+  const list = [
+    { label: 'DREAM OS · THEATER', url: 'tv.html', x: -12, z: 33, ry: -Math.PI / 2, color: 0xff8a2a },
+    { label: 'VJ · STAGE', url: 'vj.html', x: -12, z: 26, ry: -Math.PI / 2, color: 0x8a5cff },
+    { label: 'ARCADE + KARAOKE', url: 'arcade.html', x: 12, z: 33, ry: Math.PI / 2, color: 0xff2bd0 },
+    { label: 'ROOM BUILDER', url: 'builder.html', x: 12, z: 26, ry: Math.PI / 2, color: 0xffffff },
+    // the loop entrance — leads into the first looped room (DJ decks)
+    { label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'dj.html', x: 7.5, z: 22.5, ry: 0, color: 0x00f3ff },
+  ];
+  for (const d of list) { doors.push(buildDoor(g, { ...d, wall: true })); }
   return g;
 }
 
@@ -291,7 +274,7 @@ const _ext = buildExterior();
 const _hall = buildEntranceHall();
 const _shell = buildHubShell();
 const _heartG = buildHeart();
-const _portalsG = buildPortals();
+const _doorsG = buildDoors();
 
 // ================= COLLISION SYSTEM (AABB walls + push-out) =================
 const walls = [];       // { x0,x1,z0,z1 }
@@ -507,16 +490,15 @@ function buildMaze() {
   wallSeg(-6, -31, -6, -21); wallSeg(6, -31, 6, -21); wallSeg(-6, -31, 6, -31);
 }
 
-// hidden portal beyond the secret door (locked until 5/5)
-PORTALS.push({ name: '▾ THE HIDDEN ROOM', col: 0xe6c04a, url: 'hidden.html', x: 0, z: -26, locked: true });
-
 buildAtrium(); buildMaze();
+
+// hidden-room door beyond the secret panel — only reachable/active once it opens at 5/5
+hiddenDoor = buildDoor(scene, { label: '▾ THE HIDDEN ROOM', url: 'hidden.html', x: 0, z: -25, ry: Math.PI, color: 0xe6c04a });
 
 function updateProgress() { const pe = document.getElementById('progress'); if (pe) pe.innerHTML = exploredCh.size >= 5 ? '✦ <b>secret door open — behind The Heart</b>' : `explored <b>${exploredCh.size}/5</b> chambers · find them all`; }
 function openSecret() {
   if (_secret.open) return; _secret.open = true;
   if (_secret.wall) { _secret.wall.z0 = 9990; _secret.wall.z1 = 9991; }   // disable collider
-  const hp = PORTALS.find((p) => p.locked); if (hp) hp.locked = false;
   toast('✦ THE SECRET DOOR OPENS behind The Heart');
 }
 function explore(id) {
@@ -860,7 +842,7 @@ const admin = createAdmin({
     { id: 'hall', label: 'Entrance hall', obj: _hall },
     { id: 'shell', label: 'Hub shell', obj: _shell },
     { id: 'heart', label: 'The heart', obj: _heartG },
-    { id: 'portals', label: 'Portals', obj: _portalsG },
+    { id: 'doors', label: 'Doors', obj: _doorsG },
   ],
 });
 
@@ -884,23 +866,18 @@ function tap(sx, sy) {
   ray.setFromCamera(ndc, camera);
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   if (vendorProxy && ray.intersectObject(vendorProxy, false)[0]) { if (!game.on) startGame(); return; }
-  const hit = ray.intersectObjects(portalDiscs, false)[0];
-  if (hit && hit.object.userData.portal) { activate(hit.object.userData.portal); return; }
+  for (const d of doors) { if (d.tap(ray)) return; }
+  if (_secret.open && hiddenDoor && hiddenDoor.tap(ray)) return;
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -38, 38); g.z = THREE.MathUtils.clamp(g.z, -31, 29); controls.walkTo(g); }
 }
 
-let nearPortal = null, nearVendor = false;
-addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'e') { if (nearVendor && !game.on) startGame(); else if (nearPortal) activate(nearPortal); } });
+let nearDoor = null, nearVendor = false;
+addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'e') { if (nearVendor && !game.on) startGame(); else if (nearDoor) nearDoor.go(); } });
 
 const toastEl = document.getElementById('toast');
 let toastT = 0;
 function toast(msg) { if (!toastEl) return; toastEl.textContent = msg; toastEl.classList.add('show'); toastT = 2.4; }
-function activate(p) {
-  if (p.soon) { toast(`✦ ${p.name} — opening in phase 2`); return; }
-  const w = document.getElementById('warp'); if (w) w.classList.add('go');
-  setTimeout(() => { window.location.href = p.url; }, 460);
-}
 
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); });
 
@@ -957,12 +934,19 @@ function frame() {
   openTarget += (((controls.pos.z < 25 && controls.pos.z > 8 && Math.abs(controls.pos.x) < 9) ? 1 : 0) - openTarget) * Math.min(1, dt * 3);
   const dH = Math.hypot(controls.pos.x - 0, controls.pos.z - (-12));
   const prox = THREE.MathUtils.clamp(1 - dH / 12, 0, 1);
-  // nearest portal for the hint / E key
-  nearPortal = null; let best = 3.2;
-  for (const p2 of PORTALS) { const d = Math.hypot(controls.pos.x - p2.x, controls.pos.z - p2.z); if (d < best) { best = d; nearPortal = p2; } }
+  // doors: animate, let you walk through, and light the nearest one's hint
+  const activeDoors = (_secret.open && hiddenDoor) ? doors.concat(hiddenDoor) : doors;
+  nearDoor = null; let best = 3.4;
+  for (const d of activeDoors) {
+    d.update(dt, t, controls.pos);
+    d.tryEnter(controls.pos);
+    const dist = Math.hypot(controls.pos.x - d.pos.x, controls.pos.z - d.pos.z);
+    if (dist < best) { best = dist; nearDoor = d; }
+  }
+  if (hiddenDoor && !_secret.open) hiddenDoor.update(dt, t, controls.pos);   // keep it animating (shut) before 5/5
   if (hintEl) {
     if (nearVendor) { hintEl.textContent = '🎪 Hide & Seek — wanna play?  ·  tap / E'; hintEl.classList.add('show'); }
-    else if (nearPortal) { hintEl.textContent = nearPortal.soon ? `${nearPortal.name} — opening in phase 2` : `▸ enter ${nearPortal.name}  ·  tap / E`; hintEl.classList.add('show'); }
+    else if (nearDoor) { hintEl.textContent = `▸ ${nearDoor.label}  ·  walk in / tap / E`; hintEl.classList.add('show'); }
     else hintEl.classList.remove('show');
   }
   if (toastT > 0) { toastT -= dt; if (toastT <= 0 && toastEl) toastEl.classList.remove('show'); }
@@ -982,7 +966,7 @@ document.getElementById('enterBtn').onclick = () => {
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
-if (import.meta.env.DEV) window.__wh = { controls, scene, PORTALS, game, seeker, seeker2, startGame, walls, updateSeeker, updateSeeker2, updateGame, updateCams, updateHearing, exploredCh, thresholds, explore, resolveCollision, hideSpots, searchCams, concealed, setCrouch: (v) => { crouched = v; controls.eye = v ? 0.95 : 1.6; } };
+if (import.meta.env.DEV) window.__wh = { controls, scene, doors, hiddenDoor, game, seeker, seeker2, startGame, walls, updateSeeker, updateSeeker2, updateGame, updateCams, updateHearing, exploredCh, thresholds, explore, resolveCollision, hideSpots, searchCams, concealed, setCrouch: (v) => { crouched = v; controls.eye = v ? 0.95 : 1.6; } };
 
 // __world hook — overhead-screenshot harness only (activated with ?shot).
 if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('shot')) {
