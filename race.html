@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>12MATT3R // the racetrack</title>
+  <meta name="description" content="Drive real GLB circuits — F1, Big City, Paris, Moscow and more — at the 12matt3r racetrack. Pick a track from the garage and race." />
+  <style>
+    :root{--cyan:#00f3ff;--magenta:#ff0055;--gold:#e6c04a;--ink:#eaf6ff;--muted:#8aa0ac;
+      --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;background:#0a0e14;overflow:hidden;color:var(--ink);font-family:var(--sans);touch-action:none}
+    canvas{display:block;position:fixed;inset:0}
+    .hud{position:fixed;z-index:6;font-family:var(--mono)}
+    .brand{top:15px;left:18px;font-size:13px;letter-spacing:.16em}
+    .brand b{color:var(--cyan)}
+    .brand span{display:block;font-size:9px;color:var(--muted);letter-spacing:.26em;margin-top:3px}
+    /* speedometer */
+    .speedo{right:22px;bottom:20px;text-align:right}
+    .speedo #speed{font-size:56px;line-height:.9;color:#fff;text-shadow:0 0 18px rgba(0,243,255,.6)}
+    .speedo .u{font-size:12px;letter-spacing:.3em;color:var(--muted)}
+    .track{left:18px;bottom:20px;font-size:15px;letter-spacing:.14em;color:var(--gold)}
+    .track span{display:block;font-size:9px;color:var(--muted);letter-spacing:.24em;margin-bottom:3px}
+    .status{left:50%;top:52%;transform:translate(-50%,-50%);font-size:15px;letter-spacing:.2em;color:var(--cyan);opacity:0;transition:opacity .3s;pointer-events:none;text-shadow:0 0 16px rgba(0,243,255,.7)}
+    .help{left:50%;bottom:16px;transform:translateX(-50%);font-size:10.5px;letter-spacing:.1em;color:var(--muted);opacity:.72;text-align:center}
+    .help kbd{font-family:var(--mono);background:rgba(255,255,255,.08);border-radius:4px;padding:1px 5px;margin:0 1px}
+    .btns{top:14px;right:16px;display:flex;gap:8px}
+    .btns button,.back{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink);cursor:pointer;
+      background:rgba(6,12,18,.72);border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:8px 13px;backdrop-filter:blur(6px)}
+    .btns button:hover,.back:hover{border-color:var(--cyan);color:#fff}
+    .back{position:fixed;right:16px;bottom:92px;z-index:6}
+    /* track select */
+    .select{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+      text-align:center;padding:24px;background:radial-gradient(70% 60% at 50% 40%,rgba(10,30,44,.7),rgba(4,8,12,.98));transition:opacity .7s}
+    .select.gone{opacity:0;pointer-events:none}
+    .select h1{font-family:var(--mono);font-size:34px;letter-spacing:.16em;color:var(--cyan);text-shadow:2px 0 var(--magenta)}
+    .select .sub{font-size:13px;color:var(--muted);max-width:520px;line-height:1.6;margin-top:-8px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px;max-width:660px;width:100%}
+    .trackBtn{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink);cursor:pointer;
+      background:linear-gradient(180deg,rgba(16,22,34,.9),rgba(8,10,18,.9));border:1px solid rgba(255,255,255,.14);
+      border-radius:11px;padding:16px 12px;transition:.14s;position:relative;overflow:hidden}
+    .trackBtn:hover{transform:translateY(-2px);border-color:var(--a)}
+    .trackBtn.on{border-color:var(--a);box-shadow:0 0 0 1px var(--a),0 8px 26px -10px var(--a)}
+    .trackBtn.on::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--a)}
+    .go{font-family:var(--mono);font-size:15px;letter-spacing:.16em;color:#02060a;background:var(--cyan);
+      border:none;border-radius:11px;padding:14px 40px;cursor:pointer}
+    .go:hover{background:#fff}
+    .warp{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(0,243,255,.9),rgba(4,8,12,.98));transition:opacity .46s}
+    .warp.go{opacity:1}
+  </style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+
+  <div class="hud brand"><b>THE RACETRACK</b><span>12MATT3R // MOTORSPORT COMPLEX</span></div>
+  <div class="hud btns">
+    <button id="menuBtn">▤ tracks</button>
+    <button id="resetBtn">↺ reset</button>
+  </div>
+  <button class="back" id="backBtn">← back to the festival</button>
+
+  <div class="hud track"><span>NOW RACING</span><span id="trackName" style="color:var(--gold);font-size:15px;letter-spacing:.14em">—</span></div>
+  <div class="hud speedo"><div id="speed">0</div><div class="u">KM/H</div></div>
+  <div class="hud status" id="status"></div>
+  <div class="hud help"><kbd>W</kbd>/<kbd>↑</kbd> gas · <kbd>S</kbd>/<kbd>↓</kbd> brake·reverse · <kbd>A</kbd> <kbd>D</kbd> steer · <kbd>space</kbd> handbrake</div>
+
+  <div class="select" id="select">
+    <h1>THE GARAGE</h1>
+    <div class="sub">Pick your circuit. Eight real tracks — from the <b>F1 Grand Prix</b> to a city street course. Drive with <b>WASD</b>. The car hugs the tarmac; go find the racing line.</div>
+    <div class="grid" id="trackGrid"></div>
+    <button class="go" id="goBtn">HIT THE TRACK →</button>
+  </div>
+  <div class="warp" id="warp"></div>
+
+  <script type="module" src="/src/race.js"></script>
+</body>
+</html>
