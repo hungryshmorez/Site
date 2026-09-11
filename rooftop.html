@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>ROOFTOP // the chill zone</title>
+  <meta name="description" content="The Rooftop Chill Zone — a serene rooftop under a slowly rotating galaxy, floating holographic art, and a soundboard where you layer ambient sounds into your own soundscape." />
+  <style>
+    :root{--gold:#ffd88a;--teal:#4ad0c0;--lav:#b6a8ff;--rose:#ff9ac0;--deep:#0b1430;
+      --ink:#eaf0ff;--muted:#9fb0d8;--mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;background:#060a1a;overflow:hidden;color:var(--ink);font-family:var(--sans);touch-action:none}
+    canvas{display:block;position:fixed;inset:0;cursor:grab}
+    canvas.drag{cursor:grabbing}
+    .vig{position:fixed;inset:0;pointer-events:none;z-index:3;background:radial-gradient(130% 100% at 50% 40%,transparent 58%,rgba(4,7,18,.6) 100%)}
+    .hud{position:fixed;z-index:6;font-family:var(--mono)}
+    .brand{top:15px;left:18px;font-size:13px;letter-spacing:.16em}
+    .brand b{text-shadow:1.5px 0 var(--teal),-1.5px 0 var(--gold)}
+    .brand span{display:block;font-size:9px;color:var(--muted);letter-spacing:.22em;margin-top:3px}
+    .zone{top:50%;left:50%;transform:translate(-50%,-50%);font-size:15px;letter-spacing:.4em;color:var(--gold);
+      text-shadow:0 0 18px rgba(255,216,138,.7);opacity:0;transition:opacity .6s;text-align:center;pointer-events:none}
+    .zone.show{opacity:.9}
+    .mix{right:16px;top:15px;font-size:11px;letter-spacing:.08em;color:var(--muted);text-align:right;max-width:200px}
+    .mix b{color:var(--teal)}
+    .hint{left:50%;bottom:78px;transform:translateX(-50%);font-size:11px;letter-spacing:.12em;color:var(--ink);
+      background:rgba(11,20,48,.55);border:1px solid rgba(74,208,192,.4);border-radius:9px;padding:7px 13px;opacity:0;transition:opacity .25s;white-space:nowrap}
+    .hint.show{opacity:1}
+    .back{position:fixed;z-index:9;right:16px;bottom:14px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink);cursor:pointer;
+      background:rgba(11,20,48,.72);border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:9px 14px;backdrop-filter:blur(6px)}
+    .back:hover{border-color:var(--teal);color:#fff}
+    .help{left:50%;bottom:16px;transform:translateX(-50%);font-size:10.5px;letter-spacing:.1em;color:var(--muted);opacity:.72;text-align:center}
+    .help kbd{font-family:var(--mono);background:rgba(255,255,255,.08);border-radius:4px;padding:1px 5px;margin:0 1px}
+    .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+      text-align:center;padding:24px;background:radial-gradient(70% 60% at 50% 40%,rgba(20,34,70,.6),rgba(5,8,20,.98));transition:opacity .8s}
+    .start.gone{opacity:0;pointer-events:none}
+    .start .g{font-family:var(--mono);font-size:33px;letter-spacing:.05em;color:var(--gold);text-shadow:2px 0 var(--teal),-2px 0 var(--lav)}
+    .start .s{max-width:560px;font-size:14px;color:var(--muted);line-height:1.6}
+    .start .e{margin-top:8px;font-family:var(--mono);font-size:14px;letter-spacing:.14em;color:#0a1024;background:var(--gold);
+      border:none;border-radius:10px;padding:13px 30px;cursor:pointer}
+    .start .e:hover{background:#fff}
+    .warp{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(74,208,192,.9),rgba(5,8,20,.98));transition:opacity .48s}
+    .warp.go{opacity:1}
+  </style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div class="vig"></div>
+
+  <div class="hud brand"><b>ROOFTOP</b><span>THE CHILL ZONE · LAYER YOUR SOUND</span></div>
+  <div class="hud mix" id="mix">soundboard: <b>silent</b></div>
+  <div class="hud zone" id="zone"></div>
+  <div class="hud hint" id="hint">walk to the soundboard · tap a pad to layer a sound</div>
+  <div class="hud help">
+    <kbd>W A S D</kbd> walk · <kbd>drag</kbd> look · step up to the soundboard and tap the pads to build your soundscape
+  </div>
+  <button class="back" id="backBtn">← back to the complex</button>
+
+  <div class="start" id="start">
+    <div class="g">ROOFTOP CHILL ZONE</div>
+    <div class="s">Up top under a slowly turning <b>galaxy</b>, city lights below and holographic art drifting in the air. Sink into the seats, then step to the <b>soundboard</b> and layer your own ambience — wind, rain, chimes, a lo-fi beat, vinyl crackle, a warm pad — into whatever calms you.</div>
+    <button class="e" id="enterBtn">head up</button>
+  </div>
+  <div class="warp" id="warp"></div>
+
+  <script type="module" src="/src/rooftop.js"></script>
+</body>
+</html>

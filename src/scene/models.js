@@ -814,11 +814,42 @@ export function buildCircusTent(accent = '#FF0055') {
   return { group: g, update: (t, pulse) => { glow.intensity = 5 + Math.sin(t * 3) * 1 + pulse * 2; doorGlow.intensity = 2.5 + Math.sin(t * 2.5) * 1 + pulse; thresh.material.opacity = 0.45 + Math.sin(t * 2.5) * 0.15; bulbs.forEach((b, i) => b.material.color.setHSL((i / 9 + t * 0.15) % 1, 0.85, 0.6)); flag.rotation.y = t * 2; } };
 }
 
+// THE COMPLEX — a compact rusty warehouse facade on the grounds; a lit doorway
+// (with flickering neon) you walk up to, which opens the full indoor complex.
+// Front (+Z) faces center.
+export function buildComplex(accent = '#00f3ff') {
+  const g = new THREE.Group();
+  const col = new THREE.Color(accent);
+  const W = 6.4, H = 5.2, DZ = 0.9;
+  const metal = std({ color: 0x3a2a20, roughness: 0.85, metalness: 0.5 });
+  // facade (door gap in the middle)
+  const seg = (w, h, cx, cy) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.8), metal); m.position.set(cx, cy, DZ); m.castShadow = true; g.add(m); };
+  seg(2.1, H, -(W / 2 - 1.05), H / 2); seg(2.1, H, (W / 2 - 1.05), H / 2); seg(W, H - 3.4, 0, 3.4 + (H - 3.4) / 2);
+  const para = new THREE.Mesh(new THREE.BoxGeometry(W + 0.5, 0.5, 1.4), std({ color: 0x241a14, roughness: 0.9 })); para.position.set(0, H + 0.2, DZ); g.add(para);
+  // recessed dark doorway
+  const doorway = new THREE.Mesh(new THREE.BoxGeometry(2.2, 3.4, 0.6), std({ color: 0x05070c, emissive: col, emissiveIntensity: 0.35 })); doorway.position.set(0, 1.7, DZ - 0.2); g.add(doorway);
+  // neon sign + erratic OPEN
+  const neon = textPlane('12MATT3R', accent); neon.position.set(0, 4.4, DZ + 0.45); neon.scale.set(4.6, 0.7, 1); g.add(neon);
+  const open = textPlane('OPEN', '#ff0055'); open.position.set(W / 2 - 0.9, 3.0, DZ + 0.45); open.scale.set(1.5, 0.6, 1); g.add(open);
+  // graffiti tag
+  const tag = textPlane('SOFA KING SAD BOI', '#39ff14'); tag.position.set(-(W / 2 - 1.4), 1.1, DZ + 0.42); tag.scale.set(3.4, 0.42, 1); tag.rotation.z = 0.05; g.add(tag);
+  // glowing threshold on the ground
+  const thresh = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.5), new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+  thresh.rotation.x = -Math.PI / 2; thresh.position.set(0, 0.07, DZ + 1.0); g.add(thresh);
+  const gl = new THREE.PointLight(accent, 3.4, 12, 2); gl.position.set(0, 2.2, DZ + 1.6); g.add(gl);
+  const openGl = new THREE.PointLight(0xff0055, 1.6, 6, 2); openGl.position.set(W / 2 - 0.9, 3.0, DZ + 1); g.add(openGl);
+  return { group: g, update: (t, pulse) => {
+    const f = Math.random() < 0.06 ? 0.25 : 1; neon.material.opacity = 0.7 + 0.3 * f; gl.intensity = 3 + f * 1.5 + pulse * 1.5;
+    const of = (Math.sin(t * 3) > 0.1 && Math.random() > 0.03) ? 1 : 0.2; open.material.opacity = of; openGl.intensity = of * 1.8;
+    thresh.material.opacity = 0.4 + Math.sin(t * 2.5) * 0.15 + pulse * 0.1;
+  } };
+}
+
 // ---------------------------------------------------------------- THE GALLERY
 // A little neoclassical museum pavilion on the grounds: marble steps, columns,
 // a pediment, and a glowing doorway. Walk up and enter to step into the
 // walkable picture gallery (museum.html).
-export function buildMuseum(accent = '#e6c04a') {
+export function buildMuseum(accent = '#e6c04a', label = 'THE GALLERY') {
   const g = new THREE.Group();
   const col = new THREE.Color(accent);
   const marble = std({ color: 0xe9e6dd, roughness: 0.6, metalness: 0.05 });
@@ -854,7 +885,7 @@ export function buildMuseum(accent = '#e6c04a') {
   ped.position.set(0, baseY + H + 0.5, (D + 1.1) / 2 - (D + 1.1) + 0.6); ped.castShadow = true; g.add(ped);
 
   // MUSEUM sign glowing on the architrave
-  const sign = textPlane('THE GALLERY', accent); sign.position.set(0, baseY + H + 0.25, D / 2 + 0.72); sign.scale.set(4.0, 0.5, 1); g.add(sign);
+  const sign = textPlane(label, accent); sign.position.set(0, baseY + H + 0.25, D / 2 + 0.72); sign.scale.set(4.0, 0.5, 1); g.add(sign);
 
   // dark doorway with an accent glow — the way in
   const DW = 1.8, DH = 2.9;
@@ -871,6 +902,7 @@ export function buildMuseum(accent = '#e6c04a') {
 
 export const MODELS = {
   marshmallow: buildMarshmallow,
+  complex: buildComplex,
   museum: buildMuseum,
   monkeypaw: buildMonkeyPaw,
   kiosk: buildKiosk,

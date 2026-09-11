@@ -56,7 +56,7 @@ function make() {
         </span>
       </div>
       <div class="wp-body">
-        <iframe allow="camera; microphone; autoplay; fullscreen; gyroscope; accelerometer; clipboard-write; xr-spatial-tracking" allowfullscreen referrerpolicy="no-referrer"></iframe>
+        <iframe allow="camera; microphone; autoplay; fullscreen; pointer-lock; gamepad; gyroscope; accelerometer; clipboard-write; xr-spatial-tracking" allowfullscreen referrerpolicy="no-referrer"></iframe>
         <div class="wp-spin"><div class="wp-ring"></div><div class="wp-hint">loading…</div></div>
       </div>
     </div>`;

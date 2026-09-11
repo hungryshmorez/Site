@@ -44,15 +44,13 @@ export const WORLD_MAPS = [
       it('Tanky Johnson', 11, 7, 'person'),
       it('12matt3r', 0, -6, 'person'),
       // perimeter vendors — left wall = vendor/tech alley
-      it('Arcade', 27, -10, 'game'),
-      it('TV', -25, -15, 'structure'),
+      it('The Complex', 24, -2, 'structure'),   // arcade + theater moved inside it
       it('Merch store', -25, 4, 'structure'),
       it('Lab: Tools kiosk', -25, -1, 'structure'),
       it("Porta John's", 24, 10, 'structure'),
       // props / world dressing
       it('Props dealer', -13, -13, 'prop'),
       it('Truck', 19, 15, 'prop'),
-      it('Beer pong', 15, 11, 'game'),
       it('Lounge', -25, 11, 'prop'),
       it('Campfire', 12, 16, 'prop'),
       it('Message board + artist directory', -14, 20, 'structure'),

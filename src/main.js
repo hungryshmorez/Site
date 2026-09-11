@@ -152,6 +152,7 @@ const secret = buildSecret(scene, {
 const DUMPSTER_POS = [-22, -20];
 const trash = buildTrash(scene, {
   dumpsterPos: DUMPSTER_POS,
+  store: '12m.trash',    // dumped pieces persist across visits — no more restarting the clean-up
   onPickup: (label, s) => { flash(`picked up ${label}`); trashHudUpdate(s); },
   onDeposit: (n, s) => { flash(n === 1 ? 'tossed it in the dumpster' : `dumped ${n} pieces`); trashHudUpdate(s); },
   onComplete: (s) => { trashHudUpdate(s); unlockReward(); },
@@ -192,6 +193,8 @@ const tailgate = buildTailgate(scene, {
   pongPos: BEERPONG_POS, pongRot: faceCenter(BEERPONG_POS[0], BEERPONG_POS[1]),
   onState: (msg, turn) => { if (pongHudEl) pongHudEl.textContent = msg; if (turn === 'over') flash(msg); },
 });
+// Beer pong moved into Tanky Johnson's world — keep the parked truck here, hide the table.
+tailgate.pong.visible = false;
 
 // Sofa King's elevated lounge (riser + audience couches) at his spot. The
 // audience side (-Z) points at center, so the couches sit between him and it.
@@ -230,18 +233,42 @@ const controls = new WalkControls(camera, { bounds: 24, eye: 1.6, zMin: -30 });
 // spawn in the bottom-left corner for a diagonal entry toward the dancefloor
 controls.pos.set(-18, 1.6, 18);
 if (controls.yaw !== undefined) controls.yaw = -Math.PI * 0.75; // face into the grounds
+// hold your place: returning from a room drops you back where you were on the grounds
+try { const s = JSON.parse(sessionStorage.getItem('fest.pos') || 'null'); if (s && isFinite(s.x) && isFinite(s.z)) { controls.pos.set(s.x, 1.6, s.z); if (isFinite(s.y) && controls.yaw !== undefined) controls.yaw = s.y; } } catch (e) {}
+addEventListener('pagehide', () => { try { sessionStorage.setItem('fest.pos', JSON.stringify({ x: controls.pos.x, z: controls.pos.z, y: controls.yaw })); } catch (e) {} });
 
 // beer pong asks before it grabs your clicks, then stands you at the table
 const gamezones = createGameZones({ controls, camera });
 // stand right at the near end of the table (its length runs toward centre),
 // looking down it at the cups — up close, like real beer pong
-gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => tailgate.near(p), spotFn: () => tailgate.playSpot(), play: (cam, ray) => tailgate.throwBall(cam, ray) });
-// let the player walk up the ramp onto the stage deck
+// (beer pong now lives in Tanky Johnson's world)
+// THE COMPLEX pavilion: a walkable stepped approach. The pavilion (museum model)
+// is placed at its dest pos and rotated to face centre; its marble plinth rises
+// to the portico floor (baseY) at the doorway. We transform the player into the
+// pavilion's local frame and ramp the ground up the steps so you climb to the door.
+const _cpx = DESTINATIONS.find((d) => d.id === 'complex');
+const CPX = _cpx ? { x: _cpx.pos[0], z: _cpx.pos[2],
+  cos: Math.cos(Math.atan2(0 - _cpx.pos[0], -4 - _cpx.pos[2])),
+  sin: Math.sin(Math.atan2(0 - _cpx.pos[0], -4 - _cpx.pos[2])) } : null;
+const CPX_BASEY = 0.84, CPX_HALFW = 4.0, CPX_Z_OUT = 4.6, CPX_Z_TOP = 2.2, CPX_Z_DOOR = 1.96;
+
+// let the player walk up the ramp onto the stage deck (and up the pavilion steps)
 controls.groundAt = (x, z) => {
+  // main stage deck + front ramp
   const d = festival.deck;
-  if (x < -d.halfW || x > d.halfW || z >= d.rampFront) return 0;
-  if (z <= d.zFront) return d.top;                                  // on the deck
-  return ((d.rampFront - z) / (d.rampFront - d.zFront)) * d.top;    // up the ramp
+  if (x >= -d.halfW && x <= d.halfW && z < d.rampFront) {
+    if (z <= d.zFront) return d.top;                                // on the deck
+    return ((d.rampFront - z) / (d.rampFront - d.zFront)) * d.top;  // up the ramp
+  }
+  // the complex pavilion's stepped approach → walk up to the doorway
+  if (CPX) {
+    const dx = x - CPX.x, dz = z - CPX.z;
+    const lx = dx * CPX.cos - dz * CPX.sin, lz = dx * CPX.sin + dz * CPX.cos;
+    if (Math.abs(lx) < CPX_HALFW && lz > CPX_Z_DOOR - 0.8 && lz < CPX_Z_OUT) {
+      return lz <= CPX_Z_TOP ? CPX_BASEY : CPX_BASEY * (CPX_Z_OUT - lz) / (CPX_Z_OUT - CPX_Z_TOP);
+    }
+  }
+  return 0;
 };
 const hud = new Hud(document.getElementById('tags'), camera, characters.list, enterDestination);
 
@@ -532,7 +559,6 @@ labelById.photo = makeLabel('PHOTO BOOTH', -6, 21, 3.2, '#ff0055');
 labelById.vjboard = makeLabel('VJ BOARD', 5, 18, 2.8, '#b967ff');
 labelById.campfire = makeLabel('CAMPFIRE', CAMPFIRE_POS[0], CAMPFIRE_POS[1], 3.0, '#ff6b35');
 labelById.truck = makeLabel('TRUCK', TAILGATE_POS[0], TAILGATE_POS[1], 4.4, '#e6c04a');
-labelById.beerpong = makeLabel('BEER PONG', BEERPONG_POS[0], BEERPONG_POS[1], 2.8, '#e6c04a');
 labelById.lounge = makeLabel('LOUNGE', LOUNGE_POS[0], LOUNGE_POS[1], 3.0, '#b967ff');
 labelById.dumpster = makeLabel('DUMPSTER', DUMPSTER_POS[0], DUMPSTER_POS[1], 3.2, '#39ff14');
 labelById.dealer = makeLabel('DEALER', DEALER_POS[0], DEALER_POS[1], 2.8, '#ff0055');
@@ -547,8 +573,20 @@ addProp('dumpster', trash.group, labelById.dumpster);
 addProp('dealer', dealer.group, labelById.dealer);
 addProp('campfire', campfire.group, labelById.campfire);
 addProp('truck', tailgate.group, labelById.truck);
-addProp('beerpong', tailgate.pong, labelById.beerpong);
 addProp('lounge', lounge.group, labelById.lounge);
+// Weld Sofa King Sad Boi to his lounge: parent his figure into the lounge group
+// (attach() keeps his world transform), then drop his separate editor handle so
+// the two move as a single item. Moving the LOUNGE now carries the sad king too.
+{
+  const sof = characters.list.find((c) => c.dest.id === 'sofaboi');
+  if (sof) {
+    lounge.group.attach(sof.group);
+    const i = adminItems.findIndex((it) => it.id === 'dest_sofaboi');
+    if (i >= 0) adminItems.splice(i, 1);
+    const lit = adminItems.find((it) => it.id === 'lounge'); if (lit) lit.label = 'SOFA KING · LOUNGE';
+    if (labelById['dest_sofaboi']) labelById['dest_sofaboi'].visible = false;
+  }
+}
 addProp('board', board.group, labelById.board);
 addProp('vjboard', vjboard.group, labelById.vjboard);
 addProp('photobooth', djbooth.group, labelById.photo);
@@ -568,6 +606,11 @@ const _arcadeCenter = (characters.list.find((c) => c.dest.id === 'arcade') || {}
 const arcadeWP = _arcadeCenter
   ? _arcadeCenter.clone().addScaledVector(new THREE.Vector3(0 - _arcadeCenter.x, 0, -4 - _arcadeCenter.z).normalize(), 5.3)
   : null;
+
+// THE COMPLEX: you now climb the pavilion steps and enter at the DOORWAY (top of
+// the steps), not from a trigger floating out in the field. The entry check lives
+// in the frame loop, in the pavilion's local frame (see below).
+const complexDest = DESTINATIONS.find((d) => d.id === 'complex');
 
 // ---- lab portal: a porta-potty interior you step into; click the old CRT to
 // boot the Lab (its own page). While inside, the festival stops rendering. ----
@@ -741,6 +784,14 @@ function frame() {
     if (pongHudEl) pongHudEl.classList.toggle('on', gamezones.isPlaying());
     // walk through the arcade tent's doorway → step right into the arcade
     if (!warping && !admin.active && arcadeWP && controls.pos.distanceTo(arcadeWP) < 4) enterDestination(arcadeDest);
+    // climb the steps to THE COMPLEX pavilion's doorway → step inside (into the hub).
+    // Fire only once you've reached the upper portico (local frame), so you feel
+    // the climb rather than getting warped in from the flat field below.
+    if (!warping && !admin.active && CPX) {
+      const dx = controls.pos.x - CPX.x, dz = controls.pos.z - CPX.z;
+      const lx = dx * CPX.cos - dz * CPX.sin, lz = dx * CPX.sin + dz * CPX.cos;
+      if (Math.abs(lx) < 2.4 && lz > CPX_Z_DOOR - 0.9 && lz < CPX_Z_TOP + 0.5) enterDestination(complexDest);
+    }
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
@@ -799,6 +850,9 @@ function trashHudUpdate(s) {
     tCarryEl.classList.toggle('carrying', s.held > 0);
   }
 }
+
+// returning with clean-up already underway → show the counter right away
+{ const s0 = trash.state(); if (s0.dumped > 0) trashHudUpdate(s0); }
 
 function unlockReward() {
   try { localStorage.setItem(REWARD_KEY, '1'); } catch (e) { /* private mode */ }

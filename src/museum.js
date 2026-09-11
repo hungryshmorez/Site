@@ -212,6 +212,7 @@ hang(PIECES[11], 3.2, farWall, 0);
 
 // ---------- exit portal on the entrance (south) wall ----------
 let exitCenter = new THREE.Vector3(0, 1.4, ZMAX - 0.2);
+let exitPortal = null;
 {
   const accent = '#e6c04a';
   const col = C(accent);
@@ -229,6 +230,7 @@ let exitCenter = new THREE.Vector3(0, 1.4, ZMAX - 0.2);
   });
   const portal = new THREE.Mesh(new THREE.PlaneGeometry(DW, DH), portalMat);
   portal.position.set(0, DH / 2, ZMAX - 0.12); portal.rotation.y = Math.PI; scene.add(portal);
+  exitPortal = portal;
   const glow = new THREE.PointLight(accent, 3, 10, 2); glow.position.set(0, 1.6, ZMAX - 1); scene.add(glow);
   window.__portalMat = portalMat;
   exitCenter.set(0, 1.4, ZMAX - 0.12);
@@ -236,7 +238,7 @@ let exitCenter = new THREE.Vector3(0, 1.4, ZMAX - 0.2);
 
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: 100, eye: 1.6, zMin: -100 });
-controls.pos.set(0, 1.6, 15); controls.yaw = 0; controls.speed = 5.4;
+controls.pos.set(0, 1.6, 12); controls.yaw = 0; controls.speed = 5.4;   // spawn inside the gallery, facing in
 controls.update(0);
 
 // drag-look + click (auto-walk to a picture / step through the exit)
@@ -247,11 +249,11 @@ canvas.addEventListener('pointermove', (e) => { if (!dragging) return; const dx 
 canvas.addEventListener('pointerup', (e) => { dragging = false; canvas.classList.remove('drag'); if (moved < 6) onTap(e.clientX, e.clientY); });
 
 function onTap(sx, sy) {
-  // near the exit? step through
-  if (Math.hypot(controls.pos.x - exitCenter.x, controls.pos.z - exitCenter.z) < 4) { goHome(); return; }
-  // otherwise auto-walk toward where you clicked on the floor, a step in front
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
+  // only leave when you actually tap the glowing exit portal (or use the back button /
+  // walk into it) — a tap anywhere else just walks you there
+  if (exitPortal && ray.intersectObject(exitPortal, false)[0]) { goHome(); return; }
   const floorHit = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
   if (floorHit) { floorHit.y = 1.6; controls.walkTo(floorHit); }
 }
@@ -295,9 +297,11 @@ function updateHint() {
 }
 
 // ---------- back / exit ----------
+let exitArmed = false, exiting = false;
 function goHome() {
+  if (exiting) return; exiting = true;
   const w = document.getElementById('warp'); if (w) w.classList.add('go');
-  setTimeout(() => { window.location.href = 'index.html'; }, 470);
+  setTimeout(() => { window.location.href = 'warehouse.html'; }, 470);
 }
 document.getElementById('backBtn').onclick = goHome;
 
@@ -316,6 +320,8 @@ function frame() {
   // keep-out ring around the sculpture pedestal
   const d = Math.hypot(controls.pos.x, controls.pos.z);
   if (d < 1.6 && d > 0.001) { const s = 1.6 / d; controls.pos.x *= s; controls.pos.z *= s; }
+  // walk right up to the exit portal to leave (armed once you've stepped away from it)
+  { const ex = Math.hypot(controls.pos.x - exitCenter.x, controls.pos.z - exitCenter.z); if (ex > 2.5) exitArmed = true; if (exitArmed && ex < 1.25) goHome(); }
   if (window.__sculpt) window.__sculpt.rotation.y = t * 0.25;
   if (window.__portalMat) window.__portalMat.uniforms.t.value = t;
   updateCaption();

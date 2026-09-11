@@ -93,12 +93,19 @@ export function buildTrash(scene, {
   dumpsterPos = [16, 16],
   reach = 1.8,           // walk-over pickup radius
   depositRange = 3.4,    // how close to the dumpster to dump
+  store = null,          // localStorage key → dumped pieces persist across visits
   onPickup, onDeposit, onComplete,
 } = {}) {
   const root = new THREE.Group();
   scene.add(root);
 
+  // which piece indices have already been dumped on a previous visit
+  let dumpedIdx = new Set();
+  if (store) { try { dumpedIdx = new Set(JSON.parse(localStorage.getItem(store) || '[]')); } catch (e) { dumpedIdx = new Set(); } }
+  const persist = () => { if (store) { try { localStorage.setItem(store, JSON.stringify([...dumpedIdx])); } catch (e) { /* private mode */ } } };
+
   const pieces = [];
+  const held = [];   // pieces currently carried (not yet dumped)
   SPOTS.forEach((p, i) => {
     const kind = KINDS[i % KINDS.length];
     const g = new THREE.Group();
@@ -121,8 +128,10 @@ export function buildTrash(scene, {
     proxy.position.y = 0.2; g.add(proxy);
 
     root.add(g);
-    const piece = { kind, group: g, glint, proxy, pos: new THREE.Vector3(p[0], 0, p[1]), taken: false, phase: Math.random() * 6.283 };
+    const piece = { idx: i, kind, group: g, glint, proxy, pos: new THREE.Vector3(p[0], 0, p[1]), taken: false, phase: Math.random() * 6.283 };
     proxy.userData.piece = piece;
+    // already cleaned on a past visit → keep it gone
+    if (dumpedIdx.has(i)) { piece.taken = true; g.visible = false; }
     pieces.push(piece);
   });
 
@@ -132,7 +141,8 @@ export function buildTrash(scene, {
   const dumpPos = new THREE.Vector3(dumpsterPos[0], 0, dumpsterPos[1]);
   scene.add(dumpster.group);
 
-  const state = { total: pieces.length, found: 0, dumped: 0, held: 0, done: false };
+  const restored = dumpedIdx.size;
+  const state = { total: pieces.length, found: restored, dumped: restored, held: 0, done: restored >= pieces.length };
   const publicState = () => ({ ...state });
 
   function pickup(piece) {
@@ -140,6 +150,7 @@ export function buildTrash(scene, {
     piece.taken = true;
     piece.group.visible = false;
     state.found++; state.held++;
+    held.push(piece);
     onPickup && onPickup(LABELS[piece.kind], publicState());
     return true;
   }
@@ -159,6 +170,10 @@ export function buildTrash(scene, {
     if (state.held <= 0) return;
     const n = state.held;
     state.dumped += n; state.held = 0;
+    // the pieces you were carrying are now cleaned for good
+    for (const p of held) dumpedIdx.add(p.idx);
+    held.length = 0;
+    persist();
     onDeposit && onDeposit(n, publicState());
     if (!state.done && state.dumped >= state.total) {
       state.done = true;

@@ -99,10 +99,12 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items,
 
   // ---- UI panel ----
   const panel = document.createElement('div');
-  panel.style.cssText = 'position:fixed;left:10px;bottom:10px;z-index:60;width:min(92vw,340px);font-family:ui-monospace,monospace;font-size:12px;color:#e6e6f0;background:rgba(8,8,18,.93);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 12px;display:none;backdrop-filter:blur(6px)';
+  // docked top-left by default (frees the bottom of the overhead map for taps);
+  // draggable by its header so it can be parked off whatever you're editing.
+  panel.style.cssText = 'position:fixed;left:10px;top:10px;z-index:60;width:min(88vw,320px);font-family:ui-monospace,monospace;font-size:12px;color:#e6e6f0;background:rgba(8,8,18,.93);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 12px;display:none;backdrop-filter:blur(6px)';
   panel.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-      <b style="letter-spacing:.08em;color:#00f3ff">✎ LAYOUT EDITOR</b>
+    <div id="ax-drag" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:move;touch-action:none;user-select:none">
+      <b style="letter-spacing:.08em;color:#00f3ff">⠿ LAYOUT EDITOR</b>
       <span id="ax-sel" style="margin-left:auto;color:#8a8aa0;font-size:11px"></span>
     </div>
     <div id="ax-edit" style="display:none;margin:2px 0 8px">
@@ -125,6 +127,29 @@ export function createAdmin({ scene, camera, renderer, controls, worldId, items,
     <textarea id="ax-out" readonly style="width:100%;height:80px;margin-top:8px;display:none;background:#05060f;color:#39ff14;border:1px solid rgba(255,255,255,.14);border-radius:8px;font-family:ui-monospace,monospace;font-size:11px;padding:6px"></textarea>
     <div id="ax-flash" style="color:#39ff14;margin-top:6px;min-height:15px"></div>`;
   document.body.appendChild(panel);
+  // drag the panel by its header so it never has to sit over what you're editing
+  {
+    const handle = panel.querySelector('#ax-drag');
+    let dragging = false, ox = 0, oy = 0;
+    const clampPos = (x, y) => {
+      const w = panel.offsetWidth, h = panel.offsetHeight;
+      return [Math.max(6, Math.min(x, innerWidth - w - 6)), Math.max(6, Math.min(y, innerHeight - h - 6))];
+    };
+    handle.addEventListener('pointerdown', (e) => {
+      dragging = true; const r = panel.getBoundingClientRect();
+      ox = e.clientX - r.left; oy = e.clientY - r.top;
+      panel.style.bottom = 'auto'; panel.style.right = 'auto';
+      handle.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    handle.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const [x, y] = clampPos(e.clientX - ox, e.clientY - oy);
+      panel.style.left = x + 'px'; panel.style.top = y + 'px'; e.preventDefault();
+    });
+    const endDrag = (e) => { if (dragging) { dragging = false; try { handle.releasePointerCapture(e.pointerId); } catch (_) {} } };
+    handle.addEventListener('pointerup', endDrag);
+    handle.addEventListener('pointercancel', endDrag);
+  }
   for (const b of panel.querySelectorAll('button')) b.style.cssText = 'background:#141426;color:#e6e6f0;border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:7px 10px;cursor:pointer';
   for (const i of panel.querySelectorAll('input')) {
     if (i.type === 'range') i.style.cssText = 'width:100%;margin-top:3px;accent-color:#00f3ff';

@@ -20,7 +20,7 @@ export function buildCharacters(scene, { stageZ = -26 } = {}) {
     group.rotation.y = d.rot !== undefined ? d.rot : (d.onStage ? 0 : Math.atan2(CX - x, CZ - z));
 
     // build the character/structure model
-    const built = (MODELS[d.model] || MODELS.glitch)(d.accent);
+    const built = (MODELS[d.model] || MODELS.glitch)(d.accent, d.modelLabel);
     group.add(built.group);
 
     // ground aura ring + a soft filled pad, so each act reads as a "stand here"

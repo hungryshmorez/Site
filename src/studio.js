@@ -1,10 +1,13 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
+import { addBaseboard } from './scene/roomkit.js';
 import { buildGlitch } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createAdmin } from './scene/admin.js';
+import { buildLoopDoors } from './data/loop.js';
+import { buildDJDeck } from './scene/djdeck.js';
 const ambience = createAmbience(AMBIENCE.studio);
 
 // 12MATT3R'S ROOM — a dark glitch-art studio built around a central MONUMENT of
@@ -217,6 +220,9 @@ updaters.push((dt, t, p) => { if (fig.update) fig.update(t, p); });
 // ---------- controls (with a keep-out circle around the monument) ----------
 const controls = new WalkControls(camera, { bounds: RW - 1.5, eye: 1.6, zMin: -(RW - 1.5) });
 controls.pos.set(0, 1.6, 12); controls.yaw = 0;
+const loopDoors = buildLoopDoors(scene, 'studio', { back: [0, 14.5, Math.PI], next: [0, -14.5, 0] });
+const deck = buildDJDeck(scene, { x: 12, z: 4, ry: -Math.PI / 2, color: 0x39ff14 });
+addBaseboard(scene, updaters, { color: 0x39ff14, x0: -15, x1: 15, z0: -15, z1: 15 });
 const KEEP = 4.2; // can't walk into the TV pile
 
 const epkRef = { url: EPK_URL };
@@ -277,6 +283,8 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
+  for (const d of loopDoors) { if (d.tap(ray)) return; }
+  if (deck.tap(ray)) return;
   if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('12MATT3R — WEB-OS', epkRef.url); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -(RW - 1.5), RW - 1.5); g.z = THREE.MathUtils.clamp(g.z, -(RW - 1.5), RW - 1.5); controls.walkTo(g); }
@@ -315,6 +323,8 @@ function frame() {
   const d = Math.hypot(controls.pos.x, controls.pos.z);
   if (!admin.active && d < KEEP && d > 0.001) { const s = KEEP / d; controls.pos.x *= s; controls.pos.z *= s; }
   for (const m of screenMats) m.uniforms.t.value = t;
+  for (const d of loopDoors) { d.update(dt, t, controls.pos); d.tryEnter(controls.pos); }
+  deck.update(dt, t);
   for (const u of updaters) u(dt, t, p);
   laserGrid.update(dt, t);
   updateZone(controls.pos);

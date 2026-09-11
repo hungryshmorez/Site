@@ -110,6 +110,10 @@ buildCabinet(4.5, -14.5, 'STORIES', '#39ff14', () => openWindow('STORIES & EXPER
 buildCabinet(-13, -8, 'DODGE HELL', '#ff0055', () => { window.location.href = 'bullethell.html'; }); // full-screen survival game
 // MINI GAMES — the bundled p5.js toys + arcade classics (BrowserGames)
 buildCabinet(13, -8, 'MINI GAMES', '#ffd24a', () => openWindow('MINI GAMES', 'games/browsergames/hub.html'));
+// MINECRAFT CLASSIC — the self-hosted public browser build (keyboard + mouse)
+buildCabinet(-6, -8, 'MINECRAFT', '#39ff14', () => openWindow('MINECRAFT CLASSIC', 'games/minecraft-classic/index.html'));
+// KNOCK KNOCK — a browser groovebox (pads, step sequencer, sampler) — pure EDM
+buildCabinet(6, -8, 'KNOCK KNOCK', '#00f3ff', () => openWindow('KNOCK KNOCK · GROOVEBOX', 'games/knock-knock/index.html'));
 
 // the real Monkey's Paw fortune machine (moved in from the festival)
 const paw = buildMonkeyPaw('#b967ff'); paw.group.position.set(10, 0, -12.5); paw.group.rotation.y = -0.5; scene.add(paw.group);
