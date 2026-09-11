@@ -78,14 +78,18 @@ The Site already bundles `public/classic/flash-games/*` and has `arcade.js` /
 
 ---
 
-## Tier 5 — Tangential / probably skip
+## Tier 5 — Indirect / heavier lift (a path exists, but it's not a drop-in)
 
-| Repo | Verdict |
-| --- | --- |
-| **12matt3r** | The MCP asset-generation pipeline (`generate_3d`, `generate_image`, `generate_audio`). Not site code, but the **tool** to author new models/textures/music for the world. Genuinely useful upstream of everything above. |
-| **needle-engine-support** | Needle Engine docs — an alternative web 3D engine. Reference only; not a swap-in for our Three.js stack. |
-| **BookLore** | Self-hosted book manager. Only relevant if a "library/codex" ever needs a real backend. Low priority. |
-| **gallery** | Google AI Edge Gallery (Android on-device LLM). Not relevant to a browser 3D site. |
+The goal is to integrate everything we can. These four don't paste straight into
+the Three.js world, but each still has a real path in if we want it.
+
+| Repo | What it is | Path into the Site |
+| --- | --- | --- |
+| **12matt3r** | The MCP asset-generation pipeline (`generate_3d`, `generate_image`, `generate_audio`). | Not site code — it's the **tool** we use to author new models/textures/music for every tier above. Integrate it as the asset pipeline, not as a scene. |
+| **VibeOS** | From-scratch hobby OS in C + ARM assembly (bare-metal QEMU/Raspberry Pi, macOS-style GUI, DOOM, MicroPython). Not web tech. | Aesthetic reference for the CRT web-OS / glitch room (its dock, window chrome, System-7 B&W look), and its help pages/screenshots can texture a "VibeOS" cabinet. Running the real kernel in-browser would need a WASM emulator — possible but heavy; treat as a themed kiosk, not a live embed. |
+| **BookLore** | Self-hosted book manager (Angular + Java backend). | Could back `codex.html` as a real reading room via an embedded/iframed deployed instance. Optional — only if the codex should hold real books rather than lore. |
+| **needle-engine-support** | Needle Engine docs — an alternative web 3D engine. | Reference only; not a swap-in for our Three.js stack. Useful if we ever want editor-driven scene authoring. |
+| **gallery** | Google AI Edge Gallery (Android on-device LLM). | No practical path — it's a native Android app for running LLMs on-device. The *idea* (an AI NPC) could inspire a chat character, but nothing in this repo ports to the web. |
 
 ---
 
