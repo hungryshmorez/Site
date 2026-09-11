@@ -254,11 +254,12 @@ function buildDoors() {
   const Z = 54, WH = 13, TH = 1.0, HALF = 26, GAP = 2.4, DOORH = 3.9;
   const wm = std({ color: 0x1a1a26, roughness: 0.85, metalness: 0.35, emissive: C(0x14142a), emissiveIntensity: 0.28 });
   const defs = [
-    { x: -18, label: 'DREAM OS · THEATER', url: 'tv.html', color: 0xff8a2a },
-    { x: -9, label: 'VJ · STAGE', url: 'vj.html', color: 0x8a5cff },
-    { x: 0, label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'dj.html', color: 0x00f3ff },
-    { x: 9, label: 'ARCADE + KARAOKE', url: 'arcade.html', color: 0xff2bd0 },
-    { x: 18, label: 'ROOM BUILDER', url: 'builder.html', color: 0xffffff },
+    { x: -20, label: 'DREAM OS · THEATER', url: 'tv.html', color: 0xff8a2a },
+    { x: -12, label: 'VJ · STAGE', url: 'vj.html', color: 0x8a5cff },
+    { x: -4, label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'dj.html', color: 0x00f3ff },
+    { x: 4, label: 'THE GALLERY', url: 'museum.html', color: 0xe6c04a },
+    { x: 12, label: 'ARCADE + KARAOKE', url: 'arcade.html', color: 0xff2bd0 },
+    { x: 20, label: 'ROOM BUILDER', url: 'builder.html', color: 0xffffff },
   ];
   // solid wall segments between/around the door openings (with collision)
   const edges = [-HALF]; for (const d of defs) { edges.push(d.x - GAP, d.x + GAP); } edges.push(HALF);

@@ -849,7 +849,7 @@ export function buildComplex(accent = '#00f3ff') {
 // A little neoclassical museum pavilion on the grounds: marble steps, columns,
 // a pediment, and a glowing doorway. Walk up and enter to step into the
 // walkable picture gallery (museum.html).
-export function buildMuseum(accent = '#e6c04a') {
+export function buildMuseum(accent = '#e6c04a', label = 'THE GALLERY') {
   const g = new THREE.Group();
   const col = new THREE.Color(accent);
   const marble = std({ color: 0xe9e6dd, roughness: 0.6, metalness: 0.05 });
@@ -885,7 +885,7 @@ export function buildMuseum(accent = '#e6c04a') {
   ped.position.set(0, baseY + H + 0.5, (D + 1.1) / 2 - (D + 1.1) + 0.6); ped.castShadow = true; g.add(ped);
 
   // MUSEUM sign glowing on the architrave
-  const sign = textPlane('THE GALLERY', accent); sign.position.set(0, baseY + H + 0.25, D / 2 + 0.72); sign.scale.set(4.0, 0.5, 1); g.add(sign);
+  const sign = textPlane(label, accent); sign.position.set(0, baseY + H + 0.25, D / 2 + 0.72); sign.scale.set(4.0, 0.5, 1); g.add(sign);
 
   // dark doorway with an accent glow — the way in
   const DW = 1.8, DH = 2.9;

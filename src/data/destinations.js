@@ -118,19 +118,13 @@ export const DESTINATIONS = [
     cta: 'Read the Codex',
   },
   {
-    id: 'complex', name: 'THE COMPLEX', model: 'complex',
-    role: 'the warehouse // immersive experience', accent: PALETTE.cyan,
-    pos: [24, 0, -2], tag: 'entrance hall · hub · themed rooms',
+    // One grand museum-styled pavilion is now the single entrance to the whole complex.
+    // (The old separate rusty "complex door" is gone; the walkable gallery lives inside.)
+    id: 'complex', name: 'THE COMPLEX', model: 'museum', modelLabel: 'THE COMPLEX',
+    role: 'the museum // immersive complex', accent: PALETTE.gold,
+    pos: [24, 0, -2], tag: 'gallery · hub · every themed room',
     page: 'warehouse.html',
-    blurb: 'A rusty neon warehouse on a foggy street — the 12matt3r immersive experience complex. The door creaks open as you approach, into a projection-lined entrance hall and a vast central hub: a checkerboard gallery of floating golden frames around a levitating heart, its glowing portals radiating out to every themed room.',
-    cta: 'Step inside the complex',
-  },
-  {
-    id: 'museum', name: 'THE GALLERY', model: 'museum',
-    role: 'the museum // walk the halls', accent: PALETTE.gold,
-    pos: [20, 0, -20], tag: 'a walkable picture gallery',
-    page: 'museum.html',
-    blurb: 'A little marble museum pavilion at the edge of the grounds — columns, a lit pediment, and a glowing doorway. Step inside to walk a quiet gallery hung with framed pieces: portraits of the whole roster and the worlds beyond the festival. Walk up to any picture to read its plaque.',
-    cta: 'Walk the gallery',
+    blurb: 'A grand marble pavilion — the public face of the 12matt3r immersive complex. Step through the glowing doorway into the central hub, with the walkable gallery and every themed room waiting inside.',
+    cta: 'Enter the complex',
   },
 ];
