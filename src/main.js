@@ -242,12 +242,33 @@ const gamezones = createGameZones({ controls, camera });
 // stand right at the near end of the table (its length runs toward centre),
 // looking down it at the cups — up close, like real beer pong
 // (beer pong now lives in Tanky Johnson's world)
-// let the player walk up the ramp onto the stage deck
+// THE COMPLEX pavilion: a walkable stepped approach. The pavilion (museum model)
+// is placed at its dest pos and rotated to face centre; its marble plinth rises
+// to the portico floor (baseY) at the doorway. We transform the player into the
+// pavilion's local frame and ramp the ground up the steps so you climb to the door.
+const _cpx = DESTINATIONS.find((d) => d.id === 'complex');
+const CPX = _cpx ? { x: _cpx.pos[0], z: _cpx.pos[2],
+  cos: Math.cos(Math.atan2(0 - _cpx.pos[0], -4 - _cpx.pos[2])),
+  sin: Math.sin(Math.atan2(0 - _cpx.pos[0], -4 - _cpx.pos[2])) } : null;
+const CPX_BASEY = 0.84, CPX_HALFW = 4.0, CPX_Z_OUT = 4.6, CPX_Z_TOP = 2.2, CPX_Z_DOOR = 1.96;
+
+// let the player walk up the ramp onto the stage deck (and up the pavilion steps)
 controls.groundAt = (x, z) => {
+  // main stage deck + front ramp
   const d = festival.deck;
-  if (x < -d.halfW || x > d.halfW || z >= d.rampFront) return 0;
-  if (z <= d.zFront) return d.top;                                  // on the deck
-  return ((d.rampFront - z) / (d.rampFront - d.zFront)) * d.top;    // up the ramp
+  if (x >= -d.halfW && x <= d.halfW && z < d.rampFront) {
+    if (z <= d.zFront) return d.top;                                // on the deck
+    return ((d.rampFront - z) / (d.rampFront - d.zFront)) * d.top;  // up the ramp
+  }
+  // the complex pavilion's stepped approach → walk up to the doorway
+  if (CPX) {
+    const dx = x - CPX.x, dz = z - CPX.z;
+    const lx = dx * CPX.cos - dz * CPX.sin, lz = dx * CPX.sin + dz * CPX.cos;
+    if (Math.abs(lx) < CPX_HALFW && lz > CPX_Z_DOOR - 0.8 && lz < CPX_Z_OUT) {
+      return lz <= CPX_Z_TOP ? CPX_BASEY : CPX_BASEY * (CPX_Z_OUT - lz) / (CPX_Z_OUT - CPX_Z_TOP);
+    }
+  }
+  return 0;
 };
 const hud = new Hud(document.getElementById('tags'), camera, characters.list, enterDestination);
 
@@ -586,14 +607,10 @@ const arcadeWP = _arcadeCenter
   ? _arcadeCenter.clone().addScaledVector(new THREE.Vector3(0 - _arcadeCenter.x, 0, -4 - _arcadeCenter.z).normalize(), 5.3)
   : null;
 
-// THE COMPLEX pavilion sits right on the walk bounds (x≈24), so a trigger centred
-// on it is unreachable — you get stopped a couple units short. Same fix as the
-// arcade: a waypoint pulled a few units toward the field, in front of its doorway.
+// THE COMPLEX: you now climb the pavilion steps and enter at the DOORWAY (top of
+// the steps), not from a trigger floating out in the field. The entry check lives
+// in the frame loop, in the pavilion's local frame (see below).
 const complexDest = DESTINATIONS.find((d) => d.id === 'complex');
-const _complexCenter = (characters.list.find((c) => c.dest.id === 'complex') || {}).worldPos;
-const complexWP = _complexCenter
-  ? _complexCenter.clone().addScaledVector(new THREE.Vector3(0 - _complexCenter.x, 0, -4 - _complexCenter.z).normalize(), 5.3)
-  : null;
 
 // ---- lab portal: a porta-potty interior you step into; click the old CRT to
 // boot the Lab (its own page). While inside, the festival stops rendering. ----
@@ -767,8 +784,14 @@ function frame() {
     if (pongHudEl) pongHudEl.classList.toggle('on', gamezones.isPlaying());
     // walk through the arcade tent's doorway → step right into the arcade
     if (!warping && !admin.active && arcadeWP && controls.pos.distanceTo(arcadeWP) < 4) enterDestination(arcadeDest);
-    // walk up to THE COMPLEX pavilion's doorway → step inside (into the hub)
-    if (!warping && !admin.active && complexWP && controls.pos.distanceTo(complexWP) < 4) enterDestination(complexDest);
+    // climb the steps to THE COMPLEX pavilion's doorway → step inside (into the hub).
+    // Fire only once you've reached the upper portico (local frame), so you feel
+    // the climb rather than getting warped in from the flat field below.
+    if (!warping && !admin.active && CPX) {
+      const dx = controls.pos.x - CPX.x, dz = controls.pos.z - CPX.z;
+      const lx = dx * CPX.cos - dz * CPX.sin, lz = dx * CPX.sin + dz * CPX.cos;
+      if (Math.abs(lx) < 2.4 && lz > CPX_Z_DOOR - 0.9 && lz < CPX_Z_TOP + 0.5) enterDestination(complexDest);
+    }
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
     if (clockEl) { const [ic, nm] = phaseName(dayT); clockEl.textContent = `${ic} ${nm}`; }
