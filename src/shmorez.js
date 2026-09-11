@@ -11,7 +11,8 @@ const ambience = createAmbience(AMBIENCE.shmorez);
 // giant BONFIRE ringed with roasting marshmallows, a S'MORES LAND of chocolate
 // walls + graham platforms + marshmallow boulders, and a CAMP of tents + embers.
 
-const EPK_URL = 'https://shmorez-official-epk--sofakingsadboi.on.websim.com/#visuals';
+// self-hosted EPK bundled under public/epk/shmorez (was a websim mirror)
+const EPK_URL = 'epk/shmorez/index.html#visuals';
 const canvas = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
 const std = (o) => new THREE.MeshStandardMaterial(o);

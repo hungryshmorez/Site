@@ -102,11 +102,14 @@ function textPlane(text, color) {
 }
 
 // cabinets along the back arc — each opens its game in the in-arcade popup
-buildCabinet(-9, -13, 'FLASH GAMES', '#ff0055', () => openWindow('FLASH GAMES PORTAL', 'https://flash-games-collection--sofakingsadboi.on.websim.com/'));
+// FLASH GAMES now runs the self-hosted portal bundled under public/classic/
+buildCabinet(-9, -13, 'FLASH GAMES', '#ff0055', () => openWindow('FLASH GAMES PORTAL', 'classic/flash-games/flash-games-portal/index.html'));
 buildCabinet(-4.5, -14.5, 'WAKE UP', '#b967ff', () => openWindow('WAKE UP SERIES', 'lab.html?folder=Wake%20Up%20Series'));
 buildCabinet(0, -15, 'GAMES', '#00f3ff', () => openWindow('GAMES', 'lab.html?folder=Games'));
 buildCabinet(4.5, -14.5, 'STORIES', '#39ff14', () => openWindow('STORIES & EXPERIENCES', 'lab.html?folder=Stories%20%26%20Experiences'));
 buildCabinet(-13, -8, 'DODGE HELL', '#ff0055', () => { window.location.href = 'bullethell.html'; }); // full-screen survival game
+// MINI GAMES — the bundled p5.js toys + arcade classics (BrowserGames)
+buildCabinet(13, -8, 'MINI GAMES', '#ffd24a', () => openWindow('MINI GAMES', 'games/browsergames/hub.html'));
 
 // the real Monkey's Paw fortune machine (moved in from the festival)
 const paw = buildMonkeyPaw('#b967ff'); paw.group.position.set(10, 0, -12.5); paw.group.rotation.y = -0.5; scene.add(paw.group);

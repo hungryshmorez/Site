@@ -37,6 +37,7 @@ export default defineConfig({
         greenroom: resolve(__dirname, 'greenroom.html'),
         utility: resolve(__dirname, 'utility.html'),
         gameroom: resolve(__dirname, 'gameroom.html'),
+        museum: resolve(__dirname, 'museum.html'),
       },
     },
   },

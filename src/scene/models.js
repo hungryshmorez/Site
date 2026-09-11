@@ -845,9 +845,65 @@ export function buildComplex(accent = '#00f3ff') {
   } };
 }
 
+// ---------------------------------------------------------------- THE GALLERY
+// A little neoclassical museum pavilion on the grounds: marble steps, columns,
+// a pediment, and a glowing doorway. Walk up and enter to step into the
+// walkable picture gallery (museum.html).
+export function buildMuseum(accent = '#e6c04a') {
+  const g = new THREE.Group();
+  const col = new THREE.Color(accent);
+  const marble = std({ color: 0xe9e6dd, roughness: 0.6, metalness: 0.05 });
+  const shadowMarble = std({ color: 0xcfcabb, roughness: 0.7, metalness: 0.05 });
+  const W = 7.2, H = 4.4, D = 3.2;
+
+  // stepped plinth
+  for (let i = 0; i < 3; i++) {
+    const sw = W + 1.4 - i * 0.5, sd = D + 1.6 - i * 0.5;
+    const step = new THREE.Mesh(new THREE.BoxGeometry(sw, 0.28, sd), shadowMarble);
+    step.position.set(0, 0.14 + i * 0.28, D / 2 + 0.8 - i * 0.25); step.receiveShadow = true; step.castShadow = true; g.add(step);
+  }
+  const baseY = 0.84;
+  // back wall + side walls (a shallow box so the facade reads as a building)
+  const shell = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), marble);
+  shell.position.set(0, baseY + H / 2, -0.2); shell.castShadow = shell.receiveShadow = true; g.add(shell);
+
+  // four front columns
+  const colGeo = new THREE.CylinderGeometry(0.34, 0.38, H, 20);
+  for (const cx of [-W / 2 + 0.6, -W / 6, W / 6, W / 2 - 0.6]) {
+    const c = new THREE.Mesh(colGeo, marble);
+    c.position.set(cx, baseY + H / 2, D / 2 + 0.35); c.castShadow = true; g.add(c);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.24, 0.9), shadowMarble);
+    cap.position.set(cx, baseY + H - 0.12, D / 2 + 0.35); g.add(cap);
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.24, 0.9), shadowMarble);
+    foot.position.set(cx, baseY + 0.12, D / 2 + 0.35); g.add(foot);
+  }
+  // architrave + pediment (triangular prism via extruded shape)
+  const arch = new THREE.Mesh(new THREE.BoxGeometry(W + 0.6, 0.5, D + 1.1), shadowMarble);
+  arch.position.set(0, baseY + H + 0.25, 0.05); arch.castShadow = true; g.add(arch);
+  const shape = new THREE.Shape(); shape.moveTo(-(W + 0.6) / 2, 0); shape.lineTo((W + 0.6) / 2, 0); shape.lineTo(0, 1.5); shape.lineTo(-(W + 0.6) / 2, 0);
+  const ped = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: D + 1.1, bevelEnabled: false }), marble);
+  ped.position.set(0, baseY + H + 0.5, (D + 1.1) / 2 - (D + 1.1) + 0.6); ped.castShadow = true; g.add(ped);
+
+  // MUSEUM sign glowing on the architrave
+  const sign = textPlane('THE GALLERY', accent); sign.position.set(0, baseY + H + 0.25, D / 2 + 0.72); sign.scale.set(4.0, 0.5, 1); g.add(sign);
+
+  // dark doorway with an accent glow — the way in
+  const DW = 1.8, DH = 2.9;
+  const doorway = new THREE.Mesh(new THREE.PlaneGeometry(DW, DH), new THREE.MeshBasicMaterial({ color: 0x0a0b12 }));
+  doorway.position.set(0, baseY + DH / 2, D / 2 + 0.36); g.add(doorway);
+  const glowFrame = new THREE.Mesh(new THREE.RingGeometry(0.0, 0.1, 4), new THREE.MeshBasicMaterial({ color: accent }));
+  const thresh = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.6), new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }));
+  thresh.rotation.x = -Math.PI / 2; thresh.position.set(0, 0.08, D / 2 + 1.3); g.add(thresh);
+  const doorGlow = new THREE.PointLight(accent, 3, 10, 2); doorGlow.position.set(0, 1.9, D / 2 + 0.9); g.add(doorGlow);
+  const upLight = new THREE.SpotLight(0xfff4d8, 6, 14, 0.7, 0.5, 1); upLight.position.set(0, 0.4, D / 2 + 3.2); upLight.target.position.set(0, baseY + H, 0); g.add(upLight); g.add(upLight.target);
+
+  return { group: g, update: (t, pulse) => { doorGlow.intensity = 2.6 + Math.sin(t * 2) * 0.8 + pulse; thresh.material.opacity = 0.4 + Math.sin(t * 2.2) * 0.14; } };
+}
+
 export const MODELS = {
   marshmallow: buildMarshmallow,
   complex: buildComplex,
+  museum: buildMuseum,
   monkeypaw: buildMonkeyPaw,
   kiosk: buildKiosk,
   circustent: buildCircusTent,

@@ -82,8 +82,16 @@ export const DESTINATIONS = [
     blurb: 'A DJ booth open to anyone. Step up to $AUCELAB — two decks, EQ, filters, crossfader, tempo, cue, sync and loops. Upload your own tracks and mix live.',
     cta: 'Take the decks',
   },
-  // The carnival ARCADE moved into THE COMPLEX (warehouse hub's ARCADE + KARAOKE
-  // portal), so the tent no longer stands on the festival grounds.
+  // The carnival ARCADE tent stands on the grounds (the playable midway) AND is also
+  // reachable inside THE COMPLEX via the warehouse hub's ARCADE + KARAOKE portal.
+  {
+    id: 'arcade', name: 'ARCADE', model: 'circustent',
+    role: 'the arcade tent // all the games', accent: PALETTE.magenta,
+    pos: [27, 0, -10], tag: 'the carnival arcade · every game',
+    page: 'arcade.html',
+    blurb: 'A striped carnival tent built into the wall, humming with attract-mode neon — the entrance to THE MIDWAY. Every game lives inside under one big top: cabinets for the flash portal, the Wake Up saga, the games library and the stories, a Monkey\'s Paw machine, a basketball hoop you bank off the backboard, and a shooting gallery. Step right up.',
+    cta: 'Step into the midway',
+  },
   {
     id: 'labs', name: 'THE LAB', model: 'labsstage',
     role: 'the side stage // experiments', accent: PALETTE.green,
@@ -116,5 +124,13 @@ export const DESTINATIONS = [
     page: 'warehouse.html',
     blurb: 'A rusty neon warehouse on a foggy street — the 12matt3r immersive experience complex. The door creaks open as you approach, into a projection-lined entrance hall and a vast central hub: a checkerboard gallery of floating golden frames around a levitating heart, its glowing portals radiating out to every themed room.',
     cta: 'Step inside the complex',
+  },
+  {
+    id: 'museum', name: 'THE GALLERY', model: 'museum',
+    role: 'the museum // walk the halls', accent: PALETTE.gold,
+    pos: [20, 0, -20], tag: 'a walkable picture gallery',
+    page: 'museum.html',
+    blurb: 'A little marble museum pavilion at the edge of the grounds — columns, a lit pediment, and a glowing doorway. Step inside to walk a quiet gallery hung with framed pieces: portraits of the whole roster and the worlds beyond the festival. Walk up to any picture to read its plaque.',
+    cta: 'Walk the gallery',
   },
 ];

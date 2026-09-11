@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>12MATT3R // the gallery</title>
+  <meta name="description" content="A walkable museum at the festival — a quiet marble hall hung with framed pieces of the whole 12matt3r roster and the worlds beyond. Walk up to any picture to read its plaque." />
+  <style>
+    :root{--gold:#e6c04a;--cyan:#00f3ff;--ink:#f4efe6;--muted:#b7ae9e;
+      --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;--serif:Georgia,"Times New Roman",serif;--sans:"Inter",system-ui,sans-serif}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;background:#141118;overflow:hidden;color:var(--ink);font-family:var(--sans);touch-action:none}
+    canvas{display:block;position:fixed;inset:0;cursor:grab}
+    canvas.drag{cursor:grabbing}
+    .vig{position:fixed;inset:0;pointer-events:none;z-index:3;background:radial-gradient(125% 100% at 50% 45%,transparent 52%,rgba(8,6,10,.72) 100%)}
+    .hud{position:fixed;z-index:6;font-family:var(--mono)}
+    .brand{top:15px;left:18px;font-size:13px;letter-spacing:.16em}
+    .brand b{font-family:var(--serif);letter-spacing:.04em;color:var(--gold)}
+    .brand span{display:block;font-size:9px;color:var(--muted);letter-spacing:.26em;margin-top:3px}
+    .hint{left:50%;bottom:78px;transform:translateX(-50%);font-size:11px;letter-spacing:.12em;color:var(--muted);
+      background:rgba(20,16,22,.6);border:1px solid rgba(230,192,74,.35);border-radius:9px;padding:7px 13px;opacity:0;transition:opacity .3s}
+    .hint.show{opacity:1}
+    /* painting plaque that rises when you walk up to a piece */
+    .caption{left:50%;bottom:64px;transform:translate(-50%,14px);max-width:min(88vw,540px);z-index:6;
+      background:rgba(18,14,20,.82);border:1px solid rgba(230,192,74,.4);border-radius:12px;padding:14px 20px;text-align:center;
+      backdrop-filter:blur(8px);opacity:0;transition:opacity .35s,transform .35s;pointer-events:none}
+    .caption.show{opacity:1;transform:translate(-50%,0)}
+    .caption h2{font-family:var(--serif);font-size:20px;letter-spacing:.02em;color:var(--gold);margin-bottom:3px}
+    .caption .m{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--muted);margin-bottom:7px}
+    .caption p{font-size:12.5px;line-height:1.55;color:#e7ddcd}
+    .back{right:16px;bottom:14px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink);cursor:pointer;
+      background:rgba(20,16,22,.72);border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:9px 14px;backdrop-filter:blur(6px)}
+    .back:hover{border-color:var(--gold);color:#fff}
+    .help{left:50%;bottom:16px;transform:translateX(-50%);font-size:10.5px;letter-spacing:.1em;color:var(--muted);opacity:.72;text-align:center}
+    .help kbd{font-family:var(--mono);background:rgba(255,255,255,.08);border-radius:4px;padding:1px 5px;margin:0 1px}
+    .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+      text-align:center;padding:24px;background:radial-gradient(70% 60% at 50% 45%,rgba(40,34,26,.7),rgba(10,8,12,.98));transition:opacity .8s}
+    .start.gone{opacity:0;pointer-events:none}
+    .start .g{font-family:var(--serif);font-size:44px;letter-spacing:.03em;color:var(--gold)}
+    .start .s{max-width:530px;font-size:14px;color:var(--muted);line-height:1.6}
+    .start .e{margin-top:8px;font-family:var(--mono);font-size:14px;letter-spacing:.14em;color:#100a04;background:var(--gold);
+      border:none;border-radius:10px;padding:13px 30px;cursor:pointer}
+    .start .e:hover{background:#fff}
+    .warp{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(230,192,74,.9),rgba(10,8,12,.98));transition:opacity .48s}
+    .warp.go{opacity:1}
+  </style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div class="vig"></div>
+
+  <div class="hud brand"><b>THE GALLERY</b><span>12MATT3R // A WALKABLE MUSEUM</span></div>
+  <div class="hud hint" id="hint">click the glowing doorway to step back out</div>
+  <div class="hud help">
+    <kbd>W A S D</kbd> walk · <kbd>drag</kbd> look · <kbd>click</kbd> a spot to walk there · stroll up to any picture to read its plaque
+  </div>
+
+  <div class="caption" id="caption">
+    <h2 id="capTitle"></h2>
+    <div class="m" id="capMeta"></div>
+    <p id="capBlurb"></p>
+  </div>
+
+  <button class="back" id="backBtn">← back to the festival</button>
+
+  <div class="start" id="start">
+    <div class="g">The Gallery</div>
+    <div class="s">A quiet marble hall at the edge of the festival, hung with framed pieces — portraits of the whole <b>12matt3r</b> roster and the worlds beyond the grounds. Walk the room. Stroll up to any picture and its <b>plaque</b> rises. The glowing doorway takes you home.</div>
+    <button class="e" id="enterBtn">enter the gallery</button>
+  </div>
+  <div class="warp" id="warp"></div>
+
+  <script type="module" src="/src/museum.js"></script>
+</body>
+</html>
