@@ -27,7 +27,7 @@ export function warpTo(url) {
 }
 
 export function buildDoor(scene, {
-  x = 0, z = 0, ry = 0,            // position + facing (door opening faces +Z before ry rotation)
+  x = 0, z = 0, y = 0, ry = 0,     // position + facing (door opening faces +Z before ry rotation); y lifts it onto a landing
   label = '', sub = '',           // lintel sign + small subtitle
   color = 0x8a5cff,               // accent colour
   url = null,                     // destination page
@@ -36,7 +36,7 @@ export function buildDoor(scene, {
   wall = false,                   // draw a bit of surrounding wall around the frame
 } = {}) {
   const col = new THREE.Color(color);
-  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; scene.add(g);
+  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; scene.add(g);
   const jw = 0.34;                 // jamb width
   const frameMat = std({ color: 0x14141c, roughness: 0.6, metalness: 0.5, emissive: col.clone().multiplyScalar(0.25), emissiveIntensity: 0.6 });
   // jambs + lintel
@@ -78,7 +78,7 @@ export function buildDoor(scene, {
 
   // tap proxy spanning the opening
   const proxy = new THREE.Mesh(new THREE.BoxGeometry(width + jw, height, 1.2), new THREE.MeshBasicMaterial({ visible: false }));
-  proxy.position.set(x, height / 2, z); proxy.rotation.y = ry; scene.add(proxy);
+  proxy.position.set(x, y + height / 2, z); proxy.rotation.y = ry; scene.add(proxy);
 
   const doorPos = new THREE.Vector3(x, 0, z);
   let open = 0, fired = false, armed = false;   // 'armed' guards against instant re-trigger when you spawn on a door

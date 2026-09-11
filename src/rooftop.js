@@ -2,8 +2,10 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { addMotes } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
-import { buildLoopDoors } from './data/loop.js';
+import { loopNeighbors } from './data/loop.js';
+import { buildDoor } from './scene/door.js';
 import { buildDJDeck } from './scene/djdeck.js';
+import { addBaseboard } from './scene/roomkit.js';
 
 // ROOFTOP CHILL ZONE — a serene rooftop under a slowly turning galaxy. City lights
 // below the parapet, holographic art drifting overhead, cozy seating, and a
@@ -77,7 +79,8 @@ const RX = 15, RZ0 = 12, RZ1 = -16;
   // parapet ledge around the edge
   const ledge = std({ color: 0x2a2e3a, roughness: 0.9 });
   const wall = (w, h, d, x2, y2, z2) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), ledge); m.position.set(x2, y2, z2); m.castShadow = true; scene.add(m); };
-  wall(RX * 2 + 1, 1.0, 0.5, 0, 0.5, RZ1); wall(RX * 2 + 1, 1.0, 0.5, 0, 0.5, RZ0);
+  // +Z and -Z parapets, split to leave a centre gap (|x|<2.8) for the stairwells
+  for (const zc of [RZ0, RZ1]) { const segw = RX - 2.8; wall(segw, 1.0, 0.5, -(2.8 + segw / 2), 0.5, zc); wall(segw, 1.0, 0.5, (2.8 + segw / 2), 0.5, zc); }
   wall(0.5, 1.0, RZ0 - RZ1 + 1, -RX, 0.5, (RZ0 + RZ1) / 2); wall(0.5, 1.0, RZ0 - RZ1 + 1, RX, 0.5, (RZ0 + RZ1) / 2);
   // city skyline silhouette rings beyond the ledge (lit windows)
   const winTex = (() => { const c = document.createElement('canvas'); c.width = 64; c.height = 128; const g = c.getContext('2d'); g.fillStyle = '#05070f'; g.fillRect(0, 0, 64, 128); for (let i = 0; i < 90; i++) { if (Math.random() < 0.5) continue; g.fillStyle = `rgba(255,${180 + Math.random() * 60 | 0},${100 + Math.random() * 80 | 0},${0.4 + Math.random() * 0.5})`; g.fillRect(6 + (i % 6) * 10, 6 + ((i / 6) | 0) * 10, 6, 7); } const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
@@ -254,10 +257,44 @@ const _dj = buildDJBooth();
 updaters.push(addMotes(scene, { color: 0xbfc8ff, count: 160, area: [40, 14, 40], center: [0, 5, -2], rise: 0.25, opacity: 0.4 }));
 
 // ---------- controls ----------
-const controls = new WalkControls(camera, { bounds: RX - 1, eye: 1.6, zMin: RZ1 + 1 });
-controls.pos.set(0, 1.6, 10); controls.yaw = 0;   // spawn at the entry (back) door, facing into the room
-const loopDoors = buildLoopDoors(scene, 'rooftop', { back: [0, 11, Math.PI], next: [0, -14, 0] });
+// Stairs: you walk UP into the rooftop and DOWN to leave. The deck stays at y=0; the
+// doors sit on lower landings (y=-3) beyond the parapet, reached by stair channels.
+const controls = new WalkControls(camera, { bounds: 16, eye: 1.6, zMin: -20 });
+controls.pos.set(0, 1.6, 14.8); controls.yaw = 0;   // spawn on the entry stairs, facing up into the rooftop
+const LAND = -3;
+const nb = loopNeighbors('rooftop');
+const loopDoors = [
+  buildDoor(scene, { x: 0, z: 15.6, y: LAND, ry: Math.PI, label: '◂ ' + nb.prev.name, url: nb.prev.page, color: nb.prev.col }),  // entry (from the game room), bottom of the up-stairs
+  buildDoor(scene, { x: 0, z: -19.6, y: LAND, ry: 0, label: nb.next.name + ' ▸', url: nb.next.page, color: nb.next.col }),        // exit (to the warehouse), bottom of the down-stairs
+];
 const deck = buildDJDeck(scene, { x: 10, z: 4, ry: -Math.PI / 2, color: 0x4ad0c0 });
+addBaseboard(scene, updaters, { color: 0x4ad0c0, x0: -14.4, x1: 14.4, z0: -15.6, z1: 11.6 });
+
+// ---- stairwells: visible steps + side walls + landings, beyond the parapet gaps ----
+{
+  const stepMat = std({ color: 0x2a2e3a, roughness: 0.85, metalness: 0.2, emissive: C(0x0e1428), emissiveIntensity: 0.22 });
+  const wallM = std({ color: 0x1a1e28, roughness: 0.9 });
+  function flight(zTop, zBot) {   // deck edge (zTop, y0) down to landing (zBot, y=LAND)
+    const N = 6, dz = (zBot - zTop) / N;
+    for (let i = 0; i < N; i++) {
+      const zz = zTop + dz * (i + 0.5), yy = LAND * (i + 0.5) / N;
+      const st = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.4, Math.abs(dz) + 0.03), stepMat); st.position.set(0, yy - 0.2, zz); st.receiveShadow = true; scene.add(st);
+    }
+    const pad = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.4, 3.2), stepMat); pad.position.set(0, LAND - 0.2, zBot + (zBot > zTop ? 1.2 : -1.2)); scene.add(pad);
+    const zc = (zTop + zBot) / 2, len = Math.abs(zBot - zTop) + 3.5;
+    for (const sx of [-2.75, 2.75]) { const w = new THREE.Mesh(new THREE.BoxGeometry(0.35, 4, len), wallM); w.position.set(sx, LAND / 2 + 0.5, zc + (zBot > zTop ? 0.8 : -0.8)); w.castShadow = true; scene.add(w); }
+  }
+  flight(12, 15.8);     // entry (+Z)
+  flight(-16, -19.8);   // exit (-Z)
+}
+// deck at y0; the two centre channels ramp down to the landings
+controls.groundAt = (x, z) => {
+  if (Math.abs(x) < 2.6) {
+    if (z > 15.6) return LAND; if (z > 12) return THREE.MathUtils.mapLinear(z, 12, 15.6, 0, LAND);
+    if (z < -19.6) return LAND; if (z < -16) return THREE.MathUtils.mapLinear(z, -16, -19.6, 0, LAND);
+  }
+  return 0;
+};
 
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'rooftop', overhead: { ax: 30, az: 26, cz: -2 },
