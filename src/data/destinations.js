@@ -121,4 +121,12 @@ export const DESTINATIONS = [
     blurb: 'A row of festival porta-potties, one glowing an unhealthy green. Step inside and boot the old screen to read the Codex — the full encyclopedia of the festival.',
     cta: 'Read the Codex',
   },
+  {
+    id: 'museum', name: 'THE GALLERY', model: 'museum',
+    role: 'the museum // walk the halls', accent: PALETTE.gold,
+    pos: [20, 0, -20], tag: 'a walkable picture gallery',
+    page: 'museum.html',
+    blurb: 'A little marble museum pavilion at the edge of the grounds — columns, a lit pediment, and a glowing doorway. Step inside to walk a quiet gallery hung with framed pieces: portraits of the whole roster and the worlds beyond the festival. Walk up to any picture to read its plaque.',
+    cta: 'Walk the gallery',
+  },
 ];

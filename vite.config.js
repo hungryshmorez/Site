@@ -26,6 +26,7 @@ export default defineConfig({
         lab: resolve(__dirname, 'lab.html'),
         tv: resolve(__dirname, 'tv.html'),
         dj: resolve(__dirname, 'dj.html'),
+        museum: resolve(__dirname, 'museum.html'),
       },
     },
   },

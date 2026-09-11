@@ -206,7 +206,7 @@ const board = buildBoard(scene, {
   onOpen: () => openBoard(),
 });
 
-const BIG = new Set(['stall', 'labsstage', 'bathroom', 'sofaboi', 'doorway', 'circustent']);
+const BIG = new Set(['stall', 'labsstage', 'bathroom', 'sofaboi', 'doorway', 'circustent', 'museum']);
 const crowd = buildCrowd(scene, {
   count: isMobile ? 190 : 340,
   rail: isMobile ? 40 : 70,
