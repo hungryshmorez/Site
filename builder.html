@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>ROOM BUILDER // make it yours</title>
+  <meta name="description" content="The Personalized Room Builder — the endgame reward. Design your own room live: theme, lighting, wall art, decor, the sky out the window and the ambient sound. It saves to your browser and comes back when you return." />
+  <style>
+    :root{--a:#00f3ff;--ink:#eef0ff;--muted:#9aa0c8;--panel:rgba(10,10,22,.82);
+      --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;background:#0a0a16;overflow:hidden;color:var(--ink);font-family:var(--sans);touch-action:none}
+    canvas{display:block;position:fixed;inset:0;cursor:grab}
+    canvas.drag{cursor:grabbing}
+    .vig{position:fixed;inset:0;pointer-events:none;z-index:3;background:radial-gradient(130% 100% at 50% 44%,transparent 60%,rgba(6,6,16,.5) 100%)}
+    .hud{position:fixed;z-index:6;font-family:var(--mono)}
+    .brand{top:15px;left:18px;font-size:13px;letter-spacing:.16em}
+    .brand b{text-shadow:1.5px 0 #ff2bd0,-1.5px 0 var(--a)}
+    .brand span{display:block;font-size:9px;color:var(--muted);letter-spacing:.22em;margin-top:3px}
+    .zone{top:64px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:.3em;color:var(--a);
+      text-shadow:0 0 14px rgba(0,243,255,.6);opacity:0;transition:opacity .5s;pointer-events:none}
+    .zone.show{opacity:.85}
+    .saved{right:16px;top:15px;font-size:11px;letter-spacing:.1em;color:var(--muted);opacity:0;transition:opacity .3s}
+    .saved.show{opacity:1;color:#7affc0}
+    .back{right:16px;bottom:14px;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink);cursor:pointer;z-index:8;
+      background:rgba(10,10,22,.72);border:1px solid rgba(255,255,255,.16);border-radius:9px;padding:9px 14px;backdrop-filter:blur(6px);position:fixed}
+    .back:hover{border-color:var(--a);color:#fff}
+    /* builder panel */
+    .builder{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:7;width:min(94vw,860px);
+      background:var(--panel);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:10px 12px;backdrop-filter:blur(10px);
+      box-shadow:0 16px 50px rgba(0,0,0,.6);font-family:var(--mono)}
+    .builder .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .builder .hd b{font-size:12px;letter-spacing:.14em;color:var(--a)}
+    .builder .hd .tog{font-size:10px;color:var(--muted);cursor:pointer;border:1px solid rgba(255,255,255,.16);border-radius:6px;padding:3px 8px}
+    .rows{display:flex;flex-direction:column;gap:7px;max-height:38vh;overflow:auto}
+    .rows.min{display:none}
+    .row{display:flex;align-items:center;gap:8px}
+    .row .lab{width:74px;flex:none;font-size:10px;letter-spacing:.1em;color:var(--muted);text-align:right}
+    .chips{display:flex;gap:6px;flex-wrap:wrap}
+    .chip{font:600 11px var(--mono);cursor:pointer;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);
+      color:var(--ink);border-radius:8px;padding:5px 10px;white-space:nowrap;transition:.12s}
+    .chip:hover{border-color:rgba(255,255,255,.4)}
+    .chip.on{border-color:var(--a);background:rgba(0,243,255,.14);color:#bff}
+    .sw{width:22px;height:22px;border-radius:6px;padding:0;border:2px solid rgba(255,255,255,.2)}
+    .sw.on{border-color:#fff}
+    .help{left:18px;bottom:16px;font-size:10.5px;letter-spacing:.1em;color:var(--muted);opacity:.6;position:fixed;z-index:5}
+    .help kbd{font-family:var(--mono);background:rgba(255,255,255,.08);border-radius:4px;padding:1px 5px}
+    .start{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+      text-align:center;padding:24px;background:radial-gradient(70% 60% at 50% 44%,rgba(20,20,50,.6),rgba(8,8,18,.98));transition:opacity .8s}
+    .start.gone{opacity:0;pointer-events:none}
+    .start .g{font-family:var(--mono);font-size:32px;letter-spacing:.05em;color:var(--a);text-shadow:2px 0 #ff2bd0,-2px 0 #7affc0}
+    .start .s{max-width:560px;font-size:14px;color:var(--muted);line-height:1.6}
+    .start .e{margin-top:8px;font-family:var(--mono);font-size:14px;letter-spacing:.14em;color:#08101c;background:var(--a);
+      border:none;border-radius:10px;padding:13px 30px;cursor:pointer}
+    .start .e:hover{background:#fff}
+    .warp{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(0,243,255,.9),rgba(8,8,18,.98));transition:opacity .48s}
+    .warp.go{opacity:1}
+  </style>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div class="vig"></div>
+
+  <div class="hud brand"><b>ROOM BUILDER</b><span>YOUR SPACE · SAVED TO YOUR BROWSER</span></div>
+  <div class="hud zone" id="zone"></div>
+  <div class="hud saved" id="saved">✓ saved</div>
+  <div class="hud help"><kbd>W A S D</kbd> walk · <kbd>drag</kbd> look</div>
+  <button class="back" id="backBtn">← back to the complex</button>
+
+  <div class="builder" id="builder">
+    <div class="hd"><b>✦ BUILD YOUR ROOM</b><span class="tog" id="tog">hide</span></div>
+    <div class="rows" id="rows"></div>
+  </div>
+
+  <div class="start" id="start">
+    <div class="g">ROOM BUILDER</div>
+    <div class="s">The endgame reward — a room that's <b>yours</b>. Use the panel to set the theme, lighting, the art on the wall, the decor, the sky out the window and the ambient sound. Everything updates live and <b>saves to your browser</b>, so it's waiting exactly how you left it when you come back.</div>
+    <button class="e" id="enterBtn">make it yours</button>
+  </div>
+  <div class="warp" id="warp"></div>
+
+  <script type="module" src="/src/builder.js"></script>
+</body>
+</html>

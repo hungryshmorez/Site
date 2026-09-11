@@ -72,14 +72,8 @@ export const DESTINATIONS = [
     blurb: 'The vendor working the merch tent. Productized packages — visual identity, audio branding, a web-OS build like this one — with pricing, a tip jar, and an intake + NDA flow. Where the experience converts.',
     cta: 'Browse commissions',
   },
-  {
-    id: 'dreamtv', name: 'TV', model: 'doorway',
-    role: 'the big CRT // theater', accent: PALETTE.magenta,
-    pos: [-25, 0, -15], tag: 'walk-in cinema',
-    page: 'tv.html',
-    blurb: 'A lit doorway off the side of the grounds, glowing from underneath like a vendor stand. Step through into DreamOS TV — a movie theater with a big screen, a crowd, and popcorn in the air.',
-    cta: 'Step through',
-  },
+  // DreamOS TV theater moved into THE COMPLEX (reached from the warehouse hub's
+  // IMMERSIVE THEATER portal), so it's no longer a doorway on the festival grounds.
   {
     id: 'decks', name: 'THE DECKS', model: 'decks',
     role: 'the DJ rig // center stage', accent: PALETTE.cyan,
@@ -88,6 +82,8 @@ export const DESTINATIONS = [
     blurb: 'A DJ booth open to anyone. Step up to $AUCELAB — two decks, EQ, filters, crossfader, tempo, cue, sync and loops. Upload your own tracks and mix live.',
     cta: 'Take the decks',
   },
+  // The carnival ARCADE tent stands on the grounds (the playable midway) AND is also
+  // reachable inside THE COMPLEX via the warehouse hub's ARCADE + KARAOKE portal.
   {
     id: 'arcade', name: 'ARCADE', model: 'circustent',
     role: 'the arcade tent // all the games', accent: PALETTE.magenta,
@@ -120,6 +116,14 @@ export const DESTINATIONS = [
     portal: 'lab',
     blurb: 'A row of festival porta-potties, one glowing an unhealthy green. Step inside and boot the old screen to read the Codex — the full encyclopedia of the festival.',
     cta: 'Read the Codex',
+  },
+  {
+    id: 'complex', name: 'THE COMPLEX', model: 'complex',
+    role: 'the warehouse // immersive experience', accent: PALETTE.cyan,
+    pos: [24, 0, -2], tag: 'entrance hall · hub · themed rooms',
+    page: 'warehouse.html',
+    blurb: 'A rusty neon warehouse on a foggy street — the 12matt3r immersive experience complex. The door creaks open as you approach, into a projection-lined entrance hall and a vast central hub: a checkerboard gallery of floating golden frames around a levitating heart, its glowing portals radiating out to every themed room.',
+    cta: 'Step inside the complex',
   },
   {
     id: 'museum', name: 'THE GALLERY', model: 'museum',

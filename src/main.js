@@ -152,6 +152,7 @@ const secret = buildSecret(scene, {
 const DUMPSTER_POS = [-22, -20];
 const trash = buildTrash(scene, {
   dumpsterPos: DUMPSTER_POS,
+  store: '12m.trash',    // dumped pieces persist across visits — no more restarting the clean-up
   onPickup: (label, s) => { flash(`picked up ${label}`); trashHudUpdate(s); },
   onDeposit: (n, s) => { flash(n === 1 ? 'tossed it in the dumpster' : `dumped ${n} pieces`); trashHudUpdate(s); },
   onComplete: (s) => { trashHudUpdate(s); unlockReward(); },
@@ -192,6 +193,8 @@ const tailgate = buildTailgate(scene, {
   pongPos: BEERPONG_POS, pongRot: faceCenter(BEERPONG_POS[0], BEERPONG_POS[1]),
   onState: (msg, turn) => { if (pongHudEl) pongHudEl.textContent = msg; if (turn === 'over') flash(msg); },
 });
+// Beer pong moved into Tanky Johnson's world — keep the parked truck here, hide the table.
+tailgate.pong.visible = false;
 
 // Sofa King's elevated lounge (riser + audience couches) at his spot. The
 // audience side (-Z) points at center, so the couches sit between him and it.
@@ -230,12 +233,15 @@ const controls = new WalkControls(camera, { bounds: 24, eye: 1.6, zMin: -30 });
 // spawn in the bottom-left corner for a diagonal entry toward the dancefloor
 controls.pos.set(-18, 1.6, 18);
 if (controls.yaw !== undefined) controls.yaw = -Math.PI * 0.75; // face into the grounds
+// hold your place: returning from a room drops you back where you were on the grounds
+try { const s = JSON.parse(sessionStorage.getItem('fest.pos') || 'null'); if (s && isFinite(s.x) && isFinite(s.z)) { controls.pos.set(s.x, 1.6, s.z); if (isFinite(s.y) && controls.yaw !== undefined) controls.yaw = s.y; } } catch (e) {}
+addEventListener('pagehide', () => { try { sessionStorage.setItem('fest.pos', JSON.stringify({ x: controls.pos.x, z: controls.pos.z, y: controls.yaw })); } catch (e) {} });
 
 // beer pong asks before it grabs your clicks, then stands you at the table
 const gamezones = createGameZones({ controls, camera });
 // stand right at the near end of the table (its length runs toward centre),
 // looking down it at the cups — up close, like real beer pong
-gamezones.register({ id: 'beerpong', label: 'Beer Pong', emoji: '🍺', accent: '#e6c04a', near: (p) => tailgate.near(p), spotFn: () => tailgate.playSpot(), play: (cam, ray) => tailgate.throwBall(cam, ray) });
+// (beer pong now lives in Tanky Johnson's world)
 // let the player walk up the ramp onto the stage deck
 controls.groundAt = (x, z) => {
   const d = festival.deck;
@@ -532,7 +538,6 @@ labelById.photo = makeLabel('PHOTO BOOTH', -6, 21, 3.2, '#ff0055');
 labelById.vjboard = makeLabel('VJ BOARD', 5, 18, 2.8, '#b967ff');
 labelById.campfire = makeLabel('CAMPFIRE', CAMPFIRE_POS[0], CAMPFIRE_POS[1], 3.0, '#ff6b35');
 labelById.truck = makeLabel('TRUCK', TAILGATE_POS[0], TAILGATE_POS[1], 4.4, '#e6c04a');
-labelById.beerpong = makeLabel('BEER PONG', BEERPONG_POS[0], BEERPONG_POS[1], 2.8, '#e6c04a');
 labelById.lounge = makeLabel('LOUNGE', LOUNGE_POS[0], LOUNGE_POS[1], 3.0, '#b967ff');
 labelById.dumpster = makeLabel('DUMPSTER', DUMPSTER_POS[0], DUMPSTER_POS[1], 3.2, '#39ff14');
 labelById.dealer = makeLabel('DEALER', DEALER_POS[0], DEALER_POS[1], 2.8, '#ff0055');
@@ -547,7 +552,6 @@ addProp('dumpster', trash.group, labelById.dumpster);
 addProp('dealer', dealer.group, labelById.dealer);
 addProp('campfire', campfire.group, labelById.campfire);
 addProp('truck', tailgate.group, labelById.truck);
-addProp('beerpong', tailgate.pong, labelById.beerpong);
 addProp('lounge', lounge.group, labelById.lounge);
 addProp('board', board.group, labelById.board);
 addProp('vjboard', vjboard.group, labelById.vjboard);
@@ -799,6 +803,9 @@ function trashHudUpdate(s) {
     tCarryEl.classList.toggle('carrying', s.held > 0);
   }
 }
+
+// returning with clean-up already underway → show the counter right away
+{ const s0 = trash.state(); if (s0.dumped > 0) trashHudUpdate(s0); }
 
 function unlockReward() {
   try { localStorage.setItem(REWARD_KEY, '1'); } catch (e) { /* private mode */ }
