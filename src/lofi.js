@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
+import { addBaseboard } from './scene/roomkit.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
 import { buildLoopDoors } from './data/loop.js';
@@ -290,6 +291,7 @@ controls.pos.set(0, 1.6, 16); controls.yaw = 0;   // spawn at the entry (back) d
 // big loop: back door (previous room) behind you, forward door (next room) across the room
 const loopDoors = buildLoopDoors(scene, 'lofi', { back: [0, 19.2, Math.PI], next: [0, -14.5, 0] });
 const deck = buildDJDeck(scene, { x: 10, z: 4, ry: -Math.PI / 2, color: 0xb967ff });
+addBaseboard(scene, updaters, { color: 0xb967ff, x0: -20, x1: 20, z0: -15, z1: 20 });
 
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'lofi', overhead: { ax: 26, az: 20, cz: -3 },

@@ -9,6 +9,20 @@ import { addMotes, addHaze } from './ambientfx.js';
 // back button, and the render loop. A room file calls createRoom(...) then just adds its
 // own content to `scene` (and optional tap handlers via addTap). Keeps the new rooms tiny.
 
+// Shared complex motif: a glowing accent baseboard trim where wall meets floor.
+// Rectangular (x0..x1, z0..z1) or a ring (radius). Ties every room together.
+export function addBaseboard(scene, updaters, { color, x0 = -13, x1 = 13, z0 = -13, z1 = 13, ring = false, radius = 13, y = 0.16 }) {
+  const ac = new THREE.Color(color); const tm = new THREE.MeshBasicMaterial({ color });
+  if (ring) { const r = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.09, 8, 90), tm); r.rotation.x = -Math.PI / 2; r.position.y = y; scene.add(r); }
+  else {
+    const w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    const bar = (bw, bd, bx, bz) => { const m = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.14, bd), tm); m.position.set(bx, y, bz); scene.add(m); };
+    bar(w, 0.16, cx, z0); bar(w, 0.16, cx, z1); bar(0.16, d, x0, cz); bar(0.16, d, x1, cz);
+  }
+  const gb = new THREE.PointLight(color, 0.8, 40, 2); gb.position.set((x0 + x1) / 2, 0.6, (z0 + z1) / 2); scene.add(gb);
+  updaters.push((dt, t) => { const p = 0.6 + Math.sin(t * 1.5) * 0.25; tm.color.copy(ac).multiplyScalar(0.7 + p * 0.5); gb.intensity = 0.6 + p * 0.4; });
+}
+
 export function textPlane(text, color, w = 512, h = 72) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
   x.font = `bold ${Math.round(h * 0.42)}px ui-monospace, monospace`; x.textAlign = 'center'; x.textBaseline = 'middle';
@@ -39,14 +53,7 @@ export function createRoom({
   if (motes) updaters.push(addMotes(scene, { color: 0xbfc8ff, count: 130, area: [24, 10, 24], center: [0, 4, 0], rise: 0.28, opacity: 0.4, ...motes }));
   if (haze) updaters.push(addHaze(scene, { color: 0x2a3060, count: 6, center: [0, 1.5, 0], area: [24, 4, 24], scale: 9, opacity: 0.05, ...haze }));
   // shared complex motif: a glowing accent baseboard trim around the room where wall meets floor
-  if (accent) {
-    const half = bounds - 0.3, ac = new THREE.Color(accent);
-    const tm = new THREE.MeshBasicMaterial({ color: accent });
-    const bar = (w, d, x, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.14, d), tm); m.position.set(x, 0.16, z); scene.add(m); };
-    bar(half * 2, 0.16, 0, -half); bar(half * 2, 0.16, 0, half); bar(0.16, half * 2, -half, 0); bar(0.16, half * 2, half, 0);
-    const gb = new THREE.PointLight(accent, 0.9, half * 2.4, 2); gb.position.set(0, 0.6, 0); scene.add(gb);
-    updaters.push((dt, t) => { const p = 0.6 + Math.sin(t * 1.5) * 0.25; tm.color.copy(ac).multiplyScalar(0.7 + p * 0.5); gb.intensity = 0.7 + p * 0.4; });
-  }
+  if (accent) { const h = bounds - 0.3; addBaseboard(scene, updaters, { color: accent, x0: -h, x1: h, z0: -h, z1: h }); }
 
   // ---- input ----
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);

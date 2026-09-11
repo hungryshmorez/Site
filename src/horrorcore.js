@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
+import { addBaseboard } from './scene/roomkit.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
 import { buildLoopDoors } from './data/loop.js';
@@ -242,6 +243,7 @@ const controls = new WalkControls(camera, { bounds: RX - 1, eye: 1.6, zMin: RZ1 
 controls.pos.set(0, 1.6, 7); controls.yaw = 0;
 const loopDoors = buildLoopDoors(scene, 'horrorcore', { back: [0, 10, Math.PI], next: [0, -16, 0] });
 const deck = buildDJDeck(scene, { x: 9, z: 3, ry: -Math.PI / 2, color: 0xff2b2b });
+addBaseboard(scene, updaters, { color: 0xff2b2b, x0: -11.5, x1: 11.5, z0: -16, z1: 9 });
 
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'horrorcore', overhead: { ax: 16, az: 16, cz: -5 },

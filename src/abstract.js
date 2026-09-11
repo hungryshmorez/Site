@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
+import { addBaseboard } from './scene/roomkit.js';
 import { createAdmin } from './scene/admin.js';
 import { buildLoopDoors } from './data/loop.js';
 import { buildDJDeck } from './scene/djdeck.js';
@@ -121,6 +122,7 @@ const controls = new WalkControls(camera, { bounds: R - 3, eye: 1.6, zMin: -(R -
 controls.pos.set(0, 1.6, 21); controls.yaw = 0;   // spawn at the entry (back) door, facing in
 const loopDoors = buildLoopDoors(scene, 'abstract', { back: [0, 23.5, Math.PI], next: [0, -23.5, 0] });
 const deck = buildDJDeck(scene, { x: 16, z: 6, ry: -Math.PI / 2, color: 0x00ffa8 });
+addBaseboard(scene, updaters, { color: 0x00ffa8, ring: true, radius: 26 });
 
 const _ents = buildEntities();
 const admin = createAdmin({

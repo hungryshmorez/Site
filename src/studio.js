@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
+import { addBaseboard } from './scene/roomkit.js';
 import { buildGlitch } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes } from './scene/ambientfx.js';
@@ -221,6 +222,7 @@ const controls = new WalkControls(camera, { bounds: RW - 1.5, eye: 1.6, zMin: -(
 controls.pos.set(0, 1.6, 12); controls.yaw = 0;
 const loopDoors = buildLoopDoors(scene, 'studio', { back: [0, 14.5, Math.PI], next: [0, -14.5, 0] });
 const deck = buildDJDeck(scene, { x: 12, z: 4, ry: -Math.PI / 2, color: 0x39ff14 });
+addBaseboard(scene, updaters, { color: 0x39ff14, x0: -15, x1: 15, z0: -15, z1: 15 });
 const KEEP = 4.2; // can't walk into the TV pile
 
 const epkRef = { url: EPK_URL };
