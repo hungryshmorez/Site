@@ -7,7 +7,7 @@ const R = createRoom({
   id: 'gameroom', hook: '__gm', fog: [0x0a0614, 0.022], exposure: 1.2,
   bounds: 13, zMin: -13, spawn: [0, 1.6, 11], yaw: 0,
   backAt: [0, 11.6, Math.PI], nextAt: [0, -12.4, 0], deckAt: [10.5, 4, -Math.PI / 2], deckColor: 0xff66cc,
-  motes: { color: 0xff8ad0, count: 130, opacity: 0.4 },
+  motes: { color: 0xff8ad0, count: 130, opacity: 0.4 }, accent: 0xff66cc,
 });
 const { scene, updaters, std, C, textPlane, THREE } = R;
 

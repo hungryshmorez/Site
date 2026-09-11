@@ -21,7 +21,7 @@ export function createRoom({
   id, hook = '__room', fog = null, exposure = 1.2,
   bounds = 13, zMin = -13, spawn = [0, 1.6, 11], yaw = 0,
   backAt, nextAt, deckAt, deckColor = 0x00f3ff,
-  motes = null, haze = null,
+  motes = null, haze = null, accent = null,
 }) {
   const canvas = document.getElementById('scene');
   try { const K = '12m.explored'; const s = new Set(JSON.parse(localStorage.getItem(K) || '[]')); s.add(id); localStorage.setItem(K, JSON.stringify([...s])); } catch (e) {}
@@ -38,6 +38,15 @@ export function createRoom({
   // ambient atmosphere — floating motes + optional low haze
   if (motes) updaters.push(addMotes(scene, { color: 0xbfc8ff, count: 130, area: [24, 10, 24], center: [0, 4, 0], rise: 0.28, opacity: 0.4, ...motes }));
   if (haze) updaters.push(addHaze(scene, { color: 0x2a3060, count: 6, center: [0, 1.5, 0], area: [24, 4, 24], scale: 9, opacity: 0.05, ...haze }));
+  // shared complex motif: a glowing accent baseboard trim around the room where wall meets floor
+  if (accent) {
+    const half = bounds - 0.3, ac = new THREE.Color(accent);
+    const tm = new THREE.MeshBasicMaterial({ color: accent });
+    const bar = (w, d, x, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.14, d), tm); m.position.set(x, 0.16, z); scene.add(m); };
+    bar(half * 2, 0.16, 0, -half); bar(half * 2, 0.16, 0, half); bar(0.16, half * 2, -half, 0); bar(0.16, half * 2, half, 0);
+    const gb = new THREE.PointLight(accent, 0.9, half * 2.4, 2); gb.position.set(0, 0.6, 0); scene.add(gb);
+    updaters.push((dt, t) => { const p = 0.6 + Math.sin(t * 1.5) * 0.25; tm.color.copy(ac).multiplyScalar(0.7 + p * 0.5); gb.intensity = 0.7 + p * 0.4; });
+  }
 
   // ---- input ----
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);

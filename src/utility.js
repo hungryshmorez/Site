@@ -4,10 +4,10 @@ import { createRoom } from './scene/roomkit.js';
 // blinking lights, a wall of monitors, patch panels and cabling. Part of the big loop
 // (Horrorcore ◂ ▸ Game Room), with its own DJ decks.
 const R = createRoom({
-  id: 'utility', hook: '__ut', fog: [0x060a0e, 0.028], exposure: 1.15,
+  id: 'utility', hook: '__ut', fog: [0x060a0e, 0.028], exposure: 1.24,
   bounds: 13, zMin: -13, spawn: [0, 1.6, 11], yaw: 0,
   backAt: [0, 11.6, Math.PI], nextAt: [0, -12.4, 0], deckAt: [10, 4, -Math.PI / 2], deckColor: 0xffb020,
-  motes: { color: 0x6a90c0, count: 120, opacity: 0.32 }, haze: { color: 0x0a1a2a, opacity: 0.06 },
+  motes: { color: 0x6a90c0, count: 120, opacity: 0.32 }, haze: { color: 0x0a1a2a, opacity: 0.06 }, accent: 0xffb020,
 });
 const { scene, updaters, std, C, textPlane, THREE } = R;
 
