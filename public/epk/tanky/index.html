@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tanky Johnson | EPK</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="grain-overlay"></div>
+
+    <div class="container">
+        <!-- Header / Hero -->
+        <header>
+            <div class="logo-container">
+                <img src="D73B4784-7D1D-4E38-B9E6-691C2BF8456D.jpeg" alt="Tanky Johnson" class="main-logo">
+            </div>
+            <h1 class="tagline">The Outlaw of the Void</h1>
+            
+            <div class="social-icons-header">
+                <a href="#"><i class="fab fa-spotify"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+                <a href="#"><i class="fab fa-apple"></i></a>
+            </div>
+        </header>
+
+        <!-- Biography -->
+        <section id="bio" class="bio-section fade-in">
+            <div class="bio-content">
+                <div class="bio-image-wrapper">
+                    <img src="IMG_1264.png" alt="Tanky on Horseback" class="bio-img">
+                    <div class="frame-decoration"></div>
+                </div>
+                <div class="bio-text">
+                    <h2>Biography</h2>
+                    <p class="lead">Tanky Johnson is the sound of a city suit burning on a gravel road.</p>
+                    
+                    <p>Born from a sudden break with the corporate grind, Tanky’s music is the anthem for anyone who has ever traded a deadline for a lifeline and a view of the wide-open West.</p>
+                    
+                    <p>A modern outlaw with a throwback soul, Tanky doesn’t just sing country; he chronicles the chaos of the American night. His sound is a dust-kicking blend of rowdy honky-tonk anthems and stark, neon-lit confessionals. He is the guy at the end of the bar who has seen it all—from the "Wrestlemania" hangovers to the quiet, painful wisdom found at the bottom of a glass in <span class="highlight">"Half Past Lonely."</span></p>
+                    
+                    <p>Currently tearing up speakers with his <em>Enter the Void</em> project, Tanky is laying the groundwork for his highly anticipated debut album, <strong>"For Mama,"</strong> slated for release in 2026.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Audio Player Section -->
+        <section id="music" class="music-section fade-in">
+            <h2>Latest Tracks</h2>
+            
+            <div class="player-container">
+                <div class="album-art-display">
+                    <img src="cowboys_dont_cry_cover.png" alt="Cowboys Don't Cry Album Art" id="current-album-art">
+                    <div class="vinyl-record"></div>
+                </div>
+
+                <div class="player-controls-area">
+                    <div class="track-info">
+                        <h3 id="track-title">Select a Track</h3>
+                        <p id="track-artist">Tanky Johnson</p>
+                    </div>
+
+                    <div class="progress-container" id="progress-container">
+                        <div class="progress" id="progress"></div>
+                    </div>
+                    <div class="time-stamps">
+                        <span id="current-time">0:00</span>
+                        <span id="duration">0:00</span>
+                    </div>
+
+                    <div class="controls">
+                        <button id="prev" class="control-btn"><i class="fas fa-step-backward"></i></button>
+                        <button id="play" class="control-btn play-btn"><i class="fas fa-play"></i></button>
+                        <button id="next" class="control-btn"><i class="fas fa-step-forward"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="playlist">
+                <ul id="playlist-ul">
+                    <!-- Javascript populates this -->
+                </ul>
+            </div>
+        </section>
+
+        <!-- Video Section -->
+        <section id="video" class="video-section fade-in">
+            <h2>Visuals</h2>
+            <div class="video-grid">
+                <div class="video-wrapper main-video">
+                    <video controls poster="IMG_1263.png">
+                        <source src="tlbtvu6iabrao7gnpdaw.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="video-caption">Featured: Live Session Teaser</div>
+                </div>
+                
+                <div class="video-links">
+                    <div class="link-card">
+                        <h3>Cowboys Don't Cry</h3>
+                        <p>Official Audio Video</p>
+                        <a href="https://youtu.be/1lAA395N8FE?si=0Hx0xfgFdieH4lX7" target="_blank" class="btn-outline">Watch on YouTube <i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                    <div class="link-card">
+                        <h3>Enter the Void</h3>
+                        <p>Full Live Set (45 min)</p>
+                        <a href="https://youtu.be/xYnauJbpdnc?si=IvQHOrpBK4cENuW4" target="_blank" class="btn-outline">Watch Full Set <i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery -->
+        <section id="gallery" class="gallery-section fade-in">
+            <h2>Gallery</h2>
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="IMG_1263.png" alt="Cowboy with Lasso">
+                </div>
+                <div class="gallery-item">
+                    <img src="IMG_1266.png" alt="Concert with Animals">
+                </div>
+                <div class="gallery-item">
+                    <img src="IMG_1265.png" alt="Live Performance">
+                </div>
+                <div class="gallery-item">
+                    <img src="IMG_1269.png" alt="Steampunk Logo">
+                </div>
+            </div>
+        </section>
+
+        <!-- Quotes -->
+        <section id="quotes" class="quotes-section fade-in">
+            <h2>Memorable Quotes</h2>
+            <div class="quotes-grid">
+                <div class="quote-card">
+                    <blockquote>"The only limit to our realization of tomorrow will be our doubts of today."</blockquote>
+                    <cite>- Tanky Johnson</cite>
+                </div>
+                <div class="quote-card">
+                    <blockquote>"It does not matter how slowly you go as long as you do not stop."</blockquote>
+                    <cite>- Tanky Johnson</cite>
+                </div>
+                <div class="quote-card">
+                    <blockquote>"Believe you can and you're halfway there."</blockquote>
+                    <cite>- Tanky Johnson</cite>
+                </div>
+                <div class="quote-card">
+                    <blockquote>"The future belongs to those who believe in the beauty of their dreams."</blockquote>
+                    <cite>- Tanky Johnson</cite>
+                </div>
+                <div class="quote-card">
+                    <blockquote>"Success is not final, failure is not fatal: It is the courage to continue that counts."</blockquote>
+                    <cite>- Tanky Johnson</cite>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact -->
+        <section id="contact" class="contact-section fade-in">
+            <div class="contact-card">
+                <h2>Booking & Contact</h2>
+                <p>For booking inquiries, press, and collaborations.</p>
+                
+                <div class="contact-details">
+                    <div class="contact-row">
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:flatwoods4ever@gmail.com">flatwoods4ever@gmail.com</a>
+                    </div>
+                </div>
+
+                <div class="download-epk">
+                    <button onclick="window.print()" class="btn-gold">Download / Print EPK</button>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2024 Tanky Johnson. All Rights Reserved.</p>
+            <p class="small">The Outlaw of the Void</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

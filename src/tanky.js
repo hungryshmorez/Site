@@ -11,7 +11,8 @@ const ambience = createAmbience(AMBIENCE.tanky);
 // the jukebox), a TAILGATE bonfire with his lifted truck + hay bales, and a
 // VOID DESERT of mesas + neon cacti under a giant moon.
 
-const EPK_URL = 'https://tanky-johnson-epk--sofakingsadboi.on.websim.com/';
+// self-hosted EPK bundled under public/epk/tanky (was a websim mirror)
+const EPK_URL = 'epk/tanky/index.html';
 const canvas = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
 const std = (o) => new THREE.MeshStandardMaterial(o);

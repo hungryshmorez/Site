@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SHMOREZ | Official EPK</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat:wght@300;400;600;700&family=Rubik+Glitch&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <img src="IMG_0208.gif" alt="Loading..." class="loader-gif">
+    </div>
+
+    <!-- Navigation (Mobile Friendly) -->
+    <nav>
+        <div class="logo">SHMOREZ</div>
+        <button id="menu-btn" aria-label="Menu">☰</button>
+        <div class="menu-items">
+            <a href="#home">Home</a>
+            <a href="#music">Music</a>
+            <a href="#visuals">Visuals</a>
+            <a href="#bio">Bio</a>
+            <a href="#contact">Contact</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">SHMOREZ</h1>
+            <p class="hero-tagline">FORGED IN THE CAMPFIRE • DROPPED IN THE BASS</p>
+            <p class="hero-description">
+                Meet the ultimate EDM anomaly — a marshmallow melted into a s'mores, 
+                now serving filthy bass and molten drops that will melt your face off.
+            </p>
+            <div class="cta-buttons">
+                <button class="cta-btn" onclick="document.getElementById('music').scrollIntoView({behavior: 'smooth'})">Listen Now</button>
+                <button class="cta-btn secondary-btn" onclick="document.getElementById('contact').scrollIntoView({behavior: 'smooth'})">Bookings</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Music Player Section -->
+    <section id="music" class="section">
+        <h2 class="section-title">The Drops</h2>
+        <p class="section-subtitle">Filthy bass. Molten melodies. Maximum destruction.</p>
+        
+        <div class="player-container">
+            <div class="vinyl-wrapper">
+                <div class="vinyl-record" id="record-spin">
+                    <div class="vinyl-label"></div>
+                </div>
+            </div>
+
+            <div class="track-info">
+                <h3 id="track-title">Select a track</h3>
+                <div class="progress-bar-container" id="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="time-display">
+                    <span id="current-time">0:00</span> / <span id="duration">0:00</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="prev-btn" class="control-btn">⏮</button>
+                <button id="play-btn" class="control-btn play-large">▶</button>
+                <button id="next-btn" class="control-btn">⏭</button>
+            </div>
+
+            <div class="playlist">
+                <div class="playlist-item" data-src="shhh,-don't-wake-her-up..mp3" data-title="Shhh, Don't Wake Her Up">
+                    <span class="track-num">01</span>
+                    <span class="track-name">Shhh, Don't Wake Her Up</span>
+                    <span class="track-play-icon">▶</span>
+                </div>
+                <div class="playlist-item" data-src="snap-on-the-beat-(garage-band-spark).mp3" data-title="Snap On The Beat">
+                    <span class="track-num">02</span>
+                    <span class="track-name">Snap On The Beat (Garage Spark)</span>
+                    <span class="track-play-icon">▶</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Visuals/Gallery Section -->
+    <section id="visuals" class="section gallery-section">
+        <h2 class="section-title">Press Assets</h2>
+        <p class="section-subtitle">High-res photos for media & promotion</p>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="IMG_9787.png" alt="Lava Creature with Flowers" loading="lazy">
+                <div class="gallery-overlay">
+                    <span class="gallery-caption">Gentle Giant</span>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="IMG_9788.png" alt="Skull Monster Headphones" loading="lazy">
+                <div class="gallery-overlay">
+                    <span class="gallery-caption">Urban Chaos</span>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="IMG_9785.png" alt="Lava Monster Headphones" loading="lazy">
+                <div class="gallery-overlay">
+                    <span class="gallery-caption">Main Character</span>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="IMG_9780.png" alt="Jackolantern Bling" loading="lazy">
+                <div class="gallery-overlay">
+                    <span class="gallery-caption">Sweet & Spooky</span>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="IMG_9783.png" alt="Art" loading="lazy">
+                <div class="gallery-overlay">
+                    <span class="gallery-caption">Visions</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bio Section -->
+    <section id="bio" class="section bio-section">
+        <h2 class="section-title">The Character</h2>
+        <p class="section-subtitle">Born from fire. Fueled by bass.</p>
+        
+        <div class="bio-grid">
+            <div class="bio-image">
+                <img src="IMG_9785.png" alt="SHMOREZ Character">
+            </div>
+            
+            <div class="bio-text">
+                <h3>FROM CAMPFIRE TO CROWD</h3>
+                <p>
+                    In a world where <span class="highlight">sugar meets sub-bass</span>, SHMOREZ emerged 
+                    from a freak campfire accident involving radioactive marshmallows and a malfunctioning 
+                    bass cannon. The result? A sentient, molten creature with an insatiable appetite for 
+                    heavy drops and crowd devastation.
+                </p>
+                <p>
+                    Part marshmallow, part inferno, 100% bass chaos. SHMOREZ wields the power of 
+                    <span class="highlight">filthy dubstep, gooey trap, and sticky acid bass</span> — 
+                    sounds so heavy they'll melt your speakers and your mind.
+                </p>
+                
+                <div class="bio-stats">
+                    <div class="stat-card">
+                        <span class="stat-number">2019</span>
+                        <span class="stat-label">Founded</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">50K+</span>
+                        <span class="stat-label">Monthly Listeners</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">100+</span>
+                        <span class="stat-label">Shows Played</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number">5+</span>
+                        <span class="stat-label">Countries</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section footer">
+        <h2 class="section-title">Let's Melt Together</h2>
+        <p class="section-subtitle">Bookings, Collabs, and General Chaos</p>
+        
+        <div class="contact-content">
+            <p style="margin-bottom: 30px; font-size: 1.1rem;">Ready to bring the heat? Get in touch for bookings, collaborations, or just to say hello.</p>
+            
+            <a href="mailto:hungryshmorez@gmail.com" class="email-link">hungryshmorez@gmail.com</a>
+            
+            <div class="booking-info">
+                <h3>BOOKING INQUIRIES</h3>
+                <p>For festival bookings, club gigs, and collaborative opportunities, please email directly. All booking requests should include event details, date, venue, and budget range.</p>
+            </div>
+
+            <div class="social-links">
+                <a href="#" class="social-icon">IG</a>
+                <a href="#" class="social-icon">X</a>
+                <a href="#" class="social-icon">TK</a>
+                <a href="#" class="social-icon">SC</a>
+                <a href="#" class="social-icon">YT</a>
+            </div>
+            
+            <p class="copyright">&copy; 2024 SHMOREZ. All Rights Reserved.<br>Forged in the Campfire. Dropped in the Bass.</p>
+        </div>
+    </section>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close">&times;</span>
+        <img src="" alt="Full Screen Image" id="lightbox-img">
+    </div>
+
+    <!-- Hidden Audio Element -->
+    <audio id="main-audio"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
