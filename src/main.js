@@ -3,6 +3,7 @@ import { DESTINATIONS } from './data/destinations.js';
 import { buildFestival } from './scene/festival.js';
 import { buildCrowd } from './scene/crowd.js';
 import { spawnDancer } from './scene/dancers.js';
+import { createIntro } from './scene/intro.js';
 import { buildCharacters } from './scene/characters.js';
 import { buildTrash } from './scene/trash.js';
 import { buildDealer } from './scene/dealer.js';
@@ -244,7 +245,16 @@ const controls = new WalkControls(camera, { bounds: 24, eye: 1.6, zMin: -30 });
 controls.pos.set(-18, 1.6, 18);
 if (controls.yaw !== undefined) controls.yaw = -Math.PI * 0.75; // face into the grounds
 // hold your place: returning from a room drops you back where you were on the grounds
-try { const s = JSON.parse(sessionStorage.getItem('fest.pos') || 'null'); if (s && isFinite(s.x) && isFinite(s.z)) { controls.pos.set(s.x, 1.6, s.z); if (isFinite(s.y) && controls.yaw !== undefined) controls.yaw = s.y; } } catch (e) {}
+let cameFromRoom = false;
+try { const s = JSON.parse(sessionStorage.getItem('fest.pos') || 'null'); if (s && isFinite(s.x) && isFinite(s.z)) { controls.pos.set(s.x, 1.6, s.z); if (isFinite(s.y) && controls.yaw !== undefined) controls.yaw = s.y; cameFromRoom = true; } } catch (e) {}
+
+// cinematic intro — only on a fresh arrival (not returning from a room / reduced motion)
+const SPAWN = { pos: [controls.pos.x, controls.pos.y, controls.pos.z], yaw: controls.yaw };
+const playIntro = !reduceMotion && !cameFromRoom;
+const intro = createIntro(camera, {
+  spawn: SPAWN,
+  onDone: () => { controls.pos.set(SPAWN.pos[0], SPAWN.pos[1], SPAWN.pos[2]); if (controls.yaw !== undefined) controls.yaw = SPAWN.yaw; controls.enabled = true; },
+});
 addEventListener('pagehide', () => { try { sessionStorage.setItem('fest.pos', JSON.stringify({ x: controls.pos.x, z: controls.pos.z, y: controls.yaw })); } catch (e) {} });
 
 // beer pong asks before it grabs your clicks, then stands you at the table
@@ -751,6 +761,7 @@ function frame() {
   if (mode === 'festival') {
     const dayT = dayLock != null ? dayLock : (((DAY_START + time / DAY_CYCLE + dayScrub) % 1) + 1) % 1;
     controls.bobEnabled = !reduceMotion;
+    if (intro.isActive()) intro.update(dt);   // drives the camera; controls are disabled meanwhile
     controls.update(dt);
     admin.update(dt);
     // beat-drop fireworks + camera shake on big bass spikes
@@ -825,6 +836,7 @@ function frame() {
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
   reactor.start();                       // user gesture → satisfies autoplay policy
+  if (playIntro) { controls.enabled = false; intro.start(); }   // cinematic sweep, then hands off at spawn
   if (!running) { running = true; clock.start(); frame(); }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
