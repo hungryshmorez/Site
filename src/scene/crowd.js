@@ -3,8 +3,9 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 import { PALETTE } from '../data/destinations.js';
 import { bakePosedGeometry } from './mannequin.js';
 
-// one low-poly humanoid, merged into a single geometry so the whole crowd is
-// still a single instanced draw call — but reads as people, not pills.
+// one low-poly humanoid, merged into a single geometry — used as the instant
+// fallback silhouette before the real rigged mannequin bakes in (and if it
+// can't load at all).
 export function makePersonGeo() {
   const parts = [];
   const leg = (x) => { const l = new THREE.CapsuleGeometry(0.085, 0.5, 2, 5); l.translate(x, 0.36, 0); return l; };
@@ -20,30 +21,21 @@ export function makePersonGeo() {
   return geo;
 }
 
-// A dense crowd of instanced silhouettes facing the stage, bobbing on the
-// beat, each waving a glowing stick. Instanced for performance (one draw
-// call for all bodies, one for all glowsticks).
+// A dense crowd of real rigged people, spread across a few cheer poses (both
+// arms up / one arm up / hands-up) with varied clothing tones, all facing the
+// stage and bouncing on the beat, each waving a glowing stick. Each pose is
+// baked once and instanced, so the whole crowd is ~3 draw calls total.
 export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [], rail = 0 } = {}) {
-  // ---- bodies: a low-poly humanoid silhouette (feet at y=0) ----
-  const bodyGeo = makePersonGeo();
-  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0b0b16, roughness: 1, metalness: 0 });
-  const bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, count);
-  bodies.castShadow = true;
-  bodies.frustumCulled = false;
-  bodies.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  scene.add(bodies);
-
-  // upgrade the whole crowd to real rigged people, frozen mid-cheer (arms up)
-  // and baked to one static mesh so it stays a single instanced draw call.
-  bakePosedGeometry('cheer', { faceZ: 1 }).then((geo) => {
-    geo.scale(0.9, 0.9, 0.9);            // match the ~1.6-unit crowd height
-    geo.computeBoundingSphere();
-    const old = bodies.geometry; bodies.geometry = geo; old.dispose();
-  }).catch(() => { /* keep the low-poly silhouettes if the model can't load */ });
-
-  // ---- glowsticks: additive points above each head ----
-  const gpos = new Float32Array(count * 3);
-  const gcol = new Float32Array(count * 3);
+  // pose mix: mostly both-arms-up, some one-arm waves, some hands-up
+  const POSE_DEFS = [
+    { name: 'cheer', arms: 0.35 },   // both arms up
+    { name: 'wave', arms: 0.4 },     // one arm up
+    { name: 'cheer', arms: 0.6 },    // both up, arms wider
+  ];
+  const pickPose = () => { const r = Math.random(); return r < 0.5 ? 0 : r < 0.8 ? 1 : 2; };
+  // muted clothing tones (kept dark for the night look; stage lights tint them)
+  const CLOTHES = ['#242833', '#2c2233', '#233038', '#2e2824', '#1f2a26', '#302029', '#26262e', '#2a2434']
+    .map((h) => new THREE.Color(h));
   const glowColors = [PALETTE.cyan, PALETTE.magenta, PALETTE.green, PALETTE.purple, PALETTE.orange]
     .map((h) => new THREE.Color(h));
 
@@ -51,37 +43,66 @@ export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [], rai
   const dummy = new THREE.Object3D();
   const minZ = stageZ + 6, maxZ = 16, spanX = 44;
 
+  const addAgent = (x, z, scale) => {
+    agents.push({
+      x, z, scale, phase: Math.random() * Math.PI * 2, freq: 0.85 + Math.random() * 0.3,
+      pose: pickPose(), cloth: CLOTHES[(Math.random() * CLOTHES.length) | 0], glow: glowColors[(Math.random() * glowColors.length) | 0],
+    });
+  };
+
   let i = 0, guard = 0;
   // a dense front rail packed against the stage, across the full width
   while (i < rail && i < count) {
     const x = -15 + (i / Math.max(1, rail - 1)) * 30 + (Math.random() - 0.5) * 0.8;
     const z = stageZ + 5.4 + Math.random() * 1.6;
-    agents.push({ x, z, scale: 0.86 + Math.random() * 0.28, phase: Math.random() * Math.PI * 2, freq: 0.85 + Math.random() * 0.3 });
-    const c = glowColors[(Math.random() * glowColors.length) | 0];
-    gcol[i * 3] = c.r; gcol[i * 3 + 1] = c.g; gcol[i * 3 + 2] = c.b;
-    i++;
+    addAgent(x, z, 0.86 + Math.random() * 0.28); i++;
   }
   while (i < count && guard < count * 40) {
     guard++;
     const x = (Math.random() - 0.5) * spanX;
     const z = minZ + Math.random() * (maxZ - minZ);
-    // keep a light clearing around each destination (exclude points carry their
-    // own radius in e[2]); the front rail above already fills the stage front
     if (exclude.some((e) => Math.hypot(x - e[0], z - e[1]) < (e[2] || 3.2))) continue;
-
-    const scale = 0.82 + Math.random() * 0.32;
-    agents.push({ x, z, scale, phase: Math.random() * Math.PI * 2, freq: 0.85 + Math.random() * 0.3 });
-
-    const c = glowColors[(Math.random() * glowColors.length) | 0];
-    gcol[i * 3] = c.r; gcol[i * 3 + 1] = c.g; gcol[i * 3 + 2] = c.b;
-    i++;
+    addAgent(x, z, 0.82 + Math.random() * 0.32); i++;
   }
-  const realCount = i;
-  bodies.count = realCount;
+  const realCount = agents.length;
 
+  // bucket agents by pose; give each a global glow index + a per-mesh instance index
+  const buckets = POSE_DEFS.map(() => []);
+  agents.forEach((a, gi) => { a.gi = gi; a.li = buckets[a.pose].length; buckets[a.pose].push(a); });
+
+  // one InstancedMesh per pose (fallback silhouette first, swapped to the baked
+  // mannequin per pose when it loads)
+  const fallback = makePersonGeo();
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 });
+  const meshes = POSE_DEFS.map((pd, pi) => {
+    const n = Math.max(1, buckets[pi].length);
+    const m = new THREE.InstancedMesh(fallback, bodyMat, n);
+    m.count = buckets[pi].length;
+    m.castShadow = false;                 // heavy instanced geo ×3 — skip shadow passes
+    m.frustumCulled = false;
+    m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    buckets[pi].forEach((a, li) => m.setColorAt(li, a.cloth));
+    if (m.instanceColor) m.instanceColor.needsUpdate = true;
+    scene.add(m);
+    return m;
+  });
+
+  // bake each distinct pose and swap it into its mesh
+  POSE_DEFS.forEach((pd, pi) => {
+    if (!buckets[pi].length) return;
+    bakePosedGeometry(pd.name, { arms: pd.arms, faceZ: 1 }).then((geo) => {
+      geo.scale(0.9, 0.9, 0.9); geo.computeBoundingSphere();
+      const old = meshes[pi].geometry; meshes[pi].geometry = geo; if (old !== fallback) old.dispose();
+    }).catch(() => { /* keep the fallback silhouette */ });
+  });
+
+  // ---- glowsticks: additive points above each head ----
+  const gpos = new Float32Array(realCount * 3);
+  const gcol = new Float32Array(realCount * 3);
+  agents.forEach((a) => { gcol[a.gi * 3] = a.glow.r; gcol[a.gi * 3 + 1] = a.glow.g; gcol[a.gi * 3 + 2] = a.glow.b; });
   const glowGeo = new THREE.BufferGeometry();
-  glowGeo.setAttribute('position', new THREE.BufferAttribute(gpos.subarray(0, realCount * 3), 3));
-  glowGeo.setAttribute('color', new THREE.BufferAttribute(gcol.subarray(0, realCount * 3), 3));
+  glowGeo.setAttribute('position', new THREE.BufferAttribute(gpos, 3));
+  glowGeo.setAttribute('color', new THREE.BufferAttribute(gcol, 3));
   const glow = new THREE.Points(glowGeo, new THREE.PointsMaterial({
     size: 0.34, map: dot(), vertexColors: true, transparent: true, opacity: 0.95,
     depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true,
@@ -90,21 +111,19 @@ export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [], rai
 
   function update(dt, time, pulse) {
     const gp = glowGeo.attributes.position.array;
-    for (let k = 0; k < realCount; k++) {
-      const a = agents[k];
+    for (const a of agents) {
       const bob = Math.abs(Math.sin(time * a.freq * 2.2 + a.phase)) * (0.14 + pulse * 0.5);
-      dummy.position.set(a.x, bob, a.z); // feet on the ground, hop on the beat
+      dummy.position.set(a.x, bob, a.z);
       dummy.rotation.y = Math.atan2(0 - a.x, stageZ - a.z) + Math.sin(time + a.phase) * 0.12;
       dummy.scale.setScalar(a.scale);
       dummy.updateMatrix();
-      bodies.setMatrixAt(k, dummy.matrix);
-      // glowstick hovers above the head, swaying
+      meshes[a.pose].setMatrixAt(a.li, dummy.matrix);
       const sway = Math.sin(time * 2.0 + a.phase) * 0.35;
-      gp[k * 3] = a.x + sway;
-      gp[k * 3 + 1] = 1.9 * a.scale + bob + Math.abs(Math.sin(time * a.freq * 2.2 + a.phase)) * 0.25;
-      gp[k * 3 + 2] = a.z + Math.cos(time * 1.7 + a.phase) * 0.2;
+      gp[a.gi * 3] = a.x + sway;
+      gp[a.gi * 3 + 1] = 1.9 * a.scale + bob + Math.abs(Math.sin(time * a.freq * 2.2 + a.phase)) * 0.25;
+      gp[a.gi * 3 + 2] = a.z + Math.cos(time * 1.7 + a.phase) * 0.2;
     }
-    bodies.instanceMatrix.needsUpdate = true;
+    for (const m of meshes) m.instanceMatrix.needsUpdate = true;
     glowGeo.attributes.position.needsUpdate = true;
     glow.material.opacity = 0.7 + pulse * 0.3;
   }
