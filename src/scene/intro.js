@@ -53,7 +53,7 @@ export function createIntro(camera, { spawn, onDone }) {
   document.body.appendChild(skip);
   const elT = ov.querySelector('#introT'), elSub = ov.querySelector('#introSub'), elTag = ov.querySelector('#introTag');
 
-  let t = 0, t0 = 0, active = false, done = false;
+  let t = 0, t0 = 0, active = false, done = false, safety = 0;
 
   function seg(time) {
     let i = 0; while (i < KF.length - 1 && time >= KF[i + 1].t) i++;
@@ -69,10 +69,13 @@ export function createIntro(camera, { spawn, onDone }) {
     setTimeout(() => elT.classList.add('show'), 250);
     setTimeout(() => elSub.classList.add('show'), 2200);
     setTimeout(() => elTag.classList.add('show'), 2700);
+    // hard safety: guarantee the hand-off even if the render loop pauses
+    // (e.g. the tab is backgrounded mid-intro) — a timer, not the rAF loop.
+    clearTimeout(safety); safety = setTimeout(finish, DUR * 1000 + 900);
   }
 
   function finish() {
-    if (done) return; done = true; active = false;
+    if (done) return; done = true; active = false; clearTimeout(safety);
     ov.classList.remove('on'); skip.classList.remove('on');
     setTimeout(() => { ov.remove(); skip.remove(); style.remove(); }, 700);
     if (onDone) onDone();
