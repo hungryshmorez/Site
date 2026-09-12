@@ -1,16 +1,12 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
-import { buildHoop } from './scene/hoop.js';
-import { buildGallery } from './scene/gallery.js';
-import { buildDunkTank } from './scene/dunktank.js';
-import { buildMonkeyPaw } from './scene/models.js';
-import { createGameZones } from './scene/gamezones.js';
 import { openWindow } from './ui/popup.js';
 import { createAdmin } from './scene/admin.js';
 
-// THE MIDWAY — a carnival arcade tent holding every game: portal cabinets
-// (flash / Wake Up / games / stories), a Monkey's Paw machine, a basketball
-// hoop (banks off the backboard), and a shooting gallery.
+// THE MIDWAY — a neon arcade tent of portal cabinets: the VIDEO games live here
+// (flash / Wake Up / games / stories / dodge hell / mini games / minecraft /
+// knock knock). The physical carnival games (basketball, shooting gallery, dunk
+// tank, the Monkey's Paw) all live over in THE BLOCK now — this is cabinets only.
 
 const canvas = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
@@ -106,49 +102,34 @@ function textPlane(text, color) {
   return new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, fog: false }));
 }
 
-// cabinets along the back arc — each opens its game in the in-arcade popup
+// cabinets arranged in a horseshoe you walk into — 4 across the back wall, two
+// down each side — each opens its game in the in-arcade popup. (Cabinets face
+// inward automatically.)
+// back wall (z ≈ -14.5)
 // FLASH GAMES now runs the self-hosted portal bundled under public/classic/
-buildCabinet(-9, -13, 'FLASH GAMES', '#ff0055', () => openWindow('FLASH GAMES PORTAL', 'classic/flash-games/flash-games-portal/index.html'));
-buildCabinet(-4.5, -14.5, 'WAKE UP', '#b967ff', () => openWindow('WAKE UP SERIES', 'lab.html?folder=Wake%20Up%20Series'));
-buildCabinet(0, -15, 'GAMES', '#00f3ff', () => openWindow('GAMES', 'lab.html?folder=Games'));
-buildCabinet(4.5, -14.5, 'STORIES', '#39ff14', () => openWindow('STORIES & EXPERIENCES', 'lab.html?folder=Stories%20%26%20Experiences'));
-buildCabinet(-13, -8, 'DODGE HELL', '#ff0055', () => { window.location.href = 'bullethell.html'; }); // full-screen survival game
-// MINI GAMES — the bundled p5.js toys + arcade classics (BrowserGames)
-buildCabinet(13, -8, 'MINI GAMES', '#ffd24a', () => openWindow('MINI GAMES', 'games/browsergames/hub.html'));
+buildCabinet(-10.5, -14.5, 'FLASH GAMES', '#ff0055', () => openWindow('FLASH GAMES PORTAL', 'classic/flash-games/flash-games-portal/index.html'));
+buildCabinet(-3.5, -15, 'WAKE UP', '#b967ff', () => openWindow('WAKE UP SERIES', 'lab.html?folder=Wake%20Up%20Series'));
+buildCabinet(3.5, -15, 'GAMES', '#00f3ff', () => openWindow('GAMES', 'lab.html?folder=Games'));
+buildCabinet(10.5, -14.5, 'STORIES', '#39ff14', () => openWindow('STORIES & EXPERIENCES', 'lab.html?folder=Stories%20%26%20Experiences'));
+// left wall (x ≈ -15)
+buildCabinet(-15, -5, 'DODGE HELL', '#ff0055', () => { window.location.href = 'bullethell.html'; }); // full-screen survival game
 // MINECRAFT CLASSIC — the self-hosted public browser build (keyboard + mouse)
-buildCabinet(-6, -8, 'MINECRAFT', '#39ff14', () => openWindow('MINECRAFT CLASSIC', 'games/minecraft-classic/index.html'));
+buildCabinet(-15, 3, 'MINECRAFT', '#39ff14', () => openWindow('MINECRAFT CLASSIC', 'games/minecraft-classic/index.html'));
+// right wall (x ≈ 15)
+// MINI GAMES — the bundled p5.js toys + arcade classics (BrowserGames)
+buildCabinet(15, -5, 'MINI GAMES', '#ffd24a', () => openWindow('MINI GAMES', 'games/browsergames/hub.html'));
 // KNOCK KNOCK — a browser groovebox (pads, step sequencer, sampler) — pure EDM
-buildCabinet(6, -8, 'KNOCK KNOCK', '#00f3ff', () => openWindow('KNOCK KNOCK · GROOVEBOX', 'games/knock-knock/index.html'));
+buildCabinet(15, 3, 'KNOCK KNOCK', '#00f3ff', () => openWindow('KNOCK KNOCK · GROOVEBOX', 'games/knock-knock/index.html'));
 
-// the real Monkey's Paw fortune machine (moved in from the festival)
-const paw = buildMonkeyPaw('#b967ff'); paw.group.position.set(10, 0, -12.5); paw.group.rotation.y = -0.5; scene.add(paw.group);
-adminItems.push({ id: 'paw', label: "MONKEY'S PAW", obj: paw.group });
-updaters.push((dt, t, p) => { if (paw.update) paw.update(t, p); });
-{
-  const proxy = new THREE.Mesh(new THREE.BoxGeometry(2.2, 3.4, 2.2), new THREE.MeshBasicMaterial({ visible: false }));
-  proxy.position.set(10, 1.7, -12.5); scene.add(proxy);
-  clickables.push({ proxy, onClick: () => openWindow("THE MONKEY'S PAW", 'https://3jnyhlyqkqq1e.space.minimax.io/') });
-}
-
-// ---------- the physical games (reused, now under the tent) ----------
-const pillEl = document.getElementById('pill');
-let hits = 0, made = 0, dunks = 0;
-const setPill = () => { if (pillEl) pillEl.textContent = `🎯 ${hits} · 🏀 ${made} · 💦 ${dunks}`; };
-const hoop = buildHoop(scene, { pos: [-12, 2], onScore: (n) => { made = n; setPill(); } });
-const gallery = buildGallery(scene, { pos: [12, 2], onHit: (n) => { hits = n; setPill(); } });
-const dunktank = buildDunkTank(scene, { pos: [5, 8], onDunk: (n) => { dunks = n; setPill(); } });
+// (physical games — basketball, shooting gallery, dunk tank, Monkey's Paw — now
+// live exclusively in THE BLOCK; the arcade is video-game cabinets only.)
+const pillEl = document.getElementById('pill'); if (pillEl) pillEl.style.display = 'none';
 
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: 19, eye: 1.6, zMin: -17 });
 controls.pos.set(0, 1.6, 13); controls.yaw = 0;
 
-// ---------- game zones: ask before playing, then stand you in the right spot ----
-const gamezones = createGameZones({ controls, camera });
-gamezones.register({ id: 'hoop', label: 'Basketball', emoji: '🏀', accent: '#ff6b35', near: (p) => hoop.near(p) && p.x < -2, spot: { pos: [-4.4, -1.8], yaw: 2.03, pitch: 0.14 }, play: (cam) => hoop.throwBall(cam) });
-gamezones.register({ id: 'gallery', label: 'Shooting Gallery', emoji: '🎯', accent: '#ff0055', near: (p) => gallery.near(p) && p.x > 4, spot: { pos: [8.4, 0.2], yaw: -2.03 }, play: (cam) => gallery.shoot(cam) });
-gamezones.register({ id: 'dunk', label: 'Dunk Tank', emoji: '💦', accent: '#00f3ff', near: (p) => dunktank.near(p) && p.z > 2 && Math.abs(p.x - 6) < 6, spot: { pos: [5, 13], yaw: 0 }, play: (cam) => dunktank.throwBall(cam) });
-
-// ---------- layout editor: rearrange the cabinets + Monkey's Paw (✎ / `~`) ----
+// ---------- layout editor: rearrange the cabinets (✎ / `~`) ----
 admin = createAdmin({ scene, camera, renderer, controls, worldId: 'arcade', items: adminItems, overhead: { ax: 42, az: 42, cx: 0, cz: 0 } });
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
@@ -169,9 +150,6 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   for (const c of clickables) if (ray.intersectObject(c.proxy, false)[0]) { c.onClick(); return; }
-  // only throw while actually playing a game (entered via the prompt); otherwise
-  // a click always walks, so you never get stuck in "shooting mode"
-  if (gamezones.onTap()) return;
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -18, 18); g.z = THREE.MathUtils.clamp(g.z, -16, 18); controls.walkTo(g); }
 }
@@ -181,18 +159,11 @@ addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; cam
 const zoneEl = document.getElementById('zone'), hintEl = document.getElementById('hint');
 let curZone = '';
 function updateHint(p) {
-  let z = 'THE MIDWAY';
-  if (hoop.near(p) && p.x < -4) z = 'BASKETBALL';
-  else if (gallery.near(p) && p.x > 4) z = 'SHOOTING GALLERY';
-  else if (dunktank.near(p) && p.z > 2 && Math.abs(p.x - 6) < 6) z = 'DUNK TANK';
-  else if (p.z < -9) z = 'THE CABINETS';
+  const z = p.z < -9 ? 'THE CABINETS' : 'THE MIDWAY';
   if (z !== curZone) { curZone = z; if (zoneEl) { zoneEl.textContent = z; zoneEl.classList.add('show'); } }
   if (hintEl) {
-    // game prompts are handled by the game-zone card now; here we only nudge
-    // toward the cabinets. (Near a game, its "Play?" prompt shows instead.)
-    const nearGame = gamezones.isPlaying() || (hoop.near(p) && p.x < -4) || (gallery.near(p) && p.x > 4) || (dunktank.near(p) && p.z > 2 && Math.abs(p.x - 6) < 6);
     hintEl.textContent = 'click a cabinet to play';
-    hintEl.classList.toggle('show', !nearGame && p.z < -9);
+    hintEl.classList.toggle('show', p.z < -9);
   }
 }
 
@@ -214,8 +185,6 @@ function frame() {
   controls.update(dt);
   for (const m of screenMats) m.uniforms.t.value = t;
   for (const u of updaters) u(dt, t, p);
-  hoop.update(dt, t); gallery.update(dt, t, p); dunktank.update(dt, t);
-  if (!(admin && admin.active)) gamezones.update(controls.pos);
   updateHint(controls.pos);
   if (admin) admin.update(dt);
   renderer.render(scene, admin && admin.active ? admin.cam : camera);

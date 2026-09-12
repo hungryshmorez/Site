@@ -391,38 +391,81 @@ function buildStreetGateways() {
   for (const gt of gates) {
     const col = C(gt.color);
     const arch = new THREE.Group(); arch.position.set(gt.x, 0, Zc); arch.rotation.y = gt.ry; scene.add(arch);
-    const H = 8.5, HALFW = 4.6, PILLAR = 1.1;
-    const conc = std({ color: 0x1c1c26, roughness: 0.9, metalness: 0.3, emissive: col.clone().multiplyScalar(0.12), emissiveIntensity: 0.5 });
+    const H = 9.6, HALFW = 5.2, PILLAR = 1.3, OW = HALFW * 2 - 0.6;   // taller + wider than before
+    const conc = std({ color: 0x1a1a24, roughness: 0.9, metalness: 0.3, emissive: col.clone().multiplyScalar(0.14), emissiveIntensity: 0.5 });
     // two pillars flanking the opening (separated along local X, like door.js jambs)
     for (const sx of [-HALFW, HALFW]) {
       const p = new THREE.Mesh(new THREE.BoxGeometry(PILLAR, H, PILLAR), conc); p.position.set(sx, H / 2, 0); p.castShadow = true; arch.add(p);
+      // vertical emissive light-strip up the inner front edge of each pillar
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(0.18, H - 0.9, 0.1), new THREE.MeshBasicMaterial({ color: gt.color }));
+      strip.position.set(sx + (sx < 0 ? 0.55 : -0.55), H / 2, PILLAR / 2 + 0.02); arch.add(strip);
+      const up = new THREE.PointLight(gt.color, 2.4, 12, 2); up.position.set(sx, 1.2, 1.2); arch.add(up);
     }
-    // header beam + parapet spanning the opening (along local X)
-    const beam = new THREE.Mesh(new THREE.BoxGeometry(HALFW * 2 + PILLAR, 1.4, PILLAR), conc); beam.position.set(0, H - 0.2, 0); arch.add(beam);
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(HALFW * 2 + PILLAR + 0.6, 0.5, PILLAR + 0.5), std({ color: 0x141420, roughness: 0.9 })); cap.position.set(0, H + 0.5, 0); arch.add(cap);
-    // receding tunnel rings for the "subway" depth — recede into local -Z (away from the street)
-    for (let i = 1; i <= 3; i++) {
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(HALFW - 0.2, 0.22, 8, 4), std({ color: 0x101018, emissive: col, emissiveIntensity: 0.35 + i * 0.12, metalness: 0.6, roughness: 0.5 }));
-      ring.rotation.x = Math.PI / 2;                    // torus axis along local Z (the tunnel/passage axis)
-      ring.position.set(0, H / 2 - 0.6, -i * 1.7);      // recede into the tunnel
+    // header beam + parapet spanning the opening (along local X) + a lit marquee bar
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(HALFW * 2 + PILLAR, 1.5, PILLAR), conc); beam.position.set(0, H - 0.2, 0); arch.add(beam);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(HALFW * 2 + PILLAR + 0.7, 0.6, PILLAR + 0.6), std({ color: 0x121220, roughness: 0.9 })); cap.position.set(0, H + 0.55, 0); arch.add(cap);
+    const marq = new THREE.Mesh(new THREE.BoxGeometry(HALFW * 2 + PILLAR, 1.05, 0.22), std({ color: 0x06060c, emissive: col.clone().multiplyScalar(0.55), emissiveIntensity: 0.75 })); marq.position.set(0, H - 0.2, 0.58); arch.add(marq);
+
+    // ---- receding subway tunnel: rings marching into local -Z with a pulse that
+    // travels back out toward the player, selling depth + motion ----
+    const tunnelRings = [];
+    const NR = 7;
+    for (let i = 1; i <= NR; i++) {
+      const rmat = std({ color: 0x0a0a12, emissive: col, emissiveIntensity: 0.4, metalness: 0.6, roughness: 0.45 });
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(HALFW - 0.15 - i * 0.06, 0.17, 8, 40), rmat);
+      ring.rotation.x = Math.PI / 2;                    // torus axis along local Z (the passage axis)
+      ring.position.set(0, H / 2 - 0.6, -i * 1.6);      // recede into the tunnel
       ring.scale.set(1, 0.9, 1);
-      arch.add(ring);
+      arch.add(ring); tunnelRings.push({ mat: rmat, i });
     }
-    // glowing portal membrane in the opening (local XY plane, faces +Z toward the approach)
-    const memb = new THREE.Mesh(new THREE.PlaneGeometry(HALFW * 2 - 0.6, H - 1.2), new THREE.MeshBasicMaterial({ color: gt.color, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    // dark tunnel floor + ceiling strips receding, so the rings read as a corridor
+    for (const yy of [0.05, H - 1.1]) {
+      const strip = new THREE.Mesh(new THREE.PlaneGeometry(OW, NR * 1.6), new THREE.MeshBasicMaterial({ color: gt.color, transparent: true, opacity: 0.08, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+      strip.rotation.x = -Math.PI / 2; strip.position.set(0, yy, -NR * 0.8); arch.add(strip);
+    }
+
+    // ---- the star: a swirling vortex portal membrane in the opening ----
+    const aspect = OW / (H - 1.2);
+    const vortex = new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending,
+      uniforms: { t: { value: 0 }, col: { value: new THREE.Vector3(col.r, col.g, col.b) }, asp: { value: aspect } },
+      vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+      fragmentShader: `varying vec2 vUv; uniform float t; uniform vec3 col; uniform float asp;
+        void main(){
+          vec2 p = vUv - 0.5; p.x *= asp;
+          float r = length(p); float a = atan(p.y, p.x);
+          float rings = 0.5 + 0.5*sin(r*20.0 - t*4.0 + a*2.0);     // spiral rushing inward
+          float glow = smoothstep(0.55, 0.0, r);                    // bright core
+          float streak = 0.5 + 0.5*sin(a*9.0 + t*2.0 - r*12.0);     // swirl streaks
+          float v = glow * (0.32 + 0.68*rings) * (0.7 + 0.3*streak);
+          vec3 c = mix(col*0.15, col, v) + vec3(1.0)*pow(glow, 3.0)*0.5;
+          gl_FragColor = vec4(c, clamp(v*1.15, 0.0, 0.9));
+        }`,
+    });
+    const memb = new THREE.Mesh(new THREE.PlaneGeometry(OW, H - 1.2), vortex);
     memb.position.set(0, H / 2 - 0.2, 0); arch.add(memb);
-    const gl = new THREE.PointLight(gt.color, 6, 34, 2); gl.position.set(0, H / 2, 0); arch.add(gl);
-    const gl2 = new THREE.PointLight(gt.color, 4, 22, 2); gl2.position.set(0, 3, -3); arch.add(gl2);
-    // big sign on the header facing the street centre (local +Z, i.e. toward the player)
-    const sign = textPlane(gt.label, '#' + col.getHexString(), 512, 80); sign.position.set(0, H - 0.2, 0.7); sign.scale.set(6.5, 1.1, 1); arch.add(sign);
-    const sub = textPlane(gt.sub, '#9fb0d8', 512, 44); sub.position.set(0, H - 1.4, 0.7); sub.scale.set(4.2, 0.4, 1); arch.add(sub);
-    // ground threshold glow leading through the opening (spans the opening in X, laid down the approach in Z)
-    const th = new THREE.Mesh(new THREE.PlaneGeometry(HALFW * 2 - 0.4, 3.4), new THREE.MeshBasicMaterial({ color: gt.color, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-    th.rotation.x = -Math.PI / 2; th.position.set(0, 0.06, 1.6); arch.add(th);
-    updaters.push((dt, t) => { memb.material.opacity = 0.12 + Math.sin(t * 2 + gt.x) * 0.06; th.material.opacity = 0.3 + Math.sin(t * 2.4 + gt.x) * 0.12; });
+    const gl = new THREE.PointLight(gt.color, 7, 38, 2); gl.position.set(0, H / 2, 0.4); arch.add(gl);
+    const gl2 = new THREE.PointLight(gt.color, 4, 24, 2); gl2.position.set(0, 3, -3); arch.add(gl2);
+
+    // big marquee sign facing the street centre (local +Z, toward the player) + subtitle
+    const sign = textPlane(gt.label, '#' + col.getHexString(), 512, 80); sign.position.set(0, H - 0.2, 0.72); sign.scale.set(7.8, 1.2, 1); arch.add(sign);
+    const sub = textPlane(gt.sub, '#9fb0d8', 512, 44); sub.position.set(0, H - 1.5, 0.72); sub.scale.set(4.6, 0.42, 1); arch.add(sub);
+
+    // ground threshold glow + marching chevrons drawing you into the opening
+    const th = new THREE.Mesh(new THREE.PlaneGeometry(OW, 3.6), new THREE.MeshBasicMaterial({ color: gt.color, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    th.rotation.x = -Math.PI / 2; th.position.set(0, 0.06, 1.7); arch.add(th);
+    const chevs = [];
+    for (let i = 0; i < 4; i++) { const ch = textPlane('▾', '#' + col.getHexString(), 64, 64); ch.rotation.x = -Math.PI / 2; ch.position.set(0, 0.07, 5.2 - i * 1.05); ch.scale.set(1.5, 1.5, 1); arch.add(ch); chevs.push({ ch, ph: i * 0.5 }); }
+
+    updaters.push((dt, t) => {
+      vortex.uniforms.t.value = t;
+      tunnelRings.forEach((r) => { r.mat.emissiveIntensity = 0.3 + 0.9 * Math.pow(0.5 + 0.5 * Math.sin(t * 3 - r.i * 0.9), 3); });
+      th.material.opacity = 0.3 + Math.sin(t * 2.4 + gt.x) * 0.12;
+      for (const c of chevs) c.ch.material.opacity = 0.3 + 0.5 * Math.max(0, Math.sin(t * 3 - c.ph * 2.2));
+    });
     // the working portal (reuses the room-door enter/tap logic), pushed into `doors`.
     // Same gt.ry as the arch, so the door squarely fills the arch opening and faces the player.
-    doors.push(buildDoor(scene, { x: gt.x, z: Zc, ry: gt.ry, width: 5, height: 6, label: '', url: gt.url, color: gt.color }));
+    doors.push(buildDoor(scene, { x: gt.x, z: Zc, ry: gt.ry, width: 5.2, height: 6.4, label: '', url: gt.url, color: gt.color }));
   }
   return g;
 }
