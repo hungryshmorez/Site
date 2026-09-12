@@ -29,9 +29,14 @@ export function spawnDancer(scene, { pos = [0, 0, 0], rotY = 0, height = 1.7, cl
   load().then(() => {
     const m = skeletonClone(_proto);
     m.traverse((o) => { if (o.isMesh) { o.frustumCulled = false; o.castShadow = true; if (color) { o.material = o.material.clone(); o.material.color = new THREE.Color(color); } } });
-    // normalize to a target height, then reseat feet on the ground
+    // normalize to a target height, then reseat feet on the ground.
+    // NB: must update world matrices before measuring — a skinned mesh's bounds
+    // are wrong (tiny bind box) until the skeleton/nodes are resolved, which
+    // otherwise scales the dancer up ~3.6x into a giant.
+    m.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(m); const h = box.getSize(new THREE.Vector3()).y || 1;
     m.scale.setScalar(height / h);
+    m.updateMatrixWorld(true);
     const box2 = new THREE.Box3().setFromObject(m); m.position.y -= box2.min.y;
     holder.add(m);
     const mixer = new THREE.AnimationMixer(m);

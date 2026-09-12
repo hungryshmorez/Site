@@ -236,7 +236,7 @@ const STAGE_Z = festival.stageZ;
 const dancers = [];
 if (!reduceMotion) {
   for (const dx of [-9, -4.5, 0, 4.5, 9]) {
-    dancers.push(spawnDancer(scene, { pos: [dx, 1.6, STAGE_Z + 3], rotY: Math.PI, height: 1.9, timeScale: 0.95 + Math.random() * 0.15 }));
+    dancers.push(spawnDancer(scene, { pos: [dx, 1.6, STAGE_Z + 3], rotY: Math.PI, height: 1.8, timeScale: 0.95 + Math.random() * 0.15 }));
   }
 }
 
