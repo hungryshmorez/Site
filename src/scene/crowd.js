@@ -74,6 +74,26 @@ export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [], rai
   // mannequin per pose when it loads)
   const fallback = makePersonGeo();
   const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 });
+  // ---- "putty" soundwave wobble: displace each body like liquid, feet planted,
+  // a wave rolling across the crowd, amplitude pumped by the beat pulse ----
+  const waveU = { uTime: { value: 0 }, uPulse: { value: 0 } };
+  bodyMat.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = waveU.uTime;
+    shader.uniforms.uPulse = waveU.uPulse;
+    shader.vertexShader = 'uniform float uTime; uniform float uPulse;\n' + shader.vertexShader.replace(
+      '#include <begin_vertex>',
+      `#include <begin_vertex>
+       // per-instance phase from world position → the wave travels across the crowd
+       float ph = instanceMatrix[3].x * 0.13 + instanceMatrix[3].z * 0.13;
+       float h = max(transformed.y, 0.0);                 // 0 at the feet, grows up the body
+       float amp = (0.05 + uPulse * 0.38) * h;            // more sway higher up = putty
+       transformed.x += sin(uTime * 3.0 + ph + h * 0.9) * amp;
+       transformed.z += cos(uTime * 2.4 + ph + h * 1.1) * amp * 0.6;
+       transformed.y += sin(uTime * 5.0 + ph) * uPulse * 0.12 * h;  // liquid squash/stretch
+      `
+    );
+    bodyMat.userData.shader = shader;
+  };
   const meshes = POSE_DEFS.map((pd, pi) => {
     const n = Math.max(1, buckets[pi].length);
     const m = new THREE.InstancedMesh(fallback, bodyMat, n);
@@ -110,6 +130,8 @@ export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [], rai
   scene.add(glow);
 
   function update(dt, time, pulse) {
+    waveU.uTime.value = time;
+    waveU.uPulse.value = pulse;
     const gp = glowGeo.attributes.position.array;
     for (const a of agents) {
       const bob = Math.abs(Math.sin(time * a.freq * 2.2 + a.phase)) * (0.14 + pulse * 0.5);
