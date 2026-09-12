@@ -3,6 +3,7 @@ import { WalkControls } from '../player/controls.js';
 import { buildLoopDoors } from '../data/loop.js';
 import { buildDJDeck } from './djdeck.js';
 import { addMotes, addHaze } from './ambientfx.js';
+import { createAdmin } from './admin.js';
 
 // Boilerplate for a simple walkable LOOP room: renderer + scene + camera, first-person
 // controls, the back/forward loop doors, a DJ deck, drag-look + tap-to-walk input, the
@@ -49,6 +50,14 @@ export function createRoom({
   const controls = new WalkControls(camera, { bounds, eye: 1.6, zMin }); controls.pos.set(spawn[0], spawn[1], spawn[2]); controls.yaw = yaw;
   const loopDoors = buildLoopDoors(scene, id, { back: backAt, next: nextAt });
   const deck = deckAt ? buildDJDeck(scene, { x: deckAt[0], z: deckAt[1], ry: deckAt[2] || 0, color: deckColor }) : null;
+
+  // ---- layout editor: every loop room is editable like the festival ----
+  // The loop doors + DJ deck are registered as movable items; a room can add its
+  // own props via api.addAdminItem(...). Toggle with the ✎ button / `~` key.
+  const adminItems = [];
+  loopDoors.forEach((d, i) => adminItems.push({ id: 'loopdoor_' + i, label: d.label || ('door ' + i), obj: d.group }));
+  if (deck && deck.group) adminItems.push({ id: 'deck', label: 'DJ DECK', obj: deck.group });
+  const admin = createAdmin({ scene, camera, renderer, controls, worldId: id, items: adminItems, overhead: { ax: bounds * 2.4, az: bounds * 2.4, cz: (zMin + bounds) / 2 } });
   // ambient atmosphere — floating motes + optional low haze
   if (motes) updaters.push(addMotes(scene, { color: 0xbfc8ff, count: 130, area: [24, 10, 24], center: [0, 4, 0], rise: 0.28, opacity: 0.4, ...motes }));
   if (haze) updaters.push(addHaze(scene, { color: 0x2a3060, count: 6, center: [0, 1.5, 0], area: [24, 4, 24], scale: 9, opacity: 0.05, ...haze }));
@@ -59,10 +68,11 @@ export function createRoom({
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   let down = null, dragged = false; const taps = [];
   canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY, id: e.pointerId }; dragged = false; canvas.classList.add('drag'); });
-  canvas.addEventListener('pointermove', (e) => { if (!down || e.pointerId !== down.id) return; const dx = e.clientX - down.x, dy = e.clientY - down.y; if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true; controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2); down.x = e.clientX; down.y = e.clientY; });
+  canvas.addEventListener('pointermove', (e) => { if (!down || e.pointerId !== down.id) return; const dx = e.clientX - down.x, dy = e.clientY - down.y; if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true; if (!admin.active) controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2); down.x = e.clientX; down.y = e.clientY; });
   canvas.addEventListener('pointerup', (e) => { canvas.classList.remove('drag'); if (down && !dragged) tap(e.clientX, e.clientY); down = null; });
   canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
   function tap(sx, sy) {
+    if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
     ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1; ray.setFromCamera(ndc, camera);
     for (const d of loopDoors) { if (d.tap(ray)) return; }
     if (deck && deck.tap(ray)) return;
@@ -79,11 +89,12 @@ export function createRoom({
     requestAnimationFrame(frame); if (document.hidden) return;
     const dt = Math.min(clock.getDelta(), 0.05); const t = clock.elapsedTime;
     controls.update(dt);
-    for (const d of loopDoors) { d.update(dt, t, controls.pos); d.tryEnter(controls.pos); }
+    for (const d of loopDoors) { d.update(dt, t, controls.pos); if (!admin.active) d.tryEnter(controls.pos); }
     if (deck) deck.update(dt, t);
     for (const u of updaters) u(dt, t);
     for (const cb of frameCbs) cb(dt, t);
-    renderer.render(scene, camera);
+    admin.update(dt);
+    renderer.render(scene, admin.active ? admin.cam : camera);
   }
   controls.update(0); renderer.render(scene, camera);
   const startEl = document.getElementById('enterBtn');
@@ -91,7 +102,7 @@ export function createRoom({
   if (startEl) startEl.onclick = begin; else begin();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
-  const api = { THREE, scene, camera, renderer, updaters, controls, loopDoors, deck, isMobile, textPlane, std: (o) => new THREE.MeshStandardMaterial(o), C: (h) => new THREE.Color(h), addTap: (fn) => taps.push(fn), onFrame: (fn) => frameCbs.push(fn), zoneEl: document.getElementById('zone'), hintEl: document.getElementById('hint') };
+  const api = { THREE, scene, camera, renderer, updaters, controls, loopDoors, deck, admin, isMobile, textPlane, std: (o) => new THREE.MeshStandardMaterial(o), C: (h) => new THREE.Color(h), addTap: (fn) => taps.push(fn), onFrame: (fn) => frameCbs.push(fn), addAdminItem: (it) => adminItems.push(it), zoneEl: document.getElementById('zone'), hintEl: document.getElementById('hint') };
   if (import.meta.env.DEV) window[hook] = api;
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('shot')) window.__world = { THREE, scene, camera, renderer };
   return api;

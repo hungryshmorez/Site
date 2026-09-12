@@ -6,6 +6,7 @@ import { buildDunkTank } from './scene/dunktank.js';
 import { buildMonkeyPaw } from './scene/models.js';
 import { createGameZones } from './scene/gamezones.js';
 import { openWindow } from './ui/popup.js';
+import { createAdmin } from './scene/admin.js';
 
 // THE MIDWAY — a carnival arcade tent holding every game: portal cabinets
 // (flash / Wake Up / games / stories), a Monkey's Paw machine, a basketball
@@ -66,6 +67,8 @@ const arcKey = new THREE.DirectionalLight(0xffe0c0, 0.6); arcKey.position.set(0,
 
 // ---------- clickable game cabinets ----------
 const clickables = [];
+const adminItems = [];   // movable props for the layout editor
+let admin = null;
 function buildCabinet(x, z, label, accent, onClick) {
   const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = Math.atan2(0 - x, 2 - z); // face inward
   const col = C(accent);
@@ -91,6 +94,8 @@ function buildCabinet(x, z, label, accent, onClick) {
   const proxy = new THREE.Mesh(new THREE.BoxGeometry(2, 3.4, 1.6), new THREE.MeshBasicMaterial({ visible: false })); proxy.position.y = 1.7; g.add(proxy);
   scene.add(g);
   clickables.push({ proxy, onClick });
+  adminItems.push({ id: 'cab_' + label.toLowerCase().replace(/[^a-z0-9]+/g, '_'), label, obj: g });
+  return g;
 }
 
 function textPlane(text, color) {
@@ -117,6 +122,7 @@ buildCabinet(6, -8, 'KNOCK KNOCK', '#00f3ff', () => openWindow('KNOCK KNOCK · G
 
 // the real Monkey's Paw fortune machine (moved in from the festival)
 const paw = buildMonkeyPaw('#b967ff'); paw.group.position.set(10, 0, -12.5); paw.group.rotation.y = -0.5; scene.add(paw.group);
+adminItems.push({ id: 'paw', label: "MONKEY'S PAW", obj: paw.group });
 updaters.push((dt, t, p) => { if (paw.update) paw.update(t, p); });
 {
   const proxy = new THREE.Mesh(new THREE.BoxGeometry(2.2, 3.4, 2.2), new THREE.MeshBasicMaterial({ visible: false }));
@@ -142,6 +148,9 @@ gamezones.register({ id: 'hoop', label: 'Basketball', emoji: '🏀', accent: '#f
 gamezones.register({ id: 'gallery', label: 'Shooting Gallery', emoji: '🎯', accent: '#ff0055', near: (p) => gallery.near(p) && p.x > 4, spot: { pos: [8.4, 0.2], yaw: -2.03 }, play: (cam) => gallery.shoot(cam) });
 gamezones.register({ id: 'dunk', label: 'Dunk Tank', emoji: '💦', accent: '#00f3ff', near: (p) => dunktank.near(p) && p.z > 2 && Math.abs(p.x - 6) < 6, spot: { pos: [5, 13], yaw: 0 }, play: (cam) => dunktank.throwBall(cam) });
 
+// ---------- layout editor: rearrange the cabinets + Monkey's Paw (✎ / `~`) ----
+admin = createAdmin({ scene, camera, renderer, controls, worldId: 'arcade', items: adminItems, overhead: { ax: 42, az: 42, cx: 0, cz: 0 } });
+
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let down = null, dragged = false;
@@ -150,12 +159,13 @@ canvas.addEventListener('pointermove', (e) => {
   if (!down || e.pointerId !== down.id) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y;
   if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
-  controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
+  if (!(admin && admin.active)) controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
   down.x = e.clientX; down.y = e.clientY;
 });
 canvas.addEventListener('pointerup', (e) => { canvas.classList.remove('drag'); if (down && !dragged) tap(e.clientX, e.clientY); down = null; });
 canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
 function tap(sx, sy) {
+  if (admin && admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   for (const c of clickables) if (ray.intersectObject(c.proxy, false)[0]) { c.onClick(); return; }
@@ -205,9 +215,10 @@ function frame() {
   for (const m of screenMats) m.uniforms.t.value = t;
   for (const u of updaters) u(dt, t, p);
   hoop.update(dt, t); gallery.update(dt, t, p); dunktank.update(dt, t);
-  gamezones.update(controls.pos);
+  if (!(admin && admin.active)) gamezones.update(controls.pos);
   updateHint(controls.pos);
-  renderer.render(scene, camera);
+  if (admin) admin.update(dt);
+  renderer.render(scene, admin && admin.active ? admin.cam : camera);
 }
 controls.update(0);
 renderer.render(scene, camera);

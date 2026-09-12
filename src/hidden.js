@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { addMotes } from './scene/ambientfx.js';
+import { createAdmin } from './scene/admin.js';
 
 // THE HIDDEN ROOM — the secret post-endgame sanctum. A quiet void around a humming
 // monolith, ringed by plinths that sing when touched. Paint the dark with stars.
@@ -112,23 +113,30 @@ function sing(freq) { ensureAudio(); const t = actx.currentTime; const o = actx.
 function chime() { ensureAudio(); const t = actx.currentTime; [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => { const o = actx.createOscillator(); const g = actx.createGain(); o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t + i * 0.08); g.gain.linearRampToValueAtTime(0.28, t + i * 0.08 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.08 + 1.2); o.connect(g); g.connect(master); o.start(t + i * 0.08); o.stop(t + i * 0.08 + 1.3); }); }
 
 // build
-buildMonolith(); buildPlinths();
+const adminItems = [];   // movable pieces for the layout editor
+let admin = null;
+const _monoG = buildMonolith(); adminItems.push({ id: 'monolith', label: 'THE HEART', obj: _monoG });
+buildPlinths(); plinths.forEach((p, i) => adminItems.push({ id: 'plinth_' + i, label: 'PLINTH ' + (i + 1), obj: p.grp }));
 updaters.push(addMotes(scene, { color: ACC, count: 160, area: [30, 12, 30], center: [0, 5, -3], rise: 0.2, opacity: 0.4 }));
 
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: 11, eye: 1.6, zMin: -14 });
 controls.pos.set(0, 1.6, 8); controls.yaw = Math.PI;
 
+// layout editor: rearrange the monolith + plinths (✎ button / `~` key)
+admin = createAdmin({ scene, camera, renderer, controls, worldId: 'hidden', items: adminItems, overhead: { ax: 30, az: 30, cx: 0, cz: -3 } });
+
 // ---------- input ----------
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let down = null, dragged = false;
 canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY, id: e.pointerId }; dragged = false; canvas.classList.add('drag'); });
-canvas.addEventListener('pointermove', (e) => { if (!down || e.pointerId !== down.id) return; const dx = e.clientX - down.x, dy = e.clientY - down.y; if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true; controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2); down.x = e.clientX; down.y = e.clientY; });
+canvas.addEventListener('pointermove', (e) => { if (!down || e.pointerId !== down.id) return; const dx = e.clientX - down.x, dy = e.clientY - down.y; if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true; if (!(admin && admin.active)) controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2); down.x = e.clientX; down.y = e.clientY; });
 canvas.addEventListener('pointerup', (e) => { canvas.classList.remove('drag'); if (down && !dragged) tap(e.clientX, e.clientY); down = null; });
 canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
 const plinthOrbs = () => plinths.map((p) => p.orb);
 function tap(sx, sy) {
+  if (admin && admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1; ray.setFromCamera(ndc, camera);
   const ph = ray.intersectObjects(plinthOrbs(), false)[0];
   if (ph && ph.object.userData.plinth != null) { const p = plinths[ph.object.userData.plinth]; p.flash = 1; sing(p.freq); return; }
@@ -155,8 +163,9 @@ function frame() {
   const dt = Math.min(clock.getDelta(), 0.05); const t = clock.elapsedTime;
   controls.update(dt);
   for (const u of updaters) u(dt, t, 0);
-  updateZone(controls.pos);
-  renderer.render(scene, camera);
+  if (!(admin && admin.active)) updateZone(controls.pos);
+  if (admin) admin.update(dt);
+  renderer.render(scene, admin && admin.active ? admin.cam : camera);
 }
 controls.update(0); renderer.render(scene, camera);
 

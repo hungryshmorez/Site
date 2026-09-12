@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
+import { createAdmin } from './scene/admin.js';
 
 // THE GALLERY — a quiet walkable museum. Marble hall, framed pieces down both
 // long walls (portraits of the roster + the worlds beyond the festival), a
@@ -141,6 +142,8 @@ function plaqueTexture(piece) {
 
 // hang one framed piece; returns its info for proximity captions
 const frames = [];
+const adminItems = [];   // movable pieces for the layout editor
+let admin = null;
 function hang(piece, x, z, rotY) {
   const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rotY; scene.add(g);
   const { tex, w, h } = artTexture(piece);
@@ -177,6 +180,8 @@ function hang(piece, x, z, rotY) {
   const center = new THREE.Vector3(x, cy, z);
   const normal = new THREE.Vector3(Math.sin(rotY), 0, Math.cos(rotY)); // +Z of the group, in world
   frames.push({ piece, center, normal });
+  // editor: the piece is movable; worldPos keeps the proximity-caption center in sync
+  adminItems.push({ id: 'art_' + adminItems.length, label: piece.title, obj: g, worldPos: center });
 }
 
 // place pieces down both long walls, then two on the far wall
@@ -193,20 +198,24 @@ hang(PIECES[11], 3.2, farWall, 0);
 // ---------- centerpiece sculpture + benches ----------
 {
   const marble = std({ color: 0xe7e2d6, roughness: 0.5, metalness: 0.08 });
+  const centerG = new THREE.Group(); scene.add(centerG);   // pedestal + sculpture, movable as one
   const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.85, 1.1, 24), std({ color: 0xcfc9ba, roughness: 0.7 }));
-  pedestal.position.set(0, 0.55, 0); pedestal.castShadow = pedestal.receiveShadow = true; scene.add(pedestal);
+  pedestal.position.set(0, 0.55, 0); pedestal.castShadow = pedestal.receiveShadow = true; centerG.add(pedestal);
   const sculpt = new THREE.Mesh(new THREE.TorusKnotGeometry(0.5, 0.17, 160, 24, 2, 3), marble);
-  sculpt.position.set(0, 1.9, 0); sculpt.castShadow = true; scene.add(sculpt);
-  const key = new THREE.SpotLight(0xfff4e0, 6, 10, 0.6, 0.5, 1); key.position.set(0, H - 0.5, 0); key.target.position.set(0, 1.9, 0); scene.add(key); scene.add(key.target);
+  sculpt.position.set(0, 1.9, 0); sculpt.castShadow = true; centerG.add(sculpt);
+  const key = new THREE.SpotLight(0xfff4e0, 6, 10, 0.6, 0.5, 1); key.position.set(0, H - 0.5, 0); key.target.position.set(0, 1.9, 0); centerG.add(key); centerG.add(key.target);
   window.__sculpt = sculpt;
+  adminItems.push({ id: 'sculpture', label: 'SCULPTURE', obj: centerG });
 
   // two benches flanking the sculpture
   const benchMat = std({ color: 0x2c2620, roughness: 0.7 });
+  let bi = 0;
   for (const bz of [-5.5, 5.5]) {
     const b = new THREE.Group(); b.position.set(0, 0, bz);
     const seat = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.16, 0.7), benchMat); seat.position.y = 0.5; seat.castShadow = true; b.add(seat);
     for (const lx of [-1.1, 1.1]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.5, 0.6), benchMat); leg.position.set(lx, 0.25, 0); b.add(leg); }
     scene.add(b);
+    adminItems.push({ id: 'bench_' + (bi++), label: 'BENCH', obj: b });
   }
 }
 
@@ -241,14 +250,18 @@ const controls = new WalkControls(camera, { bounds: 100, eye: 1.6, zMin: -100 })
 controls.pos.set(0, 1.6, 12); controls.yaw = 0; controls.speed = 5.4;   // spawn inside the gallery, facing in
 controls.update(0);
 
+// layout editor: rearrange the art, sculpture + benches (✎ button / `~` key)
+admin = createAdmin({ scene, camera, renderer, controls, worldId: 'museum', items: adminItems, overhead: { ax: 40, az: 40, cx: 0, cz: 0 } });
+
 // drag-look + click (auto-walk to a picture / step through the exit)
 let dragging = false, lastX = 0, lastY = 0, moved = 0;
 const ndc = new THREE.Vector2(); const ray = new THREE.Raycaster();
 canvas.addEventListener('pointerdown', (e) => { dragging = true; moved = 0; lastX = e.clientX; lastY = e.clientY; canvas.classList.add('drag'); canvas.setPointerCapture(e.pointerId); });
-canvas.addEventListener('pointermove', (e) => { if (!dragging) return; const dx = e.clientX - lastX, dy = e.clientY - lastY; moved += Math.abs(dx) + Math.abs(dy); lastX = e.clientX; lastY = e.clientY; controls.look(dx, dy); });
+canvas.addEventListener('pointermove', (e) => { if (!dragging) return; const dx = e.clientX - lastX, dy = e.clientY - lastY; moved += Math.abs(dx) + Math.abs(dy); lastX = e.clientX; lastY = e.clientY; if (!(admin && admin.active)) controls.look(dx, dy); });
 canvas.addEventListener('pointerup', (e) => { dragging = false; canvas.classList.remove('drag'); if (moved < 6) onTap(e.clientX, e.clientY); });
 
 function onTap(sx, sy) {
+  if (admin && admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   // only leave when you actually tap the glowing exit portal (or use the back button /
@@ -314,19 +327,22 @@ function frame() {
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.elapsedTime;
   controls.update(dt);
-  // keep the visitor inside the hall (rectangular clamp)
-  controls.pos.x = THREE.MathUtils.clamp(controls.pos.x, -HX + 0.5, HX - 0.5);
-  controls.pos.z = THREE.MathUtils.clamp(controls.pos.z, ZMIN + 0.5, ZMAX - 0.5);
-  // keep-out ring around the sculpture pedestal
-  const d = Math.hypot(controls.pos.x, controls.pos.z);
-  if (d < 1.6 && d > 0.001) { const s = 1.6 / d; controls.pos.x *= s; controls.pos.z *= s; }
-  // walk right up to the exit portal to leave (armed once you've stepped away from it)
-  { const ex = Math.hypot(controls.pos.x - exitCenter.x, controls.pos.z - exitCenter.z); if (ex > 2.5) exitArmed = true; if (exitArmed && ex < 1.25) goHome(); }
+  if (!(admin && admin.active)) {
+    // keep the visitor inside the hall (rectangular clamp)
+    controls.pos.x = THREE.MathUtils.clamp(controls.pos.x, -HX + 0.5, HX - 0.5);
+    controls.pos.z = THREE.MathUtils.clamp(controls.pos.z, ZMIN + 0.5, ZMAX - 0.5);
+    // keep-out ring around the sculpture pedestal
+    const d = Math.hypot(controls.pos.x, controls.pos.z);
+    if (d < 1.6 && d > 0.001) { const s = 1.6 / d; controls.pos.x *= s; controls.pos.z *= s; }
+    // walk right up to the exit portal to leave (armed once you've stepped away from it)
+    { const ex = Math.hypot(controls.pos.x - exitCenter.x, controls.pos.z - exitCenter.z); if (ex > 2.5) exitArmed = true; if (exitArmed && ex < 1.25) goHome(); }
+    updateCaption();
+    updateHint();
+  }
   if (window.__sculpt) window.__sculpt.rotation.y = t * 0.25;
   if (window.__portalMat) window.__portalMat.uniforms.t.value = t;
-  updateCaption();
-  updateHint();
-  renderer.render(scene, camera);
+  admin.update(dt);
+  renderer.render(scene, admin && admin.active ? admin.cam : camera);
 }
 controls.update(0);
 renderer.render(scene, camera);

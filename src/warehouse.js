@@ -383,40 +383,45 @@ function buildStreetGateways() {
     { x: -30, ry: Math.PI / 2, url: 'dj.html', label: 'THE ROOMS ▸', sub: 'the loop — this way in', color: 0x00f3ff },
     { x: 30, ry: -Math.PI / 2, url: 'rooftop.html', label: '◂ THE ROOMS', sub: 'the loop — the other end', color: 0x4ad0c0 },
   ];
+  // The arch is authored in door.js's local convention: the opening faces +Z,
+  // the two pillars flank it along local X, and the tunnel recedes into local -Z.
+  // Applying gt.ry then aims the whole gateway AND its portal-door the same way,
+  // so the arch always squarely frames the door you walk through (no more sideways
+  // arches perpendicular to the doorway).
   for (const gt of gates) {
     const col = C(gt.color);
     const arch = new THREE.Group(); arch.position.set(gt.x, 0, Zc); arch.rotation.y = gt.ry; scene.add(arch);
     const H = 8.5, HALFW = 4.6, PILLAR = 1.1;
     const conc = std({ color: 0x1c1c26, roughness: 0.9, metalness: 0.3, emissive: col.clone().multiplyScalar(0.12), emissiveIntensity: 0.5 });
-    // two pillars (spanning along local Z = across the street opening)
-    for (const sz of [-HALFW, HALFW]) {
-      const p = new THREE.Mesh(new THREE.BoxGeometry(PILLAR, H, PILLAR), conc); p.position.set(0, H / 2, sz); p.castShadow = true; arch.add(p);
+    // two pillars flanking the opening (separated along local X, like door.js jambs)
+    for (const sx of [-HALFW, HALFW]) {
+      const p = new THREE.Mesh(new THREE.BoxGeometry(PILLAR, H, PILLAR), conc); p.position.set(sx, H / 2, 0); p.castShadow = true; arch.add(p);
     }
-    // header beam + parapet
-    const beam = new THREE.Mesh(new THREE.BoxGeometry(PILLAR, 1.4, HALFW * 2 + PILLAR), conc); beam.position.set(0, H - 0.2, 0); arch.add(beam);
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(PILLAR + 0.5, 0.5, HALFW * 2 + PILLAR + 0.6), std({ color: 0x141420, roughness: 0.9 })); cap.position.set(0, H + 0.5, 0); arch.add(cap);
-    // receding tunnel rings for the "subway" depth — step into local -X (toward the street end)
-    const back = gt.x < 0 ? -1 : 1;
+    // header beam + parapet spanning the opening (along local X)
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(HALFW * 2 + PILLAR, 1.4, PILLAR), conc); beam.position.set(0, H - 0.2, 0); arch.add(beam);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(HALFW * 2 + PILLAR + 0.6, 0.5, PILLAR + 0.5), std({ color: 0x141420, roughness: 0.9 })); cap.position.set(0, H + 0.5, 0); arch.add(cap);
+    // receding tunnel rings for the "subway" depth — recede into local -Z (away from the street)
     for (let i = 1; i <= 3; i++) {
       const ring = new THREE.Mesh(new THREE.TorusGeometry(HALFW - 0.2, 0.22, 8, 4), std({ color: 0x101018, emissive: col, emissiveIntensity: 0.35 + i * 0.12, metalness: 0.6, roughness: 0.5 }));
-      ring.rotation.y = Math.PI / 2;                    // torus axis along local X (the tunnel axis)
-      ring.position.set(-i * 1.7, H / 2 - 0.6, 0);      // recede into the tunnel
+      ring.rotation.x = Math.PI / 2;                    // torus axis along local Z (the tunnel/passage axis)
+      ring.position.set(0, H / 2 - 0.6, -i * 1.7);      // recede into the tunnel
       ring.scale.set(1, 0.9, 1);
       arch.add(ring);
     }
-    // glowing portal membrane in the opening
+    // glowing portal membrane in the opening (local XY plane, faces +Z toward the approach)
     const memb = new THREE.Mesh(new THREE.PlaneGeometry(HALFW * 2 - 0.6, H - 1.2), new THREE.MeshBasicMaterial({ color: gt.color, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-    memb.position.set(0, H / 2 - 0.2, 0); memb.rotation.y = Math.PI / 2; arch.add(memb);
+    memb.position.set(0, H / 2 - 0.2, 0); arch.add(memb);
     const gl = new THREE.PointLight(gt.color, 6, 34, 2); gl.position.set(0, H / 2, 0); arch.add(gl);
-    const gl2 = new THREE.PointLight(gt.color, 4, 22, 2); gl2.position.set(back * 3, 3, 0); arch.add(gl2);
-    // big sign on the header facing the street centre
-    const sign = textPlane(gt.label, '#' + col.getHexString(), 512, 80); sign.position.set(0.7, H - 0.2, 0); sign.rotation.y = Math.PI / 2; sign.scale.set(6.5, 1.1, 1); arch.add(sign);
-    const sub = textPlane(gt.sub, '#9fb0d8', 512, 44); sub.position.set(0.7, H - 1.4, 0); sub.rotation.y = Math.PI / 2; sub.scale.set(4.2, 0.4, 1); arch.add(sub);
-    // ground threshold glow
-    const th = new THREE.Mesh(new THREE.PlaneGeometry(3.2, HALFW * 2 - 0.4), new THREE.MeshBasicMaterial({ color: gt.color, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
-    th.rotation.x = -Math.PI / 2; th.position.set(gt.x, 0.06, Zc); scene.add(th);
+    const gl2 = new THREE.PointLight(gt.color, 4, 22, 2); gl2.position.set(0, 3, -3); arch.add(gl2);
+    // big sign on the header facing the street centre (local +Z, i.e. toward the player)
+    const sign = textPlane(gt.label, '#' + col.getHexString(), 512, 80); sign.position.set(0, H - 0.2, 0.7); sign.scale.set(6.5, 1.1, 1); arch.add(sign);
+    const sub = textPlane(gt.sub, '#9fb0d8', 512, 44); sub.position.set(0, H - 1.4, 0.7); sub.scale.set(4.2, 0.4, 1); arch.add(sub);
+    // ground threshold glow leading through the opening (spans the opening in X, laid down the approach in Z)
+    const th = new THREE.Mesh(new THREE.PlaneGeometry(HALFW * 2 - 0.4, 3.4), new THREE.MeshBasicMaterial({ color: gt.color, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    th.rotation.x = -Math.PI / 2; th.position.set(0, 0.06, 1.6); arch.add(th);
     updaters.push((dt, t) => { memb.material.opacity = 0.12 + Math.sin(t * 2 + gt.x) * 0.06; th.material.opacity = 0.3 + Math.sin(t * 2.4 + gt.x) * 0.12; });
-    // the working portal (reuses the room-door enter/tap logic), pushed into `doors`
+    // the working portal (reuses the room-door enter/tap logic), pushed into `doors`.
+    // Same gt.ry as the arch, so the door squarely fills the arch opening and faces the player.
     doors.push(buildDoor(scene, { x: gt.x, z: Zc, ry: gt.ry, width: 5, height: 6, label: '', url: gt.url, color: gt.color }));
   }
   return g;

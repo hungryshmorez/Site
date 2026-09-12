@@ -10,6 +10,7 @@ import { buildMonkeyPaw } from './scene/models.js';
 import { createGameZones } from './scene/gamezones.js';
 import { openWindow } from './ui/popup.js';
 import { spawnMannequin } from './scene/mannequin.js';
+import { createAdmin } from './scene/admin.js';
 
 // THE BLOCK — the games city. Loads the real modern_block city model (with its
 // plazas + park) and lets you walk it; the physical (non-video) games live here
@@ -67,6 +68,7 @@ controls.groundAt = (x, z) => {
 
 // ---- drag-look + tap-to-walk / click ----
 const clickables = [];
+let admin = null;   // layout editor (created once the city + games are placed)
 const ndc = new THREE.Vector2(); const cray = new THREE.Raycaster();
 let down = null, dragged = false;
 canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY, id: e.pointerId }; dragged = false; canvas.classList.add('drag'); });
@@ -74,12 +76,13 @@ canvas.addEventListener('pointermove', (e) => {
   if (!down || e.pointerId !== down.id) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y;
   if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
-  controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
+  if (!(admin && admin.active)) controls.look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
   down.x = e.clientX; down.y = e.clientY;
 });
 canvas.addEventListener('pointerup', (e) => { canvas.classList.remove('drag'); if (down && !dragged) tap(e.clientX, e.clientY); down = null; });
 canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
 function tap(sx, sy) {
+  if (admin && admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   cray.setFromCamera(ndc, camera);
   for (const c of clickables) if (cray.intersectObject(c.proxy, false)[0]) { c.onClick(); return; }
@@ -113,11 +116,12 @@ function buildGames(spawn) {
   const sx = spawn.x, sz = spawn.z;
   const P = (dx, dz) => [sx + dx, sz + dz];
 
+  const adminItems = [];   // movable props for the layout editor
   let p;
-  p = padAt(...P(-14, -10)); hoop = buildHoop(p.group, { pos: P(-14, -10), onScore: (n) => { made = n; setPill(); } });
-  p = padAt(...P(14, -10)); gallery = buildGallery(p.group, { pos: P(14, -10), onHit: (n) => { hits = n; setPill(); } });
-  p = padAt(...P(0, -18)); dunktank = buildDunkTank(p.group, { pos: P(0, -18), onDunk: (n) => { dunks = n; setPill(); } });
-  p = padAt(...P(-16, 6)); paw = buildMonkeyPaw('#b967ff'); paw.group.position.set(sx - 16, p.y, sz + 6); paw.group.rotation.y = 0.6; scene.add(paw.group);
+  p = padAt(...P(-14, -10)); hoop = buildHoop(p.group, { pos: P(-14, -10), onScore: (n) => { made = n; setPill(); } }); adminItems.push({ id: 'hoop', label: 'BASKETBALL', obj: p.group });
+  p = padAt(...P(14, -10)); gallery = buildGallery(p.group, { pos: P(14, -10), onHit: (n) => { hits = n; setPill(); } }); adminItems.push({ id: 'gallery', label: 'SHOOTING GALLERY', obj: p.group });
+  p = padAt(...P(0, -18)); dunktank = buildDunkTank(p.group, { pos: P(0, -18), onDunk: (n) => { dunks = n; setPill(); } }); adminItems.push({ id: 'dunk', label: 'DUNK TANK', obj: p.group });
+  p = padAt(...P(-16, 6)); paw = buildMonkeyPaw('#b967ff'); paw.group.position.set(sx - 16, p.y, sz + 6); paw.group.rotation.y = 0.6; scene.add(paw.group); adminItems.push({ id: 'paw', label: "MONKEY'S PAW", obj: paw.group });
   {
     const y = groundY(sx - 16, sz + 6, 400) ?? 0;
     const proxy = new THREE.Mesh(new THREE.BoxGeometry(2.2, 3.4, 2.2), new THREE.MeshBasicMaterial({ visible: false }));
@@ -130,6 +134,7 @@ function buildGames(spawn) {
   const carSpot = new THREE.Vector3(sx + 9, carY, sz + 14);
   const carG = new THREE.Group(); carG.position.copy(carSpot); carG.rotation.y = -0.5; scene.add(carG);
   buildParkedCar(carG);
+  adminItems.push({ id: 'car', label: 'RACE CAR', obj: carG });
   // marshal figure standing beside the car
   const marY = groundY(sx + 12, sz + 15, 400) ?? carY;
   marshalPos = new THREE.Vector3(sx + 12, marY, sz + 15);
@@ -147,6 +152,10 @@ function buildGames(spawn) {
   gamezones.register({ id: 'hoop', label: 'Basketball', emoji: '🏀', accent: '#ff6b35', near: (pp) => hoop.near(pp), spotFn: () => ({ pos: [sx - 14, sz - 4], yaw: Math.PI }), play: (cam) => hoop.throwBall(cam) });
   gamezones.register({ id: 'gallery', label: 'Shooting Gallery', emoji: '🎯', accent: '#ff0055', near: (pp) => gallery.near(pp), spotFn: () => ({ pos: [sx + 14, sz - 4], yaw: Math.PI }), play: (cam) => gallery.shoot(cam) });
   gamezones.register({ id: 'dunk', label: 'Dunk Tank', emoji: '💦', accent: '#00f3ff', near: (pp) => dunktank.near(pp), spotFn: () => ({ pos: [sx, sz - 12], yaw: Math.PI }), play: (cam) => dunktank.throwBall(cam) });
+
+  // ---- layout editor: rearrange the games + car (✎ button / `~` key) ----
+  const r = cityBounds ? cityBounds.r : 48;
+  admin = createAdmin({ scene, camera, renderer, controls, worldId: 'gamecity', items: adminItems, overhead: { ax: r * 2, az: r * 2, cx: sx, cz: sz } });
 }
 
 function toRacetrack() {
@@ -244,9 +253,10 @@ function frame() {
     if (d > cityBounds.r) { const s = cityBounds.r / d; controls.pos.x = cityBounds.cx + dx * s; controls.pos.z = cityBounds.cz + dz * s; }
   }
   if (hoop) { hoop.update(dt, t); gallery.update(dt, t, 0.5); dunktank.update(dt, t); if (paw && paw.update) paw.update(t, 0.5); }
-  if (gamezones) gamezones.update(controls.pos);
+  if (gamezones && !(admin && admin.active)) gamezones.update(controls.pos);
   updatePrompt();
-  renderer.render(scene, camera);
+  if (admin) admin.update(dt);
+  renderer.render(scene, admin && admin.active ? admin.cam : camera);
 }
 
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); });
