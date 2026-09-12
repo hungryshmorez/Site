@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { DESTINATIONS } from './data/destinations.js';
 import { buildFestival } from './scene/festival.js';
 import { buildCrowd } from './scene/crowd.js';
+import { spawnDancer } from './scene/dancers.js';
 import { buildCharacters } from './scene/characters.js';
 import { buildTrash } from './scene/trash.js';
 import { buildDealer } from './scene/dealer.js';
@@ -229,6 +230,15 @@ const crowd = buildCrowd(scene, {
     [LOUNGE_POS[0], LOUNGE_POS[1] - 3, 5],
   ],
 });
+// featured Samba dancers up on the stage deck (top at y=1.6), facing the crowd
+const STAGE_Z = festival.stageZ;
+const dancers = [];
+if (!reduceMotion) {
+  for (const dx of [-9, -4.5, 0, 4.5, 9]) {
+    dancers.push(spawnDancer(scene, { pos: [dx, 1.6, STAGE_Z + 3], rotY: Math.PI, height: 1.9, timeScale: 0.95 + Math.random() * 0.15 }));
+  }
+}
+
 const controls = new WalkControls(camera, { bounds: 24, eye: 1.6, zMin: -30 });
 // spawn in the bottom-left corner for a diagonal entry toward the dancefloor
 controls.pos.set(-18, 1.6, 18);
@@ -755,6 +765,7 @@ function frame() {
     }
     festival.update(dt, time, pulse, dayT);
     crowd.update(dt, time, pulse);
+    for (const d of dancers) d.update(dt);
     characters.update(dt, time, pulse);
     fireworks.update(dt); confetti.update(dt);
     campfire.update(dt, time, pulse);
