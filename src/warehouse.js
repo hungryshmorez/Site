@@ -254,12 +254,13 @@ function buildDoors() {
   const Z = 54, WH = 13, TH = 1.0, HALF = 26, GAP = 2.4, DOORH = 3.9;
   const wm = std({ color: 0x1a1a26, roughness: 0.85, metalness: 0.35, emissive: C(0x14142a), emissiveIntensity: 0.28 });
   const defs = [
-    { x: -20, label: 'DREAM OS · THEATER', url: 'tv.html', color: 0xff8a2a },
-    { x: -12, label: 'VJ · STAGE', url: 'vj.html', color: 0x8a5cff },
-    { x: -4, label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'dj.html', color: 0x00f3ff },
-    { x: 4, label: 'THE GALLERY', url: 'museum.html', color: 0xe6c04a },
-    { x: 12, label: 'ARCADE + KARAOKE', url: 'arcade.html', color: 0xff2bd0 },
-    { x: 20, label: 'ROOM BUILDER', url: 'builder.html', color: 0xffffff },
+    { x: -21, label: 'DREAM OS · THEATER', url: 'tv.html', color: 0xff8a2a },
+    { x: -14, label: 'VJ · STAGE', url: 'vj.html', color: 0x8a5cff },
+    { x: -7, label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'dj.html', color: 0x00f3ff },
+    { x: 0, label: 'THE GALLERY', url: 'museum.html', color: 0xe6c04a },
+    { x: 7, label: 'ARCADE + KARAOKE', url: 'arcade.html', color: 0xff2bd0 },
+    { x: 14, label: 'THE BLOCK', sub: 'street games + the racetrack', url: 'gamecity.html', color: 0x39ff14 },
+    { x: 21, label: 'ROOM BUILDER', url: 'builder.html', color: 0xffffff },
   ];
   // solid wall segments between/around the door openings (with collision)
   const edges = [-HALF]; for (const d of defs) { edges.push(d.x - GAP, d.x + GAP); } edges.push(HALF);
@@ -368,6 +369,59 @@ function buildCover() {
 }
 const _cover = buildCover();
 const _doorsG = buildDoors();   // built after the collision system exists (the wall segments add colliders)
+
+// ---------- STREET GATEWAYS: two big subway-style portals flanking spawn ----------
+// You spawn mid-street facing the warehouse. The room-loop is easy to miss on the
+// wall behind you, so at EITHER END of the street stands a big gateway arch that
+// drops you straight into the loop: the left one enters at DJ DECKS (forward), the
+// right one at the ROOFTOP (the loop's other side). Walk the loop and it returns
+// you here — in one end, out the other.
+function buildStreetGateways() {
+  const g = new THREE.Group(); scene.add(g);
+  const Zc = 40;                 // the spawn line
+  const gates = [
+    { x: -30, ry: Math.PI / 2, url: 'dj.html', label: 'THE ROOMS ▸', sub: 'the loop — this way in', color: 0x00f3ff },
+    { x: 30, ry: -Math.PI / 2, url: 'rooftop.html', label: '◂ THE ROOMS', sub: 'the loop — the other end', color: 0x4ad0c0 },
+  ];
+  for (const gt of gates) {
+    const col = C(gt.color);
+    const arch = new THREE.Group(); arch.position.set(gt.x, 0, Zc); arch.rotation.y = gt.ry; scene.add(arch);
+    const H = 8.5, HALFW = 4.6, PILLAR = 1.1;
+    const conc = std({ color: 0x1c1c26, roughness: 0.9, metalness: 0.3, emissive: col.clone().multiplyScalar(0.12), emissiveIntensity: 0.5 });
+    // two pillars (spanning along local Z = across the street opening)
+    for (const sz of [-HALFW, HALFW]) {
+      const p = new THREE.Mesh(new THREE.BoxGeometry(PILLAR, H, PILLAR), conc); p.position.set(0, H / 2, sz); p.castShadow = true; arch.add(p);
+    }
+    // header beam + parapet
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(PILLAR, 1.4, HALFW * 2 + PILLAR), conc); beam.position.set(0, H - 0.2, 0); arch.add(beam);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(PILLAR + 0.5, 0.5, HALFW * 2 + PILLAR + 0.6), std({ color: 0x141420, roughness: 0.9 })); cap.position.set(0, H + 0.5, 0); arch.add(cap);
+    // receding tunnel rings for the "subway" depth — step into local -X (toward the street end)
+    const back = gt.x < 0 ? -1 : 1;
+    for (let i = 1; i <= 3; i++) {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(HALFW - 0.2, 0.22, 8, 4), std({ color: 0x101018, emissive: col, emissiveIntensity: 0.35 + i * 0.12, metalness: 0.6, roughness: 0.5 }));
+      ring.rotation.y = Math.PI / 2;                    // torus axis along local X (the tunnel axis)
+      ring.position.set(-i * 1.7, H / 2 - 0.6, 0);      // recede into the tunnel
+      ring.scale.set(1, 0.9, 1);
+      arch.add(ring);
+    }
+    // glowing portal membrane in the opening
+    const memb = new THREE.Mesh(new THREE.PlaneGeometry(HALFW * 2 - 0.6, H - 1.2), new THREE.MeshBasicMaterial({ color: gt.color, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    memb.position.set(0, H / 2 - 0.2, 0); memb.rotation.y = Math.PI / 2; arch.add(memb);
+    const gl = new THREE.PointLight(gt.color, 6, 34, 2); gl.position.set(0, H / 2, 0); arch.add(gl);
+    const gl2 = new THREE.PointLight(gt.color, 4, 22, 2); gl2.position.set(back * 3, 3, 0); arch.add(gl2);
+    // big sign on the header facing the street centre
+    const sign = textPlane(gt.label, '#' + col.getHexString(), 512, 80); sign.position.set(0.7, H - 0.2, 0); sign.rotation.y = Math.PI / 2; sign.scale.set(6.5, 1.1, 1); arch.add(sign);
+    const sub = textPlane(gt.sub, '#9fb0d8', 512, 44); sub.position.set(0.7, H - 1.4, 0); sub.rotation.y = Math.PI / 2; sub.scale.set(4.2, 0.4, 1); arch.add(sub);
+    // ground threshold glow
+    const th = new THREE.Mesh(new THREE.PlaneGeometry(3.2, HALFW * 2 - 0.4), new THREE.MeshBasicMaterial({ color: gt.color, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
+    th.rotation.x = -Math.PI / 2; th.position.set(gt.x, 0.06, Zc); scene.add(th);
+    updaters.push((dt, t) => { memb.material.opacity = 0.12 + Math.sin(t * 2 + gt.x) * 0.06; th.material.opacity = 0.3 + Math.sin(t * 2.4 + gt.x) * 0.12; });
+    // the working portal (reuses the room-door enter/tap logic), pushed into `doors`
+    doors.push(buildDoor(scene, { x: gt.x, z: Zc, ry: gt.ry, width: 5, height: 6, label: '', url: gt.url, color: gt.color }));
+  }
+  return g;
+}
+const _gateways = buildStreetGateways();
 
 // ===== ARENA EXTRAS: denser cover + hiding spots + sweeping searchlights (additive) =====
 // Fleshes the central arena into a full hide-and-seek playfield. Purely additive —
