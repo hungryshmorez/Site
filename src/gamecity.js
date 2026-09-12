@@ -9,6 +9,7 @@ import { buildDunkTank } from './scene/dunktank.js';
 import { buildMonkeyPaw } from './scene/models.js';
 import { createGameZones } from './scene/gamezones.js';
 import { openWindow } from './ui/popup.js';
+import { spawnMannequin } from './scene/mannequin.js';
 
 // THE BLOCK — the games city. Loads the real modern_block city model (with its
 // plazas + park) and lets you walk it; the physical (non-video) games live here
@@ -132,7 +133,9 @@ function buildGames(spawn) {
   // marshal figure standing beside the car
   const marY = groundY(sx + 12, sz + 15, 400) ?? carY;
   marshalPos = new THREE.Vector3(sx + 12, marY, sz + 15);
-  const marshal = buildMarshal(); marshal.position.copy(marshalPos); marshal.lookAt(carSpot.x, marY + 1.6, carSpot.z); scene.add(marshal);
+  // the track marshal — a real rigged mannequin, waving you over
+  const faceY = Math.atan2(carSpot.x - marshalPos.x, carSpot.z - marshalPos.z);
+  spawnMannequin(scene, { pos: [marshalPos.x, marY, marshalPos.z], rotY: faceY, color: '#ff2b55', pose: 'wave', scale: 1.05 });
   // floating banner over the car
   const banner = makeLabel('🏁 WANNA RACE?', '#ff0055'); banner.position.set(carSpot.x, carY + 4.2, carSpot.z); banner.scale.set(8, 2, 1); scene.add(banner);
   // clickable proxy: the car takes you to the racetrack
@@ -159,21 +162,6 @@ function buildParkedCar(g) {
   const wheelGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.5, 16); const wheelMat = std({ color: 0x111118, roughness: 0.8 });
   for (const [wx, wz] of [[-1.15, 1.5], [1.15, 1.5], [-1.15, -1.6], [1.15, -1.6]]) { const w = new THREE.Mesh(wheelGeo, wheelMat); w.rotation.z = Math.PI / 2; w.position.set(wx, 0.55, wz); g.add(w); }
   const glow = new THREE.PointLight(0x00f3ff, 2, 14, 2); glow.position.set(0, 1.4, 0); g.add(glow);
-}
-
-// a simple standing marshal (checkered cap)
-function buildMarshal() {
-  const g = new THREE.Group();
-  const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 1.0, 10), std({ color: 0x1a1a22, roughness: 0.8 })); legs.position.y = 0.5; g.add(legs);
-  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.34, 0.7, 6, 12), std({ color: 0xff0055, roughness: 0.6 })); torso.position.y = 1.4; g.add(torso);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 14), std({ color: 0xe8c9a8, roughness: 0.7 })); head.position.y = 2.05; g.add(head);
-  // checkered cap
-  const cc = document.createElement('canvas'); cc.width = cc.height = 16; const cx = cc.getContext('2d');
-  for (let a = 0; a < 4; a++) for (let b = 0; b < 4; b++) { cx.fillStyle = (a + b) % 2 ? '#fff' : '#111'; cx.fillRect(a * 4, b * 4, 4, 4); }
-  const ct = new THREE.CanvasTexture(cc);
-  const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.14, 16), new THREE.MeshStandardMaterial({ map: ct })); cap.position.y = 2.28; g.add(cap);
-  const gl = new THREE.PointLight(0xff0055, 1.4, 8, 2); gl.position.set(0, 2.4, 0.4); g.add(gl);
-  return g;
 }
 
 // a camera-facing text label sprite
