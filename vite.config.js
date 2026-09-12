@@ -39,6 +39,7 @@ export default defineConfig({
         gameroom: resolve(__dirname, 'gameroom.html'),
         museum: resolve(__dirname, 'museum.html'),
         race: resolve(__dirname, 'race.html'),
+        gamecity: resolve(__dirname, 'gamecity.html'),
       },
     },
   },
