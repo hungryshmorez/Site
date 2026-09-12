@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PALETTE } from '../data/destinations.js';
+import { bakePosedGeometry } from './mannequin.js';
 
 // one low-poly humanoid, merged into a single geometry so the whole crowd is
 // still a single instanced draw call — but reads as people, not pills.
@@ -28,8 +29,17 @@ export function buildCrowd(scene, { count = 320, stageZ = -26, exclude = [], rai
   const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0b0b16, roughness: 1, metalness: 0 });
   const bodies = new THREE.InstancedMesh(bodyGeo, bodyMat, count);
   bodies.castShadow = true;
+  bodies.frustumCulled = false;
   bodies.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(bodies);
+
+  // upgrade the whole crowd to real rigged people, frozen mid-cheer (arms up)
+  // and baked to one static mesh so it stays a single instanced draw call.
+  bakePosedGeometry('cheer', { faceZ: 1 }).then((geo) => {
+    geo.scale(0.9, 0.9, 0.9);            // match the ~1.6-unit crowd height
+    geo.computeBoundingSphere();
+    const old = bodies.geometry; bodies.geometry = geo; old.dispose();
+  }).catch(() => { /* keep the low-poly silhouettes if the model can't load */ });
 
   // ---- glowsticks: additive points above each head ----
   const gpos = new Float32Array(count * 3);

@@ -67,3 +67,36 @@ export function applyPose(model, name) {
   const p = POSES[name] || {};
   for (const [k, e] of Object.entries(p)) { const bn = BONE[k]; if (bn) setDelta(model, bn, e); }
 }
+
+// Bake the mannequin, frozen in a pose, into a plain static BufferGeometry so it
+// can be INSTANCED (a whole crowd in one draw call — no per-figure skeletons).
+// Returns a Promise<BufferGeometry> with feet at y=0, centred in x/z, facing +Z.
+export async function bakePosedGeometry(pose = 'cheer', { arms = 0.35, faceZ = 1 } = {}) {
+  const proto = await loadProto();
+  const m = skeletonClone(proto);
+  const holder = new THREE.Group(); holder.add(m);
+  setDelta(m, BONE.lUpper, [0, 0, arms]); setDelta(m, BONE.rUpper, [0, 0, -arms]);
+  applyPose(m, pose);
+  holder.updateMatrixWorld(true);
+  let skinned = null; m.traverse((o) => { if (o.isSkinnedMesh) skinned = o; });
+  if (!skinned) throw new Error('no skinned mesh');
+  skinned.skeleton.update();
+  const src = skinned.geometry, posAttr = src.attributes.position, n = posAttr.count;
+  const out = new Float32Array(n * 3), v = new THREE.Vector3();
+  for (let i = 0; i < n; i++) {
+    v.fromBufferAttribute(posAttr, i);
+    skinned.applyBoneTransform(i, v);
+    v.applyMatrix4(skinned.matrixWorld); // include the model's import transform/scale
+    out[i * 3] = v.x; out[i * 3 + 1] = v.y; out[i * 3 + 2] = v.z;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(out, 3));
+  if (src.attributes.uv) g.setAttribute('uv', src.attributes.uv.clone());
+  if (src.index) g.setIndex(src.index.clone());
+  g.computeVertexNormals();
+  g.computeBoundingBox();
+  const bb = g.boundingBox;
+  g.translate(-(bb.max.x + bb.min.x) / 2, -bb.min.y, -(bb.max.z + bb.min.z) / 2); // feet→0, centred
+  if (faceZ < 0) g.rotateY(Math.PI);
+  return g;
+}
