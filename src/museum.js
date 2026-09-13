@@ -219,6 +219,56 @@ hang(PIECES[11], 3.2, farWall, 0);
   }
 }
 
+// ---------- detail pass: plinth sculptures, planters + entrance rope ----------
+{
+  const marble = std({ color: 0xe7e2d6, roughness: 0.5, metalness: 0.08 });
+  const brass = std({ color: 0xc9a24a, metalness: 0.8, roughness: 0.3 });
+  // a pedestal + a distinct abstract sculpture, plus a raking spotlight
+  const sculptGeos = [
+    () => new THREE.OctahedronGeometry(0.5, 0),
+    () => new THREE.TorusGeometry(0.4, 0.15, 16, 32),
+    () => new THREE.DodecahedronGeometry(0.5, 0),
+    () => new THREE.IcosahedronGeometry(0.52, 0),
+    () => new THREE.ConeGeometry(0.42, 1.0, 5),
+    () => new THREE.TorusKnotGeometry(0.34, 0.12, 120, 16, 3, 4),
+  ];
+  const plinthAt = (x, z, i) => {
+    const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+    const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.52, 1.0, 20), std({ color: 0xcfc9ba, roughness: 0.7 }));
+    ped.position.y = 0.5; ped.castShadow = ped.receiveShadow = true; g.add(ped);
+    const s = new THREE.Mesh(sculptGeos[i % sculptGeos.length](), i % 2 ? brass : marble);
+    s.position.y = 1.55; s.castShadow = true; g.add(s);
+    if (!isMobile) { const sp = new THREE.SpotLight(0xfff4e0, 3.4, 5.5, 0.6, 0.5, 1); sp.position.set(0, 4.2, 0); sp.target.position.set(0, 1.55, 0); g.add(sp); g.add(sp.target); }
+    g.userData.spin = 0.15 + Math.random() * 0.2; g.userData.s = s;
+    adminItems.push({ id: 'plinth_' + i, label: 'SCULPTURE ' + (i + 1), obj: g });
+    return g;
+  };
+  const plinths = [];
+  // down both sides of the aisle, clear of the wall art and the walk path
+  [[-6, -12], [6, -12], [-6, -2], [6, -2], [-6, 10], [6, 10]].forEach(([x, z], i) => plinths.push(plinthAt(x, z, i)));
+  window.__plinths = plinths;
+
+  // potted ficus in each corner
+  const cornerPlant = (x, z) => {
+    const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+    const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.35, 0.7, 16), std({ color: 0x8a5a3a, roughness: 0.85 })); pot.position.y = 0.35; g.add(pot);
+    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.13, 1.4 + Math.random() * 0.7, 5), std({ color: new THREE.Color().setHSL(0.3, 0.45, 0.32), roughness: 0.9 })); leaf.position.set(Math.cos(a) * 0.25, 1.15, Math.sin(a) * 0.25); leaf.rotation.set(Math.cos(a) * 0.5, 0, -Math.sin(a) * 0.5); g.add(leaf); }
+    adminItems.push({ id: 'plant_' + x + '_' + z, label: 'PLANT', obj: g });
+  };
+  for (const cx of [-HX + 1.3, HX - 1.3]) for (const cz of [ZMIN + 1.3, ZMAX - 1.3]) cornerPlant(cx, cz);
+
+  // a velvet rope corridor guiding you in from the entrance
+  const ropeMat = new THREE.MeshBasicMaterial({ color: 0x8a1420 });
+  for (const sx of [-2.4, 2.4]) {
+    const g = new THREE.Group(); g.position.set(sx, 0, ZMAX - 4); scene.add(g);
+    for (let p = 0; p < 2; p++) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 1.0, 12), brass); post.position.set(0, 0.5, p * 3); g.add(post);
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 10), brass); cap.position.set(0, 1.05, p * 3); g.add(cap);
+    }
+    const rope = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.04, 8, 24, Math.PI), ropeMat); rope.rotation.set(Math.PI / 2, 0, 0); rope.position.set(0, 0.82, 1.5); rope.scale.set(0.5, 1, 1); g.add(rope);
+  }
+}
+
 // ---------- exit portal on the entrance (south) wall ----------
 let exitCenter = new THREE.Vector3(0, 1.4, ZMAX - 0.2);
 let exitPortal = null;
@@ -340,6 +390,7 @@ function frame() {
     updateHint();
   }
   if (window.__sculpt) window.__sculpt.rotation.y = t * 0.25;
+  if (window.__plinths) for (const p of window.__plinths) { p.userData.s.rotation.y += dt * p.userData.spin; }
   if (window.__portalMat) window.__portalMat.uniforms.t.value = t;
   admin.update(dt);
   renderer.render(scene, admin && admin.active ? admin.cam : camera);
