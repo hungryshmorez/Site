@@ -4,6 +4,7 @@ import { addBaseboard } from './scene/roomkit.js';
 import { createAdmin } from './scene/admin.js';
 import { buildLoopDoors } from './data/loop.js';
 import { buildDJDeck } from './scene/djdeck.js';
+import { buildEnergyOrb } from './scene/energyorb.js';
 
 // ABSTRACT PSYCHEDELIC — a swirling immersive void. The dome and floor are living
 // shaders that shift with where you stand, glowing entities drift past, and every
@@ -125,9 +126,29 @@ const deck = buildDJDeck(scene, { x: 16, z: 6, ry: -Math.PI / 2, color: 0x00ffa8
 addBaseboard(scene, updaters, { color: 0x00ffa8, ring: true, radius: 26 });
 
 const _ents = buildEntities();
+
+// ---------- centerpiece: a living ENERGY ORB (GLSL ported from Simulation-Reality) ----------
+const orbGroup = new THREE.Group(); orbGroup.position.set(0, 6, -2); scene.add(orbGroup);
+const orb = buildEnergyOrb({ radius: 2.6, color: 0x00ffa8, fulfillment: 0.5, detail: 5 });
+orbGroup.add(orb.mesh);
+// soft additive halo so it blooms in the void
+const orbHalo = new THREE.Mesh(new THREE.SphereGeometry(4.2, 24, 16), new THREE.MeshBasicMaterial({ color: 0x00ffa8, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.BackSide }));
+orbGroup.add(orbHalo);
+const orbLight = new THREE.PointLight(0x00ffa8, 3, 40, 2); orbGroup.add(orbLight);
+updaters.push((dt, t) => {
+  orb.update(t);
+  orbGroup.rotation.y += dt * 0.15;
+  orbGroup.position.y = 6 + Math.sin(t * 0.5) * 0.5;                 // slow bob
+  const f = 0.5 + Math.sin(t * 0.35) * 0.5;                          // fulfillment breathes → colour shift
+  orb.setFulfillment(f);
+  orbHalo.material.opacity = 0.08 + f * 0.06;
+  orbLight.intensity = 2.4 + f * 1.6;
+});
+
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'abstract', overhead: { ax: 30, az: 30, cz: 0 },
   items: [
+    { id: 'orb', label: 'Energy Orb', obj: orbGroup },
     { id: 'entities', label: 'Entities', obj: _ents },
     { id: 'paints', label: 'Your paint', obj: paints },
   ],

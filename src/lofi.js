@@ -9,7 +9,9 @@ import { buildDJDeck } from './scene/djdeck.js';
 // SURREAL LO-FI ROOM — a cozy dreamscape for the lo-fi tapes. Mismatched
 // furniture on a warm rug under kaleidoscopic skies, clouds wearing headphones
 // drifting overhead, vinyl spinning in the air, and a playable BEAT-PAD (real
-// Web Audio) so you can tap out lo-fi live. Tap the turntable to start a loop.
+// Web Audio) so you can tap out lo-fi live. Tap the turntable and an endless
+// GENERATIVE lo-fi track builds itself in Web Audio — evolving chords, swung
+// boom-bap, walking bass, sparse melody + vinyl crackle. Never the same twice.
 
 const canvas = document.getElementById('scene');
 // mark this room explored (unlocks the hub's hidden door once all are found)
@@ -334,12 +336,78 @@ function tap(sx, sy) {
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -21, 21); g.z = THREE.MathUtils.clamp(g.z, -15, 21); controls.walkTo(g); }
 }
 
-const track = document.getElementById('track');
+// ================= GENERATIVE LO-FI ENGINE =================
+// An endless, ever-evolving lo-fi track built live in Web Audio (no sample loop):
+// a jazzy ii–V–I-ish progression of soft pads, a swung boom-bap groove, a walking
+// bass, sparse pentatonic melody flecks, and vinyl crackle — all through the room's
+// warm lowpass. A lookahead scheduler queues notes on the audio clock so timing is
+// rock-solid regardless of frame rate.
+const BPM = 74, SPB = 60 / BPM, STEP = SPB / 4;    // chill tempo, 16th-note grid
+const A2 = 110, hz = (semi) => A2 * Math.pow(2, semi / 12);
+// Am7 · Dm7 · G7 · Cmaj7 — one bar each, then loops (roots as semitones from A)
+const PROG = [
+  { root: 0, chord: [0, 3, 7, 10] },
+  { root: 5, chord: [0, 3, 7, 10] },
+  { root: 10, chord: [0, 4, 7, 10] },
+  { root: 3, chord: [0, 4, 7, 11] },
+];
+const PENT = [0, 3, 5, 7, 10, 12];
+let genTimer = null, step16 = 0, nextTime = 0;
+let crackleSrc = null;
+
+function atTone(freq, dur, type, gainv, at, det = 8) {
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.value = freq; o.detune.value = (Math.random() - 0.5) * det;
+  g.gain.setValueAtTime(0.0001, at); g.gain.linearRampToValueAtTime(gainv, at + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+  o.connect(g); g.connect(filt); o.start(at); o.stop(at + dur + 0.03);
+}
+function atPad(freq, dur, at, gainv) {
+  const o = actx.createOscillator(), o2 = actx.createOscillator(), g = actx.createGain(), g2 = actx.createGain();
+  o.type = 'triangle'; o2.type = 'sine'; o.frequency.value = freq; o2.frequency.value = freq * 2.002; o.detune.value = (Math.random() - 0.5) * 5;
+  g2.gain.value = 0.25; o2.connect(g2); g2.connect(g);
+  g.gain.setValueAtTime(0.0001, at); g.gain.linearRampToValueAtTime(gainv, at + 0.4); g.gain.setValueAtTime(gainv, at + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+  o.connect(g); g.connect(filt); o.start(at); o.stop(at + dur + 0.05); o2.start(at); o2.stop(at + dur + 0.05);
+}
+function atDrum(kind, at) {
+  if (kind === 'kick') { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.setValueAtTime(150, at); o.frequency.exponentialRampToValueAtTime(45, at + 0.12); g.gain.setValueAtTime(0.8, at); g.gain.exponentialRampToValueAtTime(0.001, at + 0.2); o.connect(g); g.connect(filt); o.start(at); o.stop(at + 0.22); return; }
+  const src = actx.createBufferSource(); src.buffer = noise(); const g = actx.createGain(), bp = actx.createBiquadFilter();
+  if (kind === 'snare') { bp.type = 'highpass'; bp.frequency.value = 1200; g.gain.setValueAtTime(0.42, at); g.gain.exponentialRampToValueAtTime(0.001, at + 0.18); }
+  else { bp.type = 'highpass'; bp.frequency.value = 7000; g.gain.setValueAtTime(0.18, at); g.gain.exponentialRampToValueAtTime(0.001, at + 0.05); }
+  src.connect(bp); bp.connect(g); g.connect(filt); src.start(at); src.stop(at + 0.2);
+}
+function scheduleStep(at, s16) {
+  const barStep = s16 % 16, bar = Math.floor(s16 / 16) % PROG.length, ch = PROG[bar];
+  const swing = (barStep % 2 === 1) ? STEP * 0.18 : 0;   // lay the offbeats back a touch
+  const t = at + swing;
+  if (barStep % 4 === 0) atDrum('kick', at);
+  if (barStep === 6 && Math.random() < 0.5) atDrum('kick', at);   // occasional ghost kick
+  if (barStep === 4 || barStep === 12) atDrum('snare', at);
+  if (barStep % 2 === 1) atDrum('hat', t);
+  if (barStep === 0) { atTone(hz(ch.root - 12), 1.3 * SPB, 'sine', 0.34, at); for (const iv of ch.chord) atPad(hz(ch.root + 12 + iv), 3.9 * SPB, at, 0.085); }
+  if (barStep === 8) atTone(hz(ch.root - 12 + (Math.random() < 0.5 ? 7 : 5)), 0.9 * SPB, 'sine', 0.30, at);
+  if (barStep % 4 === 2 && Math.random() < 0.45) { const n = PENT[(Math.random() * PENT.length) | 0]; atTone(hz(ch.root + 24 + n), 0.45, Math.random() < 0.5 ? 'triangle' : 'sine', 0.15, t); }
+}
+function genTick() {
+  if (!actx) return;
+  while (nextTime < actx.currentTime + 0.12) { scheduleStep(nextTime, step16); step16++; nextTime += STEP; }
+}
+function startCrackle() {
+  if (crackleSrc) return;
+  const n = (actx.sampleRate * 2) | 0, buf = actx.createBuffer(1, n, actx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() < 0.006 ? (Math.random() * 2 - 1) : 0) * 0.6 + (Math.random() * 2 - 1) * 0.02;  // pops + soft hiss
+  crackleSrc = actx.createBufferSource(); crackleSrc.buffer = buf; crackleSrc.loop = true;
+  const hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 700;
+  const cg = actx.createGain(); cg.gain.value = 0.16;
+  crackleSrc.connect(hp); hp.connect(cg); cg.connect(filt); crackleSrc.start();
+}
+function stopCrackle() { if (crackleSrc) { try { crackleSrc.stop(); } catch (e) {} crackleSrc.disconnect(); crackleSrc = null; } }
+
 function toggleTrack() {
   ensureAudio();
   trackOn = !trackOn;
-  if (track) { if (trackOn) { track.volume = 0.45; track.play().catch(() => {}); } else track.pause(); }
-  const np = document.getElementById('np'); if (np) np.innerHTML = trackOn ? 'now spinning: <b>lo-fi loop</b>' : 'turntable: <b>stopped</b>';
+  if (trackOn) { step16 = 0; nextTime = actx.currentTime + 0.1; startCrackle(); genTick(); genTimer = setInterval(genTick, 25); }
+  else { if (genTimer) { clearInterval(genTimer); genTimer = null; } stopCrackle(); }
+  const np = document.getElementById('np'); if (np) np.innerHTML = trackOn ? 'now spinning: <b>generative lo-fi</b>' : 'turntable: <b>stopped</b>';
 }
 
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); });
@@ -385,7 +453,7 @@ document.getElementById('enterBtn').onclick = () => {
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
-if (import.meta.env.DEV) window.__lf = { controls, scene, pads };
+if (import.meta.env.DEV) window.__lf = { controls, scene, pads, toggleTrack, playPad, get trackOn() { return trackOn; } };
 
 if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('shot')) {
   window.__world = { THREE, scene, camera, renderer };
