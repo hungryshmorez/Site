@@ -116,19 +116,26 @@ export function buildTrash(scene, {
     mesh.position.y = 0.11;
     g.add(mesh);
 
-    // faint glint so a keen eye can spot it without it screaming "game object"
+    // a soft beacon so every piece is findable across the grounds: a bright
+    // twinkle plus a faint vertical shaft of light rising off it (dim enough not
+    // to scream "game object", tall enough to catch your eye from a distance).
     const glint = new THREE.Mesh(
-      new THREE.SphereGeometry(0.045, 8, 8),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false })
+      new THREE.SphereGeometry(0.06, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false })
     );
     glint.position.y = 0.3; g.add(glint);
+    const beam = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.02, 0.13, 1.5, 8, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0x9af7d0, transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+    );
+    beam.position.y = 0.78; g.add(beam);
 
     // generous invisible proxy so it's easy to tap
     const proxy = new THREE.Mesh(new THREE.SphereGeometry(0.55, 8, 8), new THREE.MeshBasicMaterial({ visible: false }));
     proxy.position.y = 0.2; g.add(proxy);
 
     root.add(g);
-    const piece = { idx: i, kind, group: g, glint, proxy, pos: new THREE.Vector3(p[0], 0, p[1]), taken: false, phase: Math.random() * 6.283 };
+    const piece = { idx: i, kind, group: g, glint, beam, proxy, pos: new THREE.Vector3(p[0], 0, p[1]), taken: false, phase: Math.random() * 6.283 };
     proxy.userData.piece = piece;
     // already cleaned on a past visit → keep it gone
     if (dumpedIdx.has(i)) { piece.taken = true; g.visible = false; }
@@ -186,8 +193,10 @@ export function buildTrash(scene, {
       if (piece.taken) continue;
       // slow spin + twinkle so it catches the eye at the right angle
       piece.group.rotation.y += dt * 0.3;
-      piece.glint.material.opacity = 0.35 + 0.4 * (0.5 + 0.5 * Math.sin(time * 2.2 + piece.phase));
-      piece.glint.scale.setScalar(0.8 + 0.5 * Math.sin(time * 2.2 + piece.phase));
+      const tw = 0.5 + 0.5 * Math.sin(time * 2.2 + piece.phase);
+      piece.glint.material.opacity = 0.4 + 0.45 * tw;
+      piece.glint.scale.setScalar(0.8 + 0.5 * tw);
+      piece.beam.material.opacity = 0.1 + 0.14 * tw;
       // proximity pickup
       if (playerPos && playerPos.distanceTo(piece.pos) < reach) pickup(piece);
     }

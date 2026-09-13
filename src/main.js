@@ -6,6 +6,7 @@ import { spawnDancer } from './scene/dancers.js';
 import { createIntro } from './scene/intro.js';
 import { buildCharacters } from './scene/characters.js';
 import { buildTrash } from './scene/trash.js';
+import { buildLitter } from './scene/litter.js';
 import { buildDealer } from './scene/dealer.js';
 import { buildBoard } from './scene/board.js';
 import { NEWS } from './data/news.js';
@@ -233,6 +234,13 @@ const crowd = buildCrowd(scene, {
 });
 // featured Samba dancers up on the stage deck (top at y=1.6), facing the crowd
 const STAGE_Z = festival.stageZ;
+
+// festival-aftermath ground litter (decorative confetti + debris) — keeps clear
+// of the stage front and the spawn so it reads as grime, not clutter
+buildLitter(scene, {
+  count: 460, area: [50, 52], center: [0, -2],
+  avoid: [[0, STAGE_Z + 4, 12], [0, 24, 6], DUMPSTER_POS.concat(4)],
+});
 const dancers = [];
 if (!reduceMotion) {
   for (const dx of [-9, -4.5, 0, 4.5, 9]) {
@@ -1146,7 +1154,7 @@ function snapshot() {
 
 // dev-only debug bridge for automated testing (stripped from production builds)
 if (import.meta.env.DEV) window.__dbg = {
-  controls, trash, dealer, enterDestination, buyDrug, reachDealer,
+  controls, trash, dealer, orbs, enterDestination, buyDrug, reachDealer,
   enterLabPortal, startZoom, exitPortal, portalState: () => ({ mode, zoomProg, warping }),
   openBoard, closeBoard, djbooth, trippycam, toggleTrippyCam, snapshot,
 };
