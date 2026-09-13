@@ -296,10 +296,48 @@ controls.groundAt = (x, z) => {
   return 0;
 };
 
+// ---- rooftop mechanical plant: HVAC units, a water tank, vents + a dish ----
+const _mech = (() => {
+  const g = new THREE.Group(); scene.add(g);
+  const metal = std({ color: 0x3a3f48, metalness: 0.6, roughness: 0.5 });
+  const dark = std({ color: 0x1a1e26, roughness: 0.8, metalness: 0.3 });
+  // HVAC condensers with spinning fan grilles
+  const fans = [];
+  const hvac = (x, z, ry) => {
+    const u = new THREE.Group(); u.position.set(x, 0, z); u.rotation.y = ry; g.add(u);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.4, 1.6), metal); box.position.y = 0.7; box.castShadow = true; u.add(box);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.06, 8, 20), dark); rim.rotation.x = Math.PI / 2; rim.position.set(0, 1.42, 0); u.add(rim);
+    const fan = new THREE.Group(); fan.position.set(0, 1.44, 0); u.add(fan);
+    for (let i = 0; i < 4; i++) { const bl = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.02, 0.16), dark); bl.rotation.y = i * Math.PI / 2; fan.add(bl); }
+    fans.push(fan);
+    // side louvres
+    for (let i = 0; i < 4; i++) { const lv = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.06, 0.02), dark); lv.position.set(0, 0.35 + i * 0.22, 0.81); u.add(lv); }
+  };
+  hvac(-12, -10, 0.3); hvac(-12.5, -6, -0.2); hvac(12, -11, -0.4);
+  // rooftop water tank on a steel frame
+  const tank = new THREE.Group(); tank.position.set(12.5, 0, 6); g.add(tank);
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 2.4, 16), std({ color: 0x5a4632, roughness: 0.9 })); barrel.position.y = 3.4; barrel.castShadow = true; tank.add(barrel);
+  const coneTop = new THREE.Mesh(new THREE.ConeGeometry(1.6, 0.8, 16), dark); coneTop.position.y = 5.0; tank.add(coneTop);
+  for (const [lx, lz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 2.3, 6), metal); leg.position.set(lx, 1.15, lz); tank.add(leg); }
+  // vent pipes
+  for (const [x, z, h] of [[-13, 2, 2.2], [-13.4, 4, 1.4], [10, -6, 1.8]]) {
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, h, 10), metal); p.position.set(x, h / 2, z); g.add(p);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.14, 10), dark); cap.position.set(x, h + 0.1, z); g.add(cap);
+  }
+  // satellite dish
+  const dishG = new THREE.Group(); dishG.position.set(-11.5, 0, 8); dishG.rotation.y = -0.6; g.add(dishG);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.6, 8), metal); mast.position.y = 0.8; dishG.add(mast);
+  const dish = new THREE.Mesh(new THREE.SphereGeometry(0.9, 16, 12, 0, Math.PI * 2, 0, Math.PI / 3), std({ color: 0xc8ccd4, metalness: 0.4, roughness: 0.5, side: THREE.DoubleSide })); dish.position.set(0, 1.5, 0); dish.rotation.x = 1.1; dishG.add(dish);
+  const feed = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6, 6), dark); feed.position.set(0, 1.7, 0.5); feed.rotation.x = 0.6; dishG.add(feed);
+  updaters.push((dt) => { for (const f of fans) f.rotation.y += dt * 5; });
+  return g;
+})();
+
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'rooftop', overhead: { ax: 30, az: 26, cz: -2 },
   items: [
     { id: 'dressing', label: 'Roof dressing', obj: _dress },
+    { id: 'mech', label: 'HVAC / tank', obj: _mech },
     { id: 'seating', label: 'Seating', obj: _seat },
     { id: 'holos', label: 'Holo art', obj: _holo },
     { id: 'board', label: 'Soundboard', obj: _board },
