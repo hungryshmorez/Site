@@ -4,6 +4,7 @@ import { buildLoopDoors } from '../data/loop.js';
 import { buildDJDeck } from './djdeck.js';
 import { addMotes, addHaze } from './ambientfx.js';
 import { createAdmin } from './admin.js';
+import { buildRoomDetail } from './roomdetail.js';
 
 // Boilerplate for a simple walkable LOOP room: renderer + scene + camera, first-person
 // controls, the back/forward loop doors, a DJ deck, drag-look + tap-to-walk input, the
@@ -36,7 +37,7 @@ export function createRoom({
   id, hook = '__room', fog = null, exposure = 1.2,
   bounds = 13, zMin = -13, spawn = [0, 1.6, 11], yaw = 0,
   backAt, nextAt, deckAt, deckColor = 0x00f3ff,
-  motes = null, haze = null, accent = null,
+  motes = null, haze = null, accent = null, detail = true,
 }) {
   const canvas = document.getElementById('scene');
   try { const K = '12m.explored'; const s = new Set(JSON.parse(localStorage.getItem(K) || '[]')); s.add(id); localStorage.setItem(K, JSON.stringify([...s])); } catch (e) {}
@@ -57,6 +58,21 @@ export function createRoom({
   const adminItems = [];
   loopDoors.forEach((d, i) => adminItems.push({ id: 'loopdoor_' + i, label: d.label || ('door ' + i), obj: d.group }));
   if (deck && deck.group) adminItems.push({ id: 'deck', label: 'DJ DECK', obj: deck.group });
+
+  // shared backstage/warehouse dressing (crates, road cases, amps, cable runs…)
+  // hugging the walls, clear of the doors, deck and spawn — gives every loop room
+  // a lived-in feel. Skip with detail:false.
+  if (detail !== false) {
+    const avoid = [
+      backAt ? [backAt[0], backAt[1], 3.5] : null,
+      nextAt ? [nextAt[0], nextAt[1], 3.5] : null,
+      deckAt ? [deckAt[0], deckAt[1], 3] : null,
+      [spawn[0], spawn[2], 3.5],
+    ].filter(Boolean);
+    const rd = buildRoomDetail(scene, { bounds, zMin, accent: accent || deckColor, avoid });
+    adminItems.push({ id: 'dressing', label: 'ROOM DRESSING', obj: rd.group });
+  }
+
   const admin = createAdmin({ scene, camera, renderer, controls, worldId: id, items: adminItems, overhead: { ax: bounds * 2.4, az: bounds * 2.4, cz: (zMin + bounds) / 2 } });
   // ambient atmosphere — floating motes + optional low haze
   if (motes) updaters.push(addMotes(scene, { color: 0xbfc8ff, count: 130, area: [24, 10, 24], center: [0, 4, 0], rise: 0.28, opacity: 0.4, ...motes }));
