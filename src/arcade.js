@@ -129,6 +129,49 @@ const pillEl = document.getElementById('pill'); if (pillEl) pillEl.style.display
 const controls = new WalkControls(camera, { bounds: 19, eye: 1.6, zMin: -17 });
 controls.pos.set(0, 1.6, 13); controls.yaw = 0;
 
+// ---------- detail pass: carnival midway dressing ----------
+const _midway = (() => {
+  const g = new THREE.Group(); scene.add(g);
+  const PAL = [0xff0055, 0x00f3ff, 0x39ff14, 0xffd24a, 0xb967ff];
+  // pennant bunting strung in swags between poles overhead
+  const bunt = (x1, z1, x2, z2, sag = 1.6, y = 5.2) => {
+    const n = 10;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n; const x = x1 + (x2 - x1) * t, z = z1 + (z2 - z1) * t;
+      const yy = y - Math.sin(t * Math.PI) * sag;
+      if (i < n) { const tri = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.5, 3), new THREE.MeshBasicMaterial({ color: PAL[i % PAL.length], side: THREE.DoubleSide })); tri.position.set(x, yy - 0.28, z); tri.rotation.x = Math.PI; g.add(tri); }
+    }
+    // the cord
+    const pts = []; for (let i = 0; i <= n; i++) { const t = i / n; pts.push(new THREE.Vector3(x1 + (x2 - x1) * t, y - Math.sin(t * Math.PI) * sag, z1 + (z2 - z1) * t)); }
+    const cord = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 20, 0.02, 5, false), new THREE.MeshBasicMaterial({ color: 0x14141c })); g.add(cord);
+  };
+  bunt(-17, -14, 0, 2); bunt(0, 2, 17, -14); bunt(-17, 6, 17, 6, 2.2);
+  // a striped PRIZE BOOTH with a plush-toy shelf
+  {
+    const u = new THREE.Group(); u.position.set(-11, 0, 4); u.rotation.y = 0.5; g.add(u);
+    const counter = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.1, 1.1), std({ color: 0xe8e4d8, roughness: 0.7 })); counter.position.y = 0.55; counter.castShadow = true; u.add(counter);
+    for (let i = 0; i < 8; i++) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.1, 0.05), std({ color: i % 2 ? 0xff0055 : 0xffffff })); s.position.set(-1.4 + i * 0.4, 0.55, 0.56); u.add(s); }
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.1, 0.6), std({ color: 0x3a2a1a, roughness: 0.8 })); shelf.position.set(0, 2.0, -0.4); u.add(shelf);
+    for (let i = 0; i < 6; i++) { const plush = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), std({ color: PAL[i % PAL.length], roughness: 0.9 })); plush.scale.set(1, 1.3, 1); plush.position.set(-1.3 + i * 0.52, 2.35, -0.4); u.add(plush); const ear = plush.clone(); ear.scale.set(0.4, 0.5, 0.4); ear.position.y += 0.28; ear.position.x -= 0.1; u.add(ear); }
+    const sign = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.6, 0.1), std({ color: 0x0a0a12, emissive: C(0xffd24a), emissiveIntensity: 0.7 })); sign.position.set(0, 2.9, -0.4); u.add(sign);
+    const gl = new THREE.PointLight(0xffd24a, 3, 12, 2); gl.position.set(0, 2.6, 1); u.add(gl);
+  }
+  // popcorn / snack cart
+  {
+    const u = new THREE.Group(); u.position.set(11, 0, 6); u.rotation.y = -0.6; g.add(u);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.2, 1.1), std({ color: 0xd11e2a, roughness: 0.6 })); box.position.y = 0.9; box.castShadow = true; u.add(box);
+    const glass = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.9, 0.9), new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.25 })); glass.position.y = 1.9; u.add(glass);
+    for (let i = 0; i < 16; i++) { const pop = new THREE.Mesh(new THREE.IcosahedronGeometry(0.08, 0), std({ color: 0xfff4d0, roughness: 0.9 })); pop.position.set((Math.random() - 0.5) * 1.2, 1.6 + Math.random() * 0.5, (Math.random() - 0.5) * 0.7); u.add(pop); }
+    for (const wx of [-0.7, 0.7]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.14, 12), std({ color: 0x111118 })); w.rotation.z = Math.PI / 2; w.position.set(wx, 0.3, -0.4); u.add(w); }
+    const sign = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.4, 0.06), std({ color: 0x0a0a12, emissive: C(0xff0055), emissiveIntensity: 0.7 })); sign.position.set(0, 2.6, 0.5); u.add(sign);
+    const gl = new THREE.PointLight(0xff6b35, 2.4, 9, 2); gl.position.set(0, 2, 0.8); u.add(gl);
+  }
+  // a couple of hay bales + a barrel for that fairground feel
+  for (const [x, z] of [[-6, 9], [5, 10]]) { const hay = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 1.2, 14), std({ color: 0xcaa74a, roughness: 1 })); hay.rotation.z = Math.PI / 2; hay.position.set(x, 0.6, z); hay.castShadow = true; g.add(hay); }
+  return g;
+})();
+adminItems.push({ id: 'midway', label: 'CARNIVAL DRESSING', obj: _midway });
+
 // ---------- layout editor: rearrange the cabinets (✎ / `~`) ----
 admin = createAdmin({ scene, camera, renderer, controls, worldId: 'arcade', items: adminItems, overhead: { ax: 42, az: 42, cx: 0, cz: 0 } });
 
