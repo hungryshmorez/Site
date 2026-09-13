@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { createAdmin } from './scene/admin.js';
+import { createAmbience, AMBIENCE } from './audio/ambience.js';
 
 // THE GALLERY — a quiet walkable museum. Marble hall, framed pieces down both
 // long walls (portraits of the roster + the worlds beyond the festival), a
@@ -405,8 +406,10 @@ addEventListener('resize', () => {
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
+const ambience = createAmbience(AMBIENCE.museum);
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
+  ambience.start();
   if (!running) { running = true; clock.start(); frame(); }
 };
 

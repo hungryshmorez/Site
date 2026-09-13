@@ -5,6 +5,7 @@ import { createAdmin } from './scene/admin.js';
 import { buildLoopDoors } from './data/loop.js';
 import { buildDJDeck } from './scene/djdeck.js';
 import { buildEnergyOrb } from './scene/energyorb.js';
+import { createAmbience, AMBIENCE } from './audio/ambience.js';
 
 // ABSTRACT PSYCHEDELIC — a swirling immersive void. The dome and floor are living
 // shaders that shift with where you stand, glowing entities drift past, and every
@@ -226,8 +227,10 @@ function frame() {
 controls.update(0);
 renderer.render(scene, camera);
 
+const ambience = createAmbience(AMBIENCE.abstract);
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
+  ambience.start();
   if (!running) { running = true; clock.start(); frame(); }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });

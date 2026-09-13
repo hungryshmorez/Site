@@ -13,6 +13,7 @@ import { spawnMannequin } from './scene/mannequin.js';
 import { createAdmin } from './scene/admin.js';
 import { buildStreetProps } from './scene/streetprops.js';
 import { buildLitter } from './scene/litter.js';
+import { createAmbience, AMBIENCE } from './audio/ambience.js';
 
 // THE BLOCK — the games city. Loads the real modern_block city model (with its
 // plazas + park) and lets you walk it; the physical (non-video) games live here
@@ -276,7 +277,8 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) cloc
 
 document.getElementById('raceBtn').onclick = () => toRacetrack();
 document.getElementById('backBtn').onclick = () => { const w = document.getElementById('warp'); if (w) w.classList.add('go'); setTimeout(() => { window.location.href = 'warehouse.html'; }, 460); };
-document.getElementById('enterBtn').onclick = () => { document.getElementById('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); } };
+const ambience = createAmbience(AMBIENCE.gamecity);
+document.getElementById('enterBtn').onclick = () => { document.getElementById('start').classList.add('gone'); ambience.start(); if (!running) { running = true; clock.start(); frame(); } };
 
 controls.update(0);
 renderer.render(scene, camera);

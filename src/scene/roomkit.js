@@ -5,6 +5,7 @@ import { buildDJDeck } from './djdeck.js';
 import { addMotes, addHaze } from './ambientfx.js';
 import { createAdmin } from './admin.js';
 import { buildRoomDetail } from './roomdetail.js';
+import { createAmbience, AMBIENCE } from '../audio/ambience.js';
 
 // Boilerplate for a simple walkable LOOP room: renderer + scene + camera, first-person
 // controls, the back/forward loop doors, a DJ deck, drag-look + tap-to-walk input, the
@@ -37,7 +38,7 @@ export function createRoom({
   id, hook = '__room', fog = null, exposure = 1.2,
   bounds = 13, zMin = -13, spawn = [0, 1.6, 11], yaw = 0,
   backAt, nextAt, deckAt, deckColor = 0x00f3ff,
-  motes = null, haze = null, accent = null, detail = true,
+  motes = null, haze = null, accent = null, detail = true, ambience = null,
 }) {
   const canvas = document.getElementById('scene');
   try { const K = '12m.explored'; const s = new Set(JSON.parse(localStorage.getItem(K) || '[]')); s.add(id); localStorage.setItem(K, JSON.stringify([...s])); } catch (e) {}
@@ -113,8 +114,10 @@ export function createRoom({
     renderer.render(scene, admin.active ? admin.cam : camera);
   }
   controls.update(0); renderer.render(scene, camera);
+  // generative ambient bed (started on the ENTER gesture)
+  const amb = ambience ? createAmbience(AMBIENCE[ambience] || {}) : null;
   const startEl = document.getElementById('enterBtn');
-  const begin = () => { document.getElementById('start')?.classList.add('gone'); if (!running) { running = true; clock.start(); frame(); } };
+  const begin = () => { document.getElementById('start')?.classList.add('gone'); if (amb) amb.start(); if (!running) { running = true; clock.start(); frame(); } };
   if (startEl) startEl.onclick = begin; else begin();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 

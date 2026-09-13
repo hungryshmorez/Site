@@ -59,4 +59,11 @@ export const AMBIENCE = {
   studio: { noise: 'white', filterType: 'bandpass', freq: 3200, q: 1.3, vol: 0.05, lfo: 3, lfoAmt: 1800 }, // glitchy static
   tanky: { noise: 'brown', filterType: 'lowpass', freq: 620, vol: 0.09, lfo: 0.07, lfoAmt: 320 }, // desert night wind
   shmorez: { noise: 'brown', filterType: 'lowpass', freq: 950, vol: 0.09, lfo: 0.1, lfoAmt: 250, crackle: true }, // campfire crackle
+  // ---- complex + hub worlds ----
+  gamecity: { noise: 'brown', filterType: 'lowpass', freq: 340, vol: 0.09, lfo: 0.08, lfoAmt: 180, drone: [48, 72], droneVol: 0.04 }, // city traffic rumble + hum
+  museum: { noise: 'white', filterType: 'lowpass', freq: 420, vol: 0.035, lfo: 0.05, lfoAmt: 120, drone: [98, 146.8], droneVol: 0.022 }, // quiet gallery room tone
+  abstract: { noise: 'white', filterType: 'bandpass', freq: 1200, q: 0.6, vol: 0.05, lfo: 0.1, lfoAmt: 700, drone: [65.4, 98, 130.8, 196], droneVol: 0.045 }, // cosmic shimmer pad
+  greenroom: { noise: 'brown', filterType: 'lowpass', freq: 700, vol: 0.06, lfo: 0.06, lfoAmt: 150, drone: [98, 146.8], droneVol: 0.03 }, // warm backstage room tone
+  gameroom: { noise: 'white', filterType: 'bandpass', freq: 2200, q: 0.8, vol: 0.035, lfo: 1.5, lfoAmt: 500, drone: [65.4, 98], droneVol: 0.03 }, // neon arcade electric hum
+  utility: { noise: 'white', filterType: 'bandpass', freq: 1600, q: 0.5, vol: 0.035, lfo: 0.5, lfoAmt: 300, drone: [50, 100], droneVol: 0.04 }, // control-room server hum
 };
