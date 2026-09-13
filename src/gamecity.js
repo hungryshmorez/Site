@@ -11,6 +11,8 @@ import { createGameZones } from './scene/gamezones.js';
 import { openWindow } from './ui/popup.js';
 import { spawnMannequin } from './scene/mannequin.js';
 import { createAdmin } from './scene/admin.js';
+import { buildStreetProps } from './scene/streetprops.js';
+import { buildLitter } from './scene/litter.js';
 
 // THE BLOCK — the games city. Loads the real modern_block city model (with its
 // plazas + park) and lets you walk it; the physical (non-video) games live here
@@ -153,8 +155,18 @@ function buildGames(spawn) {
   gamezones.register({ id: 'gallery', label: 'Shooting Gallery', emoji: '🎯', accent: '#ff0055', near: (pp) => gallery.near(pp), spotFn: () => ({ pos: [sx + 14, sz - 4], yaw: Math.PI }), play: (cam) => gallery.shoot(cam) });
   gamezones.register({ id: 'dunk', label: 'Dunk Tank', emoji: '💦', accent: '#00f3ff', near: (pp) => dunktank.near(pp), spotFn: () => ({ pos: [sx, sz - 12], yaw: Math.PI }), play: (cam) => dunktank.throwBall(cam) });
 
-  // ---- layout editor: rearrange the games + car (✎ button / `~` key) ----
+  // ---- detail pass: street furniture + litter dressing across the plaza ----
   const r = cityBounds ? cityBounds.r : 48;
+  const avoid = [
+    [sx - 14, sz - 10, 4], [sx + 14, sz - 10, 4], [sx, sz - 18, 4], [sx - 16, sz + 6, 4], // games
+    [sx + 9, sz + 14, 5], [sx + 12, sz + 15, 3],                                            // car + marshal
+    [sx, sz, 5],                                                                            // spawn
+  ];
+  const props = buildStreetProps(scene, { groundY, center: [sx, sz], radius: Math.min(r, 40), accent: 0x39ff14, avoid });
+  adminItems.push({ id: 'streetprops', label: 'STREET FURNITURE', obj: props.group });
+  buildLitter(scene, { count: 260, area: [r * 1.8, r * 1.8], center: [sx, sz], y: (groundY(sx, sz, 400) ?? 0) + 0.03, avoid, colors: ['#ffffff', '#39ff14', '#ff6b35', '#00f3ff', '#ffd24a', '#b0b4bc'] });
+
+  // ---- layout editor: rearrange the games + car (✎ button / `~` key) ----
   admin = createAdmin({ scene, camera, renderer, controls, worldId: 'gamecity', items: adminItems, overhead: { ax: r * 2, az: r * 2, cx: sx, cz: sz } });
 }
 
