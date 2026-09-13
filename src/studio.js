@@ -226,11 +226,51 @@ addBaseboard(scene, updaters, { color: 0x39ff14, x0: -15, x1: 15, z0: -15, z1: 1
 const KEEP = 4.2; // can't walk into the TV pile
 
 const epkRef = { url: EPK_URL };
+// ---------- detail pass: scattered CRTs, server racks + cable piles ----------
+const _gear = (() => {
+  const g = new THREE.Group(); scene.add(g);
+  const dark = std({ color: 0x0c0d14, roughness: 0.7, metalness: 0.2 });
+  const plastic = std({ color: 0x1a1c22, roughness: 0.6 });
+  const scrMat = (col) => new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending });
+  const scrs = [];
+  // a stray CRT set (box + curved-ish glowing screen)
+  const crt = (x, z, ry, col) => {
+    const u = new THREE.Group(); u.position.set(x, 0, z); u.rotation.y = ry; g.add(u);
+    const s = 0.7 + Math.random() * 0.5;
+    const body = new THREE.Mesh(new THREE.BoxGeometry(s * 1.3, s * 1.1, s), plastic); body.position.y = s * 0.55; body.castShadow = true; u.add(body);
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(s * 1.0, s * 0.78), scrMat(col)); scr.position.set(0, s * 0.6, s * 0.51); u.add(scr); scrs.push(scr);
+    return u;
+  };
+  const cols = [0x39ff14, 0x00f3ff, 0xff2bd0, 0xffe08a];
+  [[-13, 8], [-13.5, 11], [12, -9], [13, 10], [-6, -12], [8, 12]].forEach(([x, z], i) => crt(x, z, Math.atan2(-x, -z) + (Math.random() - 0.5), cols[i % cols.length]));
+  // server racks with blinking LED columns
+  const leds = [];
+  const rack = (x, z, ry) => {
+    const u = new THREE.Group(); u.position.set(x, 0, z); u.rotation.y = ry; g.add(u);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1.2, 3.2, 1.0), dark); box.position.y = 1.6; box.castShadow = true; u.add(box);
+    for (let r = 0; r < 8; r++) { const bay = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.28, 0.02), std({ color: 0x05060a, emissive: C(0x0a3a2a), emissiveIntensity: 0.3 })); bay.position.set(0, 0.5 + r * 0.34, 0.51); u.add(bay); }
+    for (let i = 0; i < 10; i++) { const led = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 6), new THREE.MeshBasicMaterial({ color: 0x39ff14 })); led.position.set(-0.45 + (i % 3) * 0.06, 0.6 + i * 0.25, 0.53); u.add(led); leds.push(led); }
+    return u;
+  };
+  rack(-14, -4, Math.PI / 2); rack(-14, -1.6, Math.PI / 2);
+  // tangled cable piles
+  for (const [x, z] of [[10, 6], [-9, 10], [6, -11]]) {
+    const pile = new THREE.Group(); pile.position.set(x, 0, z); g.add(pile);
+    for (let i = 0; i < 4; i++) { const loop = new THREE.Mesh(new THREE.TorusGeometry(0.3 + Math.random() * 0.2, 0.05, 6, 16), std({ color: 0x0a0a0e, roughness: 0.8 })); loop.rotation.set(Math.PI / 2 + Math.random() * 0.5, Math.random(), 0); loop.position.set((Math.random() - 0.5) * 0.4, 0.06 + i * 0.03, (Math.random() - 0.5) * 0.4); pile.add(loop); }
+  }
+  updaters.push((dt, t) => {
+    for (let i = 0; i < scrs.length; i++) scrs[i].material.opacity = 0.4 + 0.4 * (0.5 + 0.5 * Math.sin(t * (3 + i) + i));
+    for (let i = 0; i < leds.length; i++) leds[i].material.color.setHSL(0.33, 0.9, 0.3 + 0.35 * (Math.sin(t * 6 + i * 1.7) > 0.3 ? 1 : 0.2));
+  });
+  return g;
+})();
+
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'studio', overhead: { ax: 18, az: 13, cz: 2 },
   items: [
     { id: 'studio', label: '12matt3r', obj: fig.group },
     { id: 'monument', label: 'CRT monument / EPK', obj: _monument, dest: epkRef },
+    { id: 'gear', label: 'STUDIO GEAR', obj: _gear },
   ],
 });
 

@@ -245,12 +245,63 @@ const loopDoors = buildLoopDoors(scene, 'horrorcore', { back: [0, 10, Math.PI], 
 const deck = buildDJDeck(scene, { x: 9, z: 3, ry: -Math.PI / 2, color: 0xff2b2b });
 addBaseboard(scene, updaters, { color: 0xff2b2b, x0: -11.5, x1: 11.5, z0: -16, z1: 9 });
 
+// ---------- detail pass: bare bulbs, barrels, hooks, a lone chair, sheeting ----------
+const _horror = (() => {
+  const g = new THREE.Group(); scene.add(g);
+  const rust = std({ color: 0x3a2418, roughness: 0.95, metalness: 0.3 });
+  const metal = std({ color: 0x24262c, metalness: 0.7, roughness: 0.5 });
+  const wood = std({ color: 0x2a1d12, roughness: 0.9 });
+  const flickers = [];
+  // a bare bulb on a wire from the ceiling, with its own sickly flickering light
+  const bulb = (x, z) => {
+    const u = new THREE.Group(); u.position.set(x, 0, z); g.add(u);
+    const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, CEIL - 1.2, 4), new THREE.MeshBasicMaterial({ color: 0x0a0a0a })); wire.position.y = (CEIL + 1.2) / 2; u.add(wire);
+    const bb = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffe6c0 })); bb.position.y = 1.2; u.add(bb);
+    const li = new THREE.PointLight(0xffddaa, 3, 8, 2); li.position.y = 1.2; u.add(li);
+    flickers.push({ li, bb, ph: Math.random() * 10 });
+    return u;
+  };
+  bulb(-8, -4); bulb(7, -11); bulb(4, 3);
+  // rusty oil barrels, some toppled
+  const barrel = (x, z, tip) => {
+    const u = new THREE.Group(); u.position.set(x, 0, z); g.add(u);
+    const b = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.4, 16), rust); b.castShadow = true; u.add(b);
+    for (const yy of [-0.45, 0.45]) { const rib = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.04, 6, 20), metal); rib.rotation.x = Math.PI / 2; rib.position.y = yy; b.add(rib); }
+    if (tip) { u.rotation.z = Math.PI / 2 - 0.1; u.position.y = 0.5; u.rotation.y = Math.random() * Math.PI; } else b.position.y = 0.7;
+    return u;
+  };
+  barrel(-11, 2); barrel(10, 5); barrel(-9.5, 3.4, true); barrel(9, -14);
+  // a lone wooden chair, knocked slightly askew, under a bulb
+  {
+    const u = new THREE.Group(); u.position.set(-8, 0, -4.4); u.rotation.y = 0.7; g.add(u);
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.5), wood); seat.position.y = 0.5; u.add(seat);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.06), wood); back.position.set(0, 0.8, -0.22); u.add(back);
+    for (const [lx, lz] of [[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2]]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.06), wood); leg.position.set(lx, 0.25, lz); u.add(leg); }
+  }
+  // meat hooks on chains from the ceiling
+  const hook = (x, z) => {
+    const u = new THREE.Group(); u.position.set(x, 0, z); g.add(u);
+    for (let i = 0; i < 5; i++) { const link = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.02, 6, 10), metal); link.position.y = CEIL - 0.3 - i * 0.18; link.rotation.x = i % 2 ? 0 : Math.PI / 2; u.add(link); }
+    const hk = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.03, 6, 12, Math.PI * 1.4), metal); hk.position.y = CEIL - 1.5; hk.rotation.x = Math.PI / 2; u.add(hk);
+    return u;
+  };
+  hook(3, -8); hook(-4, -12);
+  // translucent hanging plastic sheeting (grimy)
+  for (const [x, z, w] of [[11, -6, 3], [-11, -9, 2.6]]) {
+    const sheet = new THREE.Mesh(new THREE.PlaneGeometry(w, CEIL - 0.4), new THREE.MeshStandardMaterial({ color: 0x9aa0a0, transparent: true, opacity: 0.14, roughness: 1, side: THREE.DoubleSide }));
+    sheet.position.set(x, (CEIL - 0.4) / 2, z); sheet.rotation.y = x > 0 ? -Math.PI / 2 : Math.PI / 2; g.add(sheet);
+  }
+  updaters.push((dt, t) => { for (const f of flickers) { const on = (Math.sin(t * 9 + f.ph) > -0.6 && Math.random() > 0.05) ? 1 : 0.1; f.li.intensity = 2.4 * on; f.bb.material.color.setScalar(0.4 + 0.6 * on); } });
+  return g;
+})();
+
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'horrorcore', overhead: { ax: 16, az: 16, cz: -5 },
   items: [
     { id: 'pipes', label: 'Pipes + drips', obj: _pipes },
     { id: 'frames', label: 'Framed scenes', obj: _frames },
     { id: 'crawl', label: 'Crawlspace + tapes', obj: _crawl },
+    { id: 'horror', label: 'HORROR PROPS', obj: _horror },
   ],
 });
 
