@@ -117,9 +117,11 @@ function buildExterior() {
   for (const lx of [-11, 0, 11]) { const wl = new THREE.PointLight(0xffcaa0, 2.4, 22, 2); wl.position.set(lx, 6, FZ + 5); g.add(wl); }
   const doorSpill = new THREE.PointLight(0x6a6cff, 4, 16, 2); doorSpill.position.set(0, 3, FZ - 2); g.add(doorSpill);
 
-  // streetlights casting long shadows over the approach
+  // streetlights lighting the walk up to the warehouse door — kept near the
+  // facade (z 22–31) and off the mid-street spawn line (z 40) so no pole ever
+  // stands between you and the loop gateways at either end of the street.
   const lamps = [];
-  for (const lx of [-15, 15]) for (const lz of [30, 40]) {
+  for (const lx of [-16, 16]) for (const lz of [22, 31]) {
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 8, 8), std({ color: 0x14161f, metalness: 0.6 })); pole.position.set(lx, 4, lz); g.add(pole);
     const armM = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 2), std({ color: 0x14161f })); armM.position.set(lx + (lx < 0 ? 1 : -1), 7.8, lz); g.add(armM);
     const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.3, 1.1), std({ color: 0x1a1c26, emissive: C(0xffdca0), emissiveIntensity: 1.2 })); head.position.set(lx + (lx < 0 ? 1.9 : -1.9), 7.7, lz); g.add(head);
@@ -400,6 +402,13 @@ function buildStreetGateways() {
       const strip = new THREE.Mesh(new THREE.BoxGeometry(0.18, H - 0.9, 0.1), new THREE.MeshBasicMaterial({ color: gt.color }));
       strip.position.set(sx + (sx < 0 ? 0.55 : -0.55), H / 2, PILLAR / 2 + 0.02); arch.add(strip);
       const up = new THREE.PointLight(gt.color, 2.4, 12, 2); up.position.set(sx, 1.2, 1.2); arch.add(up);
+      // a real streetlamp standing beside the gateway on each side, on the
+      // approach — the poles the player asked to have flank the portal
+      const lamp = new THREE.Group(); lamp.position.set(sx + (sx < 0 ? -1.7 : 1.7), 0, 2.6); arch.add(lamp);
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.17, 7.4, 8), std({ color: 0x14161f, metalness: 0.6 })); pole.position.y = 3.7; lamp.add(pole);
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 1.6), std({ color: 0x14161f })); arm.position.set(0, 7.2, -0.7); lamp.add(arm);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.28, 1.0), std({ color: 0x1a1c26, emissive: col.clone().multiplyScalar(0.9), emissiveIntensity: 1.3 })); head.position.set(0, 7.1, -1.4); lamp.add(head);
+      const ll = new THREE.PointLight(gt.color, 6, 24, 2); ll.position.set(0, 6.8, -1.4); lamp.add(ll);
     }
     // header beam + parapet spanning the opening (along local X) + a lit marquee bar
     const beam = new THREE.Mesh(new THREE.BoxGeometry(HALFW * 2 + PILLAR, 1.5, PILLAR), conc); beam.position.set(0, H - 0.2, 0); arch.add(beam);
