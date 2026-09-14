@@ -1,10 +1,17 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
 // Load the Ferrari GLB and fit it into a car group: aligns the longest
 // horizontal axis to the group's forward (+Z), scales to a target length, and
 // seats it on the ground centred at the group origin. Returns via onReady so the
-// caller can hide its procedural placeholder once the real car is in.
-export function loadFerrari(gltf, parent, { length = 4.6, flip = false, onReady, onError } = {}) {
+// caller can hide its procedural placeholder once the real car is in. Uses its
+// own loader so any world can drop in a Ferrari without wiring one up.
+const _draco = new DRACOLoader(); _draco.setDecoderPath('draco/gltf/');
+const _gltf = new GLTFLoader(); _gltf.setDRACOLoader(_draco);
+
+export function loadFerrari(parent, { length = 4.6, flip = false, onReady, onError } = {}) {
+  const gltf = _gltf;
   gltf.load('models/racing/ferrari.glb', (g) => {
     const m = g.scene;
     m.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; if (o.material) o.material.side = THREE.FrontSide; } });

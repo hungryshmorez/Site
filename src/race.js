@@ -83,7 +83,7 @@ const car = new THREE.Group();
 }
 scene.add(car);
 // swap the procedural placeholder for the real Ferrari once it loads
-loadFerrari(gltf, car, { length: 4.6, onReady: () => { for (const ch of car.children) if (ch.isMesh) ch.visible = false; } });
+loadFerrari(car, { length: 4.6, onReady: () => { for (const ch of car.children) if (ch.isMesh) ch.visible = false; } });
 
 // car state
 const cs = { pos: new THREE.Vector3(), yaw: 0, speed: 0, y: 0, pitch: 0, roll: 0 };

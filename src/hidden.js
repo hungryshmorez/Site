@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { addMotes } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
+import { loadMolecule } from './scene/molecule.js';
 
 // THE HIDDEN ROOM — the secret post-endgame sanctum. A quiet void around a humming
 // monolith, ringed by plinths that sing when touched. Paint the dark with stars.
@@ -118,6 +119,14 @@ let admin = null;
 const _monoG = buildMonolith(); adminItems.push({ id: 'monolith', label: 'THE HEART', obj: _monoG });
 buildPlinths(); plinths.forEach((p, i) => adminItems.push({ id: 'plinth_' + i, label: 'PLINTH ' + (i + 1), obj: p.grp }));
 updaters.push(addMotes(scene, { color: ACC, count: 160, area: [30, 12, 30], center: [0, 5, -3], rise: 0.2, opacity: 0.4 }));
+
+// floating molecule sculptures flanking the monolith — the sanctum's relics
+[['models/molecules/cocaine.pdb', -6.5], ['models/molecules/lsd.pdb', 6.5]].forEach(([url, dx]) => {
+  const h = new THREE.Group(); h.position.set(dx, 2.4, -3); scene.add(h);
+  h.add(new THREE.PointLight(ACC, 1.4, 8, 2));
+  loadMolecule(url, { size: 1.5, onReady: (m) => h.add(m) });
+  updaters.push((dt, t) => { h.rotation.y += dt * 0.4; h.position.y = 2.4 + Math.sin(t * 0.7 + dx) * 0.25; });
+});
 
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: 11, eye: 1.6, zMin: -14 });

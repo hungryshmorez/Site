@@ -142,7 +142,7 @@ function buildGames(spawn) {
   const carSpot = new THREE.Vector3(sx + 9, carY, sz + 14);
   const carG = new THREE.Group(); carG.position.copy(carSpot); carG.rotation.y = -0.5; scene.add(carG);
   buildParkedCar(carG);
-  loadFerrari(gltf, carG, { length: 4.6, onReady: () => { for (const ch of carG.children) if (ch.isMesh) ch.visible = false; } });
+  loadFerrari(carG, { length: 4.6, onReady: () => { for (const ch of carG.children) if (ch.isMesh) ch.visible = false; } });
   adminItems.push({ id: 'car', label: 'RACE CAR', obj: carG });
   // marshal figure standing beside the car
   const marY = groundY(sx + 12, sz + 15, 400) ?? carY;

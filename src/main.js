@@ -26,6 +26,7 @@ import { createFXPass } from './scene/fxpass.js';
 import { buildOrbs } from './scene/orbs.js';
 import { loadMolecule } from './scene/molecule.js';
 import { loadTree, loadPool } from './scene/nature.js';
+import { loadFerrari } from './scene/ferrari.js';
 import { buildVJ } from './scene/vjscreen.js';
 import { buildVJBoard } from './scene/vjboard.js';
 import { buildLaserShow } from './scene/laser.js';
@@ -252,6 +253,17 @@ loadTree({ height: 6.5, onReady: (proto) => {
   }
 } });
 loadPool({ size: 8, onReady: (m) => { m.position.set(18, 0, 16); festivalNature.add(m); } });
+
+// a Ferrari showpiece on a slow turntable + spotlight, off to one side of the grounds
+const showcar = new THREE.Group(); showcar.position.set(-18, 0, 7); scene.add(showcar);
+const showTurntable = new THREE.Group(); showTurntable.position.y = 0.35; showcar.add(showTurntable);
+{
+  const plat = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.7, 0.35, 40), new THREE.MeshStandardMaterial({ color: 0x14141c, metalness: 0.6, roughness: 0.4, emissive: new THREE.Color(0xff0055).multiplyScalar(0.25), emissiveIntensity: 0.6 }));
+  plat.position.y = 0.17; showcar.add(plat);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(3.5, 0.06, 8, 48), new THREE.MeshBasicMaterial({ color: 0xff0055 })); ring.rotation.x = Math.PI / 2; ring.position.y = 0.35; showcar.add(ring);
+  const spot = new THREE.SpotLight(0xffffff, 60, 20, Math.PI / 6, 0.6, 1.2); spot.position.set(-18, 9, 7); spot.target.position.set(-18, 0.5, 7); scene.add(spot); scene.add(spot.target);
+  loadFerrari(showTurntable, { length: 4.4 });
+}
 const dancers = [];
 if (!reduceMotion) {
   for (const dx of [-9, -4.5, 0, 4.5, 9]) {
@@ -832,6 +844,7 @@ function frame() {
     trippycam.update(dt);
     orbs.update(dt, time, pulse);
     for (const h of molArt) { h.rotation.y += dt * 0.4; h.position.y = 3.2 + Math.sin(time * 0.8 + h.position.x) * 0.2; }
+    showTurntable.rotation.y += dt * 0.35;
     { const grabbed = orbs.pickNear(controls.pos); if (grabbed) pickupOrb(grabbed); } // walk into an orb to grab it
     if (activeDrug) { drugTime -= dt; if (drugHudEl) drugHudEl.textContent = `💊 ${DRUGS.find((d) => d.id === activeDrug).name} · ${Math.ceil(drugTime)}s`; if (drugTime <= 0) endDrug(); }
     gamezones.update(controls.pos);

@@ -6,6 +6,7 @@ import { buildLoopDoors } from './data/loop.js';
 import { buildDJDeck } from './scene/djdeck.js';
 import { buildEnergyOrb } from './scene/energyorb.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { loadMolecule } from './scene/molecule.js';
 
 // ABSTRACT PSYCHEDELIC — a swirling immersive void. The dome and floor are living
 // shaders that shift with where you stand, glowing entities drift past, and every
@@ -127,6 +128,14 @@ const deck = buildDJDeck(scene, { x: 16, z: 6, ry: -Math.PI / 2, color: 0x00ffa8
 addBaseboard(scene, updaters, { color: 0x00ffa8, ring: true, radius: 26 });
 
 const _ents = buildEntities();
+
+// drifting molecule sculptures out in the swirl
+[['models/molecules/lsd.pdb', -10, 4, -8], ['models/molecules/cocaine.pdb', 11, 5, 6]].forEach(([url, mx, my, mz]) => {
+  const h = new THREE.Group(); h.position.set(mx, my, mz); scene.add(h);
+  h.add(new THREE.PointLight(0x00ffa8, 1.2, 12, 2));
+  loadMolecule(url, { size: 2.0, onReady: (m) => h.add(m) });
+  updaters.push((dt, t) => { h.rotation.y += dt * 0.3; h.rotation.x += dt * 0.12; h.position.y = my + Math.sin(t * 0.5 + mx) * 0.5; });
+});
 
 // ---------- centerpiece: a living ENERGY ORB (GLSL ported from Simulation-Reality) ----------
 const orbGroup = new THREE.Group(); orbGroup.position.set(0, 6, -2); scene.add(orbGroup);
