@@ -12,7 +12,7 @@ const ambience = createAmbience(AMBIENCE.ravecharles);
 // A raging neon MOSH PIT with a stage (EPK on the screen), a coast-to-coast
 // TOUR ROAD of glowing shows, and a giant LED-VISOR MASK landmark.
 
-const EPK_URL = 'https://express.adobe.com/page/s43NCJty7DfTO/';
+const EPK_URL = 'epk/ravecharles/index.html';
 const canvas = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
 const std = (o) => new THREE.MeshStandardMaterial(o);

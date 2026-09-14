@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12matt3r // Electronic Press Kit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=VT323&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #050505;
+            --bg-card: #0a0a0a;
+            --text-primary: #E0E0E0;
+            --text-muted: #808080;
+            --accent-cyan: #00F3FF;
+            --accent-magenta: #FF0055;
+            --accent-green: #39FF14;
+            --accent-yellow: #FFFF00;
+            --border-color: #1a1a1a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* CRT Scanline Overlay */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+        }
+
+        /* Glitch Effect Keyframes */
+        @keyframes glitch-skew {
+            0% { transform: skew(0deg); }
+            20% { transform: skew(-2deg); }
+            40% { transform: skew(2deg); }
+            60% { transform: skew(-1deg); }
+            80% { transform: skew(1deg); }
+            100% { transform: skew(0deg); }
+        }
+
+        @keyframes glitch-rgb {
+            0% {
+                text-shadow: 
+                    -2px 0 var(--accent-cyan),
+                    2px 0 var(--accent-magenta);
+            }
+            25% {
+                text-shadow: 
+                    2px 0 var(--accent-cyan),
+                    -2px 0 var(--accent-magenta);
+            }
+            50% {
+                text-shadow: 
+                    -1px 0 var(--accent-green),
+                    1px 0 var(--accent-cyan);
+            }
+            75% {
+                text-shadow: 
+                    1px 0 var(--accent-magenta),
+                    -1px 0 var(--accent-green);
+            }
+            100% {
+                text-shadow: 
+                    -2px 0 var(--accent-cyan),
+                    2px 0 var(--accent-magenta);
+            }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; }
+            94% { opacity: 1; }
+            95% { opacity: 0.9; }
+            96% { opacity: 1; }
+        }
+
+        @keyframes scanline-move {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header / Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+            background: 
+                radial-gradient(ellipse at 20% 80%, rgba(0, 243, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(255, 0, 85, 0.03) 0%, transparent 50%),
+                var(--bg-deep);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .artist-name {
+            font-family: 'VT323', monospace;
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            animation: glitch-skew 3s infinite, glitch-rgb 2s infinite;
+            position: relative;
+        }
+
+        .artist-tagline {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+
+        .artist-tagline span {
+            color: var(--accent-green);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            padding: 15px 30px;
+            border: 1px solid var(--accent-green);
+            background: transparent;
+            color: var(--accent-green);
+            cursor: pointer;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-green);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn:hover {
+            color: var(--bg-deep);
+        }
+
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .btn-secondary {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .voidcity-banner {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 15px 30px;
+            border: 2px solid var(--accent-magenta);
+            background: rgba(255, 0, 85, 0.1);
+            color: var(--accent-magenta);
+            font-family: 'Space Mono', monospace;
+            font-size: 1.2rem;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            animation: glitch-rgb 2s infinite;
+        }
+
+        .voidcity-banner:hover {
+            background: var(--accent-magenta);
+            color: var(--bg-deep);
+            transform: scale(1.05);
+        }
+
+        .voidcity-footer {
+            margin-top: 20px;
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .voidcity-footer a {
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            color: var(--accent-magenta);
+            text-decoration: none;
+            border: 1px solid var(--accent-magenta);
+            padding: 10px 20px;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .voidcity-footer a:hover {
+            background: var(--accent-magenta);
+            color: var(--bg-deep);
+        }
+
+        /* Projects Section */
+        .projects {
+            padding: 80px 0;
+        }
+
+        .section-title {
+            font-family: 'VT323', monospace;
+            font-size: clamp(2rem, 5vw, 4rem);
+            text-align: center;
+            margin-bottom: 60px;
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '//';
+            color: var(--accent-magenta);
+            margin-left: 10px;
+        }
+
+        .project-card {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            margin-bottom: 100px;
+            padding: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta), var(--accent-green));
+        }
+
+        .project-card:nth-child(even) {
+            direction: rtl;
+        }
+
+        .project-card:nth-child(even) > * {
+            direction: ltr;
+        }
+
+        .project-media {
+            position: relative;
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            background: var(--bg-deep);
+            border: 1px solid var(--border-color);
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .project-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .project-number {
+            font-family: 'VT323', monospace;
+            font-size: 1rem;
+            color: var(--accent-magenta);
+            margin-bottom: 10px;
+            letter-spacing: 0.2em;
+        }
+
+        .project-title {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            text-transform: uppercase;
+        }
+
+        .project-event {
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem;
+            color: var(--accent-cyan);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .project-event::before {
+            content: '>';
+            color: var(--accent-green);
+        }
+
+        .project-description {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            padding: 5px 12px;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .tag.cyan {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .tag.magenta {
+            border-color: var(--accent-magenta);
+            color: var(--accent-magenta);
+        }
+
+        .tag.green {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        /* About Section */
+        .about {
+            padding: 80px 0;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .about-text h2 {
+            font-family: 'VT323', monospace;
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 20px;
+        }
+
+        .about-text p {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .about-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-deep);
+        }
+
+        .stat-number {
+            font-family: 'VT323', monospace;
+            font-size: 2.5rem;
+            color: var(--accent-cyan);
+            display: block;
+        }
+
+        .stat-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 60px 0;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-title {
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-link:hover {
+            color: var(--accent-green);
+        }
+
+        .footer-playlist {
+            margin-bottom: 30px;
+        }
+
+        .footer-playlist a {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-cyan);
+            text-decoration: none;
+            border-bottom: 1px solid var(--accent-cyan);
+            padding-bottom: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .footer-playlist a:hover {
+            color: var(--accent-magenta);
+            border-color: var(--accent-magenta);
+        }
+
+        .copyright {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .cursor-blink {
+            animation: blink 1s infinite;
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .project-card {
+                grid-template-columns: 1fr 1fr;
+                align-items: center;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Glitch hover effect for titles */
+        .project-title:hover {
+            animation: glitch-rgb 0.5s infinite;
+            cursor: default;
+        }
+
+        /* Decorative elements */
+        .decor-line {
+            position: absolute;
+            background: var(--border-color);
+        }
+
+        .decor-line.vertical {
+            width: 1px;
+            height: 100px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .decor-line.horizontal {
+            height: 1px;
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <!-- CRT Scanline Overlay -->
+    <div class="scanlines"></div>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1 class="artist-name">12matt3r<span class="cursor-blink">_</span></h1>
+            <p class="artist-tagline">
+                Glitch art from the <span>digital underground</span>. Exploring signal decay, visual corruption, and the aesthetics of failure through code, hardware manipulation, and live performance.
+            </p>
+            <div class="hero-buttons">
+                <a href="#projects" class="btn">View Works</a>
+                <a href="https://youtube.com/playlist?list=PLPug0RGgea9qMUz5Evk-4T241kf0z2yal&si=buON0gRgoxNJd0py" target="_blank" class="btn btn-secondary">Full Playlist</a>
+            </div>
+            <a href="http://Voidcity.live" target="_blank" class="voidcity-banner">
+                >> PLAY VOIDCITY.LIVE <<
+            </a>
+        </div>
+    </header>
+
+    <!-- Projects Section -->
+    <section class="projects" id="projects">
+        <div class="container">
+            <h2 class="section-title">SELECTED_WORKS</h2>
+
+            <!-- Project 1: Enter the Void 3 -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/zsjxfIQEaT8" 
+                            title="Enter the Void 3"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">01</span>
+                    <h3 class="project-title">NOEMOTION GOLDMASK X 12MATT3R | ENTER THE VOID 3</h3>
+                    <p class="project-event">Glitch Art Event</p>
+                    <p class="project-description">
+                        An immersive journey into digital consciousness. This piece explores the boundaries between reality and virtual existence through real-time signal processing, datamoshing, and generative visual systems. Created for the Enter the Void series, pushing the limits of what glitch art can achieve in live performance contexts.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Datamosh</span>
+                        <span class="tag magenta">Signal Processing</span>
+                        <span class="tag green">Live Performance</span>
+                        <span class="tag">Generative</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 2: voidTV -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/Vsl6zXS7jBU" 
+                            title="voidTV"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">02</span>
+                    <h3 class="project-title">sOFA KING sAD bOI X 12MATT3R | ENTER THE VOID 3</h3>
+                    <p class="project-event">Broadcast Art Series</p>
+                    <p class="project-description">
+                        A television broadcast corrupted by unknown digital forces. voidTV transforms traditional media transmission into an experimental visual experience, featuring static interference patterns, channel switching artifacts, and broadcast signal manipulation. The work questions our relationship with mediated information.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Broadcast</span>
+                        <span class="tag magenta">Signal Interruption</span>
+                        <span class="tag green">TV Static</span>
+                        <span class="tag">Media Art</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 3: void city in bumpfest -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/hteHKz0NYVI" 
+                            title="void city bumpfest"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">03</span>
+                    <h3 class="project-title">Duce The Maker X 12Matt3r | Enter the void 3</h3>
+                    <p class="project-event">// bumpfest</p>
+                    <p class="project-description">
+                        Urban landscape transformed into digital chaos. Created for bumpfest, void city reimagines cityscapes through aggressive glitch aesthetics, combining architectural elements with corrupted digital textures. A commentary on the increasing digitalization of urban spaces and the glitches that reveal the seams of our constructed reality.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Urban</span>
+                        <span class="tag magenta">Architecture</span>
+                        <span class="tag green">Bumpfest</span>
+                        <span class="tag">Cityscape</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 4: Project Villain -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/NL1nSv63wOQ" 
+                            title="Project Villain"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">04</span>
+                    <h3 class="project-title">12matt3r X Driftwave Static | VOID MOON | VOIDCITY.LIVE</h3>
+                    <p class="project-event">Character Study</p>
+                    <p class="project-description">
+                        A visual exploration of antagonist archetypes through glitch aesthetics. Project Villain deconstructs the concept of villainy in digital media, using visual corruption to reveal the instability of character narratives. Each frame represents the breakdown of predetermined storylines and the emergence of chaos.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Character</span>
+                        <span class="tag magenta">Narrative</span>
+                        <span class="tag green">Antagonist</span>
+                        <span class="tag">Visual Study</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 5: mthrbord -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/TPn_ZcazaEE" 
+                            title="mthrbord"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">05</span>
+                    <h3 class="project-title">12Matt3r x Driftwave Static | Enter the void 3</h3>
+                    <p class="project-event">Hardware Art</p>
+                    <p class="project-description">
+                        Circuit bending meets motherboard aesthetics. mthrbord explores the hidden beauty of computer hardware through extreme close-ups and circuit manipulation. This piece celebrates the physical infrastructure of digital creation while exposing the fragile nature of our technological foundations.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Hardware</span>
+                        <span class="tag magenta">Circuit Bending</span>
+                        <span class="tag green">Motherboard</span>
+                        <span class="tag">Physical Computing</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 6: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/xYnauJbpdnc" 
+                            title="Glitch Work 6"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">06</span>
+                    <h3 class="project-title">tanky johnson x 12matt3r enter the void 2025</h3>
+                    <p class="project-event">Experimental</p>
+                    <p class="project-description">
+                        Exploring the aesthetics of signal degradation and data corruption. This piece visualizes the inevitable decay of digital information over time, treating compression artifacts and bit errors as artistic elements rather than imperfections to be消除.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Signal</span>
+                        <span class="tag magenta">Decay</span>
+                        <span class="tag green">Data</span>
+                        <span class="tag">Experimental</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 7: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/3xqe_EDOXAE" 
+                            title="Glitch Work 7"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">07</span>
+                    <h3 class="project-title">BIOMECHANICAL SAMURI X 12MATT3R | ENTER THE VOID 3</h3>
+                    <p class="project-event">Code Art</p>
+                    <p class="project-description">
+                        A meditation on memory allocation and the poetry of errors. Null Pointer explores what happens when code encounters the void—visualizing segmentation faults and memory exceptions as abstract art forms.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Code</span>
+                        <span class="tag magenta">Memory</span>
+                        <span class="tag green">Errors</span>
+                        <span class="tag">Programming</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 8: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/i-ehCBD_z1Y" 
+                            title="Glitch Work 8"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">08</span>
+                    <h3 class="project-title">12Matt3r x Driftwave Static | Cloudpunk 2025</h3>
+                    <p class="project-event">Digital Excess</p>
+                    <p class="project-description">
+                        When data exceeds its boundaries. Buffer Overflow visualizes the catastrophic beauty of memory spills—where intentional overflow creates unexpected visual symphonies of corrupted data.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Memory</span>
+                        <span class="tag magenta">Excess</span>
+                        <span class="tag green">Corruption</span>
+                        <span class="tag">Security</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 9: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/K03ZuRjcMoc" 
+                            title="Glitch Work 9"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">09</span>
+                    <h3 class="project-title">Slushwave Social Club Volume 6: Autumn Memories</h3>
+                    <p class="project-event">Raw Data</p>
+                    <p class="project-description">
+                        Raw binary beauty. Hex Dump transforms the fundamental language of computers into visual art, revealing the hidden patterns and aesthetic qualities of hexadecimal data representations.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Binary</span>
+                        <span class="tag magenta">Hex</span>
+                        <span class="tag green">Raw Data</span>
+                        <span class="tag">Code</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 10: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/6-X6J7ZP7Bc" 
+                            title="Glitch Work 10"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">10</span>
+                    <h3 class="project-title">Glitch Guild Cybertape</h3>
+                    <p class="project-event">Error Art</p>
+                    <p class="project-description">
+                        The elegant failure of memory protection. Segmentation Fault captures the moment when processes violate memory boundaries—a digital crash transformed into compelling visual art.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Memory</span>
+                        <span class="tag magenta">Error</span>
+                        <span class="tag green">Crash</span>
+                        <span class="tag">Linux</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 11: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/kPwmTV288ew" 
+                            title="Glitch Work 11"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">11</span>
+                    <h3 class="project-title">How to Use a Video Mixer (Videonics MXPro Quick Start)</h3>
+                    <p class="project-event">System Failure</p>
+                    <p class="project-description">
+                        When the operating system reaches its limit. Kernel Panic visualizes the ultimate system failure—the moment when the core of an OS admits defeat and crashes in spectacular fashion.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Kernel</span>
+                        <span class="tag magenta">OS</span>
+                        <span class="tag green">Panic</span>
+                        <span class="tag">System</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 12: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/aCyiGt6kxXA" 
+                            title="Glitch Work 12"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">12</span>
+                    <h3 class="project-title">Space Jesus - SPACE JAM | Glitch Guild Space Tape</h3>
+                    <p class="project-event">Display Art</p>
+                    <p class="project-description">
+                        The beauty of broken screens. Dead Pixel celebrates the imperfections inherent in display technology—stuck pixels, dead zones, and color banding transformed into intentional artistic elements.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Display</span>
+                        <span class="tag magenta">Pixel</span>
+                        <span class="tag green">Hardware</span>
+                        <span class="tag">Screen</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 13: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/YwwefX7-0r0" 
+                            title="Glitch Work 13"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">13</span>
+                    <h3 class="project-title">Bent // Broken Circuit Bending Festival 2024</h3>
+                    <p class="project-event">Vintage Glitch</p>
+                    <p class="project-description">
+                        The warmth of analog decay. Analog Drift explores the aesthetic qualities of aging video equipment—tracking errors, color bleeding, and the organic degradation of magnetic tape.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Analog</span>
+                        <span class="tag magenta">Vintage</span>
+                        <span class="tag green">Tape</span>
+                        <span class="tag">Nostalgia</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 14: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/R3buJ1dqZN4" 
+                            title="Glitch Work 14"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">14</span>
+                    <h3 class="project-title">SSCC Volume 5: Brief Glimpses of Quicksilver Dreams</h3>
+                    <p class="project-event">Display Art</p>
+                    <p class="project-description">
+                        The glow of cathode ray tubes. CRT Bloom celebrates the distinctive visual characteristics of old monitors—scan lines, screen curvature, phosphorescent glow, and the unique color response of legacy display technology.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">CRT</span>
+                        <span class="tag magenta">Monitor</span>
+                        <span class="tag green">Vintage</span>
+                        <span class="tag">Display</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 15: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/MeW42PuTTk0" 
+                            title="Glitch Work 15"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">15</span>
+                    <h3 class="project-title">World of Discarded Dreams | Lo-Fi Phonk</h3>
+                    <p class="project-event">Compression Art</p>
+                    <p class="project-description">
+                        The art of deliberate compression. Datamosh Dreams explores the visual possibilities of codec manipulation—creating abstract compositions through strategic corruption of video encoding parameters.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Datamosh</span>
+                        <span class="tag magenta">Compression</span>
+                        <span class="tag green">Codec</span>
+                        <span class="tag">Video</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 16: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/BkTZWDlbHug" 
+                            title="Glitch Work 16"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">16</span>
+                    <h3 class="project-title">{voidtv} Presents: Sofa King Sad Boi</h3>
+                    <p class="project-event">Debug Art</p>
+                    <p class="project-description">
+                        Core dumps as canvas. System Dump transforms crash reports and memory snapshots into intricate visual compositions, revealing the chaotic beauty hidden within system-level error data.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Debug</span>
+                        <span class="tag magenta">Memory</span>
+                        <span class="tag green">Core Dump</span>
+                        <span class="tag">System</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 17: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/GOjr3p10wXo" 
+                            title="Glitch Work 17"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">17</span>
+                    <h3 class="project-title">VOID TV: EPISODE 5</h3>
+                    <p class="project-event">Network Art</p>
+                    <p class="project-description">
+                        The aesthetics of unreliable networks. Packet Loss visualizes data transmission failures—missing chunks, delayed arrivals, and corrupted packets becoming intentional elements of digital composition.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Network</span>
+                        <span class="tag magenta">Packet</span>
+                        <span class="tag green">Internet</span>
+                        <span class="tag">Data</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 18: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/Ip2ajcVdmuI" 
+                            title="Glitch Work 18"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">18</span>
+                    <h3 class="project-title">BUMP TV | EPISODE 6</h3>
+                    <p class="project-event">3D Art</p>
+                    <p class="project-description">
+                        The creative potential of rendering failures. Render Error celebrates the unexpected artifacts produced by 3D engines when pushed beyond their limits—missing textures, geometry glitches, and shader explosions.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">3D</span>
+                        <span class="tag magenta">Render</span>
+                        <span class="tag green">Error</span>
+                        <span class="tag">Geometry</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 19: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/-BofMq2_e_4" 
+                            title="Glitch Work 19"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">19</span>
+                    <h3 class="project-title">BUMP | EPISODE 5</h3>
+                    <p class="project-event">Error Art</p>
+                    <p class="project-description">
+                        The iconic crash screen as artistic medium. Blue Screen reimagines the infamous Windows error message as a minimalist composition, finding beauty in the most dreaded screen in computing history.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">BSOD</span>
+                        <span class="tag magenta">Windows</span>
+                        <span class="tag green">Error</span>
+                        <span class="tag">Crash</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 20: Additional Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/h-B77YzTUPQ" 
+                            title="Glitch Work 20"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">20</span>
+                    <h3 class="project-title">Glitch Guild Cybertape 12matt3r</h3>
+                    <p class="project-event">Storage Art</p>
+                    <p class="project-description">
+                        The hidden geometry of fragmented files. Disk Fragment visualizes the scattered nature of data on aging storage media—scanning surface errors, bad sectors, and the archaeology of deleted files.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Storage</span>
+                        <span class="tag magenta">Disk</span>
+                        <span class="tag green">Fragment</span>
+                        <span class="tag">Data Recovery</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 21: Live Stream -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/ufYws78_t1U" 
+                            title="Live Performance"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">21</span>
+                    <h3 class="project-title">B U M P | EPISODE 4</h3>
+                    <p class="project-event">Performance</p>
+                    <p class="project-description">
+                        Real-time glitch performance captured live. This piece demonstrates the artist's live coding and real-time signal processing capabilities, creating generative glitch art in real-time before a live audience.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Live</span>
+                        <span class="tag magenta">Performance</span>
+                        <span class="tag green">Real-time</span>
+                        <span class="tag">Generative</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Project 22: Final Work -->
+            <article class="project-card">
+                <div class="project-media">
+                    <div class="video-wrapper">
+                        <iframe 
+                            src="https://www.youtube.com/embed/F335672e88I" 
+                            title="Glitch Work 22"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <span class="project-number">22</span>
+                    <h3 class="project-title">bumpfest 2023 all filler no content</h3>
+                    <p class="project-event">Statement</p>
+                    <p class="project-description">
+                        A visual declaration of glitch aesthetics. Glitch Manifesto represents the artist's philosophical stance on digital error—embracing failure as feature, celebrating corruption as creativity, and finding beauty in the broken.
+                    </p>
+                    <div class="project-tags">
+                        <span class="tag cyan">Manifesto</span>
+                        <span class="tag magenta">Philosophy</span>
+                        <span class="tag green">Statement</span>
+                        <span class="tag">Art</span>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>// ABOUT_12matt3r</h2>
+                    <p>
+                        Operating at the intersection of code, signal, and visual corruption, 12matt3r creates immersive glitch art experiences that challenge perceptions of digital media. Based in the underground digital art scene, their work spans live performance visuals, experimental video, and hardware-based installations.
+                    </p>
+                    <p>
+                        Each piece explores the beauty found in digital decay—the unexpected patterns that emerge when systems fail, the aesthetic of interference, and the poetry of technical malfunction. Through datamoshing, circuit bending, and real-time processing, 12matt3r transforms errors into art.
+                    </p>
+                </div>
+                <div class="about-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">22</span>
+                        <span class="stat-label">Video Works</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">05</span>
+                        <span class="stat-label">Major Events</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">∞</span>
+                        <span class="stat-label">Glitches Created</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">Digital Chaos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <h3 class="footer-title">GET_IN_TOUCH<span class="cursor-blink">_</span></h3>
+            <div class="footer-links">
+                <a href="#" class="footer-link">Email</a>
+                <a href="#" class="footer-link">Instagram</a>
+                <a href="https://youtube.com/playlist?list=PLPug0RGgea9qMUz5Evk-4T241kf0z2yal&si=buON0gRgoxNJd0py" target="_blank" class="footer-link">YouTube</a>
+                <a href="#" class="footer-link">Twitter</a>
+            </div>
+            <div class="footer-playlist">
+                <a href="https://youtube.com/playlist?list=PLPug0RGgea9qMUz5Evk-4T241kf0z2yal&si=buON0gRgoxNJd0py" target="_blank">
+                    >> View Full Playlist on YouTube
+                </a>
+            </div>
+            <div class="voidcity-footer">
+                <a href="http://Voidcity.live" target="_blank">
+                    >> PLAY VOIDCITY.LIVE <<
+                </a>
+            </div>
+            <p class="copyright">© 2024 12matt3r // All Rights Reserved</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add intersection observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Apply initial styles for animation
+        document.querySelectorAll('.project-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+
+        // Add glitch effect on hover for project titles
+        document.querySelectorAll('.project-title').forEach(title => {
+            title.addEventListener('mouseenter', () => {
+                title.style.animation = 'glitch-rgb 0.3s infinite';
+            });
+            title.addEventListener('mouseleave', () => {
+                title.style.animation = '';
+            });
+        });
+
+        // Console message for that glitch art feel
+        console.log('%c 12matt3r EPK loaded successfully ', 'background: #00F3FF; color: #000; padding: 10px; font-family: monospace;');
+        console.log('%c >> Exploring digital decay through code and signal << ', 'background: #FF0055; color: #fff; padding: 10px; font-family: monospace;');
+    </script>
+</body>
+</html>

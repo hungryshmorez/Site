@@ -14,7 +14,7 @@ const ambience = createAmbience(AMBIENCE.studio);
 // stacked CRT televisions you circle. Trippy + glitch screens everywhere, a
 // datamosh wall, a code workstation, cables. The big CRT boots the web-OS.
 
-const EPK_URL = 'https://12matt3r.univer.se/';
+const EPK_URL = 'epk/glitch/index.html';
 const canvas = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
 const std = (o) => new THREE.MeshStandardMaterial(o);

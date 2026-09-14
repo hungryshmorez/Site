@@ -12,7 +12,7 @@ const ambience = createAmbience(AMBIENCE.driftwave);
 // three VAPORSTUDIO rooms: a marble TEMPLE (with the EPK monolith), a dead
 // MALLSOFT arcade, and a rainy late-night LO-FI nook. Walk between them.
 
-const EPK_URL = 'https://staticcorp--sofakingsadboi.on.websim.com/';
+const EPK_URL = 'epk/driftwave/index.html';
 const canvas = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
 const std = (o) => new THREE.MeshStandardMaterial(o);

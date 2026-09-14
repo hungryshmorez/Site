@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Rave Charles</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <script type="importmap">
+    {
+      "imports": {
+      }
+    }
+  </script>
+  <script src="main.js" defer></script>
+</head>
+<body>
+  <div id="app">
+    <div class="bg-orbit bg-orbit--1"></div>
+    <div class="bg-orbit bg-orbit--2"></div>
+
+    <header class="header">
+      <div class="header-topline">
+        <div class="brand">
+          <span class="brand-mark">12</span>
+          <span class="brand-text">matt3r</span>
+        </div>
+        <span class="header-status"><span class="status-dot"></span>live archive</span>
+      </div>
+      <div class="tagline">
+        Rave Charles · 2014—2020 live history
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="panel panel--about">
+        <div class="panel-label">Origin</div>
+        <div class="about-heading">
+          <p class="about-eyebrow">Charlotte, NC / new media collective</p>
+          <h1>Built for the<br /><em>after-hours.</em></h1>
+        </div>
+        <div class="about-text">
+          <p>
+            12matt3r, the brainchild of (sofa king sad boi) Rave Charles, is a fusion of creativity and a deep connection to various artistic realms—a clever play on “12” and “matter” that speaks to completeness, substance, and a holistic approach to design.
+          </p>
+          <p>
+            Rooted in Charlotte, NC’s underground rave scene, 12matt3r stands as a hybrid new media collective of digital, analog, and AI video artists who also DJ, rap, produce, and deliver genre‑defying live performances, drawing on metalcore, hip hop, and bass music without regard for strict genre lines.
+          </p>
+          <p>
+            Across 2014–2020, Rave Charles shared stages with artists like Griz, Tech N9ne, Juice WRLD, Hippie Sabotage, Wiz Khalifa, MGK, Lil Baby, G Jones and many more, touring with Cryptic Wisdom and Tripzy Leary, hitting festivals such as Digital Gardens, Breakaway, Camp Bisco, and Vans Warped Tour, and organizing Charlotte Basshead Meetup charity events—building a legacy of creativity, community, and nearly 400 shows across America.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel panel--timeline">
+        <div class="panel-label">Timeline</div>
+
+        <div class="year-strip" id="year-strip"></div>
+
+        <div class="timeline-meta">
+          <div class="meta-block">
+            <span class="meta-label">Year</span>
+            <span class="meta-value" id="meta-year">—</span>
+          </div>
+          <div class="meta-block">
+            <span class="meta-label">Shows</span>
+            <span class="meta-value" id="meta-count">0</span>
+          </div>
+          <div class="meta-block meta-block--pill">
+            <label class="meta-label" for="city-filter">Filter</label>
+            <select id="city-filter" class="pill-select" aria-label="Filter events by city">
+              <option value="all">All cities</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="timeline-events" id="events-list" role="list" aria-live="polite">
+          <!-- populated by JS -->
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <button class="pill-button" id="summary-toggle" aria-controls="bottom-sheet" aria-expanded="false">
+        World tour summary
+      </button>
+    </footer>
+
+    <div class="sheet-backdrop" id="sheet-backdrop"></div>
+    <section class="bottom-sheet" id="bottom-sheet" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <div class="sheet-handle"></div>
+      <div class="sheet-content">
+        <h2 id="sheet-title">Rave Charles · World Tour Snapshot</h2>
+        <p>
+          12matt3r grew from Charlotte’s rave underground into a
+          multidisciplinary laboratory: digital, analog, and AI‑driven visuals,
+          DJ sets, live vocals, and four‑deck mashups.
+        </p>
+        <p>
+          Across 2014–2020, Rave Charles joined tours with Cryptic Wisdom and
+          Tripzy Leary, hit festivals like Digital Gardens, Breakaway, Camp
+          Bisco, and Vans Warped Tour, and helped cultivate the Carolinas bass
+          community through Bass Krew Collective and the Charlotte Basshead
+          Meetups.
+        </p>
+        <p>
+          The timeline you’re exploring captures key dates from that run:
+          basement takeovers, charity events, and festival stages that shaped
+          the 12matt3r story.
+        </p>
+        <button class="pill-button pill-button--secondary" id="sheet-close" type="button">
+          Close
+        </button>
+      </div>
+    </section>
+  </div>
+
+</body>
+</html>

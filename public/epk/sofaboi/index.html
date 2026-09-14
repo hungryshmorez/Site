@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slushwave Bandcamp Directory</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <audio id="backgroundMusic" loop autoplay>
+        <source src="Dᵣᵢfₜwₐᵥₑ ₛₜₐₜᵢc - Tune out the world - 05 Still Buffering….wav" type="audio/wav">
+    </audio>
+    
+    <div class="container">
+        <header class="header">
+            <div class="title-container">
+                <h1 class="main-title">SLUSHWAVE</h1>
+                <p class="subtitle">Bandcamp Directory</p>
+                <div class="discord-invite">
+                    <a href="https://discord.gg/AMZPy46nAX" target="_blank" class="discord-link">
+                        🎵 Join the Slushwave Social Club 🎵
+                    </a>
+                </div>
+            </div>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search artists..." class="search-input">
+                <button id="randomArtistBtn" class="random-btn">✨ Random Artist ✨</button>
+            </div>
+        </header>
+        
+        <div class="stats">
+            <span id="totalCount">0</span> artists discovered
+        </div>
+        
+        <div class="grid-container">
+            <div id="artistGrid" class="artist-grid"></div>
+        </div>
+        
+        <div class="floating-waves">
+            <div class="wave wave1"></div>
+            <div class="wave wave2"></div>
+            <div class="wave wave3"></div>
+        </div>
+
+        <div class="floating-particles"></div>
+    </div>
+    
+    <div class="embed-section">
+        <h2 class="embed-title">Embed This Directory</h2>
+        <p class="embed-description">Copy and paste this code to embed the Slushwave Directory on your site:</p>
+        
+        <div class="embed-preview">
+            <iframe src="" width="100%" height="600" frameborder="0" scrolling="yes"></iframe>
+        </div>
+        
+        <div class="embed-code-container">
+            <textarea class="embed-code" readonly>&lt;iframe src="window.location.href" width="100%" height="600" frameborder="0" scrolling="yes"&gt;&lt;/iframe&gt;</textarea>
+            <button class="copy-embed-btn">📋 Copy Embed Code</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ＤｒｉｆｔＷａｖｅ 丂ㄒ卂ㄒ丨匚</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://esm.sh/three@0.160.0"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- CRT Overlay Effects -->
+    <div class="crt-overlay"></div>
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+
+    <!-- Main Content Container -->
+    <main id="main-content">
+        
+        <!-- Hero Section -->
+        <section id="hero">
+            <div class="glitch-wrapper">
+                <h1 class="glitch" data-text="ＤｒｉｆｔＷａｖｅ">ＤｒｉｆｔＷａｖｅ</h1>
+                <h1 class="glitch sub" data-text="丂ㄒ卂ㄒ丨匚">丂ㄒ卂ㄒ丨匚</h1>
+            </div>
+            <div class="status-line">
+                <span class="blink">●</span> SIGNAL_RECEIVED
+            </div>
+            <div class="scroll-indicator">
+                <span>▼</span> DRIFT DOWN <span>▼</span>
+            </div>
+        </section>
+
+        <!-- Biography / Origin -->
+        <section id="origin" class="content-block">
+            <h2>SIGNAL_ORIGIN</h2>
+            <div class="text-body">
+                <p>DriftWave Static is the sound of memories melting in reverse—a transmission caught between vaporized emotion and analog decay.</p>
+                <p>It explores a sound submerged in fogged neon, where echo memory loops unravel across chrome beaches, and each beat dissolves under pastel rain. It's a fractured signal transmission—half-washed dreams and a splash of minimal dubstep pulses reverberating in sleep-mode.</p>
+                <p>The project aims to be not just heard, but felt, like tuning into a forgotten signal that only plays when you're alone and the world finally goes quiet.</p>
+                <p>Emerging from the depths of digital drift, I weave warped nostalgia into slow-burning loops that feel like déjà vu through a fogged-up screen. Underneath the haze, 808s pulse like distant heartbeats—sometimes submerged, sometimes sparkling through the fog like neon reflections in rainwater.</p>
+                <p class="signature">All tracks self-produced by DriftWave Static.</p>
+            </div>
+        </section>
+
+        <!-- Music / Discography -->
+        <section id="music" class="content-block">
+            <h2>AUDIO_LOGS</h2>
+            
+            <div class="album-container">
+                <h3>SLUSHWAVE TYPE BEAT TAPE</h3>
+                <div class="bandcamp-embed">
+                    <iframe style="border: 0; width: 100%; height: 470px;" src="https://bandcamp.com/EmbeddedPlayer/album=676334820/size=large/bgcol=333333/linkcol=9a64ff/tracklist=false/transparent=true/" seamless><a href="https://driftwavestatic.bandcamp.com/album/slushwave-type-beat-tape">SLUSHWAVE TYPE BEAT TAPE by ＤｒｉｆｔＷａｖｅ 丂ㄒ卂ㄒ丨匚</a></iframe>
+                </div>
+            </div>
+
+        <section id="about" class="about-section">
+            <div class="container">
+                <h2 class="section-title">SIGNAL_ORIGIN</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p class="lead">DriftWave Static is the sound of memories melting in reverse—a transmission caught between vaporized emotion and analog decay.</p>
+                        
+                        <p>This beat tape is a trip down memory lane, featuring slushwave tracks that inspired me, reimagined and infused with my unique "slush sparkled" touch. It explores a sound submerged in fogged neon, where echo memory loops unravel across chrome beaches, and each beat dissolves under pastel rain. It's a fractured signal transmission—half-washed dreams and a splash of minimal dubstep pulses reverberating in sleep-mode.</p>
+
+                        <p>The project aims to be not just heard, but felt, like tuning into a forgotten signal that only plays when you're alone and the world finally goes quiet. The 16 tracks drift between slushwave, instrumental hip hop, and minimalist fragments of dubstep—no drops, just slow tides. Inspired by the VHS static warmth of late-night vaporwave, the saturated reverb of geofenced memories, and the artificial calm of therapeutic detachment.</p>
+
+                        <p>These tracks are "reinterpretations/(Reflections)," crafted as "love letters" to artists who have significantly influenced my work and the broader vaporwave scene. While not remixes or parodies in a traditional sense, they heavily feature elements inspired by or derived from legendary artists like telepath テレパシー能力者, SecondsSight, MindSpring Memories, desert sand feels warm at night, ネザーnether, Illusionary ドリーミング, Saturn試1985, SOARER, you still feel them out there don't you, and neckbomb.</p>
+
+                        <p>Emerging from the depths of digital drift, I weave warped nostalgia into slow-burning loops that feel like déjà vu through a fogged-up screen. Rooted in Slushwave's slow-motion dreamworld, I blend corroded textures with ghosted melodies. Underneath the haze, 808s pulse like distant heartbeats—sometimes submerged, sometimes sparkling through the fog like neon reflections in rainwater.</p>
+
+                        <p>This album is reconstructed from found fragments, dream logic, and homage. All tracks self-produced by DriftWave Static, June–July 2025.</p>
+
+                        <div class="tags">
+                            <span class="tag">slushwave</span>
+                            <span class="tag">vaporwave</span>
+                            <span class="tag">instrumental hip-hop</span>
+                            <span class="tag">phonk</span>
+                            <span class="tag">lofi hip hop</span>
+                            <span class="tag">minimal dubstep</span>
+                            <span class="tag">dreamwave</span>
+                            <span class="tag">driftwave static</span>
+                        </div>
+                    </div>
+                    
+                    <div class="vhs-effect">
+                        <div class="vhs-lines"></div>
+                        <div class="static-noise"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+            <div class="album-container">
+                <h3>TUNE OUT THE WORLD</h3>
+                <div class="bandcamp-embed">
+                    <iframe style="border: 0; width: 100%; height: 470px;" src="https://bandcamp.com/EmbeddedPlayer/album=3372395320/size=large/bgcol=333333/linkcol=9a64ff/tracklist=false/transparent=true/" seamless><a href="https://driftwavestatic.bandcamp.com/album/tune-out-the-world">Tune out the world by ＤｒｉｆｔＷａｖｅ 丂ㄒ卂ㄒ丨匚</a></iframe>
+                </div>
+            </div>
+
+            <h3>COMPILATION_FRAGMENTS</h3>
+            
+            <div class="track-list">
+                <div class="track-item">
+                    <iframe style="border: 0; width: 100%; height: 120px;" src="https://bandcamp.com/EmbeddedPlayer/album=2662247485/size=large/bgcol=333333/linkcol=9a64ff/tracklist=false/artwork=small/track=2386689420/transparent=true/" seamless><a href="https://hitachihomevideo.bandcamp.com/album/the-signalwave-christmas-special-2025">The Signalwave Christmas Special 2025</a></iframe>
+                </div>
+                
+                <div class="track-item">
+                    <iframe style="border: 0; width: 100%; height: 120px;" src="https://bandcamp.com/EmbeddedPlayer/album=3532036928/size=large/bgcol=333333/linkcol=9a64ff/tracklist=false/artwork=small/track=3714187336/transparent=true/" seamless><a href="https://freshwatermedia.bandcamp.com/album/the-vaporwave-roulette">The Vaporwave Roulette (RC)</a></iframe>
+                </div>
+
+                <div class="track-item">
+                    <iframe style="border: 0; width: 100%; height: 120px;" src="https://bandcamp.com/EmbeddedPlayer/album=3532036928/size=large/bgcol=333333/linkcol=9a64ff/tracklist=false/artwork=small/track=1126820736/transparent=true/" seamless><a href="https://freshwatermedia.bandcamp.com/album/the-vaporwave-roulette">The Vaporwave Roulette (DWS)</a></iframe>
+                </div>
+
+                <div class="track-item">
+                    <iframe style="border: 0; width: 100%; height: 120px;" src="https://bandcamp.com/EmbeddedPlayer/album=2513981641/size=large/bgcol=333333/linkcol=9a64ff/tracklist=false/artwork=small/track=3709615090/transparent=true/" seamless><a href="https://utopiadistrict.bandcamp.com/album/vapor-of-the-bells">Vapor of the Bells</a></iframe>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visuals / YouTube -->
+        <section id="visuals" class="content-block">
+            <h2>VISUAL_ARCHIVE</h2>
+            <div class="video-grid" id="video-grid">
+                <!-- Links generated by JS to keep DOM clean -->
+            </div>
+        </section>
+
+        <section class="album-cover-section">
+            <div class="container">
+                <div class="album-cover-display">
+                    <img src="/ALBUM COVER.png" alt="DRIFTWAVE STATIC Album Cover" class="large-cover-image">
+                </div>
+            </div>
+        </section>
+
+        <section class="visual-gallery-section">
+            <div class="container">
+                <h2 class="section-title">VISUAL_ARCHIVE</h2>
+                <div class="gallery-grid">
+                    <div class="gallery-item">
+                        <img src="/IMG_5560.jpeg" alt="Driftwave Static Glitch Wave" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Glitch Wave</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/IMG_6261.jpeg" alt="Driftwave Static Neon Sign" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Neon Sign</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/IMG_5556.jpeg" alt="Driftwave Static Sunset" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Digital Sunset</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/IMG_7132.png" alt="Driftwave Static Cyberpunk" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Cyber Grid</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/IMG_7146.jpeg" alt="Slushwave Type Beat Tape Cube" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Tape Cube</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/IMG_5563.jpeg" alt="Driftwave Static Ocean Wave" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Ocean Static</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/IMG_6920.jpeg" alt="Driftwave Static TV Display" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Static TV</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/IMG_7033.jpeg" alt="Signal Con 2025" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Signal Con 2025</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/IMG_5555.jpeg" alt="Driftwave Static Moth" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Digital Moth</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/50C58D0B-361E-4A13-A23E-306B77AB8E61.png" alt="Driftwave Static Pixel Art" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Pixel Static</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/00159D48-17DF-486C-8D8F-FAE0905FB66D.png" alt="Driftwave Static Wave Pixel" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Wave Pixels</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/IMG_5558.jpeg" alt="Driftwave Static Vaporwave" loading="lazy">
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Vaporwave</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="/A545C9BA-0A1A-447F-9334-6448E7959B86.png" alt="Driftwave Static House Character" loading="lazy">
+                            <div class="gallery-overlay">
+                                <span class="gallery-title">House Static '22</span>
+                            </div>
+                    </div>
+                    <div class="gallery-item video-item">
+                        <video src="/Generated File May 02, 2025 - 10_52PM.mp4" muted loop loading="lazy" preload="metadata">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div class="gallery-overlay">
+                            <span class="gallery-title">Generated Visual</span>
+                            <span class="play-icon">▶</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="contact" class="contact-section">
+            <div class="container">
+                <h2 class="section-title">ESTABLISH_CONNECTION</h2>
+                <div class="contact-grid">
+                    <div class="contact-links">
+                        <a href="mailto:driftwavestatic@aol.com" class="contact-link">
+                            <span class="contact-icon">@</span>
+                            driftwavestatic@aol.com
+                        </a>
+                        <a href="https://driftwavestatic.bandcamp.com" class="contact-link" target="_blank">
+                            <span class="contact-icon">♪</span>
+                            Bandcamp
+                        </a>
+                        <a href="http://www.youtube.com/@sofakingsadboi" class="contact-link" target="_blank">
+                            <span class="contact-icon">▶</span>
+                            YouTube
+                        </a>
+                        <a href="https://www.viberate.com/artist/sofa-king-sad-boi-1" class="contact-link" target="_blank">
+                            <span class="contact-icon">📊</span>
+                            Viberate Analytics
+                        </a>
+                        <a href="https://12matt3r.univer.se/" class="contact-link" target="_blank">
+                            <span class="contact-icon">◊</span>
+                            Universe
+                        </a>
+                        <a href="https://guns.lol/sofakingsadboi" class="contact-link" target="_blank">
+                            <span class="contact-icon">🎯</span>
+                            guns.lol
+                        </a>
+                        <a href="http://12matt3r.univer.se/History" class="contact-link" target="_blank">
+                            <span class="contact-icon">📚</span>
+                            Full Backstory
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>© 2025 ＤｒｉｆｔＷａｖｅ 丂ㄒ卂ㄒ丨匚</p>
+            <p>END_OF_TAPE</p>
+        </footer>
+    </main>
+
+    <script type="module" src="background.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>

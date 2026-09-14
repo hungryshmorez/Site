@@ -11,7 +11,7 @@ const ambience = createAmbience(AMBIENCE.sofaboi);
 // under a personal storm cloud, a SEA of couches to roam, and a BASS PIT where
 // the subs wobble to the weird bass. Moody indigo, dubstep energy, sad-boi rain.
 
-const EPK_URL = 'https://sofa-king-sad-boi-official-epk--sofakingsadboi.on.websim.com/';
+const EPK_URL = 'epk/sofaboi/index.html';
 const canvas = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
 const std = (o) => new THREE.MeshStandardMaterial(o);
