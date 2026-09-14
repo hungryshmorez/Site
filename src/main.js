@@ -25,6 +25,7 @@ import { openWindow } from './ui/popup.js';
 import { createFXPass } from './scene/fxpass.js';
 import { buildOrbs } from './scene/orbs.js';
 import { loadMolecule } from './scene/molecule.js';
+import { loadTree, loadPool } from './scene/nature.js';
 import { buildVJ } from './scene/vjscreen.js';
 import { buildVJBoard } from './scene/vjboard.js';
 import { buildLaserShow } from './scene/laser.js';
@@ -242,6 +243,15 @@ buildLitter(scene, {
   count: 460, area: [50, 52], center: [0, -2],
   avoid: [[0, STAGE_Z + 4, 12], [0, 24, 6], DUMPSTER_POS.concat(4)],
 });
+
+// perimeter trees around the grounds + a chill-zone pool off to one side
+const festivalNature = new THREE.Group(); scene.add(festivalNature);
+loadTree({ height: 6.5, onReady: (proto) => {
+  for (const [tx, tz] of [[-23, 8], [23, 10], [-22, -4], [22, -2], [-21, 17], [21, 17], [-13, 21], [13, 21]]) {
+    const t = proto.clone(); t.position.set(tx, 0, tz); t.rotation.y = Math.random() * 6.28; t.scale.multiplyScalar(0.85 + Math.random() * 0.5); festivalNature.add(t);
+  }
+} });
+loadPool({ size: 8, onReady: (m) => { m.position.set(18, 0, 16); festivalNature.add(m); } });
 const dancers = [];
 if (!reduceMotion) {
   for (const dx of [-9, -4.5, 0, 4.5, 9]) {
