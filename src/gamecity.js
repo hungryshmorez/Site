@@ -15,6 +15,7 @@ import { buildStreetProps } from './scene/streetprops.js';
 import { buildLitter } from './scene/litter.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { buildCollectible } from './scene/collectible.js';
+import { loadFerrari } from './scene/ferrari.js';
 
 // THE BLOCK — the games city. Loads the real modern_block city model (with its
 // plazas + park) and lets you walk it; the physical (non-video) games live here
@@ -140,6 +141,7 @@ function buildGames(spawn) {
   const carSpot = new THREE.Vector3(sx + 9, carY, sz + 14);
   const carG = new THREE.Group(); carG.position.copy(carSpot); carG.rotation.y = -0.5; scene.add(carG);
   buildParkedCar(carG);
+  loadFerrari(gltf, carG, { length: 4.6, onReady: () => { for (const ch of carG.children) if (ch.isMesh) ch.visible = false; } });
   adminItems.push({ id: 'car', label: 'RACE CAR', obj: carG });
   // marshal figure standing beside the car
   const marY = groundY(sx + 12, sz + 15, 400) ?? carY;

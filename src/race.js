@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
+import { loadFerrari } from './scene/ferrari.js';
 
 // BVH-accelerated raycasting — the car samples the track surface several times
 // per frame; on 100k+ triangle circuits a linear raycast tanks the framerate,
@@ -81,6 +82,8 @@ const car = new THREE.Group();
   const hl = new THREE.PointLight(0x00f3ff, 3, 20, 2); hl.position.set(0, 1, 3); car.add(hl);
 }
 scene.add(car);
+// swap the procedural placeholder for the real Ferrari once it loads
+loadFerrari(gltf, car, { length: 4.6, onReady: () => { for (const ch of car.children) if (ch.isMesh) ch.visible = false; } });
 
 // car state
 const cs = { pos: new THREE.Vector3(), yaw: 0, speed: 0, y: 0, pitch: 0, roll: 0 };
