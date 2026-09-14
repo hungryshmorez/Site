@@ -68,10 +68,10 @@ updaters.push((dt, t) => leds.forEach((l) => { l.m.material.color.getHSL({}); l.
 
 // ---- a little robot NPC assembled from the PR2 head parts + slotted disk ----
 {
-  const bot = buildRobot({ accent: 0xffb020 });
-  bot.group.position.set(-7, 0, -5); bot.group.rotation.y = 0.6;   // tucked by the racks, facing the room
+  // roams the back half of the room (clear of the doors, deck + spawn) and chats
+  const bot = buildRobot({ accent: 0xffb020, bounds: { x0: -9, x1: 6, z0: -9, z1: 2 } });
+  bot.group.position.set(-7, 0, -5);
   scene.add(bot.group);
   R.onFrame((dt, t) => bot.update(dt, t));
   R.addAdminItem({ id: 'robot', label: 'ROBOT · UNIT-12', obj: bot.group });
-  const cap = textPlane('UNIT-12', '#ffb020', 256, 48); cap.position.set(-7, 2.9, -5); cap.scale.set(1.6, 0.3, 1); scene.add(cap);
 }
