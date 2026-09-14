@@ -6,6 +6,7 @@ import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createAdmin } from './scene/admin.js';
 import { buildJukebox } from './scene/jukebox.js';
+import { media } from './data/media.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 const ambience = createAmbience(AMBIENCE.driftwave);
 
@@ -368,14 +369,14 @@ function framedArt(url, w, h, accent = 0xff9ecb) {
   g.add(frame);
   const art = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: 0x0a0a12 }));
   art.position.z = 0.06; g.add(art);
-  _texLoaderDW.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; art.material.map = t; art.material.color.set(0xffffff); art.material.needsUpdate = true; }, undefined, () => {});
+  _texLoaderDW.load(media(url), (t) => { t.colorSpace = THREE.SRGBColorSpace; art.material.map = t; art.material.color.set(0xffffff); art.material.needsUpdate = true; }, undefined, () => {});
   return g;
 }
 function buildGallery() {
   const g = new THREE.Group(); scene.add(g);
   // VJ billboard on the mallsoft back wall, facing the plaza (−x)
   const vid = document.createElement('video');
-  Object.assign(vid, { src: 'video/driftwave-clip.mp4', loop: true, muted: true, playsInline: true, crossOrigin: 'anonymous', preload: 'none' });
+  Object.assign(vid, { src: media('video/driftwave-clip.mp4'), loop: true, muted: true, playsInline: true, crossOrigin: 'anonymous', preload: 'none' });
   vid.muted = true; vid.setAttribute('playsinline', ''); vid.setAttribute('muted', '');
   // keep it attached (offscreen) so the browser reliably decodes frames for the VideoTexture
   Object.assign(vid.style, { position: 'fixed', top: '0', left: '0', width: '2px', height: '2px', opacity: '0', pointerEvents: 'none', zIndex: '-1' });
