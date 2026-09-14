@@ -14,6 +14,7 @@ import { createAdmin } from './scene/admin.js';
 import { buildStreetProps } from './scene/streetprops.js';
 import { buildLitter } from './scene/litter.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { buildCollectible } from './scene/collectible.js';
 
 // THE BLOCK — the games city. Loads the real modern_block city model (with its
 // plazas + park) and lets you walk it; the physical (non-video) games live here
@@ -72,6 +73,7 @@ controls.groundAt = (x, z) => {
 // ---- drag-look + tap-to-walk / click ----
 const clickables = [];
 let admin = null;   // layout editor (created once the city + games are placed)
+let hunt = null;    // hidden golden-vinyl collectible hunt
 const ndc = new THREE.Vector2(); const cray = new THREE.Raycaster();
 let down = null, dragged = false;
 canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY, id: e.pointerId }; dragged = false; canvas.classList.add('drag'); });
@@ -88,6 +90,7 @@ function tap(sx, sy) {
   if (admin && admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   cray.setFromCamera(ndc, camera);
+  if (hunt && hunt.tryClick(cray)) return;
   for (const c of clickables) if (cray.intersectObject(c.proxy, false)[0]) { c.onClick(); return; }
   if (gamezones && gamezones.onTap()) return;
   // walk toward the tapped ground point
@@ -165,6 +168,13 @@ function buildGames(spawn) {
   ];
   const props = buildStreetProps(scene, { groundY, center: [sx, sz], radius: Math.min(r, 40), accent: 0x39ff14, avoid });
   adminItems.push({ id: 'streetprops', label: 'STREET FURNITURE', obj: props.group });
+
+  // hidden GOLDEN VINYL hunt — 5 records tucked around the block; find them all
+  hunt = buildCollectible(scene, {
+    groundY, store: '12m.vinyl.block', label: 'GOLDEN VINYL', emoji: '🪩', color: 0xffd24a,
+    spots: [[sx - 12, sz + 3], [sx + 12, sz - 4], [sx - 3, sz + 13], [sx + 9, sz + 10], [sx - 11, sz - 9]],
+    onComplete: () => setStatus('🪩 all 5 golden vinyls found — 12MATT3R deep cuts unlocked'),
+  });
   buildLitter(scene, { count: 260, area: [r * 1.8, r * 1.8], center: [sx, sz], y: (groundY(sx, sz, 400) ?? 0) + 0.03, avoid, colors: ['#ffffff', '#39ff14', '#ff6b35', '#00f3ff', '#ffd24a', '#b0b4bc'] });
 
   // ---- layout editor: rearrange the games + car (✎ button / `~` key) ----
@@ -267,6 +277,7 @@ function frame() {
   }
   if (hoop) { hoop.update(dt, t); gallery.update(dt, t, 0.5); dunktank.update(dt, t); if (paw && paw.update) paw.update(t, 0.5); }
   if (gamezones && !(admin && admin.active)) gamezones.update(controls.pos);
+  if (hunt && !(admin && admin.active)) hunt.update(dt, t, controls.pos);
   updatePrompt();
   if (admin) admin.update(dt);
   renderer.render(scene, admin && admin.active ? admin.cam : camera);
