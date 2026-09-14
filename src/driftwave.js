@@ -18,6 +18,7 @@ const canvas = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
 const std = (o) => new THREE.MeshStandardMaterial(o);
 const C = (h) => new THREE.Color(h);
+const _texLoaderDW = new THREE.TextureLoader();
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
@@ -356,8 +357,52 @@ function buildDeadnet() {
   return g;
 }
 
+// ---------- GALLERY: self-hosted VJ billboard + framed DriftWave art ----------
+// All new props — the temple/mall/nook geometry is untouched. A muted, looping
+// VideoTexture plays the bundled clip on the mallsoft wall; framed backdrop /
+// poster art dresses the lo-fi nook and plaza.
+let dwVideo = null;
+function framedArt(url, w, h, accent = 0xff9ecb) {
+  const g = new THREE.Group();
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(w + 0.22, h + 0.22, 0.1), std({ color: 0x14101c, metalness: 0.4, roughness: 0.5, emissive: C(accent).multiplyScalar(0.15), emissiveIntensity: 0.5 }));
+  g.add(frame);
+  const art = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: 0x0a0a12 }));
+  art.position.z = 0.06; g.add(art);
+  _texLoaderDW.load(url, (t) => { t.colorSpace = THREE.SRGBColorSpace; art.material.map = t; art.material.color.set(0xffffff); art.material.needsUpdate = true; }, undefined, () => {});
+  return g;
+}
+function buildGallery() {
+  const g = new THREE.Group(); scene.add(g);
+  // VJ billboard on the mallsoft back wall, facing the plaza (−x)
+  const vid = document.createElement('video');
+  Object.assign(vid, { src: 'video/driftwave-clip.mp4', loop: true, muted: true, playsInline: true, crossOrigin: 'anonymous', preload: 'none' });
+  vid.muted = true; vid.setAttribute('playsinline', ''); vid.setAttribute('muted', '');
+  // keep it attached (offscreen) so the browser reliably decodes frames for the VideoTexture
+  Object.assign(vid.style, { position: 'fixed', top: '0', left: '0', width: '2px', height: '2px', opacity: '0', pointerEvents: 'none', zIndex: '-1' });
+  document.body.appendChild(vid); dwVideo = vid;
+  const vTex = new THREE.VideoTexture(vid); vTex.colorSpace = THREE.SRGBColorSpace;
+  const board = new THREE.Group(); board.position.set(24.6, 3.4, 0); board.rotation.y = -Math.PI / 2; g.add(board);
+  const bezel = new THREE.Mesh(new THREE.BoxGeometry(6.6, 4.0, 0.25), std({ color: 0x0a0a12, metalness: 0.5, roughness: 0.5 })); board.add(bezel);
+  const vScreen = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 3.6), new THREE.MeshBasicMaterial({ map: vTex, toneMapped: false })); vScreen.position.z = 0.14; board.add(vScreen);
+  const vGlow = new THREE.PointLight(0x66ccff, 2.2, 16, 2); vGlow.position.set(23.4, 3.4, 0); g.add(vGlow);
+  const vLabel = textPlane('◉ NOW PLAYING — DRIFTWAVE VJ', '#66ccff'); vLabel.position.set(24.4, 5.7, 0); vLabel.rotation.y = -Math.PI / 2; vLabel.scale.set(5.2, 0.6, 1); g.add(vLabel);
+
+  // framed art in the lo-fi nook (a little gallery wall behind the couch)
+  const nook = [
+    ['music/art/backdrop-butterfly.jpg', -20.5, 2.6, 2.4, 2.4],
+    ['music/art/backdrop-sunset.jpg', -17.5, 2.6, 2.4, 2.4],
+    ['music/art/backdrop-wave1.jpg', -14.5, 2.6, 2.4, 2.4],
+  ];
+  for (const [url, x, y, w, h] of nook) { const f = framedArt(url, w, h); f.position.set(x, y, -5.0); g.add(f); }
+  // a con poster + a wave print flanking the temple approach
+  const p1 = framedArt('music/art/poster-signalcon.jpg', 2.2, 3.0, 0x00f3ff); p1.position.set(-8.6, 2.4, -10.6); p1.rotation.y = 0.5; g.add(p1);
+  const p2 = framedArt('music/art/backdrop-wave2.jpg', 2.6, 2.0, 0xffd27a); p2.position.set(8.6, 2.4, -10.6); p2.rotation.y = -0.5; g.add(p2);
+  return { group: g, billboard: board };
+}
+
 const _temple = buildTemple(); const _monolith = buildMonolith(); const _mall = buildMall(); const _lofi = buildLoFi();
 const _dreamos = buildDreamOS(); const _deadnet = buildDeadnet();
+const _gallery = buildGallery();
 // mutable link refs so the editor can re-point them
 const epkRef = { url: EPK_URL }, dreamosRef = { url: DREAMOS_URL }, deadnetRef = { url: DEADNET_URL };
 
@@ -410,6 +455,7 @@ const admin = createAdmin({
   overhead: { ax: 30, az: 24, cz: -4 },
   items: [
     { id: 'jukebox', label: 'Boombox / tape', obj: jukebox.group },
+    { id: 'gallery', label: 'VJ wall + art', obj: _gallery.group },
     { id: 'driftwave', label: 'DriftWave', obj: dw.group },
     { id: 'epk', label: 'EPK monolith', obj: _monolith, dest: epkRef },
     { id: 'dreamos', label: 'DreamOS', obj: _dreamos, dest: dreamosRef },
@@ -495,6 +541,7 @@ document.getElementById('enterBtn').onclick = () => {
   if (track) { track.volume = 0.55; track.play().catch(() => {}); }
   ambience.start();
   startDreamTV(); // the DreamOS monitor starts playing the VJ playlist
+  if (dwVideo) { dwVideo.play().catch(() => {}); } // VJ billboard clip (self-hosted)
   if (!running) { running = true; clock.start(); frame(); }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
