@@ -24,6 +24,7 @@ import { buildTent } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { createFXPass } from './scene/fxpass.js';
 import { buildOrbs } from './scene/orbs.js';
+import { loadMolecule } from './scene/molecule.js';
 import { buildVJ } from './scene/vjscreen.js';
 import { buildVJBoard } from './scene/vjboard.js';
 import { buildLaserShow } from './scene/laser.js';
@@ -324,7 +325,19 @@ let lastShader = null, camByDrug = false;
 const hasAllOrbs = () => BASE_ORBS.every((id) => owned.includes(id));
 const inStock = (id) => id === 'everything' ? hasAllOrbs() : (DRUGS.find((d) => d.id === id)?.stock || owned.includes(id));
 // scatter orbs only for the base effects you don't have in stock yet
-const orbs = buildOrbs(scene, { need: BASE_ORBS.filter((id) => !owned.includes(id)) });
+const orbs = buildOrbs(scene, { need: BASE_ORBS.filter((id) => !owned.includes(id)), molecules: ['models/molecules/cocaine.pdb', 'models/molecules/lsd.pdb'] });
+
+// floating molecule "product" art hovering over the dealer's stall — the real
+// cocaine + LSD ball-and-stick structures, slowly spinning under a spotlight
+const molArt = [];
+[['models/molecules/cocaine.pdb', -1.6, 0xff0055], ['models/molecules/lsd.pdb', 1.6, 0xb967ff]].forEach(([url, dx, tint]) => {
+  const holder = new THREE.Group();
+  holder.position.set(DEALER_POS[0] + dx, 3.2, DEALER_POS[1] - 0.5);
+  scene.add(holder);
+  const glow = new THREE.PointLight(tint, 2, 8, 2); holder.add(glow);
+  loadMolecule(url, { size: 1.6, onReady: (m) => holder.add(m) });
+  molArt.push(holder);
+});
 const randBtnEl = document.getElementById('randBtn');
 if (randBtnEl) randBtnEl.onclick = () => { if (activeDrug === 'everything') { randomizeEverything(true); flash('🎲 remix — everything swaps'); } };
 
@@ -808,6 +821,7 @@ function frame() {
     secret.update(dt, time, pulse, controls.pos);
     trippycam.update(dt);
     orbs.update(dt, time, pulse);
+    for (const h of molArt) { h.rotation.y += dt * 0.4; h.position.y = 3.2 + Math.sin(time * 0.8 + h.position.x) * 0.2; }
     { const grabbed = orbs.pickNear(controls.pos); if (grabbed) pickupOrb(grabbed); } // walk into an orb to grab it
     if (activeDrug) { drugTime -= dt; if (drugHudEl) drugHudEl.textContent = `💊 ${DRUGS.find((d) => d.id === activeDrug).name} · ${Math.ceil(drugTime)}s`; if (drugTime <= 0) endDrug(); }
     gamezones.update(controls.pos);

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { loadMolecule } from './molecule.js';
 
 // Effect ORBS scattered in out-of-the-way spots. Click/reach one to pick it up
 // and carry it; deliver it to the dealer and that effect goes "in stock" as a
@@ -16,8 +17,9 @@ const SPOTS = {
   wireframe: { pos: [7, 1.4, -13], accent: '#e6c04a' },
 };
 
-export function buildOrbs(scene, { need = [] } = {}) {
+export function buildOrbs(scene, { need = [], molecules = [] } = {}) {
   const orbs = [];
+  let mi = 0;
   for (const id of need) {
     const def = SPOTS[id]; if (!def) continue;
     const col = new THREE.Color(def.accent);
@@ -30,12 +32,18 @@ export function buildOrbs(scene, { need = [] } = {}) {
     const light = new THREE.PointLight(col, 2.4, 6, 2); g.add(light);
     const proxy = new THREE.Mesh(new THREE.SphereGeometry(0.95, 8, 6), new THREE.MeshBasicMaterial({ visible: false })); g.add(proxy);
     scene.add(g);
-    orbs.push({ id, group: g, core, halo, y: def.pos[1], proxy });
+    const orb = { id, group: g, core, spin: core, halo, y: def.pos[1], proxy };
+    orbs.push(orb);
+    // the "drug" you pick up is a real molecule — swap the placeholder core for
+    // a cloned ball-and-stick model once it loads
+    if (molecules.length) {
+      loadMolecule(molecules[mi++ % molecules.length], { size: 0.7, onReady: (m) => { g.remove(core); g.add(m); orb.spin = m; } });
+    }
   }
 
   function update(dt, time, pulse) {
     for (const o of orbs) {
-      o.core.rotation.y += dt * 1.4; o.core.rotation.x += dt * 0.7;
+      o.spin.rotation.y += dt * 1.4; o.spin.rotation.x += dt * 0.7;
       o.group.position.y = o.y + Math.sin(time * 1.7 + o.group.position.x) * 0.2;
       o.halo.scale.setScalar(1 + pulse * 0.5 + Math.sin(time * 3) * 0.1);
     }
