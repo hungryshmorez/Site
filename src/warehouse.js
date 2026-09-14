@@ -5,6 +5,7 @@ import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createAdmin } from './scene/admin.js';
 import { buildDoor } from './scene/door.js';
+import { vinylTotals } from './data/vinyl.js';
 const ambience = createAmbience(AMBIENCE.studio);
 
 // THE 12MATT3R IMMERSIVE EXPERIENCE COMPLEX — a rusty neon WAREHOUSE on a foggy
@@ -1108,6 +1109,21 @@ document.getElementById('enterBtn').onclick = () => {
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
 if (import.meta.env.DEV) window.__wh = { controls, scene, doors, hiddenDoor, game, seeker, seeker2, startGame, walls, updateSeeker, updateSeeker2, updateGame, updateCams, updateHearing, exploredCh, thresholds, explore, resolveCollision, hideSpots, searchCams, concealed, setCrouch: (v) => { crouched = v; controls.eye = v ? 0.95 : 1.6; } };
+
+// ---- site-wide GOLDEN VINYL tally: the complex hub shows your running total
+// across every world (block, museum, the loop rooms). 100% = full crate. ----
+{
+  const v = vinylTotals();
+  const pill = document.createElement('div');
+  pill.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:40;font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.12em;background:rgba(8,8,18,.6);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 14px;backdrop-filter:blur(6px);pointer-events:none';
+  const full = v.found >= v.total;
+  pill.style.color = full ? '#ffd24a' : '#e6e6f0';
+  pill.textContent = full ? `🪩 GOLDEN CRATE COMPLETE · ${v.total}/${v.total}` : `🪩 golden vinyls  ${v.found} / ${v.total}`;
+  document.body.appendChild(pill);
+  // reveal briefly on load, then fade to a faint always-on tally
+  pill.style.transition = 'opacity .5s'; pill.style.opacity = '1';
+  if (!full) setTimeout(() => { pill.style.opacity = '0.45'; }, 4000);
+}
 
 // __world hook — overhead-screenshot harness only (activated with ?shot).
 if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('shot')) {

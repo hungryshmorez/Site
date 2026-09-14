@@ -8,6 +8,7 @@ const R = createRoom({
   bounds: 13, zMin: -13, spawn: [0, 1.6, 11], yaw: 0,
   backAt: [0, 11.6, Math.PI], nextAt: [0, -12.4, 0], deckAt: [10, 4, -Math.PI / 2], deckColor: 0x39ff88,
   motes: { color: 0xffcf9a, count: 110, opacity: 0.35, rise: 0.2 }, haze: { color: 0x2a1810, opacity: 0.045 }, accent: 0x39ff88, ambience: 'greenroom',
+  collectibles: [[-9, -8], [8, 7]],
 });
 const { scene, updaters, std, C, textPlane, THREE } = R;
 

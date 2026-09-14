@@ -6,6 +6,7 @@ import { addMotes, addHaze } from './ambientfx.js';
 import { createAdmin } from './admin.js';
 import { buildRoomDetail } from './roomdetail.js';
 import { createAmbience, AMBIENCE } from '../audio/ambience.js';
+import { buildCollectible } from './collectible.js';
 
 // Boilerplate for a simple walkable LOOP room: renderer + scene + camera, first-person
 // controls, the back/forward loop doors, a DJ deck, drag-look + tap-to-walk input, the
@@ -38,7 +39,7 @@ export function createRoom({
   id, hook = '__room', fog = null, exposure = 1.2,
   bounds = 13, zMin = -13, spawn = [0, 1.6, 11], yaw = 0,
   backAt, nextAt, deckAt, deckColor = 0x00f3ff,
-  motes = null, haze = null, accent = null, detail = true, ambience = null,
+  motes = null, haze = null, accent = null, detail = true, ambience = null, collectibles = null,
 }) {
   const canvas = document.getElementById('scene');
   try { const K = '12m.explored'; const s = new Set(JSON.parse(localStorage.getItem(K) || '[]')); s.add(id); localStorage.setItem(K, JSON.stringify([...s])); } catch (e) {}
@@ -75,6 +76,9 @@ export function createRoom({
   }
 
   const admin = createAdmin({ scene, camera, renderer, controls, worldId: id, items: adminItems, overhead: { ax: bounds * 2.4, az: bounds * 2.4, cz: (zMin + bounds) / 2 } });
+
+  // optional hidden golden-vinyl hunt (part of the site-wide collection)
+  const vinyl = collectibles ? buildCollectible(scene, { spots: collectibles, store: '12m.vinyl.' + id, label: 'GOLDEN VINYL', emoji: '🪩', color: 0xffd24a }) : null;
   // ambient atmosphere — floating motes + optional low haze
   if (motes) updaters.push(addMotes(scene, { color: 0xbfc8ff, count: 130, area: [24, 10, 24], center: [0, 4, 0], rise: 0.28, opacity: 0.4, ...motes }));
   if (haze) updaters.push(addHaze(scene, { color: 0x2a3060, count: 6, center: [0, 1.5, 0], area: [24, 4, 24], scale: 9, opacity: 0.05, ...haze }));
@@ -91,6 +95,7 @@ export function createRoom({
   function tap(sx, sy) {
     if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
     ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1; ray.setFromCamera(ndc, camera);
+    if (vinyl && vinyl.tryClick(ray)) return;
     for (const d of loopDoors) { if (d.tap(ray)) return; }
     if (deck && deck.tap(ray)) return;
     for (const fn of taps) { if (fn(ray)) return; }
@@ -110,6 +115,7 @@ export function createRoom({
     if (deck) deck.update(dt, t);
     for (const u of updaters) u(dt, t);
     for (const cb of frameCbs) cb(dt, t);
+    if (vinyl && !admin.active) vinyl.update(dt, t, controls.pos);
     admin.update(dt);
     renderer.render(scene, admin.active ? admin.cam : camera);
   }
