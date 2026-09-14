@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { createAdmin } from './scene/admin.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { buildCollectible } from './scene/collectible.js';
 
 // THE GALLERY — a quiet walkable museum. Marble hall, framed pieces down both
 // long walls (portraits of the roster + the worlds beyond the festival), a
@@ -304,6 +305,12 @@ controls.update(0);
 // layout editor: rearrange the art, sculpture + benches (✎ button / `~` key)
 admin = createAdmin({ scene, camera, renderer, controls, worldId: 'museum', items: adminItems, overhead: { ax: 40, az: 40, cx: 0, cz: 0 } });
 
+// hidden GOLDEN VINYL hunt — 4 records tucked among the exhibits
+const hunt = buildCollectible(scene, {
+  store: '12m.vinyl.museum', label: 'GOLDEN VINYL', emoji: '🪩', color: 0xe6c04a, y: 1.5,
+  spots: [[-7.5, -13], [7.5, -7], [-7.5, 10], [7, 14.5]],
+});
+
 // drag-look + click (auto-walk to a picture / step through the exit)
 let dragging = false, lastX = 0, lastY = 0, moved = 0;
 const ndc = new THREE.Vector2(); const ray = new THREE.Raycaster();
@@ -317,6 +324,7 @@ function onTap(sx, sy) {
   ray.setFromCamera(ndc, camera);
   // only leave when you actually tap the glowing exit portal (or use the back button /
   // walk into it) — a tap anywhere else just walks you there
+  if (hunt.tryClick(ray)) return;
   if (exitPortal && ray.intersectObject(exitPortal, false)[0]) { goHome(); return; }
   const floorHit = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
   if (floorHit) { floorHit.y = 1.6; controls.walkTo(floorHit); }
@@ -389,6 +397,7 @@ function frame() {
     { const ex = Math.hypot(controls.pos.x - exitCenter.x, controls.pos.z - exitCenter.z); if (ex > 2.5) exitArmed = true; if (exitArmed && ex < 1.25) goHome(); }
     updateCaption();
     updateHint();
+    hunt.update(dt, t, controls.pos);
   }
   if (window.__sculpt) window.__sculpt.rotation.y = t * 0.25;
   if (window.__plinths) for (const p of window.__plinths) { p.userData.s.rotation.y += dt * p.userData.spin; }
