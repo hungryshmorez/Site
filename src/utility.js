@@ -1,4 +1,5 @@
 import { createRoom } from './scene/roomkit.js';
+import { buildRobot } from './scene/robot.js';
 
 // UTILITY / CONTROL ROOM — the behind-the-scenes nerve center: server racks with
 // blinking lights, a wall of monitors, patch panels and cabling. Part of the big loop
@@ -63,4 +64,14 @@ updaters.push((dt, t) => leds.forEach((l) => { l.m.material.color.getHSL({}); l.
   const proxy = new THREE.Mesh(new THREE.BoxGeometry(4, 2.4, 0.6), new THREE.MeshBasicMaterial({ visible: false })); proxy.position.set(11.4, 2.2, -2); proxy.rotation.y = -Math.PI / 2; scene.add(proxy);
   let ac = null; function beep() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), gg = ac.createGain(); o.type = 'square'; o.frequency.value = 300 + Math.random() * 500; gg.gain.setValueAtTime(0.08, ac.currentTime); gg.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.08); o.connect(gg); gg.connect(ac.destination); o.start(); o.stop(ac.currentTime + 0.1); } catch (e) {} }
   R.addTap((ray) => { if (ray.intersectObject(proxy, false)[0]) { const s = switches[(Math.random() * switches.length) | 0]; s.on = !s.on; s.lev.position.y = s.y + (s.on ? -0.12 : 0.12); s.lev.material.color.setHex(s.on ? 0x39ff88 : 0xffb020); s.lev.material.emissive.setHex(s.on ? 0x39ff88 : 0xffb020); beep(); return true; } return false; });
+}
+
+// ---- a little robot NPC assembled from the PR2 head parts + slotted disk ----
+{
+  const bot = buildRobot({ accent: 0xffb020 });
+  bot.group.position.set(-7, 0, -5); bot.group.rotation.y = 0.6;   // tucked by the racks, facing the room
+  scene.add(bot.group);
+  R.onFrame((dt, t) => bot.update(dt, t));
+  R.addAdminItem({ id: 'robot', label: 'ROBOT · UNIT-12', obj: bot.group });
+  const cap = textPlane('UNIT-12', '#ffb020', 256, 48); cap.position.set(-7, 2.9, -5); cap.scale.set(1.6, 0.3, 1); scene.add(cap);
 }
