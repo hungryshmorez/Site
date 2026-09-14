@@ -5,6 +5,7 @@ import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createAdmin } from './scene/admin.js';
+import { buildJukebox } from './scene/jukebox.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 const ambience = createAmbience(AMBIENCE.driftwave);
 
@@ -398,11 +399,17 @@ const parkour = buildParkour(scene, controls);
 controls.groundAt = parkour.groundAt; // land on the floating islands
 const rings = buildRings(scene, controls); // glide from the summit through them
 
+// ---------- the DriftWave Static tape: a playable boombox jukebox ----------
+const jukebox = buildJukebox({ accent: 0xff9ecb });
+jukebox.group.position.set(-6, 0, 9); jukebox.group.rotation.y = 0.5; scene.add(jukebox.group);
+updaters.push((dt, t) => jukebox.update(dt, t));
+
 // ---------- layout editor (overhead move / rotate / resize / rename / relink) ----------
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'driftwave',
   overhead: { ax: 30, az: 24, cz: -4 },
   items: [
+    { id: 'jukebox', label: 'Boombox / tape', obj: jukebox.group },
     { id: 'driftwave', label: 'DriftWave', obj: dw.group },
     { id: 'epk', label: 'EPK monolith', obj: _monolith, dest: epkRef },
     { id: 'dreamos', label: 'DreamOS', obj: _dreamos, dest: dreamosRef },
@@ -430,6 +437,7 @@ function tap(sx, sy) {
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
+  if (jukebox.tap(ray)) return;
   if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('DRIFTWAVE STATIC — EPK', epkRef.url); return; }
   if (dreamosProxy && ray.intersectObject(dreamosProxy, false)[0]) { openWindow('DREAMOS · VJ PLAYLIST', dreamosRef.url); return; }
   if (deadnetProxy && ray.intersectObject(deadnetProxy, false)[0]) { openWindow('DEADNET — the dead internet', deadnetRef.url); return; }
@@ -491,7 +499,7 @@ document.getElementById('enterBtn').onclick = () => {
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
-if (import.meta.env.DEV) window.__dw = { controls, scene };
+if (import.meta.env.DEV) window.__dw = { controls, scene, jukebox };
 
 // __world hook — overhead-screenshot harness only (activated with ?shot in the
 // URL); exposes the scene so an offline top-down render can be captured. No-op
