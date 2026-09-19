@@ -4,9 +4,11 @@ import { buildSofaBoi } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
 import { createAdmin } from './scene/admin.js';
 import { buildLinkKiosk } from './scene/linkkiosk.js';
 const ambience = createAmbience(AMBIENCE.sofaboi);
+const reduceMotion = createReducedMotion();
 
 // SOFA KING SAD BOI'S WORLD — a rainy kingdom of couches. A giant sofa THRONE
 // under a personal storm cloud, a SEA of couches to roam, and a BASS PIT where
@@ -253,6 +255,7 @@ document.getElementById('backBtn').onclick = () => {
 
 // ---------- loop ----------
 const track = document.getElementById('track');
+wireMuteButton([audioElMute(track), ambience]);
 const clock = new THREE.Clock();
 let running = false;
 function frame() {

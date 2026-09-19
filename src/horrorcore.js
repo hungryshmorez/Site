@@ -5,6 +5,9 @@ import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
 import { buildLoopDoors } from './data/loop.js';
 import { buildDJDeck } from './scene/djdeck.js';
+import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
+
+const reduceMotion = createReducedMotion();
 
 // HORRORCORE CRAWLSPACE — a dim concrete basement under one swinging, flickering
 // bulb. Pipes drip in the dark, framed scenes whisper when you tap them, and a
@@ -203,9 +206,9 @@ function unlockTrack() {
 }
 
 // ================= Web Audio: drips, whispers, collect =================
-let actx = null, master = null;
+let actx = null, master = null, muted = false;
 function ensureAudio() {
-  if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = 0.32; master.connect(actx.destination);
+  if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = muted ? 0 : 0.32; master.connect(actx.destination);
     // low whisper/room drone
     const wsrc = actx.createBufferSource(); const n = actx.sampleRate * 2; const buf = actx.createBuffer(1, n, actx.sampleRate); const d = buf.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; wsrc.buffer = buf; wsrc.loop = true;
     const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 320; bp.Q.value = 0.7; const wg = actx.createGain(); wg.gain.value = 0.06; wsrc.connect(bp); bp.connect(wg); wg.connect(master); wsrc.start();
@@ -239,6 +242,7 @@ updaters.push(addHaze(scene, { color: 0x2a1a14, count: 8, center: [0, 1.5, -8], 
 
 // ---------- controls ----------
 const track = document.getElementById('track');
+wireMuteButton([{ setMuted: (v) => { muted = v; if (master) master.gain.value = v ? 0 : 0.32; } }, audioElMute(track)]);
 const controls = new WalkControls(camera, { bounds: RX - 1, eye: 1.6, zMin: RZ1 + 1.5 });
 controls.pos.set(0, 1.6, 7); controls.yaw = 0;
 const loopDoors = buildLoopDoors(scene, 'horrorcore', { back: [0, 10, Math.PI], next: [0, -16, 0] });

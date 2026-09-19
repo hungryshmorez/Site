@@ -4,6 +4,9 @@ import { addMotes } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
 import { buildLinkKiosk } from './scene/linkkiosk.js';
 import { openWindow } from './ui/popup.js';
+import { createReducedMotion, wireMuteButton } from './player/motion.js';
+
+const reduceMotion = createReducedMotion();
 
 // VJ / PERFORMANCE STAGE — a dark club room with a raised stage, a truss of moving-head
 // lights, and a giant reactive VIDEO WALL. Step onto the stage and the show goes LIVE:
@@ -164,11 +167,12 @@ function buildCrowd() {
 const _crowd = buildCrowd();
 
 // ================= WEB AUDIO — the beat + a per-mode lead =================
-let actx = null, master = null;
+let actx = null, master = null, muted = false;
+wireMuteButton({ setMuted: (v) => { muted = v; if (master) master.gain.value = v ? 0 : 0.32; } });
 function ensureAudio() {
   if (actx) { if (actx.state === 'suspended') actx.resume(); return; }
   actx = new (window.AudioContext || window.webkitAudioContext)();
-  master = actx.createGain(); master.gain.value = 0.32; master.connect(actx.destination);
+  master = actx.createGain(); master.gain.value = muted ? 0 : 0.32; master.connect(actx.destination);
 }
 function whiteBuffer(sec) { const n = actx.sampleRate * sec; const b = actx.createBuffer(1, n, actx.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; return b; }
 function kick(when) { const o = actx.createOscillator(), g = actx.createGain(); o.frequency.setValueAtTime(150, when); o.frequency.exponentialRampToValueAtTime(46, when + 0.13); g.gain.setValueAtTime(0.9, when); g.gain.exponentialRampToValueAtTime(0.001, when + 0.24); o.connect(g); g.connect(master); o.start(when); o.stop(when + 0.26); }

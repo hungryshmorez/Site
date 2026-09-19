@@ -5,6 +5,7 @@ import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { buildCollectible } from './scene/collectible.js';
 import { buildLinkKiosk } from './scene/linkkiosk.js';
 import { openWindow } from './ui/popup.js';
+import { createReducedMotion, wireMuteButton } from './player/motion.js';
 
 // THE GALLERY — a quiet walkable museum. Marble hall, framed pieces down both
 // long walls (portraits of the roster + the worlds beyond the festival), a
@@ -424,6 +425,8 @@ addEventListener('resize', () => {
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
 const ambience = createAmbience(AMBIENCE.museum);
+const reduceMotion = createReducedMotion();
+wireMuteButton(ambience);
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
   ambience.start();

@@ -4,9 +4,11 @@ import { buildRaver } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
 import { createAdmin } from './scene/admin.js';
 import { makePersonGeo } from './scene/crowd.js';
 const ambience = createAmbience(AMBIENCE.ravecharles);
+const reduceMotion = createReducedMotion();
 
 // RAVE CHARLES'S WORLD — the masked headliner, down in the pit with the crowd.
 // A raging neon MOSH PIT with a stage (EPK on the screen), a coast-to-coast
@@ -229,6 +231,7 @@ document.getElementById('backBtn').onclick = () => {
 
 // ---------- loop ----------
 const track = document.getElementById('track');
+wireMuteButton([audioElMute(track), ambience]);
 const clock = new THREE.Clock();
 let running = false;
 function frame() {

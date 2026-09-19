@@ -3,11 +3,13 @@ import { WalkControls } from './player/controls.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
 import { createAdmin } from './scene/admin.js';
 import { buildDoor } from './scene/door.js';
 import { vinylTotals } from './data/vinyl.js';
 import { loadTree } from './scene/nature.js';
 const ambience = createAmbience(AMBIENCE.studio);
+const reduceMotion = createReducedMotion();
 
 // THE 12MATT3R IMMERSIVE EXPERIENCE COMPLEX — a rusty neon WAREHOUSE on a foggy
 // street. Walk up: the door slides open with a creak. Inside, a projection-lined
@@ -1052,6 +1054,7 @@ document.getElementById('backBtn').onclick = () => {
 
 // ---------- loop ----------
 const track = document.getElementById('track');
+wireMuteButton([audioElMute(track), ambience]);
 const clock = new THREE.Clock();
 let running = false;
 function frame() {

@@ -7,6 +7,9 @@ import { loopNeighbors } from './data/loop.js';
 import { buildDoor } from './scene/door.js';
 import { buildDJDeck } from './scene/djdeck.js';
 import { addBaseboard } from './scene/roomkit.js';
+import { createReducedMotion, wireMuteButton } from './player/motion.js';
+
+const reduceMotion = createReducedMotion();
 
 // ROOFTOP CHILL ZONE — a serene rooftop under a slowly turning galaxy. City lights
 // below the parapet, holographic art drifting overhead, cozy seating, and a
@@ -155,7 +158,8 @@ function buildHolos() {
 }
 
 // ================= SOUNDBOARD (Web Audio, layerable) =================
-let actx = null, master = null;
+let actx = null, master = null, muted = false;
+wireMuteButton({ setMuted: (v) => { muted = v; if (master) master.gain.value = v ? 0 : 0.4; } });
 const layers = {}; // name -> { on, gain, target, ... }
 const LAYERS = [
   { name: 'WIND', col: 0x9fb0d8 }, { name: 'RAIN', col: 0x4ad0c0 }, { name: 'CHIMES', col: 0xffd88a },
@@ -166,7 +170,7 @@ function whiteBuffer(sec) { const n = actx.sampleRate * sec; const b = actx.crea
 function ensureAudio() {
   if (actx) { if (actx.state === 'suspended') actx.resume(); return; }
   actx = new (window.AudioContext || window.webkitAudioContext)();
-  master = actx.createGain(); master.gain.value = 0.4; master.connect(actx.destination);
+  master = actx.createGain(); master.gain.value = muted ? 0 : 0.4; master.connect(actx.destination);
   // WIND: brown noise -> lowpass w/ LFO
   { const src = actx.createBufferSource(); src.buffer = noiseBuffer(4); src.loop = true; const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500; const lfo = actx.createOscillator(); const lg = actx.createGain(); lfo.frequency.value = 0.08; lg.gain.value = 260; lfo.connect(lg); lg.connect(lp.frequency); lfo.start(); const g = actx.createGain(); g.gain.value = 0; src.connect(lp); lp.connect(g); g.connect(master); src.start(); layers.WIND = { gain: g, target: 0.5, on: false }; }
   // RAIN: white noise -> highpass

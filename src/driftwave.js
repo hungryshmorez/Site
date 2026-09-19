@@ -4,12 +4,14 @@ import { buildVaporwave } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
 import { createAdmin } from './scene/admin.js';
 import { buildJukebox } from './scene/jukebox.js';
 import { buildLinkKiosk } from './scene/linkkiosk.js';
 import { media } from './data/media.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 const ambience = createAmbience(AMBIENCE.driftwave);
+const reduceMotion = createReducedMotion();
 
 // DRIFTWAVE STATIC'S WORLD — one big vaporwave dreamscape stitched from the
 // three VAPORSTUDIO rooms: a marble TEMPLE (with the EPK monolith), a dead
@@ -523,6 +525,7 @@ document.getElementById('backBtn').onclick = () => {
 
 // ---------- loop ----------
 const track = document.getElementById('track');
+wireMuteButton([audioElMute(track), ambience]);
 const clock = new THREE.Clock();
 let running = false, beat = 0;
 function frame() {

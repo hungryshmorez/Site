@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { openWindow } from './ui/popup.js';
 import { createAdmin } from './scene/admin.js';
+import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
+
+const reduceMotion = createReducedMotion();
 
 // THE MIDWAY — a neon arcade tent of portal cabinets: the VIDEO games live here
 // (flash / Wake Up / games / stories / dodge hell / mini games / minecraft /
@@ -226,6 +229,7 @@ document.getElementById('backBtn').onclick = () => {
 
 // ---------- loop ----------
 const track = document.getElementById('track');
+wireMuteButton(audioElMute(track));
 const clock = new THREE.Clock();
 let running = false;
 function frame() {

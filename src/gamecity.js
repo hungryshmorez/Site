@@ -17,6 +17,7 @@ import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { buildCollectible } from './scene/collectible.js';
 import { loadFerrari } from './scene/ferrari.js';
 import { loadTree, loadPool } from './scene/nature.js';
+import { createReducedMotion, wireMuteButton } from './player/motion.js';
 
 // THE BLOCK — the games city. Loads the real modern_block city model (with its
 // plazas + park) and lets you walk it; the physical (non-video) games live here
@@ -303,6 +304,8 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) cloc
 document.getElementById('raceBtn').onclick = () => toRacetrack();
 document.getElementById('backBtn').onclick = () => { const w = document.getElementById('warp'); if (w) w.classList.add('go'); setTimeout(() => { window.location.href = 'warehouse.html'; }, 460); };
 const ambience = createAmbience(AMBIENCE.gamecity);
+const reduceMotion = createReducedMotion();
+wireMuteButton(ambience);
 document.getElementById('enterBtn').onclick = () => { document.getElementById('start').classList.add('gone'); ambience.start(); if (!running) { running = true; clock.start(); frame(); } };
 
 controls.update(0);

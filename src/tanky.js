@@ -6,8 +6,10 @@ import { createGameZones } from './scene/gamezones.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
 import { createAdmin } from './scene/admin.js';
 const ambience = createAmbience(AMBIENCE.tanky);
+const reduceMotion = createReducedMotion();
 
 // TANKY JOHNSON'S WORLD — a cosmic western at dusk. A honky-tonk SALOON (EPK on
 // the jukebox), a TAILGATE bonfire with his lifted truck + hay bales, and a
@@ -277,6 +279,7 @@ document.getElementById('backBtn').onclick = () => {
 
 // ---------- loop ----------
 const track = document.getElementById('track');
+wireMuteButton([audioElMute(track), ambience]);
 const clock = new THREE.Clock();
 let running = false;
 function frame() {

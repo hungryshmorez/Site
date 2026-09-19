@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
+import { createReducedMotion, wireMuteButton } from './player/motion.js';
+
+const reduceMotion = createReducedMotion();
 
 // PERSONALIZED ROOM BUILDER — the endgame reward. You're inside YOUR room; a live
 // panel swaps the theme, lighting, wall art, decor, the sky out the window, and
@@ -174,8 +177,9 @@ const amb = new THREE.AmbientLight(0x222233, 1.0); scene.add(amb);
 const hemi = new THREE.HemisphereLight(0x8890b0, 0x101018, 0.6); scene.add(hemi);
 
 // ---------- Web Audio ambience ----------
-let actx = null, master = null, soundNodes = null;
-function ensureAudio() { if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = 0.3; master.connect(actx.destination); } if (actx.state === 'suspended') actx.resume(); }
+let actx = null, master = null, soundNodes = null, muted = false;
+wireMuteButton({ setMuted: (v) => { muted = v; if (master) master.gain.value = v ? 0 : 0.3; } });
+function ensureAudio() { if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = muted ? 0 : 0.3; master.connect(actx.destination); } if (actx.state === 'suspended') actx.resume(); }
 let beatTimer = 0, beatStep = 0;
 function setSound(kind) {
   ensureAudio();
