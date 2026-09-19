@@ -120,6 +120,9 @@ buildCabinet(-15, 3, 'MINECRAFT', '#39ff14', () => openWindow('MINECRAFT CLASSIC
 buildCabinet(15, -5, 'MINI GAMES', '#ffd24a', () => openWindow('MINI GAMES', 'games/browsergames/hub.html'));
 // KNOCK KNOCK — a browser groovebox (pads, step sequencer, sampler) — pure EDM
 buildCabinet(15, 3, 'KNOCK KNOCK', '#00f3ff', () => openWindow('KNOCK KNOCK · GROOVEBOX', 'games/knock-knock/index.html'));
+// FLASHSTORAGE — a second, separate flash catalog (~150 games via flashstorage.games,
+// its own genre-filter browser) — distinct source from the FLASH GAMES cabinet above
+buildCabinet(-15, 11, 'FLASHSTORAGE', '#ff8a1e', () => openWindow('FLASHSTORAGE ARCHIVE', 'games/flashstorage-archive/index.html'));
 
 // (physical games — basketball, shooting gallery, dunk tank, Monkey's Paw — now
 // live exclusively in THE BLOCK; the arcade is video-game cabinets only.)

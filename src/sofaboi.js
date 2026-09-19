@@ -186,7 +186,9 @@ const _throne = buildThrone(); buildCouchField(); const _bass = buildBassPit();
 // just an iframe out to a third party)
 const profileKiosk = buildLinkKiosk(scene, { pos: [-22, 20], rotY: Math.PI * 0.35, label: 'PROFILE', color: '#6a6cff' });
 const trippyKiosk = buildLinkKiosk(scene, { pos: [-16, 20], rotY: Math.PI * 0.35, label: 'TRIPPY.ME', color: '#00f3ff' });
-updaters.push((dt, t) => { profileKiosk.update(dt, t); trippyKiosk.update(dt, t); });
+// a third kiosk: trippy.me's video catalog (self-hosted Next.js static export)
+const videoKiosk = buildLinkKiosk(scene, { pos: [-10, 20], rotY: Math.PI * 0.35, label: 'VIDEOS', color: '#b967ff' });
+updaters.push((dt, t) => { profileKiosk.update(dt, t); trippyKiosk.update(dt, t); videoKiosk.update(dt, t); });
 
 // ambient: cool indigo motes drifting in the rain + haze in the bass pit
 updaters.push(addMotes(scene, { color: 0x9aa0ff, count: 200, area: [56, 16, 56], opacity: 0.4 }));
@@ -204,6 +206,7 @@ const admin = createAdmin({
     { id: 'basspit', label: 'Bass pit', obj: _bass },
     { id: 'profileKiosk', label: 'Profile kiosk', obj: profileKiosk.group },
     { id: 'trippyKiosk', label: 'Trippy.me kiosk', obj: trippyKiosk.group },
+    { id: 'videoKiosk', label: 'Video catalog kiosk', obj: videoKiosk.group },
   ],
 });
 
@@ -227,6 +230,7 @@ function tap(sx, sy) {
   if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('SOFA KING SAD BOI — EPK', epkRef.url); return; }
   if (profileKiosk.tryClick(ray)) { openWindow('SOFAKINGSADBOI — PROFILE', 'https://sofakingsadboi--sofakingsadboi.on.websim.com/'); return; }
   if (trippyKiosk.tryClick(ray)) { openWindow('TRIPPY.ME — ADVANCED EFFECTS', 'sofaboi/trippy-effects/index.html'); return; }
+  if (videoKiosk.tryClick(ray)) { openWindow('TRIPPY.ME — VIDEOS', 'sofaboi/trippy-videos/index.html'); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -27, 27); g.z = THREE.MathUtils.clamp(g.z, -27, 27); controls.walkTo(g); }
 }
