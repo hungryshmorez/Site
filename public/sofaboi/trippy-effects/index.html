@@ -1,0 +1,230 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Trippy Effects - Trippy.me</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="effects.css">
+  <script src="webgl-shaders.js" defer></script>
+  <script src="effects.js" defer></script>
+  <script src="videoDetail.js" defer></script>
+  <script src="sparkle-effects.js" defer></script>
+  <script src="neural-effects.js" defer></script>
+  <script src="datamosh-effects.js" defer></script>
+  <script src="videoCube.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <a href="../../index.html" class="logo sparkle">Trippy.me</a>
+        <nav>
+          <ul>
+            <li><a href="#webgl-effects">WebGL</a></li>
+            <li><a href="#neural-effects">Neural</a></li>
+            <li><a href="#audio-effects">Audio</a></li>
+            <li><a href="#cube-environment">3D Cube</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Intro Section -->
+    <section class="effect-intro">
+      <div class="container">
+        <h1 class="section-title psychedelic-text sparkle">Advanced Psychedelic Effects</h1>
+        <p class="intro-text">
+          This demo showcases the latest trippy visual effects including WebGL shaders, neural-style effects, 
+          audio-reactive visuals, and 3D environments.
+        </p>
+        <div class="effect-controls">
+          <button id="randomize-btn" class="button button-primary">Randomize Effects</button>
+          <button id="intensity-btn" class="button button-secondary">Intensity: <span id="intensity-value">5</span>/10</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SVG Filters for Special Effects -->
+    <svg class="svg-filters">
+      <defs>
+        <filter id="displacement-filter">
+          <feTurbulence type="turbulence" baseFrequency="0.05" numOctaves="2" result="turbulence"/>
+          <feDisplacementMap in2="turbulence" in="SourceGraphic" scale="10" xChannelSelector="R" yChannelSelector="G"/>
+        </filter>
+        <filter id="glow-filter">
+          <feGaussianBlur stdDeviation="2.5" result="blur"/>
+          <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10" result="glow"/>
+          <feBlend in="SourceGraphic" in2="glow" mode="normal"/>
+        </filter>
+      </defs>
+    </svg>
+
+    <!-- WebGL Shader Effects -->
+    <section id="webgl-effects" class="effect-section">
+      <div class="container">
+        <h2 class="section-title">WebGL Shader Effects</h2>
+        <p class="section-description">Advanced GPU-accelerated visual effects using fragment shaders.</p>
+        
+        <div class="effect-grid">
+          <!-- Liquid Distortion -->
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-label">Liquid Distortion</span>
+              <h3 class="effect-title">Flowing Liquid Effect</h3>
+            </div>
+            <div class="effect-content webgl-shader" data-shader-type="liquidDistortion">
+              <img src="https://i.ytimg.com/vi/F335672e88I/hqdefault.jpg" alt="Liquid Distortion" crossorigin="anonymous">
+            </div>
+          </div>
+
+          <!-- Fractal Noise -->
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-label">Fractal Noise</span>
+              <h3 class="effect-title">Fractal Pattern Effect</h3>
+            </div>
+            <div class="effect-content webgl-shader" data-shader-type="fractalNoise">
+              <img src="https://i.ytimg.com/vi/Bm-Tg-gDuVY/hqdefault.jpg" alt="Fractal Noise" crossorigin="anonymous">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Neural-Style Effects -->
+    <section id="neural-effects" class="effect-section">
+      <div class="container">
+        <h2 class="section-title">Neural Network Effects</h2>
+        <p class="section-description">Visual effects inspired by neural networks like DeepDream and style transfer.</p>
+        
+        <div class="effect-grid effect-grid-3">
+          <!-- Deep Dream Effect -->
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-label">DeepDream</span>
+              <h3 class="effect-title">Hallucination Patterns</h3>
+            </div>
+            <div class="effect-content neural-dream">
+              <img src="https://i.ytimg.com/vi/VmJSbTOy2DA/hqdefault.jpg" alt="Deep Dream" crossorigin="anonymous">
+            </div>
+          </div>
+
+          <!-- Neural Glitch -->
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-label">Neural Glitch</span>
+              <h3 class="effect-title">Corrupted Outputs</h3>
+            </div>
+            <div class="effect-content neural-glitch">
+              <img src="https://i.ytimg.com/vi/3t1CXmmsbgM/hqdefault.jpg" alt="Neural Glitch" crossorigin="anonymous">
+            </div>
+          </div>
+
+          <!-- Style Transfer -->
+          <div class="effect-card">
+            <div class="effect-header">
+              <span class="effect-label">Style Transfer</span>
+              <h3 class="effect-title">Psychedelic Style</h3>
+            </div>
+            <div class="effect-content neural-style" data-style-type="psychedelic">
+              <img src="https://i.ytimg.com/vi/4oNPSeYeriw/hqdefault.jpg" alt="Style Transfer" crossorigin="anonymous">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Audio Reactive Effects -->
+    <section id="audio-effects" class="effect-section">
+      <div class="container">
+        <h2 class="section-title">Audio Reactive Visuals</h2>
+        <p class="section-description">Visualizations that respond to audio in real-time. Play the audio to see the effects.</p>
+        
+        <div class="effect-grid">
+          <!-- Audio Player with Visualizer -->
+          <div class="effect-card full-width">
+            <div class="effect-header">
+              <span class="effect-label">Audio Visualizer</span>
+              <h3 class="effect-title">Spectrum Analyzer</h3>
+              <p class="effect-subtitle">Click the visualizer to change visualization modes.</p>
+            </div>
+            
+            <div class="audio-player">
+              <audio id="demo-audio" controls>
+                <source src="https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Tours/Enthusiast/Tours_-_01_-_Enthusiast.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+              </audio>
+            </div>
+            
+            <div class="effect-content audio-visualizer">
+              <canvas id="audio-visualizer-canvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3D Cube Environment -->
+    <section id="cube-environment" class="effect-section">
+      <div class="container">
+        <h2 class="section-title">3D Video Cube</h2>
+        <p class="section-description">An immersive 3D environment displaying videos on a cube. Interact with the mouse to rotate.</p>
+        
+        <div class="effect-grid">
+          <div class="effect-card full-width">
+            <div id="video-cube-container" class="video-cube-container">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Effect Combinations -->
+    <section class="effect-section">
+      <div class="container">
+        <h2 class="section-title">Combined Effects</h2>
+        <p class="section-description">Examples of effects combined together for maximum trippiness.</p>
+        
+        <div class="effect-grid">
+          <!-- Combined Effect 1 -->
+          <div class="effect-card recursive-frame">
+            <div class="effect-header">
+              <span class="effect-label">Recursive + Shader</span>
+              <h3 class="effect-title">Multi-layered Effect</h3>
+            </div>
+            <div class="effect-content webgl-shader neural-style" data-shader-type="liquidDistortion" data-style-type="vaporwave">
+              <img src="https://i.ytimg.com/vi/R_ud4QVM4fY/hqdefault.jpg" alt="Combined Effects" crossorigin="anonymous">
+              <div class="recursive-layer"></div>
+              <div class="recursive-layer"></div>
+              <div class="recursive-layer"></div>
+            </div>
+          </div>
+
+          <!-- Combined Effect 2 -->
+          <div class="effect-card datamosh">
+            <div class="effect-header">
+              <span class="effect-label">Datamosh + Neural</span>
+              <h3 class="effect-title">Data Corruption</h3>
+            </div>
+            <div class="effect-content neural-glitch">
+              <img src="https://i.ytimg.com/vi/mgMwjbqRWv8/hqdefault.jpg" alt="Datamosh Effect" crossorigin="anonymous">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <p>Trippy.me Advanced Effects Demo | Use Alt+E to toggle effects, Alt+R to randomize</p>
+        <a href="../../index.html" class="back-button">Back to Home</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

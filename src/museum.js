@@ -3,6 +3,8 @@ import { WalkControls } from './player/controls.js';
 import { createAdmin } from './scene/admin.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { buildCollectible } from './scene/collectible.js';
+import { buildLinkKiosk } from './scene/linkkiosk.js';
+import { openWindow } from './ui/popup.js';
 
 // THE GALLERY — a quiet walkable museum. Marble hall, framed pieces down both
 // long walls (portraits of the roster + the worlds beyond the festival), a
@@ -311,6 +313,10 @@ const hunt = buildCollectible(scene, {
   spots: [[-7.5, -13], [7.5, -7], [-7.5, 10], [7, 14.5]],
 });
 
+// a companion 3D-model museum, curated by SofaKingSadBoi — a link kiosk by the east wall
+const modelKiosk = buildLinkKiosk(scene, { pos: [9, 2], rotY: -Math.PI / 2, label: '3D MODELS', color: '#00f3ff' });
+adminItems.push({ id: 'modelKiosk', label: 'Model kiosk', obj: modelKiosk.group });
+
 // drag-look + click (auto-walk to a picture / step through the exit)
 let dragging = false, lastX = 0, lastY = 0, moved = 0;
 const ndc = new THREE.Vector2(); const ray = new THREE.Raycaster();
@@ -325,6 +331,7 @@ function onTap(sx, sy) {
   // only leave when you actually tap the glowing exit portal (or use the back button /
   // walk into it) — a tap anywhere else just walks you there
   if (hunt.tryClick(ray)) return;
+  if (modelKiosk.tryClick(ray)) { openWindow('3D MODEL MUSEUM', 'https://3d-model-museum--sofakingsadboi.on.websim.com/'); return; }
   if (exitPortal && ray.intersectObject(exitPortal, false)[0]) { goHome(); return; }
   const floorHit = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
   if (floorHit) { floorHit.y = 1.6; controls.walkTo(floorHit); }
@@ -402,6 +409,7 @@ function frame() {
   if (window.__sculpt) window.__sculpt.rotation.y = t * 0.25;
   if (window.__plinths) for (const p of window.__plinths) { p.userData.s.rotation.y += dt * p.userData.spin; }
   if (window.__portalMat) window.__portalMat.uniforms.t.value = t;
+  modelKiosk.update(dt, t);
   admin.update(dt);
   renderer.render(scene, admin && admin.active ? admin.cam : camera);
 }

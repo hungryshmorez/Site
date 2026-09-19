@@ -6,6 +6,7 @@ import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createAdmin } from './scene/admin.js';
 import { buildJukebox } from './scene/jukebox.js';
+import { buildLinkKiosk } from './scene/linkkiosk.js';
 import { media } from './data/media.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 const ambience = createAmbience(AMBIENCE.driftwave);
@@ -450,12 +451,17 @@ const jukebox = buildJukebox({ accent: 0xff9ecb });
 jukebox.group.position.set(-6, 0, 9); jukebox.group.rotation.y = 0.5; scene.add(jukebox.group);
 updaters.push((dt, t) => jukebox.update(dt, t));
 
+// DriftWave Static's own websim profile — a link kiosk near the plaza
+const profileKiosk = buildLinkKiosk(scene, { pos: [8, 13], rotY: -Math.PI * 0.6, label: 'PROFILE', color: '#ff9ecb' });
+updaters.push((dt, t) => profileKiosk.update(dt, t));
+
 // ---------- layout editor (overhead move / rotate / resize / rename / relink) ----------
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'driftwave',
   overhead: { ax: 30, az: 24, cz: -4 },
   items: [
     { id: 'jukebox', label: 'Boombox / tape', obj: jukebox.group },
+    { id: 'profileKiosk', label: 'Profile kiosk', obj: profileKiosk.group },
     { id: 'gallery', label: 'VJ wall + art', obj: _gallery.group },
     { id: 'driftwave', label: 'DriftWave', obj: dw.group },
     { id: 'epk', label: 'EPK monolith', obj: _monolith, dest: epkRef },
@@ -488,6 +494,7 @@ function tap(sx, sy) {
   if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('DRIFTWAVE STATIC — EPK', epkRef.url); return; }
   if (dreamosProxy && ray.intersectObject(dreamosProxy, false)[0]) { openWindow('DREAMOS · VJ PLAYLIST', dreamosRef.url); return; }
   if (deadnetProxy && ray.intersectObject(deadnetProxy, false)[0]) { openWindow('DEADNET — the dead internet', deadnetRef.url); return; }
+  if (profileKiosk.tryClick(ray)) { openWindow('DRIFTWAVE STATIC — PROFILE', 'https://driftwavestatic.on.websim.com/'); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -27, 27); g.z = THREE.MathUtils.clamp(g.z, -27, 27); controls.walkTo(g); }
 }

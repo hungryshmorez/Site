@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { addMotes } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
+import { buildLinkKiosk } from './scene/linkkiosk.js';
+import { openWindow } from './ui/popup.js';
 
 // VJ / PERFORMANCE STAGE — a dark club room with a raised stage, a truss of moving-head
 // lights, and a giant reactive VIDEO WALL. Step onto the stage and the show goes LIVE:
@@ -232,6 +234,10 @@ controls.pos.set(0, 1.6, 10); controls.yaw = Math.PI;
 // walking onto the stage lifts you up onto the platform
 controls.groundAt = (x, z) => (x > STAGE.x0 - 0.5 && x < STAGE.x1 + 0.5 && z > STAGE.z0 - 0.5 && z < STAGE.z1 + 0.5) ? STAGE.y : 0;
 
+// the sister VJ booth on websim — a link kiosk in the back corner, out of the crowd's way
+const linkKiosk = buildLinkKiosk(scene, { pos: [13, 12], rotY: -Math.PI * 0.7, label: 'SAUCELAB VJ', color: '#00f3ff' });
+updaters.push((dt, t) => linkKiosk.update(dt, t));
+
 const admin = createAdmin({
   scene, camera, renderer, controls, worldId: 'vj', overhead: { ax: 32, az: 30, cz: -2 },
   items: [
@@ -240,6 +246,7 @@ const admin = createAdmin({
     { id: 'mic', label: 'Mic', obj: _mic },
     { id: 'crowd', label: 'Crowd', obj: _crowd },
     { id: 'deck', label: 'VJ deck', obj: _deck },
+    { id: 'linkKiosk', label: 'SauceLab VJ kiosk', obj: linkKiosk.group },
   ],
 });
 
@@ -263,6 +270,7 @@ function tap(sx, sy) {
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   const ph = ray.intersectObjects(pads, false)[0];
   if (ph) { setMode(ph.object.userData.idx); return; }
+  if (linkKiosk.tryClick(ray)) { openWindow('SAUCELAB VJ', 'https://saucelabvj.on.websim.com/'); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -RX + 1, RX - 1); g.z = THREE.MathUtils.clamp(g.z, ZBACK + 1, ZFRONT - 1); controls.walkTo(g); }
 }
