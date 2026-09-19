@@ -13,6 +13,10 @@
   <meta name="twitter:title" content="12matt3r // The Festival">
   <meta name="twitter:description" content="A walkable EDM-festival portfolio — spawn on a bench, walk through the crowd, and step into every artist's own world.">
   <meta name="twitter:image" content="og/index.jpg">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
     :root{
       --cyan:#00F3FF; --magenta:#FF0055; --green:#39FF14; --ink:#e6e6f0; --muted:#8a8a99;
@@ -261,9 +265,10 @@
     .start .classic{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--muted);
       border-bottom:1px dotted rgba(255,255,255,.25);padding-bottom:2px;transition:color .15s}
     .start .classic:hover{color:var(--cyan);border-color:var(--cyan)}
-    .start .foot{font-family:var(--mono);font-size:10px;color:#55555f;letter-spacing:.16em}
+    .start .foot{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.16em}
     :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
-    @media (max-width:560px){ .help{display:none} .rmbtn{padding:7px 9px;font-size:10px} .dock{max-width:calc(100vw - 74px);right:8px;bottom:10px} }
+    .help-touch{display:none}
+    @media (max-width:560px){ .help{display:none} .help-touch{display:block} .rmbtn{padding:7px 9px;font-size:10px} .dock{max-width:calc(100vw - 74px);right:8px;bottom:10px} }
   </style>
 </head>
 <body>
@@ -297,6 +302,11 @@
 
   <div class="help">
     <kbd>W A S D</kbd> walk · <kbd>space</kbd> jump <span style="opacity:.7">(hold to glide)</span> · <kbd>drag</kbd> look · <b>click a name</b> to walk to them · <kbd>[ ]</kbd> time of day
+  </div>
+  <!-- narrow screens hide .help (the keyboard hints don't apply) — show the
+       touch equivalent instead, so phones aren't left with no controls hint -->
+  <div class="help help-touch">
+    <b>drag</b> to look · <b>tap the ground</b> to walk · <b>tap a name</b> to visit them
   </div>
   <div class="vjbar" id="vjBar">
     <button id="vjPrev" title="Previous clip" aria-label="Previous clip">⏮</button><span>VJ</span><button id="vjNext" title="Next clip" aria-label="Next clip">⏭</button>

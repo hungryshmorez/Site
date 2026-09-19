@@ -43,6 +43,6 @@ export function spawnDancer(scene, { pos = [0, 0, 0], rotY = 0, height = 1.7, cl
     const cl = THREE.AnimationClip.findByName(_anims || [], clip) || (_anims && _anims[0]);
     if (cl) { const act = mixer.clipAction(cl); act.timeScale = timeScale; act.play(); act.time = Math.random() * cl.duration; }
     api.mixer = mixer;
-  }).catch(() => {});
+  }).catch((e) => console.error('dancer load failed', e));
   return api;
 }

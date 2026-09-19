@@ -54,7 +54,7 @@ export function spawnMannequin(scene, { pos = [0, 0, 0], rotY = 0, color = null,
     applyPose(m, pose);
     holder.add(m);
     api.model = m;
-  }).catch(() => {});
+  }).catch((e) => console.error('mannequin load failed', e));
   return api;
 }
 
