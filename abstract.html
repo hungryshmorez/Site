@@ -13,6 +13,7 @@
   <meta name="twitter:title" content="ABSTRACT PSYCHEDELIC // paint the void">
   <meta name="twitter:description" content="The Abstract Psychedelic room — fully immersive swirling walls and floor that shift as you move, floating color-shifting entities, and glowing light you can paint onto the surfaces.">
   <meta name="twitter:image" content="og/abstract.jpg">
+  <link rel="stylesheet" href="rm-dock.css">
   <style>
     :root{--m:#ff2bd0;--c:#00f3ff;--g:#39ff14;--y:#ffe14a;--o:#ff7b2a;
       --ink:#f4ecff;--muted:#c8b6e0;--mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
@@ -72,14 +73,6 @@
   <div class="warp" id="warp"></div>
 
   <script type="module" src="/src/abstract.js"></script>
-    <style>
-      .rm-dock{position:fixed;right:14px;bottom:12px;z-index:20;display:flex;gap:8px}
-      .rm-dock button{font-family:ui-monospace,"JetBrains Mono",monospace;font-size:11px;color:#e6e6f0;
-        background:rgba(10,10,20,.7);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:8px 11px;cursor:pointer;backdrop-filter:blur(6px)}
-      .rm-dock button:hover{border-color:#00f3ff}
-      .rm-dock button.active{color:#ff71ce;border-color:#ff71ce;text-shadow:0 0 10px rgba(255,113,206,.6)}
-      @media (max-width:560px){ .rm-dock button{padding:7px 9px;font-size:10px} }
-    </style>
     <div class="rm-dock">
       <button id="mutebtn" title="Sound">🔊 sound</button>
       <button id="rmbtn" title="Reduced motion">◐ motion</button>
