@@ -14,6 +14,8 @@ import { saveTrack, allTracks } from './store.js';
 import './styles.css';
 
 const library = {}; // id -> { name, genre, file, bpm }
+// track names come from user-uploaded filenames — escape before interpolating into innerHTML
+const escapeHTML = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const tapTempo = { a: { taps: [], lastTap: 0 }, b: { taps: [], lastTap: 0 } };
 let lastRenderTime = 0;
 const FPS = 1000 / 30;
@@ -145,7 +147,7 @@ function renderLibrary(list) {
   container.innerHTML = entries.map(([id, t]) => `
     <div class="library-track">
       <div class="track-info-container">
-        <div class="track-name">${t.name}</div>
+        <div class="track-name">${escapeHTML(t.name)}</div>
         <div class="track-details">${t.genre.toUpperCase()} • ${t.bpm} BPM</div>
       </div>
       <div class="track-actions">

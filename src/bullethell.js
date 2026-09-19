@@ -13,6 +13,8 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPr
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x04060c);
