@@ -123,6 +123,12 @@ buildCabinet(15, 3, 'KNOCK KNOCK', '#00f3ff', () => openWindow('KNOCK KNOCK · G
 // FLASHSTORAGE — a second, separate flash catalog (~150 games via flashstorage.games,
 // its own genre-filter browser) — distinct source from the FLASH GAMES cabinet above
 buildCabinet(-15, 11, 'FLASHSTORAGE', '#ff8a1e', () => openWindow('FLASHSTORAGE ARCHIVE', 'games/flashstorage-archive/index.html'));
+// WINDOWS93 — a self-hosted mirror of the desktop shell only (wallpaper, start
+// menu, window chrome, Clippy); the ~25 individual programs it launches
+// (Minesweeper, Matrix, SkiFree...) load from the real windows93.net and
+// weren't part of this scrape, so they won't open — a decorative curiosity,
+// not a working OS.
+buildCabinet(15, 11, 'WINDOWS93', '#39ff14', () => openWindow('WINDOWS93', 'windows93/127.0.0.1_8081/dl/index.html'));
 
 // (physical games — basketball, shooting gallery, dunk tank, Monkey's Paw — now
 // live exclusively in THE BLOCK; the arcade is video-game cabinets only.)
