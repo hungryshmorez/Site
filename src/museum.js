@@ -209,6 +209,13 @@ hang(PIECES[11], 3.2, farWall, 0);
   const sculpt = new THREE.Mesh(new THREE.TorusKnotGeometry(0.5, 0.17, 160, 24, 2, 3), marble);
   sculpt.position.set(0, 1.9, 0); sculpt.castShadow = true; centerG.add(sculpt);
   const key = new THREE.SpotLight(0xfff4e0, 6, 10, 0.6, 0.5, 1); key.position.set(0, H - 0.5, 0); key.target.position.set(0, 1.9, 0); centerG.add(key); centerG.add(key.target);
+  // The hero caster. The meshes were already flagged castShadow/receiveShadow
+  // and the renderer had shadowMap on, but no light here cast, so none of it
+  // rendered. Shadows read in this room and not in the neon worlds because the
+  // spots (6 here, 3.4 per plinth) dominate the fill (hemisphere 0.9 + ambient
+  // 0.25) rather than being swamped by it. normalBias keeps the torus knot from
+  // self-shadowing into acne.
+  if (!isMobile) { key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.normalBias = 0.03; key.shadow.camera.near = 0.5; key.shadow.camera.far = 12; }
   window.__sculpt = sculpt;
   adminItems.push({ id: 'sculpture', label: 'SCULPTURE', obj: centerG });
 
@@ -243,7 +250,10 @@ hang(PIECES[11], 3.2, farWall, 0);
     ped.position.y = 0.5; ped.castShadow = ped.receiveShadow = true; g.add(ped);
     const s = new THREE.Mesh(sculptGeos[i % sculptGeos.length](), i % 2 ? brass : marble);
     s.position.y = 1.55; s.castShadow = true; g.add(s);
-    if (!isMobile) { const sp = new THREE.SpotLight(0xfff4e0, 3.4, 5.5, 0.6, 0.5, 1); sp.position.set(0, 4.2, 0); sp.target.position.set(0, 1.55, 0); g.add(sp); g.add(sp.target); }
+    if (!isMobile) {
+      const sp = new THREE.SpotLight(0xfff4e0, 3.4, 5.5, 0.6, 0.5, 1); sp.position.set(0, 4.2, 0); sp.target.position.set(0, 1.55, 0); g.add(sp); g.add(sp.target);
+      sp.castShadow = true; sp.shadow.mapSize.set(512, 512); sp.shadow.normalBias = 0.03; sp.shadow.camera.near = 0.5; sp.shadow.camera.far = 7;
+    }
     g.userData.spin = 0.15 + Math.random() * 0.2; g.userData.s = s;
     adminItems.push({ id: 'plinth_' + i, label: 'SCULPTURE ' + (i + 1), obj: g });
     return g;

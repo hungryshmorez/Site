@@ -30,7 +30,10 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
-renderer.shadowMap.enabled = !isMobile;
+// Deliberately no shadow map — see the note in arcade.js. Same situation:
+// hemisphere 1.15 + a 0.5 fill swamp the 1.05 key, so casting produced a
+// pixel-identical frame in testing. Re-enable alongside key.castShadow only
+// if the lighting is rebalanced.
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x2a0f3e, 0.021);

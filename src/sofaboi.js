@@ -26,7 +26,9 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.35;
-renderer.shadowMap.enabled = !isMobile;
+// Deliberately no shadow map — see the note in arcade.js. Worst ratio of the
+// three: hemisphere 1.15 + ambient 0.4 + a 0.45 fill against a 0.8 moon.
+// Re-enable alongside moon.castShadow only if the lighting is rebalanced.
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x131538, 0.017);

@@ -22,7 +22,12 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.24;
-renderer.shadowMap.enabled = !isMobile;
+// No shadow map here on purpose. The cabinets and poles carry castShadow, but
+// the hemisphere fill (1.3) outweighs the only directional key (0.6) and nearly
+// every prop is emissive, so a cast shadow is invisible — measured, not assumed.
+// Turning it on costs a depth pass per frame and changes nothing on screen.
+// If the lighting is ever rebalanced, re-enable it here AND set castShadow on
+// arcKey; one without the other is what this line used to be.
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x120416);
