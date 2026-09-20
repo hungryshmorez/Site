@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { gltfLoader as gltf } from './loaders.js';
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 // Fully skeletal-animated dancers (Michelle, with the Mixamo Samba clip baked
@@ -10,8 +9,6 @@ import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.j
 // baked/instanced.
 
 let _proto = null, _anims = null, _loading = null;
-const draco = new DRACOLoader(); draco.setDecoderPath('draco/gltf/');
-const gltf = new GLTFLoader(); gltf.setDRACOLoader(draco);
 
 function load() {
   if (_proto) return Promise.resolve();
@@ -43,6 +40,6 @@ export function spawnDancer(scene, { pos = [0, 0, 0], rotY = 0, height = 1.7, cl
     const cl = THREE.AnimationClip.findByName(_anims || [], clip) || (_anims && _anims[0]);
     if (cl) { const act = mixer.clipAction(cl); act.timeScale = timeScale; act.play(); act.time = Math.random() * cl.duration; }
     api.mixer = mixer;
-  }).catch(() => {});
+  }).catch((e) => console.error('dancer load failed', e));
   return api;
 }

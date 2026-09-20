@@ -1,0 +1,32 @@
+name: CI
+
+# Build + lint check only — deliberately never deploys. pages.yml owns
+# deployment and only runs on main, so work on a branch previously got no
+# CI signal at all.
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # lint is advisory: it reports pre-existing dead code as warnings and
+      # shouldn't block a PR, but a syntax/undefined-variable error should.
+      - run: npm run lint
+      - run: npm run build

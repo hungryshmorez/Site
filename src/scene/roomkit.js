@@ -7,6 +7,7 @@ import { createAdmin } from './admin.js';
 import { buildRoomDetail } from './roomdetail.js';
 import { createAmbience, AMBIENCE } from '../audio/ambience.js';
 import { buildCollectible } from './collectible.js';
+import { createReducedMotion, wireMuteButton } from '../player/motion.js';
 
 // Boilerplate for a simple walkable LOOP room: renderer + scene + camera, first-person
 // controls, the back/forward loop doors, a DJ deck, drag-look + tap-to-walk input, the
@@ -76,6 +77,7 @@ export function createRoom({
   }
 
   const admin = createAdmin({ scene, camera, renderer, controls, worldId: id, items: adminItems, overhead: { ax: bounds * 2.4, az: bounds * 2.4, cz: (zMin + bounds) / 2 } });
+  const reduceMotion = createReducedMotion();
 
   // optional hidden golden-vinyl hunt (part of the site-wide collection)
   const vinyl = collectibles ? buildCollectible(scene, { spots: collectibles, store: '12m.vinyl.' + id, label: 'GOLDEN VINYL', emoji: '🪩', color: 0xffd24a }) : null;
@@ -122,12 +124,13 @@ export function createRoom({
   controls.update(0); renderer.render(scene, camera);
   // generative ambient bed (started on the ENTER gesture)
   const amb = ambience ? createAmbience(AMBIENCE[ambience] || {}) : null;
+  if (amb) wireMuteButton(amb);
   const startEl = document.getElementById('enterBtn');
   const begin = () => { document.getElementById('start')?.classList.add('gone'); if (amb) amb.start(); if (!running) { running = true; clock.start(); frame(); } };
   if (startEl) startEl.onclick = begin; else begin();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
-  const api = { THREE, scene, camera, renderer, updaters, controls, loopDoors, deck, admin, isMobile, textPlane, std: (o) => new THREE.MeshStandardMaterial(o), C: (h) => new THREE.Color(h), addTap: (fn) => taps.push(fn), onFrame: (fn) => frameCbs.push(fn), addAdminItem: (it) => adminItems.push(it), zoneEl: document.getElementById('zone'), hintEl: document.getElementById('hint') };
+  const api = { THREE, scene, camera, renderer, updaters, controls, loopDoors, deck, admin, isMobile, reduceMotion, textPlane, std: (o) => new THREE.MeshStandardMaterial(o), C: (h) => new THREE.Color(h), addTap: (fn) => taps.push(fn), onFrame: (fn) => frameCbs.push(fn), addAdminItem: (it) => adminItems.push(it), zoneEl: document.getElementById('zone'), hintEl: document.getElementById('hint') };
   if (import.meta.env.DEV) window[hook] = api;
   if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('shot')) window.__world = { THREE, scene, camera, renderer };
   return api;

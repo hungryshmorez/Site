@@ -5,10 +5,12 @@ import { buildGlitch } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
 import { createAdmin } from './scene/admin.js';
 import { buildLoopDoors } from './data/loop.js';
 import { buildDJDeck } from './scene/djdeck.js';
 const ambience = createAmbience(AMBIENCE.studio);
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // 12MATT3R'S ROOM — a dark glitch-art studio built around a central MONUMENT of
 // stacked CRT televisions you circle. Trippy + glitch screens everywhere, a
@@ -349,6 +351,7 @@ document.getElementById('backBtn').onclick = () => {
 
 // ---------- loop ----------
 const track = document.getElementById('track');
+wireMuteButton([audioElMute(track), ambience]);
 const clock = new THREE.Clock();
 let running = false;
 function frame() {

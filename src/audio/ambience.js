@@ -3,7 +3,7 @@
 // layered quietly under the music. No audio files. Start on a user gesture.
 
 export function createAmbience(preset = {}) {
-  let ctx = null, started = false, crackleTimer = 0;
+  let ctx = null, started = false, crackleTimer = 0, master = null, muted = false;
 
   function noiseBuffer(type) {
     const len = ctx.sampleRate * 2;
@@ -33,7 +33,7 @@ export function createAmbience(preset = {}) {
   function start() {
     if (started) return; started = true;
     try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) { return; }
-    const master = ctx.createGain(); master.gain.value = preset.vol ?? 0.09; master.connect(ctx.destination);
+    master = ctx.createGain(); master.gain.value = muted ? 0 : (preset.vol ?? 0.09); master.connect(ctx.destination);
     // base noise texture
     const src = ctx.createBufferSource(); src.buffer = noiseBuffer(preset.noise || 'white'); src.loop = true;
     const filt = ctx.createBiquadFilter(); filt.type = preset.filterType || 'lowpass'; filt.frequency.value = preset.freq || 800; filt.Q.value = preset.q || 0.7;
@@ -48,7 +48,8 @@ export function createAmbience(preset = {}) {
     }
     if (preset.crackle) crackle(master);
   }
-  return { start };
+  function setMuted(v) { muted = v; if (master) master.gain.value = v ? 0 : (preset.vol ?? 0.09); }
+  return { start, setMuted, isMuted: () => muted };
 }
 
 // themed presets keyed by world

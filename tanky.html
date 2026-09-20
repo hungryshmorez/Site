@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>TANKY JOHNSON // outlaw of the void</title>
   <meta name="description" content="Tanky Johnson's world — a cosmic-western: a honky-tonk saloon, a tailgate bonfire with a lifted truck, and a neon-cactus desert under a giant moon." />
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TANKY JOHNSON // outlaw of the void">
+  <meta property="og:description" content="Tanky Johnson's world — a cosmic-western: a honky-tonk saloon, a tailgate bonfire with a lifted truck, and a neon-cactus desert under a giant moon.">
+  <meta property="og:image" content="og/tanky.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TANKY JOHNSON // outlaw of the void">
+  <meta name="twitter:description" content="Tanky Johnson's world — a cosmic-western: a honky-tonk saloon, a tailgate bonfire with a lifted truck, and a neon-cactus desert under a giant moon.">
+  <meta name="twitter:image" content="og/tanky.jpg">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="rm-dock.css">
   <style>
     :root{--gold:#e6c04a;--orange:#ff8a3c;--dusk:#b0568c;--cyan:#00f3ff;--ink:#fff3da;--muted:#c2a785;
       --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
@@ -64,5 +77,9 @@
   <div class="warp" id="warp"></div>
 
   <script type="module" src="/src/tanky.js"></script>
+    <div class="rm-dock">
+      <button id="mutebtn" title="Sound">🔊 sound</button>
+      <button id="rmbtn" title="Reduced motion">◐ motion</button>
+    </div>
 </body>
 </html>

@@ -1,0 +1,25 @@
+/* Shared reduced-motion / mute button dock, used by every walkable world
+   (paired with src/player/motion.js). One file instead of the same block
+   copy-pasted per page. */
+/* sits above each world's existing "← back" button (right:16px, bottom:14px,
+   ~38px tall) rather than on top of it; centered .hint elements at bottom:78px
+   are horizontally centered so they don't collide with this right-aligned row. */
+.rm-dock{position:fixed;right:14px;bottom:60px;z-index:20;display:flex;gap:8px}
+.rm-dock button{font-family:ui-monospace,"JetBrains Mono",monospace;font-size:11px;color:#e6e6f0;
+  background:rgba(10,10,20,.7);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:8px 11px;cursor:pointer;backdrop-filter:blur(6px)}
+.rm-dock button:hover{border-color:#00f3ff}
+.rm-dock button.active{color:#ff71ce;border-color:#ff71ce;text-shadow:0 0 10px rgba(255,113,206,.6)}
+@media (max-width:560px){ .rm-dock button{padding:7px 9px;font-size:10px} }
+
+/* Reduced motion, applied globally rather than per-world. Without this the
+   toggle only set a class no world styled, so it looked active while changing
+   nothing. Kills CSS-driven animation/transition; the 3D head-bob is handled
+   in player/controls.js, which reads the same setting. */
+body.rm *,
+body.rm *::before,
+body.rm *::after{
+  animation-duration:.001s !important;
+  animation-iteration-count:1 !important;
+  transition-duration:.001s !important;
+  scroll-behavior:auto !important;
+}

@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { gltfLoader as gltf } from './scene/loaders.js';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
 import { WalkControls } from './player/controls.js';
 import { buildHoop } from './scene/hoop.js';
@@ -17,6 +16,7 @@ import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { buildCollectible } from './scene/collectible.js';
 import { loadFerrari } from './scene/ferrari.js';
 import { loadTree, loadPool } from './scene/nature.js';
+import { createReducedMotion, wireMuteButton } from './player/motion.js';
 
 // THE BLOCK — the games city. Loads the real modern_block city model (with its
 // plazas + park) and lets you walk it; the physical (non-video) games live here
@@ -48,10 +48,6 @@ const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 40
 scene.add(new THREE.HemisphereLight(0xdfeeff, 0x545048, 1.15));
 const sun = new THREE.DirectionalLight(0xfff4e0, 2.0); sun.position.set(120, 220, 90); scene.add(sun);
 scene.add(new THREE.AmbientLight(0xffffff, 0.25));
-
-// ---- loaders ----
-const draco = new DRACOLoader(); draco.setDecoderPath('draco/gltf/');
-const gltf = new GLTFLoader(); gltf.setDRACOLoader(draco);
 
 // ---- ground raycast (walk the real city terrain) ----
 const cityMeshes = [];
@@ -303,6 +299,8 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) cloc
 document.getElementById('raceBtn').onclick = () => toRacetrack();
 document.getElementById('backBtn').onclick = () => { const w = document.getElementById('warp'); if (w) w.classList.add('go'); setTimeout(() => { window.location.href = 'warehouse.html'; }, 460); };
 const ambience = createAmbience(AMBIENCE.gamecity);
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
+wireMuteButton(ambience);
 document.getElementById('enterBtn').onclick = () => { document.getElementById('start').classList.add('gone'); ambience.start(); if (!running) { running = true; clock.start(); frame(); } };
 
 controls.update(0);

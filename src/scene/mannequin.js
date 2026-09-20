@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { gltfLoader as gltf } from './loaders.js';
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 // Real rigged human characters, from the storyai UE / Biped mannequin. Loaded
@@ -9,8 +8,6 @@ import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.j
 // Poses are additive bone-rotation deltas (radians) on the Biped bones.
 
 let _proto = null, _loading = null;
-const draco = new DRACOLoader(); draco.setDecoderPath('draco/gltf/');
-const gltf = new GLTFLoader(); gltf.setDRACOLoader(draco);
 
 function loadProto() {
   if (_proto) return Promise.resolve(_proto);
@@ -54,7 +51,7 @@ export function spawnMannequin(scene, { pos = [0, 0, 0], rotY = 0, color = null,
     applyPose(m, pose);
     holder.add(m);
     api.model = m;
-  }).catch(() => {});
+  }).catch((e) => console.error('mannequin load failed', e));
   return api;
 }
 

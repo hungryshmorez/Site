@@ -41,6 +41,11 @@ import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
 import { createAudioReactor } from './audio/reactor.js';
 
+// surface otherwise-silent runtime failures (a missing asset, a broken loader
+// chain) in the console instead of leaving the scene just quietly broken
+window.addEventListener('error', (e) => console.error('[fatal]', e.error || e.message));
+window.addEventListener('unhandledrejection', (e) => console.error('[fatal]', e.reason));
+
 const canvas = document.getElementById('scene');
 const body = document.body;
 

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
+import { createReducedMotion } from './player/motion.js';
 
 // DODGE HELL — a first-person neon bullet-hell survival. Emitters ring the arena
 // and fire aimed shots (telegraphed) at varied heights; strafe, jump and glide
@@ -8,11 +9,14 @@ import { WalkControls } from './player/controls.js';
 const canvas = document.getElementById('scene');
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
 const C = (h) => new THREE.Color(h);
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x04060c);

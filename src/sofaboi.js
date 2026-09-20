@@ -4,8 +4,11 @@ import { buildSofaBoi } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
+import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
 import { createAdmin } from './scene/admin.js';
+import { buildLinkKiosk } from './scene/linkkiosk.js';
 const ambience = createAmbience(AMBIENCE.sofaboi);
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // SOFA KING SAD BOI'S WORLD — a rainy kingdom of couches. A giant sofa THRONE
 // under a personal storm cloud, a SEA of couches to roam, and a BASS PIT where
@@ -23,7 +26,9 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.35;
-renderer.shadowMap.enabled = !isMobile;
+// Deliberately no shadow map — see the note in arcade.js. Worst ratio of the
+// three: hemisphere 1.15 + ambient 0.4 + a 0.45 fill against a 0.8 moon.
+// Re-enable alongside moon.castShadow only if the lighting is rebalanced.
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x131538, 0.017);
@@ -180,6 +185,15 @@ function textPlane(text, color) {
 
 const _throne = buildThrone(); buildCouchField(); const _bass = buildBassPit();
 
+// two link kiosks out past the couch field: the king's own websim profile,
+// and his advanced trippy-effects demo (self-hosted — the real source, not
+// just an iframe out to a third party)
+const profileKiosk = buildLinkKiosk(scene, { pos: [-22, 20], rotY: Math.PI * 0.35, label: 'PROFILE', color: '#6a6cff' });
+const trippyKiosk = buildLinkKiosk(scene, { pos: [-16, 20], rotY: Math.PI * 0.35, label: 'TRIPPY.ME', color: '#00f3ff' });
+// a third kiosk: trippy.me's video catalog (self-hosted Next.js static export)
+const videoKiosk = buildLinkKiosk(scene, { pos: [-10, 20], rotY: Math.PI * 0.35, label: 'VIDEOS', color: '#b967ff' });
+updaters.push((dt, t) => { profileKiosk.update(dt, t); trippyKiosk.update(dt, t); videoKiosk.update(dt, t); });
+
 // ambient: cool indigo motes drifting in the rain + haze in the bass pit
 updaters.push(addMotes(scene, { color: 0x9aa0ff, count: 200, area: [56, 16, 56], opacity: 0.4 }));
 updaters.push(addHaze(scene, { color: 0x6a6cff, count: 8, center: [18, 3, 0], area: [14, 6, 18], scale: 8, opacity: 0.06 }));
@@ -194,6 +208,9 @@ const admin = createAdmin({
   items: [
     { id: 'throne', label: 'Sofa King (throne)', obj: _throne, dest: epkRef },
     { id: 'basspit', label: 'Bass pit', obj: _bass },
+    { id: 'profileKiosk', label: 'Profile kiosk', obj: profileKiosk.group },
+    { id: 'trippyKiosk', label: 'Trippy.me kiosk', obj: trippyKiosk.group },
+    { id: 'videoKiosk', label: 'Video catalog kiosk', obj: videoKiosk.group },
   ],
 });
 
@@ -215,6 +232,9 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   if (epkProxy && ray.intersectObject(epkProxy, false)[0]) { openWindow('SOFA KING SAD BOI — EPK', epkRef.url); return; }
+  if (profileKiosk.tryClick(ray)) { openWindow('SOFAKINGSADBOI — PROFILE', 'https://sofakingsadboi--sofakingsadboi.on.websim.com/'); return; }
+  if (trippyKiosk.tryClick(ray)) { openWindow('TRIPPY.ME — ADVANCED EFFECTS', 'sofaboi/trippy-effects/index.html'); return; }
+  if (videoKiosk.tryClick(ray)) { openWindow('TRIPPY.ME — VIDEOS', 'sofaboi/trippy-videos/index.html'); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -27, 27); g.z = THREE.MathUtils.clamp(g.z, -27, 27); controls.walkTo(g); }
 }
@@ -237,6 +257,7 @@ document.getElementById('backBtn').onclick = () => {
 
 // ---------- loop ----------
 const track = document.getElementById('track');
+wireMuteButton([audioElMute(track), ambience]);
 const clock = new THREE.Clock();
 let running = false;
 function frame() {

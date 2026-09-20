@@ -1,18 +1,22 @@
 // Base URL for heavy media (music, album art, video clips).
 //
-// Empty by default → these files are served from the site's own /public folder
-// (local dev and the plain GitHub Pages build). To offload them to a CDN or to
-// GitHub Releases so they stop bloating the repo, set VITE_MEDIA_CDN at build
-// time — everything below re-points automatically:
+// These files are NOT in this repo. They live in hungryshmorez/Media and are
+// served from that repo's own GitHub Pages site, which keeps ~190MB of audio
+// out of this build — Pages refuses to publish a site over 1GB and this one was
+// already at 418MB with nowhere to grow.
 //
+// Note the capital M. GitHub Pages paths are case-sensitive and the repo is
+// named `Media`, so the lowercase spelling 404s.
+//
+// Override for a custom domain or a local mirror:
 //   VITE_MEDIA_CDN=https://media.12matt3r.com/ npm run build
-//   VITE_MEDIA_CDN=https://github.com/hungryshmorez/Site/releases/download/media-v1/ npm run build
 //
-// The CDN must send CORS headers (Access-Control-Allow-Origin: *) for the video
-// billboard's WebGL texture to load cross-origin. Plain audio playback works
-// without them, but the <audio>/<video> elements request with crossOrigin set,
-// so a CORS-capable host (Cloudflare R2, Bunny, etc.) is the safe choice.
-const RAW = import.meta.env.VITE_MEDIA_CDN ?? '';
+// Whatever it points at MUST send Access-Control-Allow-Origin, because the
+// jukebox's <audio> and the billboard's <video> both set crossOrigin, and the
+// video's WebGL texture would taint the canvas without it. That rules out
+// GitHub Release assets, which send no CORS header at all (verified) — every
+// track would fail, not just the video. Pages and jsDelivr both send it.
+const RAW = import.meta.env.VITE_MEDIA_CDN ?? 'https://hungryshmorez.github.io/Media/';
 
 // normalized base: '' or a single-trailing-slash absolute/relative prefix
 export const MEDIA_BASE = RAW ? RAW.replace(/\/+$/, '') + '/' : '';

@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>THE HIDDEN ROOM // you found it</title>
   <meta name="description" content="The secret post-endgame sanctum — unlocked after exploring the whole complex. A reverent void around a glowing monolith, ringed with plinths that sing, where you paint the void with light. It takes on the color you built your room in." />
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="THE HIDDEN ROOM // you found it">
+  <meta property="og:description" content="The secret post-endgame sanctum — unlocked after exploring the whole complex. A reverent void around a glowing monolith, ringed with plinths that sing, where you paint the void with light. It takes on the color you built your room in.">
+  <meta property="og:image" content="og/hidden.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="THE HIDDEN ROOM // you found it">
+  <meta name="twitter:description" content="The secret post-endgame sanctum — unlocked after exploring the whole complex. A reverent void around a glowing monolith, ringed with plinths that sing, where you paint the void with light. It takes on the color you built your room in.">
+  <meta name="twitter:image" content="og/hidden.jpg">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="rm-dock.css">
   <style>
     :root{--a:#e6c04a;--ink:#f4eede;--muted:#a89f86;--mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
     *{margin:0;padding:0;box-sizing:border-box}
@@ -56,5 +69,9 @@
   <div class="warp" id="warp"></div>
 
   <script type="module" src="/src/hidden.js"></script>
+    <div class="rm-dock">
+      <button id="mutebtn" title="Sound">🔊 sound</button>
+      <button id="rmbtn" title="Reduced motion">◐ motion</button>
+    </div>
 </body>
 </html>

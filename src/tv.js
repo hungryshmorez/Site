@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createReducedMotion } from './player/motion.js';
 
 // DreamOS TV — a walk-in movie theater (its own lightweight page / Lab
 // experiment). A big animated screen on channels, tiered seats, silhouette
@@ -6,6 +7,7 @@ import * as THREE from 'three';
 
 const canvas = document.getElementById('tv');
 const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));

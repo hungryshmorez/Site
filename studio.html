@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>12MATT3R // the glitch room</title>
   <meta name="description" content="12matt3r's room — a dark glitch-art lab built around a central monument of stacked CRT televisions. Trippy installations, datamosh, and the web-OS." />
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="12MATT3R // the glitch room">
+  <meta property="og:description" content="12matt3r's room — a dark glitch-art lab built around a central monument of stacked CRT televisions. Trippy installations, datamosh, and the web-OS.">
+  <meta property="og:image" content="og/studio.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="12MATT3R // the glitch room">
+  <meta name="twitter:description" content="12matt3r's room — a dark glitch-art lab built around a central monument of stacked CRT televisions. Trippy installations, datamosh, and the web-OS.">
+  <meta name="twitter:image" content="og/studio.jpg">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="rm-dock.css">
   <style>
     :root{--cyan:#00f3ff;--magenta:#ff0055;--green:#39ff14;--purple:#b967ff;--ink:#e9fbff;--muted:#89a6b0;
       --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
@@ -67,5 +80,9 @@
   <div class="warp" id="warp"></div>
 
   <script type="module" src="/src/studio.js"></script>
+    <div class="rm-dock">
+      <button id="mutebtn" title="Sound">🔊 sound</button>
+      <button id="rmbtn" title="Reduced motion">◐ motion</button>
+    </div>
 </body>
 </html>

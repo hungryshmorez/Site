@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { openWindow } from './ui/popup.js';
 import { createAdmin } from './scene/admin.js';
+import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
+
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // THE MIDWAY — a neon arcade tent of portal cabinets: the VIDEO games live here
 // (flash / Wake Up / games / stories / dodge hell / mini games / minecraft /
@@ -19,7 +22,12 @@ renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.24;
-renderer.shadowMap.enabled = !isMobile;
+// No shadow map here on purpose. The cabinets and poles carry castShadow, but
+// the hemisphere fill (1.3) outweighs the only directional key (0.6) and nearly
+// every prop is emissive, so a cast shadow is invisible — measured, not assumed.
+// Turning it on costs a depth pass per frame and changes nothing on screen.
+// If the lighting is ever rebalanced, re-enable it here AND set castShadow on
+// arcKey; one without the other is what this line used to be.
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x120416);
@@ -120,6 +128,15 @@ buildCabinet(-15, 3, 'MINECRAFT', '#39ff14', () => openWindow('MINECRAFT CLASSIC
 buildCabinet(15, -5, 'MINI GAMES', '#ffd24a', () => openWindow('MINI GAMES', 'games/browsergames/hub.html'));
 // KNOCK KNOCK — a browser groovebox (pads, step sequencer, sampler) — pure EDM
 buildCabinet(15, 3, 'KNOCK KNOCK', '#00f3ff', () => openWindow('KNOCK KNOCK · GROOVEBOX', 'games/knock-knock/index.html'));
+// FLASHSTORAGE — a second, separate flash catalog (~150 games via flashstorage.games,
+// its own genre-filter browser) — distinct source from the FLASH GAMES cabinet above
+buildCabinet(-15, 11, 'FLASHSTORAGE', '#ff8a1e', () => openWindow('FLASHSTORAGE ARCHIVE', 'games/flashstorage-archive/index.html'));
+// WINDOWS93 — a self-hosted mirror of the desktop shell only (wallpaper, start
+// menu, window chrome, Clippy); the ~25 individual programs it launches
+// (Minesweeper, Matrix, SkiFree...) load from the real windows93.net and
+// weren't part of this scrape, so they won't open — a decorative curiosity,
+// not a working OS.
+buildCabinet(15, 11, 'WINDOWS93', '#39ff14', () => openWindow('WINDOWS93', 'windows93/127.0.0.1_8081/dl/index.html'));
 
 // (physical games — basketball, shooting gallery, dunk tank, Monkey's Paw — now
 // live exclusively in THE BLOCK; the arcade is video-game cabinets only.)
@@ -217,6 +234,7 @@ document.getElementById('backBtn').onclick = () => {
 
 // ---------- loop ----------
 const track = document.getElementById('track');
+wireMuteButton(audioElMute(track));
 const clock = new THREE.Clock();
 let running = false;
 function frame() {

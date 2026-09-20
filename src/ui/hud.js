@@ -10,6 +10,7 @@ export class Hud {
     this.onEnter = onEnter;
     this._v = new THREE.Vector3();
     this.activeId = null;
+    this._promptText = null;   // last written prompt, so update() can skip no-op DOM writes
 
     // floating name tags — off by default (walk-up still auto-opens the panel).
     this.tags = new Map();
@@ -78,8 +79,12 @@ export class Hud {
     } else {
       if (this.activeId) this.close();
       // hint when someone is moderately close but not reached
-      if (near && nearD < 9) { this.prompt.textContent = `walk up to ${near.dest.name}`; this.prompt.classList.add('on'); }
-      else this.prompt.classList.remove('on');
+      if (near && nearD < 9) {
+        // runs every frame while in range — only touch the DOM when it changes
+        const text = `walk up to ${near.dest.name}`;
+        if (this._promptText !== text) { this.prompt.textContent = text; this._promptText = text; }
+        this.prompt.classList.add('on');
+      } else this.prompt.classList.remove('on');
     }
   }
 }

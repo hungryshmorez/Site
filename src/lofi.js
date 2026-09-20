@@ -5,6 +5,9 @@ import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
 import { buildLoopDoors } from './data/loop.js';
 import { buildDJDeck } from './scene/djdeck.js';
+import { createReducedMotion, wireMuteButton } from './player/motion.js';
+
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // SURREAL LO-FI ROOM — a cozy dreamscape for the lo-fi tapes. Mismatched
 // furniture on a warm rug under kaleidoscopic skies, clouds wearing headphones
@@ -189,11 +192,12 @@ function buildTurntable() {
 }
 
 // ================= BEAT-PAD (real Web Audio) =================
-let actx = null, master = null, filt = null;
+let actx = null, master = null, filt = null, muted = false;
+wireMuteButton({ setMuted: (v) => { muted = v; if (master) master.gain.value = v ? 0 : 0.32; } });
 function ensureAudio() {
   if (!actx) {
     actx = new (window.AudioContext || window.webkitAudioContext)();
-    master = actx.createGain(); master.gain.value = 0.32;
+    master = actx.createGain(); master.gain.value = muted ? 0 : 0.32;
     filt = actx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 2600; filt.Q.value = 0.6; // lo-fi warmth
     filt.connect(master); master.connect(actx.destination);
   }

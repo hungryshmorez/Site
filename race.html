@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>12MATT3R // the racetrack</title>
   <meta name="description" content="Drive real GLB circuits — F1, Big City, Paris, Moscow and more — at the 12matt3r racetrack. Pick a track from the garage and race." />
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="12MATT3R // the racetrack">
+  <meta property="og:description" content="Drive real GLB circuits — F1, Big City, Paris, Moscow and more — at the 12matt3r racetrack. Pick a track from the garage and race.">
+  <meta property="og:image" content="og/race.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="12MATT3R // the racetrack">
+  <meta name="twitter:description" content="Drive real GLB circuits — F1, Big City, Paris, Moscow and more — at the 12matt3r racetrack. Pick a track from the garage and race.">
+  <meta name="twitter:image" content="og/race.jpg">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="rm-dock.css">
   <style>
     :root{--cyan:#00f3ff;--magenta:#ff0055;--gold:#e6c04a;--ink:#eaf6ff;--muted:#8aa0ac;
       --mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;--sans:"Inter",system-ui,sans-serif}
@@ -73,5 +86,8 @@
   <div class="warp" id="warp"></div>
 
   <script type="module" src="/src/race.js"></script>
+    <div class="rm-dock">
+      <button id="rmbtn" title="Reduced motion">◐ motion</button>
+    </div>
 </body>
 </html>

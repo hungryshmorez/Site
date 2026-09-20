@@ -1,8 +1,13 @@
-import { media } from './media.js';
+import { media, MEDIA_BASE } from './media.js';
 
-// DriftWave Static — the slushwave type-beat tape. MP3s live under public/music
-// by default; set VITE_MEDIA_CDN (see media.js) to serve them off a CDN instead.
-// Played by the in-world jukebox. Order = play order.
+// The jukebox playlist.
+//
+// The array below is a FALLBACK, not the source of truth. When VITE_MEDIA_CDN
+// is set, loadManifest() fetches manifest.json from the media host and replaces
+// the contents in place — so adding a song is a push to the media repo (drop the
+// file in, add a line to manifest.json) with no code change and no site rebuild.
+// If that fetch fails, these stay, and since media() has already pointed them at
+// the CDN they keep playing. Order = play order.
 export const TRACKS = [
   { src: media('music/slushwave-2025-trailer.mp3'), title: 'SLUSHWAVE 2025 (trailer)' },
   { src: media('music/first-ever-vaporwave.mp3'), title: 'first ever vaporwave song' },
@@ -24,6 +29,38 @@ export const TRACKS = [
 
 // album art shown on the jukebox screen (cycled)
 export const COVERS = [
-  media('music/art/cover-main.png'), media('music/art/cover-cube.jpg'), media('music/art/cover-slushwave.png'),
-  media('music/art/cover-92.png'), media('music/art/logo-waves.png'), media('music/art/logo-tv.png'), media('music/art/logo-neon.png'),
+  media('music/art/cover-main.jpg'), media('music/art/cover-cube.jpg'), media('music/art/cover-slushwave.jpg'),
+  media('music/art/cover-92.jpg'), media('music/art/logo-waves.jpg'), media('music/art/logo-tv.jpg'), media('music/art/logo-neon.jpg'),
 ];
+
+// Pull the live playlist off the media host. Mutates TRACKS/COVERS in place so
+// every module that already imported them sees the update without re-importing.
+// Resolves true only if something was actually replaced, so callers can tell a
+// real update from a silent no-op.
+let manifestPromise = null;
+export function loadManifest() {
+  // no CDN configured → the bundled files under public/ are the whole library
+  if (!MEDIA_BASE) return Promise.resolve(false);
+  manifestPromise ??= (async () => {
+    try {
+      const res = await fetch(media('manifest.json'), { cache: 'no-cache' });
+      if (!res.ok) return false;
+      const m = await res.json();
+      let changed = false;
+      if (Array.isArray(m.tracks) && m.tracks.length) {
+        const next = m.tracks
+          .filter((t) => t && typeof t.src === 'string')
+          .map((t) => ({ src: media(t.src), title: String(t.title ?? t.src) }));
+        if (next.length) { TRACKS.splice(0, TRACKS.length, ...next); changed = true; }
+      }
+      if (Array.isArray(m.covers) && m.covers.length) {
+        const next = m.covers.filter((c) => typeof c === 'string').map(media);
+        if (next.length) { COVERS.splice(0, COVERS.length, ...next); changed = true; }
+      }
+      return changed;
+    } catch (e) {
+      return false;   // offline, blocked, malformed JSON — the fallback stands
+    }
+  })();
+  return manifestPromise;
+}

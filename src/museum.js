@@ -3,6 +3,9 @@ import { WalkControls } from './player/controls.js';
 import { createAdmin } from './scene/admin.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { buildCollectible } from './scene/collectible.js';
+import { buildLinkKiosk } from './scene/linkkiosk.js';
+import { openWindow } from './ui/popup.js';
+import { createReducedMotion, wireMuteButton } from './player/motion.js';
 
 // THE GALLERY — a quiet walkable museum. Marble hall, framed pieces down both
 // long walls (portraits of the roster + the worlds beyond the festival), a
@@ -206,6 +209,13 @@ hang(PIECES[11], 3.2, farWall, 0);
   const sculpt = new THREE.Mesh(new THREE.TorusKnotGeometry(0.5, 0.17, 160, 24, 2, 3), marble);
   sculpt.position.set(0, 1.9, 0); sculpt.castShadow = true; centerG.add(sculpt);
   const key = new THREE.SpotLight(0xfff4e0, 6, 10, 0.6, 0.5, 1); key.position.set(0, H - 0.5, 0); key.target.position.set(0, 1.9, 0); centerG.add(key); centerG.add(key.target);
+  // The hero caster. The meshes were already flagged castShadow/receiveShadow
+  // and the renderer had shadowMap on, but no light here cast, so none of it
+  // rendered. Shadows read in this room and not in the neon worlds because the
+  // spots (6 here, 3.4 per plinth) dominate the fill (hemisphere 0.9 + ambient
+  // 0.25) rather than being swamped by it. normalBias keeps the torus knot from
+  // self-shadowing into acne.
+  if (!isMobile) { key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.normalBias = 0.03; key.shadow.camera.near = 0.5; key.shadow.camera.far = 12; }
   window.__sculpt = sculpt;
   adminItems.push({ id: 'sculpture', label: 'SCULPTURE', obj: centerG });
 
@@ -240,7 +250,10 @@ hang(PIECES[11], 3.2, farWall, 0);
     ped.position.y = 0.5; ped.castShadow = ped.receiveShadow = true; g.add(ped);
     const s = new THREE.Mesh(sculptGeos[i % sculptGeos.length](), i % 2 ? brass : marble);
     s.position.y = 1.55; s.castShadow = true; g.add(s);
-    if (!isMobile) { const sp = new THREE.SpotLight(0xfff4e0, 3.4, 5.5, 0.6, 0.5, 1); sp.position.set(0, 4.2, 0); sp.target.position.set(0, 1.55, 0); g.add(sp); g.add(sp.target); }
+    if (!isMobile) {
+      const sp = new THREE.SpotLight(0xfff4e0, 3.4, 5.5, 0.6, 0.5, 1); sp.position.set(0, 4.2, 0); sp.target.position.set(0, 1.55, 0); g.add(sp); g.add(sp.target);
+      sp.castShadow = true; sp.shadow.mapSize.set(512, 512); sp.shadow.normalBias = 0.03; sp.shadow.camera.near = 0.5; sp.shadow.camera.far = 7;
+    }
     g.userData.spin = 0.15 + Math.random() * 0.2; g.userData.s = s;
     adminItems.push({ id: 'plinth_' + i, label: 'SCULPTURE ' + (i + 1), obj: g });
     return g;
@@ -311,6 +324,10 @@ const hunt = buildCollectible(scene, {
   spots: [[-7.5, -13], [7.5, -7], [-7.5, 10], [7, 14.5]],
 });
 
+// a companion 3D-model museum, curated by SofaKingSadBoi — a link kiosk by the east wall
+const modelKiosk = buildLinkKiosk(scene, { pos: [9, 2], rotY: -Math.PI / 2, label: '3D MODELS', color: '#00f3ff' });
+adminItems.push({ id: 'modelKiosk', label: 'Model kiosk', obj: modelKiosk.group });
+
 // drag-look + click (auto-walk to a picture / step through the exit)
 let dragging = false, lastX = 0, lastY = 0, moved = 0;
 const ndc = new THREE.Vector2(); const ray = new THREE.Raycaster();
@@ -325,6 +342,7 @@ function onTap(sx, sy) {
   // only leave when you actually tap the glowing exit portal (or use the back button /
   // walk into it) — a tap anywhere else just walks you there
   if (hunt.tryClick(ray)) return;
+  if (modelKiosk.tryClick(ray)) { openWindow('3D MODEL MUSEUM', 'https://3d-model-museum--sofakingsadboi.on.websim.com/'); return; }
   if (exitPortal && ray.intersectObject(exitPortal, false)[0]) { goHome(); return; }
   const floorHit = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), new THREE.Vector3());
   if (floorHit) { floorHit.y = 1.6; controls.walkTo(floorHit); }
@@ -402,6 +420,7 @@ function frame() {
   if (window.__sculpt) window.__sculpt.rotation.y = t * 0.25;
   if (window.__plinths) for (const p of window.__plinths) { p.userData.s.rotation.y += dt * p.userData.spin; }
   if (window.__portalMat) window.__portalMat.uniforms.t.value = t;
+  modelKiosk.update(dt, t);
   admin.update(dt);
   renderer.render(scene, admin && admin.active ? admin.cam : camera);
 }
@@ -416,6 +435,8 @@ addEventListener('resize', () => {
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
 const ambience = createAmbience(AMBIENCE.museum);
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
+wireMuteButton(ambience);
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
   ambience.start();

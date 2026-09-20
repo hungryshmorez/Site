@@ -3,6 +3,9 @@ import { WalkControls } from './player/controls.js';
 import { addMotes } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
 import { loadMolecule } from './scene/molecule.js';
+import { createReducedMotion, wireMuteButton } from './player/motion.js';
+
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // THE HIDDEN ROOM — the secret post-endgame sanctum. A quiet void around a humming
 // monolith, ringed by plinths that sing when touched. Paint the dark with stars.
@@ -105,8 +108,9 @@ function addStar(p) {
 updaters.push((dt, t) => starList.forEach((s) => { s.material.opacity = 0.5 + Math.sin(t * 2 + s.userData.ph) * 0.4; s.scale.setScalar(s.userData.base * (1 + Math.sin(t * 1.5 + s.userData.ph) * 0.15)); }));
 
 // ================= Web Audio =================
-let actx = null, master = null;
-function ensureAudio() { if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = 0.32; master.connect(actx.destination);
+let actx = null, master = null, muted = false;
+wireMuteButton({ setMuted: (v) => { muted = v; if (master) master.gain.value = v ? 0 : 0.32; } });
+function ensureAudio() { if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); master = actx.createGain(); master.gain.value = muted ? 0 : 0.32; master.connect(actx.destination);
   // warm sustained pad drone (A minor-ish)
   const g = actx.createGain(); g.gain.value = 0.14; g.connect(master); [110, 164.8, 220].forEach((f) => { for (const d of [-3, 3]) { const o = actx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = d; const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 600; const og = actx.createGain(); og.gain.value = 0.16; o.connect(lp); lp.connect(og); og.connect(g); o.start(); } });
 } if (actx.state === 'suspended') actx.resume(); }

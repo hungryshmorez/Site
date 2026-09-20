@@ -1,8 +1,10 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { gltfLoader as gltf } from './scene/loaders.js';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
 import { loadFerrari } from './scene/ferrari.js';
+import { createReducedMotion } from './player/motion.js';
+
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // BVH-accelerated raycasting — the car samples the track surface several times
 // per frame; on 100k+ triangle circuits a linear raycast tanks the framerate,
@@ -51,12 +53,6 @@ const sun = new THREE.DirectionalLight(0xfff4e0, 2.1);
 sun.position.set(600, 900, 400);
 scene.add(sun);
 scene.add(new THREE.AmbientLight(0xffffff, 0.25));
-
-// ---- loaders (Draco decoder bundled under public/draco) ----
-const draco = new DRACOLoader();
-draco.setDecoderPath('draco/gltf/');
-const gltf = new GLTFLoader();
-gltf.setDRACOLoader(draco);
 
 // ---------- the car (procedural low-poly) ----------
 const car = new THREE.Group();
