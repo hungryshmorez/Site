@@ -121,8 +121,8 @@ buildCabinet(3.5, -15, 'GAMES', '#00f3ff', () => openWindow('GAMES', 'lab.html?f
 buildCabinet(10.5, -14.5, 'STORIES', '#39ff14', () => openWindow('STORIES & EXPERIENCES', 'lab.html?folder=Stories%20%26%20Experiences'));
 // left wall (x ≈ -15)
 buildCabinet(-15, -5, 'DODGE HELL', '#ff0055', () => { window.location.href = 'bullethell.html'; }); // full-screen survival game
-// MINECRAFT CLASSIC — the self-hosted public browser build (keyboard + mouse)
-buildCabinet(-15, 3, 'MINECRAFT', '#39ff14', () => openWindow('MINECRAFT CLASSIC', 'games/minecraft-classic/index.html'));
+// MINECRAFT — self-contained voxel survival sandbox (terrain, crafting, mobs)
+buildCabinet(-15, 3, 'MINECRAFT', '#39ff14', () => openWindow('MINECRAFT', 'games/minecraft/index.html'));
 // right wall (x ≈ 15)
 // MINI GAMES — the bundled p5.js toys + arcade classics (BrowserGames)
 buildCabinet(15, -5, 'MINI GAMES', '#ffd24a', () => openWindow('MINI GAMES', 'games/browsergames/hub.html'));
