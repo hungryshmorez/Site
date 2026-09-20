@@ -1,13 +1,12 @@
-import { media, MEDIA_BASE } from './media.js';
+import { media, MEDIA_BASE, loadAggregatedManifest } from './media.js';
 
 // The jukebox playlist.
 //
-// The array below is a FALLBACK, not the source of truth. When VITE_MEDIA_CDN
-// is set, loadManifest() fetches manifest.json from the media host and replaces
-// the contents in place — so adding a song is a push to the media repo (drop the
-// file in, add a line to manifest.json) with no code change and no site rebuild.
-// If that fetch fails, these stay, and since media() has already pointed them at
-// the CDN they keep playing. Order = play order.
+// The array below is a FALLBACK, not the source of truth. loadManifest() fetches
+// from a master manifest (multi-CDN) or individual manifest.json (legacy single-CDN),
+// then replaces the contents in place — so adding a song is a push to the media repo
+// (drop the file in manifest.json) with no code change and no site rebuild.
+// If that fetch fails, these stay. Order = play order.
 export const TRACKS = [
   { src: media('music/slushwave-2025-trailer.mp3'), title: 'SLUSHWAVE 2025 (trailer)' },
   { src: media('music/first-ever-vaporwave.mp3'), title: 'first ever vaporwave song' },
@@ -37,24 +36,39 @@ export const COVERS = [
 // every module that already imported them sees the update without re-importing.
 // Resolves true only if something was actually replaced, so callers can tell a
 // real update from a silent no-op.
+//
+// Tries multi-CDN (master manifest) first, falls back to legacy single-CDN.
 let manifestPromise = null;
 export function loadManifest() {
   // no CDN configured → the bundled files under public/ are the whole library
   if (!MEDIA_BASE) return Promise.resolve(false);
   manifestPromise ??= (async () => {
     try {
-      const res = await fetch(media('manifest.json'), { cache: 'no-cache' });
-      if (!res.ok) return false;
-      const m = await res.json();
+      // Try multi-CDN architecture first (aggregated manifests)
+      let m = await loadAggregatedManifest();
+
+      // Fall back to legacy single-CDN if multi-CDN unavailable
+      if (!m) {
+        const res = await fetch(media('manifest.json'), { cache: 'no-cache' });
+        if (!res.ok) return false;
+        m = await res.json();
+      }
+
       let changed = false;
       if (Array.isArray(m.tracks) && m.tracks.length) {
+        // For multi-CDN, src already has full CDN URL; for legacy, wrap with media()
         const next = m.tracks
           .filter((t) => t && typeof t.src === 'string')
-          .map((t) => ({ src: media(t.src), title: String(t.title ?? t.src) }));
+          .map((t) => {
+            const src = m.source === 'multi-cdn' ? t.src : media(t.src);
+            return { src, title: String(t.title ?? t.src) };
+          });
         if (next.length) { TRACKS.splice(0, TRACKS.length, ...next); changed = true; }
       }
       if (Array.isArray(m.covers) && m.covers.length) {
-        const next = m.covers.filter((c) => typeof c === 'string').map(media);
+        const next = m.covers.filter((c) => typeof c === 'string').map(
+          c => m.source === 'multi-cdn' ? c : media(c)
+        );
         if (next.length) { COVERS.splice(0, COVERS.length, ...next); changed = true; }
       }
       return changed;
