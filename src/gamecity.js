@@ -18,8 +18,8 @@ import { loadFerrari } from './scene/ferrari.js';
 import { loadPool } from './scene/nature.js';
 import { createReducedMotion, wireMuteButton } from './player/motion.js';
 
-// THE BLOCK — the games city. Loads the real modern_block city model (with its
-// plazas + park) and lets you walk it; the physical (non-video) games live here
+// THE BLOCK — the games city. Loads the trailer_park environment model and lets
+// you walk it; the physical (non-video) games live here
 // — basketball, shooting gallery, dunk tank, Monkey's Paw — and a car is parked
 // with a track marshal beside it: walk up and he asks if you want to race, which
 // takes you to the racetrack (an offshoot world).
@@ -215,7 +215,7 @@ const statusEl = document.getElementById('status');
 function setStatus(t) { if (statusEl) { statusEl.textContent = t; statusEl.style.opacity = t ? '1' : '0'; } }
 
 setStatus('loading THE BLOCK…');
-gltf.load('models/cities/modern_block.glb', (g) => {
+gltf.load('models/cities/trailer_park.glb', (g) => {
   const city = g.scene;
   city.traverse((o) => { if (o.isMesh) { if (o.material) o.material.side = THREE.FrontSide; if (o.geometry && !o.geometry.boundsTree) o.geometry.computeBoundsTree(); cityMeshes.push(o); } });
   scene.add(city);
@@ -241,9 +241,27 @@ gltf.load('models/cities/modern_block.glb', (g) => {
   let modeBin = 0, modeN = -1; for (const [b, n] of bins) if (n > modeN) { modeN = n; modeBin = b; }
   const level = modeBin * 2;
   const plaza = pts.filter((p) => Math.abs(p.y - level) < 2.5);
-  // spawn = plaza point nearest the model centre
-  let spawn = plaza[0] || { x: c.x, z: c.z, y: level };
-  let bd = Infinity; for (const p of plaza) { const d = Math.hypot(p.x - c.x, p.z - c.z); if (d < bd) { bd = d; spawn = p; } }
+  // spawn = the OPEN flat point nearest the model centre. Flatness alone isn't
+  // enough: a park has trees and trailers sitting on that same ground, so we also
+  // require headroom (nothing directly overhead) and horizontal clearance (not
+  // spawned inside a trunk/wall) — otherwise you wake up buried in a tree.
+  const UP = new THREE.Vector3(0, 1, 0);
+  const DIRS = [];
+  for (let a = 0; a < 8; a++) DIRS.push(new THREE.Vector3(Math.cos(a * Math.PI / 4), 0, Math.sin(a * Math.PI / 4)));
+  const isOpen = (p) => {
+    ray.far = 4; ray.set(_o.set(p.x, p.y + controls.eye, p.z), UP);
+    const up = ray.intersectObjects(cityMeshes, true);
+    if (up.length && up[0].distance < 3) { ray.far = 4000; return false; }   // roof/canopy on your head
+    ray.far = 2;
+    for (const d of DIRS) {
+      ray.set(_o.set(p.x, p.y + 1.0, p.z), d);
+      const h = ray.intersectObjects(cityMeshes, true);
+      if (h.length && h[0].distance < 1.6) { ray.far = 4000; return false; }  // wall/trunk right next to you
+    }
+    ray.far = 4000; return true;
+  };
+  const byCentre = [...plaza].sort((a, b) => Math.hypot(a.x - c.x, a.z - c.z) - Math.hypot(b.x - c.x, b.z - c.z));
+  let spawn = byCentre.find(isOpen) || byCentre[0] || { x: c.x, z: c.z, y: level };
   // plaza radius: how far the flat level reaches from spawn (capped)
   let far = 12; for (const p of plaza) { const d = Math.hypot(p.x - spawn.x, p.z - spawn.z); if (d > far && d < 90) far = d; }
   controls.pos.set(spawn.x, spawn.y + controls.eye, spawn.z);
