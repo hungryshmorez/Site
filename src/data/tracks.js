@@ -24,6 +24,6 @@ export const TRACKS = [
 
 // album art shown on the jukebox screen (cycled)
 export const COVERS = [
-  media('music/art/cover-main.png'), media('music/art/cover-cube.jpg'), media('music/art/cover-slushwave.png'),
-  media('music/art/cover-92.png'), media('music/art/logo-waves.png'), media('music/art/logo-tv.png'), media('music/art/logo-neon.png'),
+  media('music/art/cover-main.jpg'), media('music/art/cover-cube.jpg'), media('music/art/cover-slushwave.jpg'),
+  media('music/art/cover-92.jpg'), media('music/art/logo-waves.jpg'), media('music/art/logo-tv.jpg'), media('music/art/logo-neon.jpg'),
 ];
