@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { addMotes } from './scene/ambientfx.js';
 import { createAdmin } from './scene/admin.js';
-import { loadTree, loadPool } from './scene/nature.js';
+import { loadPool } from './scene/nature.js';
 import { loopNeighbors } from './data/loop.js';
 import { buildDoor } from './scene/door.js';
 import { buildDJDeck } from './scene/djdeck.js';
@@ -338,15 +338,8 @@ const _mech = (() => {
   return g;
 })();
 
-// rooftop garden: potted trees around the deck + a plunge pool
+// rooftop garden: a plunge pool
 const _roofnature = new THREE.Group(); scene.add(_roofnature);
-loadTree({ height: 4.2, onReady: (proto) => {
-  for (const [tx, tz] of [[-13, -10], [13, -12], [-13, 8], [12, 9]]) {
-    // a planter box under each tree so it reads as rooftop landscaping
-    const box = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.7, 2.2), std({ color: 0x2c2f36, roughness: 0.85 })); box.position.set(tx, 0.35, tz); _roofnature.add(box);
-    const t = proto.clone(); t.position.set(tx, 0.7, tz); t.rotation.y = Math.random() * 6.28; _roofnature.add(t);
-  }
-} });
 loadPool({ size: 6.5, onReady: (m) => { m.position.set(-9, 0, -2); _roofnature.add(m); } });
 
 const admin = createAdmin({

@@ -7,7 +7,6 @@ import { createReducedMotion, wireMuteButton, audioElMute } from './player/motio
 import { createAdmin } from './scene/admin.js';
 import { buildDoor } from './scene/door.js';
 import { vinylTotals } from './data/vinyl.js';
-import { loadTree } from './scene/nature.js';
 const ambience = createAmbience(AMBIENCE.studio);
 createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
@@ -1127,16 +1126,6 @@ if (import.meta.env.DEV) window.__wh = { controls, scene, doors, hiddenDoor, gam
   // reveal briefly on load, then fade to a faint always-on tally
   pill.style.transition = 'opacity .5s'; pill.style.opacity = '1';
   if (!full) setTimeout(() => { pill.style.opacity = '0.45'; }, 4000);
-}
-
-// street-edge trees flanking the complex (kept clear of the doors, gateways + path)
-{
-  const treeG = new THREE.Group(); scene.add(treeG);
-  loadTree({ height: 6.5, onReady: (proto) => {
-    for (const [tx, tz] of [[-28, 28], [28, 28], [-28, 46], [28, 46], [-26, 22], [26, 22]]) {
-      const t = proto.clone(); t.position.set(tx, 0, tz); t.rotation.y = Math.random() * 6.28; t.scale.multiplyScalar(0.85 + Math.random() * 0.4); treeG.add(t);
-    }
-  } });
 }
 
 // __world hook — overhead-screenshot harness only (activated with ?shot).

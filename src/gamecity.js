@@ -15,7 +15,7 @@ import { buildLitter } from './scene/litter.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { buildCollectible } from './scene/collectible.js';
 import { loadFerrari } from './scene/ferrari.js';
-import { loadTree, loadPool } from './scene/nature.js';
+import { loadPool } from './scene/nature.js';
 import { createReducedMotion, wireMuteButton } from './player/motion.js';
 
 // THE BLOCK — the games city. Loads the real modern_block city model (with its
@@ -168,15 +168,9 @@ function buildGames(spawn) {
   const props = buildStreetProps(scene, { groundY, center: [sx, sz], radius: Math.min(r, 40), accent: 0x39ff14, avoid });
   adminItems.push({ id: 'streetprops', label: 'STREET FURNITURE', obj: props.group });
 
-  // park trees + a pool water feature
+  // a pool water feature
   const nature = new THREE.Group(); scene.add(nature);
-  adminItems.push({ id: 'nature', label: 'TREES + POOL', obj: nature });
-  loadTree({ height: 6, onReady: (proto) => {
-    for (const [tx, tz] of [[sx - 16, sz + 9], [sx + 17, sz + 5], [sx - 7, sz + 18], [sx + 14, sz + 16], [sx - 18, sz - 7], [sx + 9, sz - 15]]) {
-      const y = groundY(tx, tz, 400); if (y == null) continue;
-      const t = proto.clone(); t.position.set(tx, y, tz); t.rotation.y = Math.random() * 6.28; t.scale.multiplyScalar(0.8 + Math.random() * 0.5); nature.add(t);
-    }
-  } });
+  adminItems.push({ id: 'nature', label: 'POOL', obj: nature });
   loadPool({ size: 8, onReady: (m) => { const px = sx + 16, pz = sz - 11; const y = groundY(px, pz, 400) ?? 0; m.position.set(px, y, pz); nature.add(m); } });
 
   // hidden GOLDEN VINYL hunt — 5 records tucked around the block; find them all

@@ -25,7 +25,7 @@ import { openWindow } from './ui/popup.js';
 import { createFXPass } from './scene/fxpass.js';
 import { buildOrbs } from './scene/orbs.js';
 import { loadMolecule } from './scene/molecule.js';
-import { loadTree, loadPool } from './scene/nature.js';
+import { loadPool } from './scene/nature.js';
 import { loadFerrari } from './scene/ferrari.js';
 import { buildVJ } from './scene/vjscreen.js';
 import { buildVJBoard } from './scene/vjboard.js';
@@ -250,13 +250,8 @@ buildLitter(scene, {
   avoid: [[0, STAGE_Z + 4, 12], [0, 24, 6], DUMPSTER_POS.concat(4)],
 });
 
-// perimeter trees around the grounds + a chill-zone pool off to one side
+// a chill-zone pool off to one side
 const festivalNature = new THREE.Group(); scene.add(festivalNature);
-loadTree({ height: 6.5, onReady: (proto) => {
-  for (const [tx, tz] of [[-23, 8], [23, 10], [-22, -4], [22, -2], [-21, 17], [21, 17], [-13, 21], [13, 21]]) {
-    const t = proto.clone(); t.position.set(tx, 0, tz); t.rotation.y = Math.random() * 6.28; t.scale.multiplyScalar(0.85 + Math.random() * 0.5); festivalNature.add(t);
-  }
-} });
 loadPool({ size: 8, onReady: (m) => { m.position.set(18, 0, 16); festivalNature.add(m); } });
 
 // a Ferrari showpiece on a slow turntable + spotlight, off to one side of the grounds
@@ -680,6 +675,14 @@ const arcadeWP = _arcadeCenter
 // in the frame loop, in the pavilion's local frame (see below).
 const complexDest = DESTINATIONS.find((d) => d.id === 'complex');
 
+// Returning from a world drops you back at the doorway you left through — which
+// is *inside* that portal's proximity trigger, so without this you'd be yanked
+// straight back in, over and over (the arcade "trap"). Remember which portal we
+// just came out of and suppress its auto-entry until you've stepped clear of the
+// trigger zone; walking back in still re-enters as normal.
+let suppressPortal = null;
+try { suppressPortal = sessionStorage.getItem('fest.fromPortal') || null; sessionStorage.removeItem('fest.fromPortal'); } catch (e) {}
+
 // ---- lab portal: a porta-potty interior you step into; click the old CRT to
 // boot the Lab (its own page). While inside, the festival stops rendering. ----
 const labPortal = buildLabPortal();
@@ -854,15 +857,22 @@ function frame() {
     if (activeDrug) { drugTime -= dt; if (drugHudEl) drugHudEl.textContent = `💊 ${DRUGS.find((d) => d.id === activeDrug).name} · ${Math.ceil(drugTime)}s`; if (drugTime <= 0) endDrug(); }
     gamezones.update(controls.pos);
     if (pongHudEl) pongHudEl.classList.toggle('on', gamezones.isPlaying());
-    // walk through the arcade tent's doorway → step right into the arcade
-    if (!warping && !admin.active && arcadeWP && controls.pos.distanceTo(arcadeWP) < 4) enterDestination(arcadeDest);
+    // walk through the arcade tent's doorway → step right into the arcade.
+    // Skip the re-entry if we just came back out, until you've cleared the zone.
+    if (!warping && !admin.active && arcadeWP) {
+      const dArc = controls.pos.distanceTo(arcadeWP);
+      if (suppressPortal === 'arcade') { if (dArc >= 5) suppressPortal = null; }
+      else if (dArc < 4) enterDestination(arcadeDest);
+    }
     // climb the steps to THE COMPLEX pavilion's doorway → step inside (into the hub).
     // Fire only once you've reached the upper portico (local frame), so you feel
     // the climb rather than getting warped in from the flat field below.
     if (!warping && !admin.active && CPX) {
       const dx = controls.pos.x - CPX.x, dz = controls.pos.z - CPX.z;
       const lx = dx * CPX.cos - dz * CPX.sin, lz = dx * CPX.sin + dz * CPX.cos;
-      if (Math.abs(lx) < 2.4 && lz > CPX_Z_DOOR - 0.9 && lz < CPX_Z_TOP + 0.5) enterDestination(complexDest);
+      const inDoor = Math.abs(lx) < 2.4 && lz > CPX_Z_DOOR - 0.9 && lz < CPX_Z_TOP + 0.5;
+      if (suppressPortal === 'complex') { if (!inDoor) suppressPortal = null; }
+      else if (inDoor) enterDestination(complexDest);
     }
     hud.update(controls.pos);
     if (boardHintEl) boardHintEl.classList.toggle('on', controls.pos.distanceTo(board.worldPos) < 5.5 && !boardOpen);
@@ -1056,8 +1066,11 @@ function enterDestination(dest) {
   playWarp(dest, () => {
     // local pages load in-tab (each carries a portal home); external worlds
     // pop open in a Windows-style window over the festival — you never leave.
-    if (sameTab) window.location.href = target;
-    else openWindow(dest.name, target);
+    if (sameTab) {
+      // remember the portal so the return trip doesn't re-trigger it (see suppressPortal)
+      try { sessionStorage.setItem('fest.fromPortal', dest.id); } catch (e) {}
+      window.location.href = target;
+    } else openWindow(dest.name, target);
   });
 }
 
