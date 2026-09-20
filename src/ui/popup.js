@@ -5,6 +5,7 @@
 
 let overlay, win, bar, titleEl, frame, spinner, hint;
 let built = false, dragging = false, dx = 0, dy = 0, maximized = false, curX = 0, curY = 0, loadTimer = 0;
+let lastFocused = null;   // whatever had focus before the window opened, restored on close
 
 const CSS = `
 .wp-ov{position:fixed;inset:0;z-index:9999;background:rgba(4,4,12,.62);backdrop-filter:blur(3px);
@@ -44,10 +45,10 @@ function make() {
   const style = document.createElement('style'); style.textContent = CSS; document.head.appendChild(style);
   overlay = document.createElement('div'); overlay.className = 'wp-ov';
   overlay.innerHTML = `
-    <div class="wp-win" role="dialog" aria-modal="true">
+    <div class="wp-win" role="dialog" aria-modal="true" aria-labelledby="wp-title" tabindex="-1">
       <div class="wp-bar">
-        <span class="wp-dot"></span>
-        <span class="wp-title"></span>
+        <span class="wp-dot" aria-hidden="true"></span>
+        <span class="wp-title" id="wp-title"></span>
         <span class="wp-btns">
           <button class="wp-min" title="Minimize" aria-label="Minimize">─</button>
           <button class="wp-max" title="Maximize" aria-label="Maximize">☐</button>
@@ -56,7 +57,7 @@ function make() {
         </span>
       </div>
       <div class="wp-body">
-        <iframe allow="camera; microphone; autoplay; fullscreen; pointer-lock; gamepad; gyroscope; accelerometer; clipboard-write; xr-spatial-tracking" allowfullscreen referrerpolicy="no-referrer"></iframe>
+        <iframe title="Embedded page" allow="camera; microphone; autoplay; fullscreen; pointer-lock; gamepad; gyroscope; accelerometer; clipboard-write; xr-spatial-tracking" allowfullscreen referrerpolicy="no-referrer"></iframe>
         <div class="wp-spin"><div class="wp-ring"></div><div class="wp-hint">loading…</div></div>
       </div>
     </div>`;
@@ -73,14 +74,68 @@ function make() {
   overlay.querySelector('.wp-max').onclick = () => { win.classList.toggle('max'); if (win.classList.contains('max')) resetPos(); };
   overlay.querySelector('.wp-ext').onclick = () => { if (frame.src) window.open(frame.src, '_blank', 'noopener'); };
   overlay.addEventListener('pointerdown', (e) => { if (e.target === overlay) close(); });
-  frame.addEventListener('load', () => { if (frame.src) { spinner.classList.add('hide'); clearTimeout(loadTimer); } });
+  frame.addEventListener('load', () => {
+    if (frame.src) { spinner.classList.add('hide'); clearTimeout(loadTimer); }
+    if (overlay.classList.contains('on')) wireFrameEscape();
+  });
 
   // drag by the title bar
   bar.addEventListener('pointerdown', startDrag);
   window.addEventListener('pointermove', onDrag);
   window.addEventListener('pointerup', () => { dragging = false; });
-  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('on')) close(); });
+  window.addEventListener('keydown', (e) => {
+    if (!overlay.classList.contains('on')) return;
+    if (e.key === 'Escape') { close(); return; }
+    if (e.key === 'Tab') trapTab(e);
+  });
   built = true;
+}
+
+// Keep Tab inside the window. Without this the dialog is modal to the eye only:
+// tabbing walks straight out into the world's own buttons behind the overlay,
+// which are covered and unreachable by mouse.
+//
+// The title-bar chrome is trapped here, but an iframe is a hard boundary: the
+// parent document never sees key events raised inside it, so neither this
+// handler nor the Escape one above fires once focus is in the embedded page.
+// Two things cover that gap — `inert` on the rest of the page (so escaping the
+// iframe can't land on background controls) and, for same-origin embeds, an
+// Escape listener installed inside the frame on load. Tab inside the embedded
+// page is deliberately left alone: its tab order is its own business.
+const FOCUSABLE = 'button, iframe, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+function trapTab(e) {
+  // offsetParent is null for anything display:none — drops the iframe while minimized
+  const items = [...win.querySelectorAll(FOCUSABLE)].filter((el) => el.offsetParent !== null);
+  if (!items.length) return;
+  const first = items[0], last = items[items.length - 1];
+  const at = document.activeElement;
+  // Focus slipped out of the window — this is what tabbing past the iframe
+  // looks like from out here (it lands on the bare body, since `inert` has
+  // taken every background control out of the order). Pull it back, or the
+  // cycle degenerates into body/iframe forever and Close is never reachable.
+  if (at !== win && !win.contains(at)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
+  if (e.shiftKey && (at === first || at === win)) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && at === last) { e.preventDefault(); first.focus(); }
+}
+
+// Hide everything behind the overlay from the tab order and the a11y tree.
+function setBackgroundInert(on) {
+  for (const el of document.body.children) {
+    if (el === overlay) continue;
+    if (on) el.setAttribute('inert', '');
+    else el.removeAttribute('inert');
+  }
+}
+
+// Same-origin embeds can have Escape wired up directly; cross-origin ones throw
+// on contentDocument and simply don't get it.
+function wireFrameEscape() {
+  try {
+    const doc = frame.contentDocument;
+    if (!doc || doc.__wpEsc) return;
+    doc.__wpEsc = true;
+    doc.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  } catch (e) { /* cross-origin — nothing we can do from out here */ }
 }
 
 function startDrag(e) {
@@ -97,11 +152,17 @@ function resetPos() { curX = 0; curY = 0; win.style.transform = ''; }
 export function openWindow(title, url) {
   if (!url) return;
   if (!built) make();
+  lastFocused = document.activeElement;
   win.classList.remove('min', 'max'); resetPos();
   titleEl.textContent = title || '12matt3r';
+  frame.title = title || 'Embedded page';
   spinner.classList.remove('hide');
   hint.innerHTML = 'loading…';
   overlay.classList.add('on');
+  setBackgroundInert(true);
+  // move focus in so the dialog is announced and Tab starts inside it; the
+  // window is already centred and fixed, so suppress the scroll-into-view
+  win.focus({ preventScroll: true });
   frame.src = 'about:blank';
   // load after a tick so the spinner paints
   requestAnimationFrame(() => { frame.src = url; });
@@ -118,6 +179,13 @@ export function openWindow(title, url) {
 export function closeWindow() { if (built) close(); }
 function close() {
   overlay.classList.remove('on');
+  setBackgroundInert(false);
   frame.src = 'about:blank'; // stop audio/video/webgl
   clearTimeout(loadTimer);
+  // hand focus back to whatever opened the window, so keyboard users don't get
+  // dumped at the top of the document
+  const back = lastFocused; lastFocused = null;
+  if (back && typeof back.focus === 'function' && back.isConnected) {
+    try { back.focus({ preventScroll: true }); } catch (e) { /* element went away */ }
+  }
 }
