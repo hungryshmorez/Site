@@ -22,4 +22,21 @@ const RAW = import.meta.env.VITE_MEDIA_CDN ?? 'https://hungryshmorez.github.io/M
 export const MEDIA_BASE = RAW ? RAW.replace(/\/+$/, '') + '/' : '';
 
 // media('music/foo.mp3') -> MEDIA_BASE + 'music/foo.mp3'
-export const media = (path) => MEDIA_BASE + String(path).replace(/^\/+/, '');
+//
+// Each path segment is percent-encoded, because tracks get uploaded straight to
+// the media repo through the GitHub web UI and arrive with whatever name they
+// had on disk — 'Google how to cry 2026.mp3', apostrophes, brackets. Browsers
+// paper over a literal space, but '#' would truncate the URL at the fragment
+// and '?' would start a query string, losing the file with no obvious error.
+// Encoding per segment rather than the whole string keeps the '/' separators.
+// Already-encoded input is passed through rather than double-encoded.
+const encodeSegment = (s) => {
+  try {
+    if (decodeURIComponent(s) !== s) return s;   // already encoded — leave it
+  } catch (e) {
+    return s;   // malformed escape; safer to pass through than to mangle
+  }
+  return encodeURIComponent(s);
+};
+export const media = (path) =>
+  MEDIA_BASE + String(path).replace(/^\/+/, '').split('/').map(encodeSegment).join('/');
