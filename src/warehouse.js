@@ -9,7 +9,7 @@ import { buildDoor } from './scene/door.js';
 import { vinylTotals } from './data/vinyl.js';
 import { loadTree } from './scene/nature.js';
 const ambience = createAmbience(AMBIENCE.studio);
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // THE 12MATT3R IMMERSIVE EXPERIENCE COMPLEX — a rusty neon WAREHOUSE on a foggy
 // street. Walk up: the door slides open with a creak. Inside, a projection-lined

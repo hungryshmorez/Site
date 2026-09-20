@@ -299,7 +299,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) cloc
 document.getElementById('raceBtn').onclick = () => toRacetrack();
 document.getElementById('backBtn').onclick = () => { const w = document.getElementById('warp'); if (w) w.classList.add('go'); setTimeout(() => { window.location.href = 'warehouse.html'; }, 460); };
 const ambience = createAmbience(AMBIENCE.gamecity);
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 wireMuteButton(ambience);
 document.getElementById('enterBtn').onclick = () => { document.getElementById('start').classList.add('gone'); ambience.start(); if (!running) { running = true; clock.start(); frame(); } };
 

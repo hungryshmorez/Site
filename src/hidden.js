@@ -5,7 +5,7 @@ import { createAdmin } from './scene/admin.js';
 import { loadMolecule } from './scene/molecule.js';
 import { createReducedMotion, wireMuteButton } from './player/motion.js';
 
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // THE HIDDEN ROOM — the secret post-endgame sanctum. A quiet void around a humming
 // monolith, ringed by plinths that sing when touched. Paint the dark with stars.

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { WalkControls } from './player/controls.js';
 import { createReducedMotion, wireMuteButton } from './player/motion.js';
 
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // PERSONALIZED ROOM BUILDER — the endgame reward. You're inside YOUR room; a live
 // panel swaps the theme, lighting, wall art, decor, the sky out the window, and

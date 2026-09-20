@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { prefersReducedMotion } from './motion.js';
 
 // First-person festival walk. Drag to look, WASD/arrows to move, or click a
 // person / spot to auto-walk there. Keeps the camera at eye height and inside
@@ -90,10 +91,13 @@ export class WalkControls {
       }
     }
 
-    // subtle head-bob while moving, eased so it settles smoothly on stop
+    // subtle head-bob while moving, eased so it settles smoothly on stop.
+    // Honours reduced motion globally, so the toggle works in every world that
+    // uses these controls without each one having to wire it up.
+    const bob = this.bobEnabled && !prefersReducedMotion();
     this._moving = !!(forward || strafe) || !!this.walkTarget;
-    if (this._moving && this.bobEnabled) this.bobPhase += dt * this.speed * run * 1.1;
-    const targetBob = (this._moving && this.bobEnabled) ? Math.sin(this.bobPhase * 2) * 0.045 : 0;
+    if (this._moving && bob) this.bobPhase += dt * this.speed * run * 1.1;
+    const targetBob = (this._moving && bob) ? Math.sin(this.bobPhase * 2) * 0.045 : 0;
     this._bob += (targetBob - this._bob) * Math.min(1, dt * 10);
 
     // clamp to field; zMin lets you reach the stage

@@ -7,7 +7,7 @@ import { buildLoopDoors } from './data/loop.js';
 import { buildDJDeck } from './scene/djdeck.js';
 import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
 
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // HORRORCORE CRAWLSPACE — a dim concrete basement under one swinging, flickering
 // bulb. Pipes drip in the dark, framed scenes whisper when you tap them, and a

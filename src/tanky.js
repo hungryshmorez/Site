@@ -9,7 +9,7 @@ import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
 import { createAdmin } from './scene/admin.js';
 const ambience = createAmbience(AMBIENCE.tanky);
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // TANKY JOHNSON'S WORLD — a cosmic western at dusk. A honky-tonk SALOON (EPK on
 // the jukebox), a TAILGATE bonfire with his lifted truck + hay bales, and a

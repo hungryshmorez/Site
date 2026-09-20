@@ -10,7 +10,7 @@ import { createAdmin } from './scene/admin.js';
 import { buildLoopDoors } from './data/loop.js';
 import { buildDJDeck } from './scene/djdeck.js';
 const ambience = createAmbience(AMBIENCE.studio);
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // 12MATT3R'S ROOM — a dark glitch-art studio built around a central MONUMENT of
 // stacked CRT televisions you circle. Trippy + glitch screens everywhere, a

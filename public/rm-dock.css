@@ -10,3 +10,16 @@
 .rm-dock button:hover{border-color:#00f3ff}
 .rm-dock button.active{color:#ff71ce;border-color:#ff71ce;text-shadow:0 0 10px rgba(255,113,206,.6)}
 @media (max-width:560px){ .rm-dock button{padding:7px 9px;font-size:10px} }
+
+/* Reduced motion, applied globally rather than per-world. Without this the
+   toggle only set a class no world styled, so it looked active while changing
+   nothing. Kills CSS-driven animation/transition; the 3D head-bob is handled
+   in player/controls.js, which reads the same setting. */
+body.rm *,
+body.rm *::before,
+body.rm *::after{
+  animation-duration:.001s !important;
+  animation-iteration-count:1 !important;
+  transition-duration:.001s !important;
+  scroll-behavior:auto !important;
+}

@@ -7,7 +7,7 @@ import { buildLoopDoors } from './data/loop.js';
 import { buildDJDeck } from './scene/djdeck.js';
 import { createReducedMotion, wireMuteButton } from './player/motion.js';
 
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // SURREAL LO-FI ROOM — a cozy dreamscape for the lo-fi tapes. Mismatched
 // furniture on a warm rug under kaleidoscopic skies, clouds wearing headphones

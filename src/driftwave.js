@@ -11,7 +11,7 @@ import { buildLinkKiosk } from './scene/linkkiosk.js';
 import { media } from './data/media.js';
 import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 const ambience = createAmbience(AMBIENCE.driftwave);
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // DRIFTWAVE STATIC'S WORLD — one big vaporwave dreamscape stitched from the
 // three VAPORSTUDIO rooms: a marble TEMPLE (with the EPK monolith), a dead

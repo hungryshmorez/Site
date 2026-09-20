@@ -4,7 +4,7 @@ import { openWindow } from './ui/popup.js';
 import { createAdmin } from './scene/admin.js';
 import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
 
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // THE MIDWAY — a neon arcade tent of portal cabinets: the VIDEO games live here
 // (flash / Wake Up / games / stories / dodge hell / mini games / minecraft /

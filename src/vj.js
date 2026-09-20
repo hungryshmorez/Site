@@ -6,7 +6,7 @@ import { buildLinkKiosk } from './scene/linkkiosk.js';
 import { openWindow } from './ui/popup.js';
 import { createReducedMotion, wireMuteButton } from './player/motion.js';
 
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // VJ / PERFORMANCE STAGE — a dark club room with a raised stage, a truss of moving-head
 // lights, and a giant reactive VIDEO WALL. Step onto the stage and the show goes LIVE:

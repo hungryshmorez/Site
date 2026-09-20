@@ -425,7 +425,7 @@ addEventListener('resize', () => {
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
 const ambience = createAmbience(AMBIENCE.museum);
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 wireMuteButton(ambience);
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');

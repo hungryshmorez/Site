@@ -3,13 +3,22 @@
 // hand-copied per world. Originally only main.js had this; see CLAUDE
 // audit notes on cross-page consistency.
 
+// Module-level mirror of the current setting, so shared systems can consult it
+// without every world having to thread the flag through by hand. player/controls.js
+// uses this to drop the walking head-bob, which is the main vestibular trigger in
+// a first-person walker — that way the toggle works in every world automatically,
+// including ones added later.
+let _reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+export const prefersReducedMotion = () => _reduced;
+
 // Reads prefers-reduced-motion, wires the #rmbtn toggle (if present on the
 // page), and keeps body.rm in sync so worlds can key off a CSS class too.
 export function createReducedMotion(body = document.body) {
-  let value = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let value = _reduced;
   const btn = document.getElementById('rmbtn');
   const apply = (v) => {
     value = v;
+    _reduced = v;
     body.classList.toggle('rm', v);
     if (btn) btn.classList.toggle('active', v);
   };

@@ -9,7 +9,7 @@ import { buildDJDeck } from './scene/djdeck.js';
 import { addBaseboard } from './scene/roomkit.js';
 import { createReducedMotion, wireMuteButton } from './player/motion.js';
 
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // ROOFTOP CHILL ZONE — a serene rooftop under a slowly turning galaxy. City lights
 // below the parapet, holographic art drifting overhead, cozy seating, and a

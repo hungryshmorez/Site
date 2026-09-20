@@ -7,7 +7,7 @@ import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
 import { createAdmin } from './scene/admin.js';
 const ambience = createAmbience(AMBIENCE.shmorez);
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // SHMOREZ'S WORLD — a cozy-surreal campground where everything's a s'more. A
 // giant BONFIRE ringed with roasting marshmallows, a S'MORES LAND of chocolate

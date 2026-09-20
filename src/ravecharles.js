@@ -8,7 +8,7 @@ import { createReducedMotion, wireMuteButton, audioElMute } from './player/motio
 import { createAdmin } from './scene/admin.js';
 import { makePersonGeo } from './scene/crowd.js';
 const ambience = createAmbience(AMBIENCE.ravecharles);
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // RAVE CHARLES'S WORLD — the masked headliner, down in the pit with the crowd.
 // A raging neon MOSH PIT with a stage (EPK on the screen), a coast-to-coast

@@ -8,7 +8,7 @@ import { createReducedMotion, wireMuteButton, audioElMute } from './player/motio
 import { createAdmin } from './scene/admin.js';
 import { buildLinkKiosk } from './scene/linkkiosk.js';
 const ambience = createAmbience(AMBIENCE.sofaboi);
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // SOFA KING SAD BOI'S WORLD — a rainy kingdom of couches. A giant sofa THRONE
 // under a personal storm cloud, a SEA of couches to roam, and a BASS PIT where

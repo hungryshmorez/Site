@@ -4,7 +4,7 @@ import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-
 import { loadFerrari } from './scene/ferrari.js';
 import { createReducedMotion } from './player/motion.js';
 
-const reduceMotion = createReducedMotion();
+createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
 // BVH-accelerated raycasting — the car samples the track surface several times
 // per frame; on 100k+ triangle circuits a linear raycast tanks the framerate,
