@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { gltfLoader as gltf } from './loaders.js';
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 // Fully skeletal-animated dancers (Michelle, with the Mixamo Samba clip baked
@@ -10,8 +9,6 @@ import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.j
 // baked/instanced.
 
 let _proto = null, _anims = null, _loading = null;
-const draco = new DRACOLoader(); draco.setDecoderPath('draco/gltf/');
-const gltf = new GLTFLoader(); gltf.setDRACOLoader(draco);
 
 function load() {
   if (_proto) return Promise.resolve();

@@ -1,15 +1,12 @@
 import * as THREE from 'three';
+import { gltfLoader as _gltf } from './loaders.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
 // Loaders for the uploaded tree.obj + pool.glb. The tree OBJ ships with no
 // materials, so we tint it by height — brown trunk near the base, green canopy
 // above — via vertex colours. Both come back centred with their base on the
 // ground, normalized to a target size, ready to clone/place.
 const _obj = new OBJLoader();
-const _draco = new DRACOLoader(); _draco.setDecoderPath('draco/gltf/');
-const _gltf = new GLTFLoader(); _gltf.setDRACOLoader(_draco);
 
 export function loadTree({ height = 6, onReady, onError } = {}) {
   _obj.load('models/props/tree.obj', (o) => {

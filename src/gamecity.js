@@ -1,6 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { gltfLoader as gltf } from './scene/loaders.js';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
 import { WalkControls } from './player/controls.js';
 import { buildHoop } from './scene/hoop.js';
@@ -49,10 +48,6 @@ const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 40
 scene.add(new THREE.HemisphereLight(0xdfeeff, 0x545048, 1.15));
 const sun = new THREE.DirectionalLight(0xfff4e0, 2.0); sun.position.set(120, 220, 90); scene.add(sun);
 scene.add(new THREE.AmbientLight(0xffffff, 0.25));
-
-// ---- loaders ----
-const draco = new DRACOLoader(); draco.setDecoderPath('draco/gltf/');
-const gltf = new GLTFLoader(); gltf.setDRACOLoader(draco);
 
 // ---- ground raycast (walk the real city terrain) ----
 const cityMeshes = [];
