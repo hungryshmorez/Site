@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TRACKS, COVERS } from '../data/tracks.js';
+import { TRACKS, COVERS, loadManifest } from '../data/tracks.js';
 
 // A retro BOOMBOX jukebox that plays the DriftWave Static tape (bundled MP3s).
 // A front screen shows the current album art + track title; tap the deck to
@@ -55,6 +55,11 @@ export function buildJukebox({ accent = 0x9a64ff, onNowPlaying } = {}) {
   function pause() { audio.pause(); playing = false; drawTitle(TRACKS[i].title); onNowPlaying && onNowPlaying(TRACKS[i].title, false); }
   audio.addEventListener('ended', () => { load(i + 1); play(); });
   load(0);
+
+  // Swap in the live playlist once it arrives. Re-seat on track 0 only if
+  // nothing has started yet — if the visitor already hit play, leave their
+  // track alone and let the longer list take effect at the next skip.
+  loadManifest().then((changed) => { if (changed && !playing) load(0); }).catch(() => {});
 
   function tap(ray) {
     if (ray.intersectObject(nextPad, false)[0]) { load(i + 1); play(); return true; }
