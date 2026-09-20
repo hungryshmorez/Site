@@ -234,6 +234,14 @@ function buildParkour(scene, controls) {
   const beacon = new THREE.PointLight(0xffd27a, 0, 34, 2); beacon.position.set(topP.x, topP.top + 2, topP.z); g.add(beacon);
   const sign = textPlane('▲ JUMP THE ISLANDS TO THE TOP', '#ff9ecb'); sign.position.set(cx + 4, 2.4, cz + 5); sign.scale.set(6.5, 0.7, 1); g.add(sign);
 
+  // a launch portal at the base of the climb → opens the full Parkour Run game
+  // in the popup (the island-hop above stays exactly as it was).
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.3, 0.16, 12, 32), std({ color: 0x0f2a12, emissive: C(0x39ff14), emissiveIntensity: 1.5, metalness: 0.5, roughness: 0.3 }));
+  ring.position.set(cx + 6, 2.0, cz + 7); ring.rotation.y = -0.5; g.add(ring);
+  const portal = new THREE.Mesh(new THREE.CircleGeometry(1.15, 32), new THREE.MeshBasicMaterial({ color: 0x39ff14, transparent: true, opacity: 0.2, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
+  portal.position.copy(ring.position); portal.rotation.copy(ring.rotation); g.add(portal);
+  const psign = textPlane('▶ ENTER THE PARKOUR RUN', '#39ff14'); psign.position.set(cx + 6, 3.6, cz + 7); psign.scale.set(5.2, 0.6, 1); g.add(psign);
+
   // land on a platform top when you're at/above it (and not jumping up through it)
   function groundAt(x, z) {
     const feet = controls.pos.y - controls.eye; let gg = 0;
@@ -251,7 +259,7 @@ function buildParkour(scene, controls) {
       }
     }
   }
-  return { groundAt, update };
+  return { groundAt, update, portal };
 }
 
 // ---------- RING RUN: glide off the summit through descending rings ----------
@@ -500,6 +508,7 @@ function tap(sx, sy) {
   if (dreamosProxy && ray.intersectObject(dreamosProxy, false)[0]) { openWindow('DREAMOS · VJ PLAYLIST', dreamosRef.url); return; }
   if (deadnetProxy && ray.intersectObject(deadnetProxy, false)[0]) { openWindow('DEADNET — the dead internet', deadnetRef.url); return; }
   if (profileKiosk.tryClick(ray)) { openWindow('DRIFTWAVE STATIC — PROFILE', 'https://driftwavestatic.on.websim.com/'); return; }
+  if (parkour.portal && ray.intersectObject(parkour.portal, false)[0]) { openWindow('PARKOUR RUN', 'games/parkour/index.html'); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -27, 27); g.z = THREE.MathUtils.clamp(g.z, -27, 27); controls.walkTo(g); }
 }

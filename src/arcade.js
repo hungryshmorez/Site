@@ -137,6 +137,9 @@ buildCabinet(-15, 11, 'FLASHSTORAGE', '#ff8a1e', () => openWindow('FLASHSTORAGE 
 // weren't part of this scrape, so they won't open — a decorative curiosity,
 // not a working OS.
 buildCabinet(15, 11, 'WINDOWS93', '#39ff14', () => openWindow('WINDOWS93', 'windows93/127.0.0.1_8081/dl/index.html'));
+// WINDOWS 97 — a full working retro desktop (self-hosted React build), in the
+// web-OS corner beside WINDOWS93
+buildCabinet(15, -13, 'WINDOWS 97', '#00c2ff', () => openWindow('WINDOWS 97 ULTIMATE', 'games/windows97/index.html'));
 
 // (physical games — basketball, shooting gallery, dunk tank, Monkey's Paw — now
 // live exclusively in THE BLOCK; the arcade is video-game cabinets only.)
