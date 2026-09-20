@@ -5,15 +5,18 @@
 // cue, sync, tap-tempo, jog wheel, loop, waveforms, meters) is kept.
 
 import {
-  initAudio, analyzeBPM, loadTrack, playTrack, pauseTrack, setEQ, setCrossfader,
+  initAudio, analyzeTrack, loadTrack, playTrack, pauseTrack, setEQ, setCrossfader,
   setFilter, setVolume, setPlaybackRate, syncDecks, setCuePoint, toggleLoop,
   getCurrentPosition, getDuration, seekTo, getTrackInfo, getAudioContext,
+  camelotCompatible,
 } from './audio.js';
 import WaveSurfer from 'wavesurfer.js';
 import { saveTrack, allTracks } from './store.js';
+import { TRACKS, loadManifest } from '../data/tracks.js';
 import './styles.css';
 
-const library = {}; // id -> { name, genre, file, bpm }
+// id -> { name, genre, file, bpm, key, camelot, analyzed, analyzing, remote }
+const library = {};
 // track names come from user-uploaded filenames — escape before interpolating into innerHTML
 const escapeHTML = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const tapTempo = { a: { taps: [], lastTap: 0 }, b: { taps: [], lastTap: 0 } };
@@ -51,9 +54,47 @@ async function init() {
   // seed the site's anthem, then restore the user's saved uploads (IndexedDB)
   await addTrack('Static Drift Anthem', 'vaporwave', 'static-drift-anthem.mp3');
   for (const t of await allTracks()) {
-    library[t.id] = { name: t.name, genre: t.genre, bpm: t.bpm, file: URL.createObjectURL(t.blob) };
+    library[t.id] = {
+      name: t.name, genre: t.genre, bpm: t.bpm ?? null, key: t.key ?? null,
+      camelot: t.camelot ?? null, analyzed: t.key != null, file: URL.createObjectURL(t.blob),
+    };
   }
   renderLibrary();
+
+  // pull in every track on the site (the same manifest the jukebox reads), so
+  // the whole catalogue is playable in the decks — analysis happens on demand.
+  loadSiteLibrary();
+}
+
+// genre buckets from a track title/filename, matching the library filter
+function inferGenre(s) {
+  const n = String(s).toLowerCase();
+  if (/vapor|slushwave|mallsoft|saturn|telepath/.test(n)) return 'vaporwave';
+  if (/lo-?fi|chill|sleep|study/.test(n)) return 'lofi';
+  if (/dubstep|bass|riddim/.test(n)) return 'dubstep';
+  if (/surf|beach|wave/.test(n)) return 'surf';
+  return 'other';
+}
+
+// Add every manifest track to the library (metadata + CDN URL only). BPM/key
+// are analyzed lazily — when a track is loaded to a deck or the user asks —
+// because fetching and decoding the whole catalogue up front would be brutal.
+async function loadSiteLibrary() {
+  try {
+    await loadManifest(); // replaces TRACKS in place from the live manifest
+    const known = new Set(Object.values(library).map((t) => t.file));
+    let i = 0;
+    for (const t of TRACKS) {
+      if (!t || typeof t.src !== 'string' || known.has(t.src)) continue;
+      known.add(t.src);
+      const name = String(t.title ?? t.src);
+      library[`m-${i++}-${Math.random().toString(36).slice(2, 6)}`] = {
+        name, genre: inferGenre(name), file: t.src,
+        bpm: null, key: null, camelot: null, analyzed: false, remote: true,
+      };
+    }
+    renderLibrary();
+  } catch (e) { /* offline or blocked — the seeded library still works */ }
 }
 
 // ── auto-radio (idle jukebox) ────────────────────────────────────────────────
@@ -126,15 +167,38 @@ function updateMeter(deck, playing) {
 // ── library ──────────────────────────────────────────────────────────────────
 async function addTrack(name, genre, file) {
   const id = `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-  let bpm = 120;
+  const entry = { name, genre, file, bpm: null, key: null, camelot: null, analyzed: false };
+  library[id] = entry;
   try {
     const buf = await fetch(file).then((r) => r.arrayBuffer());
-    const ctx = getAudioContext();
-    const audioBuf = await ctx.decodeAudioData(buf.slice(0));
-    bpm = (await analyzeBPM(audioBuf)) || 120;
-  } catch (e) { /* keep default bpm */ }
-  library[id] = { name, genre, file, bpm };
+    const audioBuf = await getAudioContext().decodeAudioData(buf.slice(0));
+    const res = await analyzeTrack(audioBuf);
+    Object.assign(entry, { bpm: res.bpm, key: res.key, camelot: res.camelot, analyzed: true });
+  } catch (e) { /* leave unanalyzed — the ANALYZE button can retry */ }
   return id;
+}
+
+// Fetch, decode and analyze one library track on demand (used by the per-row
+// ANALYZE button for tracks not yet loaded to a deck).
+async function analyzeLibraryTrack(id) {
+  const t = library[id]; if (!t || t.analyzed || t.analyzing) return;
+  t.analyzing = true; renderLibrary();
+  try {
+    const buf = await fetch(t.file).then((r) => r.arrayBuffer());
+    const audioBuf = await getAudioContext().decodeAudioData(buf.slice(0));
+    const res = await analyzeTrack(audioBuf);
+    Object.assign(t, { bpm: res.bpm, key: res.key, camelot: res.camelot, analyzed: true });
+  } catch (e) { console.warn('analyze failed', e); }
+  finally { t.analyzing = false; renderLibrary(); }
+}
+
+// track's detail line: shows BPM + key + Camelot once analyzed
+function trackDetails(t) {
+  if (t.analyzing) return 'analyzing…';
+  if (!t.analyzed) return `${t.genre.toUpperCase()} • not analyzed`;
+  const bpm = t.bpm != null ? `${t.bpm} BPM` : '— BPM';
+  const key = t.key ? `${t.key}${t.camelot ? ` · ${t.camelot}` : ''}` : 'key —';
+  return `${t.genre.toUpperCase()} • ${bpm} • ${key}`;
 }
 
 function renderLibrary(list) {
@@ -148,15 +212,19 @@ function renderLibrary(list) {
     <div class="library-track">
       <div class="track-info-container">
         <div class="track-name">${escapeHTML(t.name)}</div>
-        <div class="track-details">${t.genre.toUpperCase()} • ${t.bpm} BPM</div>
+        <div class="track-details">${escapeHTML(trackDetails(t))}</div>
       </div>
       <div class="track-actions">
-        <button class="load-deck-button" data-id="${id}" data-deck="a">DECK A</button>
-        <button class="load-deck-button" data-id="${id}" data-deck="b">DECK B</button>
+        ${t.analyzed || t.analyzing ? '' : `<button class="analyze-button" data-id="${id}" title="Detect BPM and key" aria-label="Analyze BPM and key">◎</button>`}
+        <button class="load-deck-button" data-id="${id}" data-deck="a">A</button>
+        <button class="load-deck-button" data-id="${id}" data-deck="b">B</button>
       </div>
     </div>`).join('');
   container.querySelectorAll('.load-deck-button').forEach((btn) => {
     btn.onclick = () => { userActed(); loadToDeck(btn.dataset.id, btn.dataset.deck); };
+  });
+  container.querySelectorAll('.analyze-button').forEach((btn) => {
+    btn.onclick = () => analyzeLibraryTrack(btn.dataset.id);
   });
 }
 
@@ -167,11 +235,11 @@ async function handleUpload(e) {
     const genre = n.includes('vaporwave') ? 'vaporwave' : n.includes('lofi') ? 'lofi' : n.includes('dubstep') ? 'dubstep' : n.includes('surf') ? 'surf' : 'other';
     const name = file.name.replace(/\.[^.]+$/, '');
     const id = `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    let bpm = 120;
-    try { const buf = await file.arrayBuffer(); bpm = (await analyzeBPM(await getAudioContext().decodeAudioData(buf.slice(0)))) || 120; } catch (err) { /* keep default */ }
-    library[id] = { name, genre, bpm, file: URL.createObjectURL(file) };
-    // persist the actual audio to the user's computer (IndexedDB) for next time
-    saveTrack({ id, name, genre, bpm, blob: file });
+    let res = { bpm: null, key: null, camelot: null };
+    try { res = await analyzeTrack(await getAudioContext().decodeAudioData((await file.arrayBuffer()).slice(0))); } catch (err) { /* keep nulls */ }
+    library[id] = { name, genre, ...res, analyzed: true, file: URL.createObjectURL(file) };
+    // persist the actual audio + analysis to the user's computer (IndexedDB)
+    saveTrack({ id, name, genre, ...res, blob: file });
   }
   e.target.value = '';
   renderLibrary();
@@ -184,19 +252,59 @@ async function loadToDeck(id, deck) {
   try {
     try { await getAudioContext()?.resume(); } catch (e) { /* fine */ }
     await loadTrack(deck, t.file);            // stops any old source on this deck
-    const info = getTrackInfo(deck); if (info) info.bpm = t.bpm;
+    const info = getTrackInfo(deck);
+    if (info) { info.bpm = t.bpm ?? 120; info.key = t.key; info.camelot = t.camelot; }
     document.getElementById(`deck-${deck}-title`).textContent = t.name;
     // a fresh track loads paused at 1× — reset the transport UI so it's honest
     const ts = document.getElementById(`tempo-${deck}`); if (ts) ts.value = 0;
     const tv = document.getElementById(`tempo-value-${deck}`); if (tv) tv.textContent = '0%';
     const tb = document.getElementById(`tap-bpm-${deck}`); if (tb) tb.textContent = '--';
     updateEffectiveBpm(deck);
+    updateDeckMeta(deck);
     document.getElementById(`cue-markers-${deck}`).innerHTML = '';
     document.getElementById(`play-${deck}`).textContent = 'PLAY';
     // waveform is visual-only; never let it block loading the deck
     try { window.wavesurfers[deck].load(t.file); } catch (e) { console.warn('waveform load failed', e); }
+    // analyze on load (reusing the buffer we just decoded — no second fetch)
+    if (!t.analyzed && info?.buffer) analyzeLoadedDeck(deck, id, info.buffer);
   } catch (err) { console.error(err); alert('Could not load that track.'); }
   finally { loadingDeck[deck] = false; }
+}
+
+// Analyze the buffer already decoded onto a deck, then fold the result back
+// into the library entry and the deck (if it still holds the same track).
+async function analyzeLoadedDeck(deck, id, buffer) {
+  const t = library[id]; if (!t || t.analyzed) return;
+  t.analyzing = true; renderLibrary();
+  try {
+    const res = await analyzeTrack(buffer);
+    Object.assign(t, { bpm: res.bpm, key: res.key, camelot: res.camelot, analyzed: true });
+    const info = getTrackInfo(deck);
+    if (info && info.buffer === buffer) {
+      info.bpm = res.bpm ?? 120; info.key = res.key; info.camelot = res.camelot;
+      updateEffectiveBpm(deck); updateDeckMeta(deck);
+    }
+  } catch (e) { console.warn('analyze failed', e); }
+  finally { t.analyzing = false; renderLibrary(); }
+}
+
+// deck header key/Camelot readout + harmonic-match hint between the two decks
+function updateDeckMeta(deck) {
+  const el = document.getElementById(`deck-${deck}-key`);
+  if (el) {
+    const info = getTrackInfo(deck);
+    el.textContent = info && info.key ? `${info.key}${info.camelot ? ` · ${info.camelot}` : ''}` : '';
+  }
+  updateHarmonicHint();
+}
+
+function updateHarmonicHint() {
+  const el = document.getElementById('harmonic-hint'); if (!el) return;
+  const a = getTrackInfo('a'), b = getTrackInfo('b');
+  if (!a?.camelot || !b?.camelot) { el.textContent = ''; el.className = ''; return; }
+  const ok = camelotCompatible(a.camelot, b.camelot);
+  el.textContent = ok ? `IN KEY ${a.camelot}/${b.camelot}` : `CLASH ${a.camelot}/${b.camelot}`;
+  el.className = ok ? 'match' : 'clash';
 }
 
 // ── deck controls ────────────────────────────────────────────────────────────
