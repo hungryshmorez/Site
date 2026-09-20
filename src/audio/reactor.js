@@ -38,7 +38,6 @@ export function createAudioReactor(audioEl) {
     ensure();
     try {
       if (ctx.state === 'suspended') await ctx.resume();
-      audioEl.loop = true;
       await audioEl.play();
       started = true;
     } catch (e) { started = false; }

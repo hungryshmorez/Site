@@ -40,6 +40,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
 import { createAudioReactor } from './audio/reactor.js';
+import { TRACKS, loadManifest } from './data/tracks.js';
 
 // surface otherwise-silent runtime failures (a missing asset, a broken loader
 // chain) in the console instead of leaving the scene just quietly broken
@@ -56,6 +57,36 @@ if (muteBtn) muteBtn.onclick = () => {
   const m = !reactor.isMuted(); reactor.setMuted(m);
   muteBtn.textContent = m ? '🔇 muted' : '🔊 sound';
 };
+
+// ---- festival radio: a random track each visit, then shuffle on ----
+// Instead of looping one anthem, start on a RANDOM track from the live library
+// each time you join, and move to another when it ends. Falls back to the
+// bundled anthem if the manifest can't be reached.
+const trackEl = document.getElementById('track');
+const nowPlayingEl = document.getElementById('nowplaying');
+let radioIdx = -1, radioActive = false, radioErrs = 0;
+function pickFestivalTrack() {
+  if (!TRACKS.length) return;
+  let i = Math.floor(Math.random() * TRACKS.length);
+  if (TRACKS.length > 1 && i === radioIdx) i = (i + 1) % TRACKS.length;   // no instant repeat
+  radioIdx = i;
+  trackEl.src = TRACKS[i].src;
+  if (nowPlayingEl) nowPlayingEl.textContent = `♪ ${TRACKS[i].title}`;
+}
+trackEl.addEventListener('ended', () => {
+  radioErrs = 0; pickFestivalTrack();
+  if (reactor.isStarted()) trackEl.play().catch(() => {});
+});
+trackEl.addEventListener('error', () => {          // skip a track that won't load (cap retries)
+  if (!radioActive || radioErrs++ > 3) return;
+  pickFestivalTrack();
+  if (reactor.isStarted()) trackEl.play().catch(() => {});
+});
+loadManifest().then((changed) => {
+  if (!changed) return;                            // offline / no CDN → keep the bundled anthem
+  radioActive = true; pickFestivalTrack();
+  if (reactor.isStarted()) trackEl.play().catch(() => {});
+}).catch(() => {});
 
 // ---- reduced motion ----
 let reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
