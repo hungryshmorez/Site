@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { attachAdaptiveResolution } from './player/adaptive.js';
 import { WalkControls } from './player/controls.js';
 import { buildVaporwave } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
@@ -26,6 +27,7 @@ const _texLoaderDW = new THREE.TextureLoader();
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
+attachAdaptiveResolution(renderer, isMobile ? 1.5 : 2);
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;

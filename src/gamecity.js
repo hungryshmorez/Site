@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { attachAdaptiveResolution } from './player/adaptive.js';
 import { gltfLoader as gltf } from './scene/loaders.js';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
 import { WalkControls } from './player/controls.js';
@@ -35,6 +36,7 @@ const C = (h) => new THREE.Color(h);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
+attachAdaptiveResolution(renderer, isMobile ? 1.5 : 2);
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
