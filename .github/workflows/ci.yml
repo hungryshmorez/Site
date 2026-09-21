@@ -30,3 +30,7 @@ jobs:
       # shouldn't block a PR, but a syntax/undefined-variable error should.
       - run: npm run lint
       - run: npm run build
+      # smoke-load every world page in a headless browser; fails on a script
+      # error or a missing own-asset (a broken import, renamed module, dead chunk)
+      - run: npx playwright install --with-deps chromium
+      - run: npm run smoke

@@ -47,8 +47,11 @@ export function loadManifest() {
       // Try multi-CDN architecture first (aggregated manifests)
       let m = await loadAggregatedManifest();
 
-      // Fall back to legacy single-CDN if multi-CDN unavailable
-      if (!m) {
+      // Fall back to the legacy single-CDN manifest if multi-CDN is unavailable
+      // OR yields no tracks — otherwise a live-but-empty master manifest (e.g. an
+      // artist repo that 404s) would silently strand the jukebox on its 16
+      // hardcoded fallbacks instead of the full library.
+      if (!m || !Array.isArray(m.tracks) || !m.tracks.length) {
         const res = await fetch(media('manifest.json'), { cache: 'no-cache' });
         if (!res.ok) return false;
         m = await res.json();

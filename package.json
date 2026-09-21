@@ -2,13 +2,14 @@
   "name": "12matt3r-experience",
   "version": "0.1.0",
   "private": true,
-  "description": "12matt3r walkable EDM-festival portfolio experience \u2014 spawn on a bench, walk through the crowd to each artist. Three.js + Vite.",
+  "description": "12matt3r walkable EDM-festival portfolio experience — spawn on a bench, walk through the crowd to each artist. Three.js + Vite.",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "three": "^0.160.1",
@@ -18,6 +19,7 @@
   "devDependencies": {
     "eslint": "^9.39.5",
     "globals": "^17.12.0",
+    "playwright": "^1.63.0",
     "vite": "^5.4.0"
   },
   "overrides": {

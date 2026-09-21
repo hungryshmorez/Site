@@ -1,0 +1,16 @@
+{
+  "name": "12matt3r // The Festival",
+  "short_name": "12matt3r",
+  "description": "A walkable EDM-festival portfolio — spawn on a bench, walk through the crowd, and step into every artist's own world.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05050e",
+  "theme_color": "#05050e",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
