@@ -149,11 +149,30 @@ const keys = new Set();
 addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault(); keys.add(k); });
 addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
 
+// on-screen touch driving: the pads in race.html feed this, which drive() ORs
+// with the keyboard — so a phone can steer + accelerate and desktop is untouched.
+const touch = { up: false, down: false, left: false, right: false };
+if (isMobile) document.body.classList.add('touch');
+function bindHold(id, prop) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const set = (v) => (e) => { e.preventDefault(); touch[prop] = v; el.classList.toggle('on', v); };
+  el.addEventListener('pointerdown', set(true));
+  el.addEventListener('pointerup', set(false));
+  el.addEventListener('pointercancel', set(false));
+  el.addEventListener('pointerleave', set(false));
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+bindHold('tGas', 'up');
+bindHold('tBrake', 'down');
+bindHold('tLeft', 'left');
+bindHold('tRight', 'right');
+
 function drive(dt) {
-  const up = keys.has('w') || keys.has('arrowup');
-  const down = keys.has('s') || keys.has('arrowdown');
-  const left = keys.has('a') || keys.has('arrowleft');
-  const right = keys.has('d') || keys.has('arrowright');
+  const up = keys.has('w') || keys.has('arrowup') || touch.up;
+  const down = keys.has('s') || keys.has('arrowdown') || touch.down;
+  const left = keys.has('a') || keys.has('arrowleft') || touch.left;
+  const right = keys.has('d') || keys.has('arrowright') || touch.right;
   const brakeKey = keys.has(' ');
 
   if (up) cs.speed += ACCEL * dt;
