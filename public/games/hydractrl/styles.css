@@ -1,0 +1,811 @@
+/* Global scrollbar styling */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--color-bg-editor);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-track:horizontal {
+  margin: 0 6px;
+  /* Add some margin to prevent overlap with vertical scrollbar */
+}
+
+::-webkit-scrollbar-track:vertical {
+  margin: 6px 0;
+  /* Add some margin to prevent overlap with horizontal scrollbar */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-button-bg);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-button-hover);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background-color: var(--color-bg-editor);
+}
+
+/* Firefox global scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-button-bg) var(--color-bg-editor);
+}
+
+/* Global visibility transitions */
+*[style*="visibility"] {
+  transition: visibility 0.2s ease, opacity 0.2s ease;
+}
+
+*[style*="visibility: hidden"] {
+  opacity: 0;
+}
+
+*[style*="visibility: visible"] {
+  opacity: 1;
+}
+
+/* Theme Variables - Default (Dark Dracula-inspired) */
+:root {
+  /* Base colors */
+  --color-bg-primary: #1e1e1e;
+  --color-bg-secondary: rgba(37, 37, 37, 0.9);
+  --color-bg-secondary-rgb: 37, 37, 37;
+  /* RGB values for opacity control */
+  --color-bg-tertiary: rgba(60, 60, 60, 0.7);
+  --color-bg-tertiary-rgb: 60, 60, 60;
+  /* RGB values for opacity control */
+  --color-bg-editor: rgba(40, 42, 54, 0.7);
+  --color-bg-editor-rgb: 40, 42, 54;
+  /* RGB values for opacity control */
+  --color-text-primary: #f5f5f5;
+  --color-text-secondary: #aaa;
+  --color-text-editor: #f8f8f2;
+  --panel-opacity: 0.9;
+  /* Default panel opacity */
+
+  /* UI Elements */
+  --color-button-bg: #2d2d2d;
+  --color-button-hover: #3d3d3d;
+  --color-button-active: #4d4d4d;
+  --color-panel-shadow: rgba(0, 0, 0, 0.3);
+  --color-panel-blur: 5px;
+
+  /* Notifications */
+  --color-success: rgba(60, 180, 100, 0.8);
+  --color-error: rgba(220, 50, 50, 0.85);
+
+  /* Performance indicators */
+  --color-perf-good: rgb(100, 255, 100);
+  --color-perf-medium: rgb(255, 200, 0);
+  --color-perf-poor: rgb(255, 100, 100);
+
+}
+
+/* Light Theme */
+.theme-light {
+  /* Base colors */
+  --color-bg-primary: #f5f5f5;
+  --color-bg-secondary: rgba(220, 220, 220, 0.9);
+  --color-bg-secondary-rgb: 220, 220, 220;
+  /* RGB values for opacity control */
+  --color-bg-tertiary: rgba(200, 200, 200, 0.8);
+  --color-bg-tertiary-rgb: 200, 200, 200;
+  /* RGB values for opacity control */
+  --color-bg-editor: rgba(240, 240, 240, 0.8);
+  --color-bg-editor-rgb: 240, 240, 240;
+  /* RGB values for opacity control */
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-text-editor: #222222;
+
+  /* UI Elements */
+  --color-button-bg: #dddddd;
+  --color-button-hover: #cccccc;
+  --color-button-active: #bbbbbb;
+  --color-panel-shadow: rgba(0, 0, 0, 0.1);
+  --color-panel-blur: 5px;
+
+  /* Notifications */
+  --color-success: rgba(40, 167, 69, 0.9);
+  --color-error: rgba(220, 53, 69, 0.9);
+
+  /* Performance indicators */
+  --color-perf-good: rgb(40, 167, 69);
+  --color-perf-medium: rgb(255, 193, 7);
+  --color-perf-poor: rgb(220, 53, 69);
+
+}
+
+/* Dark Theme (High Contrast) */
+.theme-dark {
+  /* Base colors */
+  --color-bg-primary: #121212;
+  --color-bg-secondary: rgba(25, 25, 25, 0.9);
+  --color-bg-secondary-rgb: 25, 25, 25;
+  /* RGB values for opacity control */
+  --color-bg-tertiary: rgba(35, 35, 35, 0.8);
+  --color-bg-tertiary-rgb: 35, 35, 35;
+  /* RGB values for opacity control */
+  --color-bg-editor: rgba(18, 18, 18, 0.9);
+  --color-bg-editor-rgb: 18, 18, 18;
+  /* RGB values for opacity control */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #cccccc;
+  --color-text-editor: #ffffff;
+
+  /* UI Elements */
+  --color-button-bg: #1e1e1e;
+  --color-button-hover: #2a2a2a;
+  --color-button-active: #333333;
+  --color-panel-shadow: rgba(0, 0, 0, 0.5);
+  --color-panel-blur: 5px;
+
+  /* Notifications */
+  --color-success: rgba(0, 200, 83, 1);
+  --color-error: rgba(255, 50, 50, 1);
+
+  /* Performance indicators */
+  --color-perf-good: rgb(0, 255, 83);
+  --color-perf-medium: rgb(255, 200, 0);
+  --color-perf-poor: rgb(255, 50, 50);
+
+}
+
+/* Neon Eighties Theme */
+.theme-neon-eighties {
+  /* Base colors */
+  --color-bg-primary: #0b0b2b;
+  --color-bg-secondary: rgba(30, 30, 60, 0.9);
+  --color-bg-secondary-rgb: 30, 30, 60;
+  /* RGB values for opacity control */
+  --color-bg-tertiary: rgba(45, 45, 80, 0.8);
+  --color-bg-tertiary-rgb: 45, 45, 80;
+  /* RGB values for opacity control */
+  --color-bg-editor: rgba(20, 20, 40, 0.85);
+  --color-bg-editor-rgb: 20, 20, 40;
+  /* RGB values for opacity control */
+  --color-text-primary: #ff00ff;
+  --color-text-secondary: #00ffff;
+  --color-text-editor: #ffffff;
+
+  /* UI Elements */
+  --color-button-bg: #6600cc;
+  --color-button-hover: #8800ee;
+  --color-button-active: #aa00ff;
+  --color-panel-shadow: rgba(255, 0, 255, 0.3);
+  --color-panel-blur: 8px;
+
+  /* Notifications */
+  --color-success: rgba(0, 255, 180, 0.9);
+  --color-error: rgba(255, 50, 150, 0.9);
+
+  /* Performance indicators */
+  --color-perf-good: rgb(0, 255, 180);
+  --color-perf-medium: rgb(255, 255, 0);
+  --color-perf-poor: rgb(255, 0, 128);
+
+}
+
+/* Nineties Pop Theme */
+.theme-nineties-pop {
+  /* Base colors */
+  --color-bg-primary: #ffc0cb;
+  /* Pink */
+  --color-bg-secondary: rgba(162, 130, 255, 0.9);
+  /* Purple */
+  --color-bg-secondary-rgb: 162, 130, 255;
+  /* RGB values for opacity control */
+  --color-bg-tertiary: rgba(255, 215, 0, 0.7);
+  /* Gold */
+  --color-bg-tertiary-rgb: 255, 215, 0;
+  /* RGB values for opacity control */
+  --color-bg-editor: rgba(255, 182, 193, 0.8);
+  /* Light Pink */
+  --color-bg-editor-rgb: 255, 182, 193;
+  /* RGB values for opacity control */
+  --color-text-primary: #333333;
+  --color-text-secondary: #222222;
+  --color-text-editor: #000000;
+
+  /* UI Elements */
+  --color-button-bg: #87cefa;
+  /* Light Sky Blue */
+  --color-button-hover: #00bfff;
+  /* Deep Sky Blue */
+  --color-button-active: #1e90ff;
+  /* Dodger Blue */
+  --color-panel-shadow: rgba(0, 0, 0, 0.2);
+  --color-panel-blur: 5px;
+
+  /* Notifications */
+  --color-success: rgba(50, 205, 50, 0.8);
+  /* Lime Green */
+  --color-error: rgba(255, 0, 0, 0.8);
+  /* Red */
+
+  /* Performance indicators */
+  --color-perf-good: rgb(50, 205, 50);
+  --color-perf-medium: rgb(255, 165, 0);
+  --color-perf-poor: rgb(255, 0, 0);
+
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.shortcut {
+  color: var(--color-text-secondary);
+  font-size: small;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+/* Fullscreen Hydra canvas */
+.preview-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  z-index: 1;
+}
+
+/* Draggable editor modal */
+.editor-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 680px;
+  height: 500px;
+  background-color: rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important;
+  border-radius: 8px;
+  z-index: 100;
+  box-shadow: 0 4px 15px var(--color-panel-shadow);
+  /* backdrop-filter: blur(var(--color-panel-blur)); */
+  display: flex;
+  flex-direction: column;
+  min-width: 500px;
+  min-height: 250px;
+  resize: both;
+}
+
+.editor-content {
+  overflow: auto;
+  flex-grow: 1;
+}
+
+/* Hydra Editor Styles */
+.hydra-editor {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  background-color: var(--color-bg-editor);
+  color: var(--color-text-editor);
+  font-family: monospace;
+  font-size: 14px;
+  padding: 8px;
+  border: none;
+  outline: none;
+  resize: none;
+  line-height: 1.4;
+  letter-spacing: 0.5px;
+  overflow: auto;
+  caret-color: #ffffff;
+}
+
+/* Syntax Highlight Editor Container */
+.hydra-editor-container {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  position: relative;
+  overflow: visible !important;
+}
+
+/* Pre element for syntax highlighting */
+.hydra-editor-pre {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-bg-editor);
+  color: var(--color-text-editor);
+  font-family: monospace;
+  font-size: 14px;
+  padding: 8px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: visible;
+  outline: none;
+  box-sizing: border-box;
+  tab-size: 2;
+  line-height: 1.5;
+}
+
+/* CodeMirror Editor Styles */
+.cm-editor {
+  background-color: transparent !important;
+  height: 100%;
+}
+
+.cm-editor .cm-scroller {
+  background-color: transparent !important;
+  overflow: visible !important;
+}
+
+.cm-editor .cm-content {
+  background-color: transparent !important;
+}
+
+.cm-editor .cm-line {
+  background-color: transparent !important;
+}
+
+/* Ensure CodeMirror sits properly in the container */
+.editor-content .cm-editor {
+  width: 100%;
+  height: 100%;
+}
+
+.cm-tooltip {
+  z-index: 1001 !important;
+  /* Ensure it's on top of other UI elements */
+}
+
+/* Editor handle for drag indicator */
+.editor-handle {
+  height: 30px;
+  background-color: rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  cursor: move;
+  flex-shrink: 0;
+}
+
+.editor-tabs {
+  display: flex;
+  background-color: rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity));
+  border-bottom: 1px solid rgba(var(--color-text-secondary), 0.2);
+  flex-shrink: 0;
+}
+
+.editor-tab {
+  padding: 8px 16px;
+  font-size: 12px;
+  background-color: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.editor-tab:hover {
+  background-color: rgba(var(--color-bg-secondary-rgb), 0.5);
+  color: var(--color-text-primary);
+}
+
+.editor-tab.active {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-text-primary);
+  background-color: rgba(var(--color-bg-secondary-rgb), 0.3);
+}
+
+.editor-handle-title {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.editor-handle-controls {
+  display: flex;
+  align-items: center;
+}
+
+.editor-handle-controls button {
+  background-color: transparent;
+  padding: 3px 6px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-text-secondary);
+  opacity: 0.7;
+}
+
+.editor-handle-controls button:hover {
+  background-color: rgba(var(--color-bg-tertiary-rgb), 0.8);
+  opacity: 1;
+  transform: none;
+  color: var(--color-text-primary);
+  border-color: var(--color-text-primary);
+}
+
+.editor-handle-controls .shortcut {
+  font-size: 10px;
+  font-family: monospace;
+}
+
+/* Editable div for input */
+.hydra-editor-editable {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: transparent;
+  color: transparent;
+  font-family: monospace;
+  font-size: 14px;
+  padding: 8px;
+  margin: 0;
+  caret-color: #f8f8f2;
+  outline: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  box-sizing: border-box;
+  tab-size: 2;
+  line-height: 1.5;
+  z-index: 1;
+}
+
+/* Ensure content area takes available space */
+.editor-content {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+button {
+  background-color: var(--color-button-bg);
+  color: var(--color-text-primary);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background-color: var(--color-button-hover);
+  transform: translateY(-1px);
+}
+
+button:active {
+  background-color: var(--color-button-active);
+  transform: translateY(1px);
+}
+
+/* Saved notification */
+.saved-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: var(--color-success);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  transition: opacity 0.5s;
+}
+
+.saved-notification.fade-out {
+  opacity: 0;
+}
+
+/* Error notification */
+.error-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: var(--color-error);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: monospace;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  max-width: 500px;
+  word-break: break-word;
+  transition: opacity 0.5s, transform 0.3s;
+  cursor: pointer;
+}
+
+.error-notification.fade-out {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.error-notification .error-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.error-notification .error-message {
+  font-size: 13px;
+  opacity: 0.9;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+/* Hide UI elements properly */
+.ui-hidden .editor-container,
+.ui-hidden .stats-panel,
+.ui-hidden .slots-panel,
+.ui-hidden .doc-panel {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Stats Panel */
+.dragging {
+  opacity: 0.9;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Slots Panel */
+.slots-panel {
+  min-width: 360px;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 4px;
+  padding: 4px;
+}
+
+.slot {
+  transition: all 0.2s ease;
+}
+
+.slot:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+
+
+/* Documentation Panel Styles */
+.doc-panel {
+  background-color: rgba(var(--color-bg-secondary-rgb), var(--panel-opacity)) !important;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px var(--color-panel-shadow);
+  backdrop-filter: blur(var(--color-panel-blur));
+  z-index: 100;
+  font-family: sans-serif;
+}
+
+
+.doc-panel code {
+  font-family: monospace;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.doc-panel h2,
+.doc-panel h3 {
+  margin-top: 0;
+}
+
+/* Editor footer with buttons */
+.editor-footer {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  background-color: rgba(var(--color-bg-tertiary-rgb), var(--panel-opacity));
+  flex-shrink: 0;
+}
+
+.editor-footer-left {
+  display: flex;
+  align-items: center;
+}
+
+.editor-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.editor-footer button {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 3px;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.checkbox-container input[type="checkbox"] {
+  margin-right: 2px;
+}
+
+.checkbox-container span {
+  user-select: none;
+}
+
+.slot-index {
+  color: white;
+  mix-blend-mode: difference;
+  vertical-align: middle;
+  font-family: monospace;
+}
+
+/* Custom form elements styling */
+/* Checkboxes */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-text-secondary);
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--color-perf-good);
+  border-color: var(--color-perf-good);
+}
+
+input[type="checkbox"]:checked::after {
+  content: "✓";
+  color: var(--color-bg-primary);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+input[type="checkbox"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(var(--color-bg-secondary-rgb), 0.5);
+}
+
+/* Range sliders */
+input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 18px;
+  background-color: transparent;
+  border-radius: 4px;
+  outline: none;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+/* Filled part of the slider track */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right,
+      var(--color-text-secondary) var(--range-progress, 0%),
+      var(--color-bg-tertiary) var(--range-progress, 0%));
+}
+
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-bg-tertiary);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background-color: var(--color-text-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  margin-top: -5px;
+  /* Centers the thumb on the track */
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background-color: var(--color-text-primary);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background-color: var(--color-perf-good);
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  background-color: var(--color-perf-good);
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+}
+
+input[type="range"]:active::-moz-range-thumb {
+  transform: scale(1.15);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+}
+
+.theme-neon-eighties input[type="range"]::-webkit-slider-thumb {
+  background-color: var(--color-text-secondary);
+}
+
+.theme-neon-eighties input[type="checkbox"]:checked {
+  background-color: var(--color-text-primary);
+}
+
+.theme-nineties-pop input[type="range"]::-webkit-slider-thumb {
+  background: linear-gradient(45deg, #ff66cc, #6666ff);
+}
+
+.theme-nineties-pop input[type="checkbox"]:checked {
+  background: linear-gradient(45deg, #ff66cc, #6666ff);
+}

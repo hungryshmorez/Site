@@ -235,6 +235,16 @@ function setMode(i) {
 // ---------- controls ----------
 const controls = new WalkControls(camera, { bounds: RX - 1, eye: 1.6, zMin: ZBACK + 1 });
 controls.pos.set(0, 1.6, 10); controls.yaw = Math.PI;
+
+// portal to HYDRACTRL — tap to open the live Hydra visuals controller (a VJ
+// instrument) in the popup. Additive; the stage's own VJ deck is untouched.
+const hydraPortal = new THREE.Mesh(new THREE.CircleGeometry(1.2, 40), new THREE.MeshBasicMaterial({ color: 0x8a5cff, transparent: true, opacity: 0.22, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
+hydraPortal.position.set(-11.5, 2.5, 2); hydraPortal.rotation.y = Math.PI / 2; scene.add(hydraPortal);
+{
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.12, 16, 48), new THREE.MeshStandardMaterial({ color: 0x140a24, emissive: new THREE.Color(0x8a5cff), emissiveIntensity: 1.6, metalness: 0.5, roughness: 0.3 }));
+  ring.position.copy(hydraPortal.position); ring.rotation.y = Math.PI / 2; scene.add(ring);
+  const cap = textPlane('▶ HYDRACTRL · LIVE VISUALS', '#b79cff'); cap.position.set(-11.5, 3.9, 2); cap.rotation.y = Math.PI / 2; cap.scale.set(4.6, 0.5, 1); scene.add(cap);
+}
 // walking onto the stage lifts you up onto the platform
 controls.groundAt = (x, z) => (x > STAGE.x0 - 0.5 && x < STAGE.x1 + 0.5 && z > STAGE.z0 - 0.5 && z < STAGE.z1 + 0.5) ? STAGE.y : 0;
 
@@ -275,6 +285,7 @@ function tap(sx, sy) {
   const ph = ray.intersectObjects(pads, false)[0];
   if (ph) { setMode(ph.object.userData.idx); return; }
   if (linkKiosk.tryClick(ray)) { openWindow('SAUCELAB VJ', 'https://saucelabvj.on.websim.com/'); return; }
+  if (hydraPortal && ray.intersectObject(hydraPortal, false)[0]) { openWindow('HYDRACTRL · LIVE VISUALS', 'games/hydractrl/index.html'); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -RX + 1, RX - 1); g.z = THREE.MathUtils.clamp(g.z, ZBACK + 1, ZFRONT - 1); controls.walkTo(g); }
 }

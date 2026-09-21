@@ -235,6 +235,12 @@ for (const t of TRACKS) {
   kart.innerHTML = '<b>🏎️ TURBO KART RUSH</b><span style="display:block;font-size:11px;opacity:.7;letter-spacing:.1em;margin-top:3px">arcade kart mode ↗</span>';
   kart.onclick = () => { const w = document.getElementById('warp'); if (w) w.classList.add('go'); setTimeout(() => { window.location.href = 'games/turbo-kart-rush/index.html'; }, 460); };
   grid.prepend(kart);
+  // DRIFT & DRIVE — a physics racer (React Three Fiber + Rapier), also full-screen
+  const drift = document.createElement('button');
+  drift.className = 'trackBtn'; drift.style.setProperty('--a', '#00f3ff');
+  drift.innerHTML = '<b>🏁 DRIFT &amp; DRIVE</b><span style="display:block;font-size:11px;opacity:.7;letter-spacing:.1em;margin-top:3px">physics drift sim ↗</span>';
+  drift.onclick = () => { const w = document.getElementById('warp'); if (w) w.classList.add('go'); setTimeout(() => { window.location.href = 'games/drift-drive/index.html'; }, 460); };
+  grid.prepend(drift);
 }
 document.getElementById('goBtn').onclick = () => {
   document.getElementById('select').classList.add('gone');
