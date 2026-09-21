@@ -8,6 +8,7 @@ import { buildEnergyOrb } from './scene/energyorb.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { loadMolecule } from './scene/molecule.js';
 import { createReducedMotion, wireMuteButton } from './player/motion.js';
+import { openWindow } from './ui/popup.js';
 
 // ABSTRACT PSYCHEDELIC — a swirling immersive void. The dome and floor are living
 // shaders that shift with where you stand, glowing entities drift past, and every
@@ -103,6 +104,26 @@ function buildEntities() {
 const PALETTE = [0xff2bd0, 0x00f3ff, 0x39ff14, 0xffe14a, 0xff7b2a, 0xffffff];
 let curCol = 0;
 const paints = new THREE.Group(); scene.add(paints);
+
+// portal to FRACTALARIUM — a floating fractal seed you tap to open the GPU
+// fractal explorer in the popup. Purely additive; the paint-the-void world is
+// untouched.
+function labelSprite(text, color) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 64; const x = c.getContext('2d');
+  x.font = 'bold 40px ui-monospace, monospace'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.shadowColor = color; x.shadowBlur = 18; x.fillStyle = color; x.fillText(text, 256, 34);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false })); s.scale.set(6, 0.75, 1); return s;
+}
+const fractalPortal = new THREE.Mesh(new THREE.CircleGeometry(1.2, 40), new THREE.MeshBasicMaterial({ color: 0xff00aa, transparent: true, opacity: 0.22, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
+fractalPortal.position.set(0, 3, -14); scene.add(fractalPortal);
+{
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.12, 16, 48), new THREE.MeshStandardMaterial({ color: 0x1a0a1e, emissive: new THREE.Color(0xff00aa), emissiveIntensity: 1.6, metalness: 0.5, roughness: 0.3 }));
+  ring.position.copy(fractalPortal.position); scene.add(ring);
+  const seed = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 1), new THREE.MeshStandardMaterial({ color: 0x120018, emissive: new THREE.Color(0x00e5ff), emissiveIntensity: 1.4, metalness: 0.7, roughness: 0.2, flatShading: true }));
+  seed.position.copy(fractalPortal.position); scene.add(seed);
+  const lab = labelSprite('▶ FRACTALARIUM', '#ff66cc'); lab.position.set(0, 4.6, -14); scene.add(lab);
+}
 const dabList = [];
 const MAX_DABS = 320;
 const dabTex = (() => {
@@ -186,6 +207,7 @@ function tap(sx, sy) {
   if (admin.active) { admin.tap({ clientX: sx, clientY: sy }); return; }
   for (const d of loopDoors) { if (d.tap(ray)) return; }
   if (deck.tap(ray)) return;
+  if (fractalPortal && ray.intersectObject(fractalPortal, false)[0]) { openWindow('FRACTALARIUM', 'games/fractalarium/index.html'); return; }
   // nearest of floor / dome
   let best = null, bestD = Infinity, normal = new THREE.Vector3(0, 1, 0);
   const fh = ray.intersectObject(floorMesh, false)[0];

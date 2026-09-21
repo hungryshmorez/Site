@@ -227,6 +227,15 @@ for (const t of TRACKS) {
   if (t.id === 'f1') b.classList.add('on');
   grid.appendChild(b);
 }
+// KART MODE — a full arcade kart racer (its own engine), launched full-screen
+// from the garage alongside the circuits.
+{
+  const kart = document.createElement('button');
+  kart.className = 'trackBtn'; kart.style.setProperty('--a', '#ffb020');
+  kart.innerHTML = '<b>🏎️ TURBO KART RUSH</b><span style="display:block;font-size:11px;opacity:.7;letter-spacing:.1em;margin-top:3px">arcade kart mode ↗</span>';
+  kart.onclick = () => { const w = document.getElementById('warp'); if (w) w.classList.add('go'); setTimeout(() => { window.location.href = 'games/turbo-kart-rush/index.html'; }, 460); };
+  grid.prepend(kart);
+}
 document.getElementById('goBtn').onclick = () => {
   document.getElementById('select').classList.add('gone');
   if (trackNameEl) trackNameEl.textContent = current.name;

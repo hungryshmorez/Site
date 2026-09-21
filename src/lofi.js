@@ -6,6 +6,7 @@ import { createAdmin } from './scene/admin.js';
 import { buildLoopDoors } from './data/loop.js';
 import { buildDJDeck } from './scene/djdeck.js';
 import { createReducedMotion, wireMuteButton } from './player/motion.js';
+import { openWindow } from './ui/popup.js';
 
 createReducedMotion();   // wires the #rmbtn toggle; the setting is read globally (player/motion.js)
 
@@ -284,6 +285,16 @@ const _clouds = buildClouds();
 const _vinyls = buildVinyls();
 const _furniture = buildFurniture();
 const _tt = buildTurntable();
+
+// portal to the LO-FI CHILL ROOM — a glowing doorway you tap to open the little
+// 3D chill-room scene in the popup. Additive; the beat room is untouched.
+const lofiRoomPortal = new THREE.Mesh(new THREE.CircleGeometry(1.15, 40), new THREE.MeshBasicMaterial({ color: 0x9af7d0, transparent: true, opacity: 0.22, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
+lofiRoomPortal.position.set(9, 2.3, -13); scene.add(lofiRoomPortal);
+{
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.3, 0.12, 16, 48), new THREE.MeshStandardMaterial({ color: 0x0a1e18, emissive: new THREE.Color(0x9af7d0), emissiveIntensity: 1.5, metalness: 0.5, roughness: 0.3 }));
+  ring.position.copy(lofiRoomPortal.position); scene.add(ring);
+  const cap = textPlane('▶ LO-FI CHILL ROOM', '#9af7d0'); cap.position.set(9, 3.7, -13); cap.scale.set(4.4, 0.5, 1); scene.add(cap);
+}
 const _pad = buildBeatPad();
 const _wall = buildWallArt();
 
@@ -336,6 +347,7 @@ function tap(sx, sy) {
   const padHit = ray.intersectObjects(pads, false)[0];
   if (padHit) { hitPad(padHit.object); return; }
   if (_tt.proxy && ray.intersectObject(_tt.proxy, false)[0]) { toggleTrack(); return; }
+  if (lofiRoomPortal && ray.intersectObject(lofiRoomPortal, false)[0]) { openWindow('LO-FI CHILL ROOM', 'games/lofi-room/index.html'); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -21, 21); g.z = THREE.MathUtils.clamp(g.z, -15, 21); controls.walkTo(g); }
 }

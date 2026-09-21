@@ -1,0 +1,24 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lo-Fi 3D Room</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <div id="container">
+    <canvas id="scene"></canvas>
+    <div class="controls">
+      <button id="toggleMusic">Play Music</button>
+      <button id="toggleClouds">Add Clouds</button>
+      <button id="toggleLamp">Ambient Lamp</button>
+      <div class="slider-container">
+        <label for="timeSlider">Time of Day</label>
+        <input type="range" id="timeSlider" min="0" max="100" value="50">
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

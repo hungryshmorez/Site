@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Fractalarium — trippy browser fractal explorer</title>
+<meta name="description" content="A real-time, interactive 3D fractal explorer in the browser: Mandelbulb, Mandelbox, Menger, Sierpinski, Juliabulb — with glitch/datamosh post-FX, presets, feedback trails, fly-through, video recording and shareable links. Inspired by Mandelbulber2." />
+<style>
+  :root {
+    --bg: #05060a;
+    --panel: rgba(16, 18, 28, 0.72);
+    --panel-border: rgba(140, 170, 255, 0.18);
+    --text: #e8ecff;
+    --muted: #9aa3c7;
+    --accent: #6ad0ff;
+    --accent2: #c77dff;
+    --track: rgba(150, 170, 220, 0.22);
+  }
+  @keyframes rainbowText {
+    0%{color:#ff00ff}16%{color:#7a5cff}33%{color:#00ffcc}50%{color:#ffe600}66%{color:#ff7f00}83%{color:#ff3b3b}100%{color:#ff00ff}
+  }
+  @keyframes rainbowBg { 0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%} }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:.35} }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    -webkit-user-select: none; user-select: none;
+    touch-action: none;
+  }
+  #glcanvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+  #glcanvas.dragging { cursor: grabbing; }
+
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 5;
+    display: flex; align-items: center; gap: 14px; padding: 12px 16px; pointer-events: none;
+  }
+  #brand { pointer-events: auto; }
+  #brand h1 {
+    margin: 0; font-size: 15px; letter-spacing: 3px; font-weight: 700; text-transform: uppercase;
+    animation: rainbowText 9s linear infinite; text-shadow: 0 0 12px currentColor;
+  }
+  #brand p { margin: 2px 0 0; font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+  #hud { margin-left: auto; pointer-events: none; text-align: right; font-size: 10px; color: var(--muted); line-height: 1.5; }
+  #hud b { color: var(--accent); font-weight: 600; }
+  #recDot { color: #ff3b3b; }
+
+  #panel {
+    position: fixed; top: 64px; right: 14px; z-index: 6;
+    width: 296px; max-height: calc(100vh - 84px); overflow-y: auto;
+    background: var(--panel); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--panel-border); border-radius: 16px; padding: 14px 16px 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s;
+    scrollbar-width: thin; scrollbar-color: var(--track) transparent;
+  }
+  #panel.hidden { transform: translateX(120%); opacity: 0; pointer-events: none; }
+  #panel::-webkit-scrollbar { width: 8px; }
+  #panel::-webkit-scrollbar-thumb { background: var(--track); border-radius: 8px; }
+
+  .group { margin-top: 14px; }
+  .group:first-child { margin-top: 4px; }
+  .group > .glabel {
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent);
+    display: flex; align-items: center; gap: 6px; margin-bottom: 8px; opacity: .85;
+  }
+  .group > .glabel::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--panel-border), transparent); }
+
+  .row { margin: 9px 0; }
+  .row .rlabel { display: flex; justify-content: space-between; font-size: 11px; color: var(--text); margin-bottom: 5px; }
+  .row .rlabel span.val { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; background: var(--track); outline: none; margin: 0; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 15px; height: 15px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); cursor: pointer; box-shadow: 0 0 10px rgba(120,180,255,.6); border: 2px solid #0a0c14; }
+  input[type=range]::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; border: 2px solid #0a0c14; background: var(--accent2); cursor: pointer; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    pointer-events: auto; cursor: pointer; font: inherit; font-size: 10px; letter-spacing: .5px;
+    padding: 6px 9px; border-radius: 9px; color: var(--muted); background: rgba(255,255,255,.04);
+    border: 1px solid var(--panel-border); transition: all .18s; flex: 1 1 auto; text-align: center; white-space: nowrap;
+  }
+  .chip:hover { color: var(--text); border-color: var(--accent); }
+  .chip.active { color: #06131c; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-color: transparent; font-weight: 700; }
+  .chip.preset.active { background: linear-gradient(120deg,#ff00ff,#7a5cff,#00ffcc,#ffe600,#ff7f00); background-size:300% 300%; animation: rainbowBg 8s linear infinite; color:#0a0a12; }
+
+  .toggle { display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin: 9px 0; cursor: pointer; }
+  .toggle .sw { width: 36px; height: 20px; border-radius: 20px; background: var(--track); position: relative; transition: background .2s; flex: 0 0 auto; }
+  .toggle .sw::after { content:""; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#cfd6f5; transition: transform .2s; }
+  .toggle.on .sw { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+  .toggle.on .sw::after { transform: translateX(16px); }
+
+  .btnrow { display: flex; gap: 8px; margin-top: 12px; }
+  .btn {
+    pointer-events: auto; flex: 1; cursor: pointer; font: inherit; font-size: 11px; padding: 9px; border-radius: 10px;
+    color: var(--text); background: rgba(255,255,255,.05); border: 1px solid var(--panel-border); transition: all .18s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.ok { color: #06131c; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-color: transparent; font-weight: 700; }
+  .btn.rec.on { color:#fff; background: #ff3b3b; border-color: transparent; font-weight:700; animation: blink 1.4s linear infinite; }
+
+  #fab { position: fixed; top: 64px; right: 14px; z-index: 7; width: 44px; height: 44px; border-radius: 12px;
+    display: none; align-items: center; justify-content: center; cursor: pointer;
+    background: var(--panel); backdrop-filter: blur(16px); border: 1px solid var(--panel-border); color: var(--accent); font-size: 20px; }
+
+  #hint { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); z-index: 5;
+    font-size: 10px; color: var(--muted); letter-spacing: 1px; text-align: center;
+    background: rgba(10,12,20,.5); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--panel-border);
+    backdrop-filter: blur(8px); transition: opacity .6s; pointer-events: none; white-space: nowrap; }
+  #toast { position: fixed; bottom: 54px; left: 50%; transform: translateX(-50%) translateY(10px); z-index: 8;
+    font-size: 11px; color: #06131c; letter-spacing: .5px; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2)); padding: 8px 16px; border-radius: 20px;
+    opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 640px) {
+    #panel { width: calc(100vw - 28px); top: auto; bottom: 0; right: 0; left: 0; max-height: 60vh; border-radius: 18px 18px 0 0; }
+    #panel.hidden { transform: translateY(120%); }
+    #fab { top: auto; bottom: 14px; right: 14px; }
+    #hint { display: none; } #hud { display: none; }
+  }
+  #msg { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; text-align: center;
+    padding: 24px; font-size: 13px; line-height: 1.6; color: var(--muted); background: radial-gradient(circle at 50% 40%, #0b1020, #04050a); }
+  #msg .big { font-size: 16px; color: var(--text); margin-bottom: 8px; letter-spacing: 2px; }
+</style>
+</head>
+<body>
+<canvas id="glcanvas"></canvas>
+<video id="webcam" playsinline autoplay muted style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-10px;top:-10px"></video>
+
+<div id="topbar">
+  <div id="brand">
+    <h1>Fractalarium</h1>
+    <p>take a trip · real-time fractals + glitch</p>
+  </div>
+  <div id="hud">
+    <div><b id="fps">–</b> fps <span id="recDot" hidden>● REC</span></div>
+    <div><b id="hudName">Mandelbulb</b></div>
+  </div>
+</div>
+
+<div id="fab" title="Show controls">⚙</div>
+
+<div id="panel">
+  <div class="group">
+    <div class="glabel">Trip presets</div>
+    <div class="chips" id="presets"></div>
+  </div>
+
+  <div class="group">
+    <div class="glabel">Fractal</div>
+    <div class="chips" id="fractals"></div>
+  </div>
+
+  <div class="group">
+    <div class="glabel">Form</div>
+    <div class="row">
+      <div class="rlabel"><label id="l_power">Shape / power</label><span class="val" id="v_power">8.00</span></div>
+      <input type="range" id="power" min="2" max="16" step="0.05" value="8">
+    </div>
+    <div class="row">
+      <div class="rlabel"><label>Detail (iterations)</label><span class="val" id="v_iter">12</span></div>
+      <input type="range" id="iter" min="2" max="20" step="1" value="12">
+    </div>
+    <div class="toggle" id="t_animate"><span>Auto-morph shape</span><span class="sw"></span></div>
+    <div class="toggle on" id="t_rotate"><span>Auto-rotate</span><span class="sw"></span></div>
+  </div>
+
+  <div class="group">
+    <div class="glabel">Motion</div>
+    <div class="toggle" id="t_fly"><span>Fly-through (auto-dive)</span><span class="sw"></span></div>
+    <div class="row">
+      <div class="rlabel"><label>Fly speed</label><span class="val" id="v_flyspd">0.30</span></div>
+      <input type="range" id="flyspd" min="0.02" max="1.5" step="0.02" value="0.3">
+    </div>
+    <div class="toggle" id="t_freeze"><span>Freeze (hold still)</span><span class="sw"></span></div>
+  </div>
+
+  <div class="group">
+    <div class="glabel">Camera source</div>
+    <div class="chips" id="cammodes"></div>
+    <div class="row" style="margin-top:12px">
+      <div class="rlabel"><label>Camera / fractal blend</label><span class="val" id="v_cammix">0.50</span></div>
+      <input type="range" id="cammix" min="0" max="1" step="0.01" value="0.5">
+    </div>
+    <div class="toggle" id="t_flip"><span>Flip camera (front/back)</span><span class="sw"></span></div>
+  </div>
+
+  <div class="group">
+    <div class="glabel">Glitch FX</div>
+    <div class="chips" id="effects"></div>
+    <div class="row" style="margin-top:12px">
+      <div class="rlabel"><label>Intensity</label><span class="val" id="v_intensity">0.50</span></div>
+      <input type="range" id="intensity" min="0" max="1" step="0.01" value="0.5">
+    </div>
+    <div class="row">
+      <div class="rlabel"><label>Displace</label><span class="val" id="v_displace">0.010</span></div>
+      <input type="range" id="displace" min="0" max="0.1" step="0.001" value="0.01">
+    </div>
+    <div class="row">
+      <div class="rlabel"><label>Trails (feedback)</label><span class="val" id="v_feedback">0.20</span></div>
+      <input type="range" id="feedback" min="0" max="0.95" step="0.01" value="0.2">
+    </div>
+    <div class="row">
+      <div class="rlabel"><label>Threshold</label><span class="val" id="v_threshold">0.50</span></div>
+      <input type="range" id="threshold" min="0" max="1" step="0.01" value="0.5">
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="glabel">Color grade</div>
+    <div class="row">
+      <div class="rlabel"><label>Hue drift</label><span class="val" id="v_huespeed">0.000</span></div>
+      <input type="range" id="huespeed" min="-0.1" max="0.1" step="0.001" value="0">
+    </div>
+    <div class="row">
+      <div class="rlabel"><label>Brightness</label><span class="val" id="v_bright">0.00</span></div>
+      <input type="range" id="bright" min="-0.5" max="0.5" step="0.01" value="0">
+    </div>
+    <div class="row">
+      <div class="rlabel"><label>Contrast</label><span class="val" id="v_contrast">1.00</span></div>
+      <input type="range" id="contrast" min="0.5" max="2" step="0.01" value="1">
+    </div>
+    <div class="row">
+      <div class="rlabel"><label>Saturation</label><span class="val" id="v_sat">1.00</span></div>
+      <input type="range" id="sat" min="0" max="2" step="0.01" value="1">
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="glabel">Look</div>
+    <div class="chips" id="palettes"></div>
+    <div class="row" style="margin-top:12px">
+      <div class="rlabel"><label>Palette hue</label><span class="val" id="v_hue">0.00</span></div>
+      <input type="range" id="hue" min="0" max="1" step="0.005" value="0">
+    </div>
+    <div class="row">
+      <div class="rlabel"><label>Glow</label><span class="val" id="v_glow">0.35</span></div>
+      <input type="range" id="glow" min="0" max="1" step="0.01" value="0.35">
+    </div>
+    <div class="row">
+      <div class="rlabel"><label>Light angle</label><span class="val" id="v_light">0.9</span></div>
+      <input type="range" id="light" min="0" max="6.28" step="0.01" value="0.9">
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="glabel">Render</div>
+    <div class="row">
+      <div class="rlabel"><label>Quality</label><span class="val" id="v_quality">Balanced</span></div>
+      <input type="range" id="quality" min="0" max="3" step="1" value="1">
+    </div>
+    <div class="toggle on" id="t_shadow"><span>Soft shadows</span><span class="sw"></span></div>
+  </div>
+
+  <div class="btnrow">
+    <button class="btn" id="btnReset">Reset view</button>
+    <button class="btn" id="btnRandom">Surprise me</button>
+  </div>
+  <div class="btnrow">
+    <button class="btn rec" id="btnRecord">● Record</button>
+    <button class="btn" id="btnShot">Save PNG</button>
+  </div>
+  <div class="btnrow">
+    <button class="btn ok" id="btnShare">Copy link</button>
+    <button class="btn" id="btnHide">Hide ⟩</button>
+  </div>
+</div>
+
+<div id="hint">drag orbit · scroll zoom · <b>WASD</b> fly · <b>H</b> hide · <b>Space</b> freeze · <b>R</b> reset</div>
+<div id="toast">link copied</div>
+<div id="msg"><div><div class="big">initializing…</div>summoning the fractal</div></div>
+
+<script>
+"use strict";
+(function () {
+  const canvas = document.getElementById("glcanvas");
+  const msg = document.getElementById("msg");
+  const gl = canvas.getContext("webgl", { antialias: false, preserveDrawingBuffer: true, powerPreference: "high-performance" })
+          || canvas.getContext("experimental-webgl", { preserveDrawingBuffer: true });
+  if (!gl) { msg.innerHTML = '<div><div class="big">WebGL not available</div>This explorer needs a WebGL-capable browser.</div>'; return; }
+
+  const VERT = `attribute vec2 aPos; void main(){ gl_Position = vec4(aPos, 0.0, 1.0); }`;
+
+  /* ---------- fractal shader (pass 1) ---------- */
+  const FRAG = `
+    precision highp float;
+    uniform vec2  uRes; uniform float uTime; uniform float uPower;
+    uniform int uIter; uniform int uMaxSteps; uniform int uFractal; uniform vec3 uJuliaC;
+    uniform vec3 uCamPos; uniform mat3 uCamBasis;
+    uniform float uHue; uniform float uGlow; uniform float uLight; uniform int uShadow;
+    uniform vec3 uPalA; uniform vec3 uPalB; uniform vec3 uPalC; uniform vec3 uPalD;
+    #define MAX_ITER 20
+    #define MAX_STEPS 160
+    #define FAR 14.0
+    vec3 palette(float t){ return uPalA + uPalB * cos(6.28318530718 * (uPalC * t + uPalD + uHue)); }
+    float bulbDE(vec3 pos, bool julia, out vec4 trap){
+      vec3 c = julia ? uJuliaC : pos; vec3 z = pos; float dr = 1.0; float r = 0.0; float power = uPower;
+      trap = vec4(1e10);
+      for (int i=0;i<MAX_ITER;i++){ if(i>=uIter) break; r=length(z); if(r>2.2) break;
+        float theta=acos(clamp(z.z/r,-1.0,1.0)); float phi=atan(z.y,z.x);
+        dr=pow(r,power-1.0)*power*dr+1.0; float zr=pow(r,power); theta*=power; phi*=power;
+        z=zr*vec3(sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta)); z+=c;
+        trap=min(trap,vec4(abs(z),dot(z,z))); }
+      return 0.5*log(r)*r/dr;
+    }
+    float boxDE(vec3 p, out vec4 trap){
+      float scale=1.6+(uPower-2.0)/14.0*1.4; vec3 offset=p; vec3 z=p; float dr=1.0; trap=vec4(1e10);
+      for(int i=0;i<MAX_ITER;i++){ if(i>=uIter) break;
+        z=clamp(z,-1.0,1.0)*2.0-z; float r2=dot(z,z);
+        float m=(r2<0.25)?4.0:((r2<1.0)?1.0/r2:1.0); z=z*scale*m+offset; dr=dr*abs(scale)*m+1.0;
+        trap=min(trap,vec4(abs(z),dot(z,z))); }
+      return length(z)/abs(dr);
+    }
+    float sdBox(vec3 p, vec3 b){ vec3 q=abs(p)-b; return length(max(q,0.0))+min(max(q.x,max(q.y,q.z)),0.0); }
+    float mengerDE(vec3 p, out vec4 trap){
+      float d=sdBox(p,vec3(1.2)); float s=1.0; trap=vec4(1e10);
+      for(int i=0;i<MAX_ITER;i++){ if(i>=uIter||i>=8) break;
+        vec3 a=mod(p*s,2.0)-1.0; s*=3.0; vec3 r=abs(1.0-3.0*abs(a));
+        float da=max(r.x,r.y),db=max(r.y,r.z),dc=max(r.z,r.x);
+        float c=(min(da,min(db,dc))-1.0)/s; d=max(d,c); trap=min(trap,vec4(abs(a),dot(a,a))); }
+      return d;
+    }
+    float sierpinskiDE(vec3 p, out vec4 trap){
+      float scale=1.6+(uPower-2.0)/14.0*0.6; vec3 z=p; trap=vec4(1e10);
+      for(int i=0;i<MAX_ITER;i++){ if(i>=uIter) break;
+        if(z.x+z.y<0.0) z.xy=-z.yx; if(z.x+z.z<0.0) z.xz=-z.zx; if(z.y+z.z<0.0) z.yz=-z.zy;
+        z=z*scale-vec3(scale-1.0); trap=min(trap,vec4(abs(z),dot(z,z))); }
+      return length(z)*pow(scale,-float(uIter));
+    }
+    float map(vec3 p, out vec4 trap){
+      if(uFractal==1) return boxDE(p,trap);
+      else if(uFractal==2) return mengerDE(p,trap);
+      else if(uFractal==3) return sierpinskiDE(p,trap);
+      else if(uFractal==4) return bulbDE(p,true,trap);
+      return bulbDE(p,false,trap);
+    }
+    float mapD(vec3 p){ vec4 t; return map(p,t); }
+    vec3 calcNormal(vec3 p){ vec2 e=vec2(0.0006,0.0);
+      return normalize(vec3(mapD(p+e.xyy)-mapD(p-e.xyy), mapD(p+e.yxy)-mapD(p-e.yxy), mapD(p+e.yyx)-mapD(p-e.yyx))); }
+    float softShadow(vec3 ro, vec3 rd){ float res=1.0; float t=0.02;
+      for(int i=0;i<40;i++){ float h=mapD(ro+rd*t); if(h<0.0006) return 0.0; res=min(res,10.0*h/t); t+=clamp(h,0.01,0.2); if(t>6.0) break; }
+      return clamp(res,0.0,1.0); }
+    void main(){
+      vec2 uv=(2.0*gl_FragCoord.xy-uRes)/uRes.y;
+      vec3 ro=uCamPos; vec3 rd=normalize(uCamBasis*vec3(uv,1.6));
+      float t=0.0; float glow=0.0; bool hit=false; vec4 trap=vec4(0.0); int steps=0;
+      for(int i=0;i<MAX_STEPS;i++){ if(i>=uMaxSteps) break; steps=i; vec3 p=ro+rd*t; vec4 tr; float d=map(p,tr);
+        glow+=0.014/(1.0+d*d*220.0); float eps=0.0004*t+0.0003; if(d<eps){hit=true;trap=tr;break;} t+=d; if(t>FAR) break; }
+      vec3 col; vec3 bg=mix(vec3(0.02,0.03,0.06),vec3(0.05,0.04,0.10),uv.y*0.5+0.5); bg+=0.02*palette(uv.x*0.3+uv.y*0.2+0.5);
+      if(hit){ vec3 p=ro+rd*t; vec3 n=calcNormal(p); vec3 lightDir=normalize(vec3(cos(uLight)*1.2,0.85,sin(uLight)*1.2));
+        float diff=clamp(dot(n,lightDir),0.0,1.0); float amb=0.35+0.25*n.y; float ao=1.0-float(steps)/float(uMaxSteps);
+        ao=clamp(ao*ao*1.15,0.0,1.0); float fres=pow(1.0-clamp(dot(n,-rd),0.0,1.0),3.0);
+        float sh=(uShadow==1)?softShadow(p+n*0.003,lightDir):1.0;
+        float tc=sqrt(trap.w); vec3 base=palette(tc*0.9+trap.x*0.15); vec3 base2=palette(trap.y*0.4+0.35); base=mix(base,base2,0.4);
+        vec3 spec=vec3(1.0)*pow(clamp(dot(reflect(-lightDir,n),-rd),0.0,1.0),24.0);
+        col=base*(amb*ao+diff*sh*1.15); col+=spec*sh*0.6; col+=fres*base*0.6;
+        col=mix(col,bg,clamp(t/FAR,0.0,1.0)*0.55);
+      } else { col=bg; }
+      col+=uGlow*glow*palette(0.6+0.2*sin(uTime*0.1));
+      col=col/(col+vec3(0.6)); float vig=1.0-0.28*dot(uv,uv); col*=clamp(vig,0.0,1.0);
+      col=pow(clamp(col,0.0,1.0),vec3(0.4545));
+      // alpha carries a hit mask so the post pass can composite a camera feed behind the fractal
+      gl_FragColor=vec4(col, hit?1.0:0.0);
+    }`;
+
+  /* ---------- glitch post shader (pass 2) ---------- */
+  const POST = `
+    precision highp float;
+    uniform sampler2D uScene; uniform sampler2D uPrev; uniform vec2 uRes; uniform float uTime;
+    uniform int uEffect; uniform float uIntensity; uniform float uDisplace; uniform float uFeedback;
+    uniform float uHueSpeed; uniform float uThreshold; uniform float uBright; uniform float uContrast; uniform float uSat;
+    uniform sampler2D uCam; uniform int uCamMode; uniform float uCamMix; uniform float uCamAspect;
+    float rand(vec2 st){ return fract(sin(dot(st,vec2(12.9898,78.233)))*43758.5453123+uTime*0.01); }
+    float noise(vec2 st){ vec2 i=floor(st),f=fract(st);
+      float a=rand(i),b=rand(i+vec2(1.,0.)),c=rand(i+vec2(0.,1.)),d=rand(i+vec2(1.,1.));
+      vec2 u=f*f*(3.0-2.0*f); return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y; }
+    vec3 rgb2hsl(vec3 col){ float mx=max(max(col.r,col.g),col.b), mn=min(min(col.r,col.g),col.b);
+      float h=0.0,s=0.0,l=(mx+mn)*0.5;
+      if(mx!=mn){ float d=mx-mn; s=l>0.5?d/(2.0-mx-mn):d/(mx+mn);
+        if(mx==col.r) h=(col.g-col.b)/d+(col.g<col.b?6.0:0.0);
+        else if(mx==col.g) h=(col.b-col.r)/d+2.0; else h=(col.r-col.g)/d+4.0; h/=6.0; }
+      return vec3(h,s,l); }
+    float h2r(float p,float q,float t){ if(t<0.0)t+=1.0; if(t>1.0)t-=1.0;
+      if(t<1.0/6.0) return p+(q-p)*6.0*t; if(t<0.5) return q; if(t<2.0/3.0) return p+(q-p)*(2.0/3.0-t)*6.0; return p; }
+    vec3 hsl2rgb(vec3 hsl){ float h=hsl.x,s=hsl.y,l=hsl.z; if(s==0.0) return vec3(l);
+      float q=l<0.5?l*(1.0+s):l+s-l*s; float p=2.0*l-q; return vec3(h2r(p,q,h+1.0/3.0),h2r(p,q,h),h2r(p,q,h-1.0/3.0)); }
+    vec3 bc(vec3 col,float b,float ct){ col+=b; col=(col-0.5)*ct+0.5; return clamp(col,0.0,1.0); }
+    vec3 saturate3(vec3 col,float s){ float g=dot(col,vec3(0.2126,0.7152,0.0722)); return mix(vec3(g),col,s); }
+    // cover-fit + mirror the webcam into the frame
+    vec2 camCoord(vec2 c){ float sa=uRes.x/uRes.y;
+      vec2 s=(uCamAspect>sa)?vec2(sa/uCamAspect,1.0):vec2(1.0,uCamAspect/sa);
+      vec2 cu=(c-0.5)*s+0.5; cu.x=1.0-cu.x; return cu; }
+    // composited source: fractal, camera, or a mix (per uCamMode); alpha of uScene is the fractal hit mask
+    vec3 source(vec2 c){ vec4 f=texture2D(uScene,c); if(uCamMode==0) return f.rgb;
+      vec3 cam=texture2D(uCam,camCoord(c)).rgb;
+      if(uCamMode==1) return mix(cam,f.rgb,f.a);       // fractal over camera
+      if(uCamMode==2) return mix(f.rgb,cam,uCamMix);   // blend
+      return cam;                                       // camera only
+    }
+    void main(){
+      vec2 uv=gl_FragCoord.xy/uRes;
+      vec3 scene=source(uv);
+      // shared warped feedback coordinate
+      vec2 cc=uv-0.5;
+      float ang=uTime*0.05*uIntensity*(uEffect==3?1.0:0.35);
+      float zoom=1.0+((uEffect==3)?sin(uTime*0.1)*0.012*uIntensity:0.0);
+      vec2 fb=vec2(cc.x*cos(ang)-cc.y*sin(ang), cc.x*sin(ang)+cc.y*cos(ang))*zoom+0.5;
+      fb+=(vec2(noise(fb*5.0+uTime*0.1),noise(fb*5.0-uTime*0.1))-0.5)*uDisplace*0.1;
+      vec3 prev=texture2D(uPrev,fb).rgb;
+      vec3 col;
+      if(uEffect==0){                     // None — clean
+        col=scene;
+      } else if(uEffect==1){              // Datamosh (chromatic displace + trails)
+        float amt=uDisplace*(1.0+uIntensity*2.0);
+        vec2 ro=(vec2(rand(uv.yx+uTime*0.1))-0.5)*amt;
+        vec2 bo=(vec2(rand(uv.xy-uTime*0.1))-0.5)*amt;
+        col=vec3(source(uv+ro).r, scene.g, source(uv+bo).b);
+        col=mix(col,prev,clamp(uFeedback,0.0,0.95));
+      } else if(uEffect==2){              // Pixel sort-ish
+        float b=dot(scene,vec3(0.299,0.587,0.114));
+        vec2 dir=(sin(uTime*0.1)>0.0)?vec2(1.0,0.0):vec2(0.0,1.0);
+        float th=uThreshold*(1.0+uIntensity*0.5);
+        vec2 sc=uv; if(b>th){ sc+=dir*uDisplace*10.0*(b-th); sc=fract(sc); }
+        col=source(sc);
+        col=mix(col,prev,clamp(uFeedback,0.0,0.95));
+      } else if(uEffect==3){              // Feedback tunnel
+        float fbA=clamp(uFeedback*(1.0+uIntensity),0.0,0.96);
+        col=mix(scene,prev,fbA);
+        float d=length(scene-prev);
+        if(d>0.1){ vec3 h=rgb2hsl(col); h.y=min(h.y+0.2*uIntensity,1.0); h.z=min(h.z+0.1*uIntensity,0.9); col=hsl2rgb(h); }
+      } else {                            // Color shift (channel separation)
+        float cs=uDisplace*0.2*(1.0+uIntensity);
+        vec2 rO=vec2(sin(uTime*0.3),cos(uTime*0.2))*cs;
+        vec2 gO=vec2(sin(uTime*0.2+2.0),cos(uTime*0.3+1.0))*cs;
+        vec2 bO=vec2(sin(uTime*0.1+4.0),cos(uTime*0.4+3.0))*cs;
+        col=vec3(source(uv+rO).r, source(uv+gO).g, source(uv+bO).b);
+        col=mix(col,prev,clamp(uFeedback,0.0,0.95));
+      }
+      if(uHueSpeed!=0.0){ vec3 h=rgb2hsl(col); h.x=fract(h.x+uTime*uHueSpeed); if(h.y<0.05) h.y=0.5; col=hsl2rgb(h); }
+      col=saturate3(bc(col,uBright,uContrast),uSat);
+      gl_FragColor=vec4(clamp(col,0.0,1.0),1.0);
+    }`;
+
+  /* ---------- blit shader (pass 3) ---------- */
+  const BLIT = `precision mediump float; uniform sampler2D uTex; uniform vec2 uRes;
+    void main(){ gl_FragColor = texture2D(uTex, gl_FragCoord.xy/uRes); }`;
+
+  function compile(type, src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+  function makeProgram(fs){ const p=gl.createProgram();
+    gl.attachShader(p,compile(gl.VERTEX_SHADER,VERT)); gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));
+    gl.linkProgram(p); if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    p.aPos=gl.getAttribLocation(p,"aPos"); return p; }
+
+  let progFractal, progPost, progBlit;
+  try { progFractal=makeProgram(FRAG); progPost=makeProgram(POST); progBlit=makeProgram(BLIT); }
+  catch(e){ msg.innerHTML='<div><div class="big">shader error</div>'+String(e.message||e).slice(0,300)+'</div>'; return; }
+
+  const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1, 3,-1, -1,3]),gl.STATIC_DRAW);
+  function drawFS(p){ gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.enableVertexAttribArray(p.aPos);
+    gl.vertexAttribPointer(p.aPos,2,gl.FLOAT,false,0,0); gl.drawArrays(gl.TRIANGLES,0,3); }
+
+  const uf=(p,names)=>{ const o={}; names.forEach(n=>o[n]=gl.getUniformLocation(p,n)); return o; };
+  const UF = uf(progFractal, ["uRes","uTime","uPower","uIter","uMaxSteps","uFractal","uJuliaC","uCamPos","uCamBasis","uHue","uGlow","uLight","uShadow","uPalA","uPalB","uPalC","uPalD"]);
+  const UP = uf(progPost, ["uScene","uPrev","uRes","uTime","uEffect","uIntensity","uDisplace","uFeedback","uHueSpeed","uThreshold","uBright","uContrast","uSat","uCam","uCamMode","uCamMix","uCamAspect"]);
+  const UB = uf(progBlit, ["uTex","uRes"]);
+
+  /* ---------- framebuffers ---------- */
+  let sceneTex, sceneFBO, fbTex=[null,null], fbFBO=[null,null], readIdx=0;
+  function makeTex(w,h){ const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null); return t; }
+  function makeFBO(tex){ const f=gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,f);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0); return f; }
+  function initFBOs(w,h){
+    [sceneTex,fbTex[0],fbTex[1]].forEach(t=>{ if(t) gl.deleteTexture(t); });
+    [sceneFBO,fbFBO[0],fbFBO[1]].forEach(f=>{ if(f) gl.deleteFramebuffer(f); });
+    sceneTex=makeTex(w,h); sceneFBO=makeFBO(sceneTex);
+    fbTex[0]=makeTex(w,h); fbTex[1]=makeTex(w,h); fbFBO[0]=makeFBO(fbTex[0]); fbFBO[1]=makeFBO(fbTex[1]);
+    // clear feedback buffers
+    [fbFBO[0],fbFBO[1]].forEach(f=>{ gl.bindFramebuffer(gl.FRAMEBUFFER,f); gl.clearColor(0,0,0,1); gl.clear(gl.COLOR_BUFFER_BIT); });
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null); readIdx=0;
+  }
+
+  /* ---------- data ---------- */
+  const FRACTALS=["Mandelbulb","Mandelbox","Menger","Sierpinski","Juliabulb"];
+  const EFFECTS=["None","Datamosh","Pixel Sort","Feedback","Color Shift"];
+  const PALETTES=[
+    {name:"Aurora", a:[0.5,0.5,0.5],b:[0.5,0.5,0.5],c:[1,1,1],d:[0,0.10,0.20]},
+    {name:"Ember",  a:[0.5,0.4,0.3],b:[0.5,0.4,0.35],c:[1,1,1],d:[0,0.05,0.10]},
+    {name:"Magma",  a:[0.55,0.4,0.4],b:[0.45,0.35,0.3],c:[1,1.2,1],d:[0,0.25,0.45]},
+    {name:"Toxic",  a:[0.4,0.5,0.3],b:[0.4,0.5,0.35],c:[1,1,0.7],d:[0.30,0.20,0.55]},
+    {name:"Ice",    a:[0.45,0.5,0.6],b:[0.35,0.4,0.5],c:[1,1,1],d:[0.55,0.60,0.70]},
+    {name:"Candy",  a:[0.6,0.5,0.6],b:[0.4,0.45,0.4],c:[1,1,1],d:[0.80,0.90,0.30]},
+    {name:"Mono",   a:[0.6,0.6,0.62],b:[0.4,0.4,0.42],c:[1,1,1],d:[0,0,0]},
+  ];
+  const QUALITY=[
+    {name:"Draft",scale:0.45,steps:80},{name:"Balanced",scale:0.7,steps:110},
+    {name:"Sharp",scale:1.0,steps:140},{name:"Ultra",scale:1.0,steps:160},
+  ];
+  // fractal-appropriate reinterpretation of the "TAKE A TRIP" presets
+  const PRESETS={
+    Default:      {effect:0,intensity:0.5,displace:0.01,feedback:0.2,huespeed:0,threshold:0.5,bright:0,contrast:1,sat:1,glow:0.35,palette:0},
+    Psychedelic:  {effect:4,intensity:0.8,displace:0.02,feedback:0.4,huespeed:0.03,threshold:0.6,bright:0.03,contrast:1.2,sat:1.4,glow:0.5,palette:3},
+    Ghostly:      {effect:3,intensity:0.35,displace:0.006,feedback:0.8,huespeed:0,threshold:0.3,bright:-0.05,contrast:0.85,sat:0.7,glow:0.4,palette:4},
+    Neon:         {effect:1,intensity:0.9,displace:0.025,feedback:0.5,huespeed:0.01,threshold:0.7,bright:0.08,contrast:1.4,sat:1.6,glow:0.6,palette:5},
+    Glitchy:      {effect:1,intensity:0.7,displace:0.05,feedback:0.12,huespeed:-0.008,threshold:0.4,bright:0,contrast:1.15,sat:1.2,glow:0.4,palette:2},
+    Dreamy:       {effect:3,intensity:0.4,displace:0.008,feedback:0.6,huespeed:0.005,threshold:0.3,bright:0,contrast:0.9,sat:0.95,glow:0.45,palette:0},
+  };
+  const PRESET_NAMES=Object.keys(PRESETS);
+
+  /* ---------- state ---------- */
+  const state={
+    fractal:0, power:8, iter:12, hue:0, glow:0.35, light:0.9, shadow:true,
+    animate:false, rotate:true, fly:false, flyspd:0.3, freeze:false,
+    quality:1, palette:0,
+    effect:0, intensity:0.5, displace:0.01, feedback:0.2, huespeed:0, threshold:0.5, bright:0, contrast:1, sat:1,
+    camMode:0, cammix:0.5, facing:"user",
+    yaw:0.6, pitch:0.35, dist:2.8, target:[0,0,0], juliaC:[0.28,0.42,-0.30],
+    paused:false,
+  };
+
+  /* ---------- webcam source ---------- */
+  const CAM_MODES=["Off","Background","Blend","Camera only"];
+  const webcam=document.getElementById("webcam");
+  let camStream=null, camReady=false, camAspect=1.777;
+  let camTex=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,camTex);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([10,10,20,255]));
+
+  async function startCamera(){
+    if(camStream) return true;
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ showToast("camera not supported"); return false; }
+    const constraints={ audio:false, video:{ facingMode:state.facing, width:{ideal:1280}, height:{ideal:720} } };
+    for(let attempt=0; attempt<2; attempt++){
+      try{
+        camStream=await navigator.mediaDevices.getUserMedia(constraints);
+        webcam.srcObject=camStream; await webcam.play().catch(()=>{});
+        camReady=true; return true;
+      }catch(e){ camStream=null; camReady=false; if(attempt===0){ await new Promise(r=>setTimeout(r,350)); continue; }
+        showToast(e && e.name==="NotAllowedError" ? "camera permission denied" : "camera unavailable"); return false; }
+    }
+    return false;
+  }
+  function stopCamera(){
+    if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+    camReady=false; if(webcam) webcam.srcObject=null;
+  }
+  async function restartCamera(){ stopCamera(); await startCamera(); }
+  function uploadCamFrame(){
+    if(!camReady || webcam.readyState<2 || !webcam.videoWidth) return;
+    camAspect=webcam.videoWidth/webcam.videoHeight;
+    gl.bindTexture(gl.TEXTURE_2D,camTex); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+    try{ gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,webcam); }catch(e){}
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+  }
+
+  /* ---------- resize ---------- */
+  let W=1,H=1;
+  function resize(){
+    const q=QUALITY[state.quality]; const dpr=Math.min(window.devicePixelRatio||1,2);
+    W=Math.max(1,Math.floor(window.innerWidth*dpr*q.scale)); H=Math.max(1,Math.floor(window.innerHeight*dpr*q.scale));
+    canvas.width=W; canvas.height=H; canvas.style.width=window.innerWidth+"px"; canvas.style.height=window.innerHeight+"px";
+    initFBOs(W,H);
+  }
+  window.addEventListener("resize", resize);
+
+  /* ---------- camera ---------- */
+  function camBasis(){
+    const cy=Math.cos(state.yaw),sy=Math.sin(state.yaw),cp=Math.cos(state.pitch),sp=Math.sin(state.pitch);
+    const off=[state.dist*cp*sy, state.dist*sp, state.dist*cp*cy];
+    const pos=[state.target[0]+off[0],state.target[1]+off[1],state.target[2]+off[2]];
+    let f=[-off[0],-off[1],-off[2]]; const fl=Math.hypot(f[0],f[1],f[2])||1; f=[f[0]/fl,f[1]/fl,f[2]/fl];
+    let r=[f[2],0,-f[0]]; const rl=Math.hypot(r[0],r[1],r[2])||1; r=[r[0]/rl,r[1]/rl,r[2]/rl];
+    const u=[f[1]*r[2]-f[2]*r[1],f[2]*r[0]-f[0]*r[2],f[0]*r[1]-f[1]*r[0]];
+    return { pos, f, r, u, basis:[r[0],r[1],r[2],u[0],u[1],u[2],f[0],f[1],f[2]] };
+  }
+
+  /* ---------- render loop ---------- */
+  let t0=performance.now(), fpsT=t0, fpsN=0, clock=0;
+  const fpsEl=document.getElementById("fps"), hudName=document.getElementById("hudName");
+  const $=id=>document.getElementById(id);
+
+  function frame(now){
+    const dt=Math.min((now-t0)/1000,0.05); t0=now;
+    const moving=!state.paused && !state.freeze;
+    if(moving){
+      clock+=dt;
+      if(state.rotate) state.yaw+=dt*0.18;
+      if(state.animate){ state.power=8+5.0*Math.sin(clock*0.18); $("power").value=state.power; $("v_power").textContent=state.power.toFixed(2); }
+      if(state.fly){ const c=camBasis(); const s=state.flyspd*dt; state.target[0]+=c.f[0]*s; state.target[1]+=c.f[1]*s; state.target[2]+=c.f[2]*s; }
+    }
+    const cam=camBasis(); const q=QUALITY[state.quality];
+
+    // live webcam upload (hold last frame while frozen)
+    if(state.camMode!==0 && moving) uploadCamFrame();
+
+    // pass 1 — fractal → sceneFBO
+    gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFBO); gl.viewport(0,0,W,H); gl.useProgram(progFractal);
+    gl.uniform2f(UF.uRes,W,H); gl.uniform1f(UF.uTime,clock); gl.uniform1f(UF.uPower,state.power);
+    gl.uniform1i(UF.uIter,state.iter|0); gl.uniform1i(UF.uMaxSteps,q.steps); gl.uniform1i(UF.uFractal,state.fractal|0);
+    gl.uniform3fv(UF.uJuliaC,state.juliaC); gl.uniform3fv(UF.uCamPos,cam.pos); gl.uniformMatrix3fv(UF.uCamBasis,false,cam.basis);
+    gl.uniform1f(UF.uHue,state.hue); gl.uniform1f(UF.uGlow,state.glow); gl.uniform1f(UF.uLight,state.light);
+    gl.uniform1i(UF.uShadow,state.shadow?1:0);
+    const P=PALETTES[state.palette]; gl.uniform3fv(UF.uPalA,P.a); gl.uniform3fv(UF.uPalB,P.b); gl.uniform3fv(UF.uPalC,P.c); gl.uniform3fv(UF.uPalD,P.d);
+    drawFS(progFractal);
+
+    // pass 2 — glitch post → write FBO
+    const writeIdx=1-readIdx;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbFBO[writeIdx]); gl.viewport(0,0,W,H); gl.useProgram(progPost);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, sceneTex); gl.uniform1i(UP.uScene,0);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, fbTex[readIdx]); gl.uniform1i(UP.uPrev,1);
+    gl.uniform2f(UP.uRes,W,H); gl.uniform1f(UP.uTime,clock); gl.uniform1i(UP.uEffect,state.effect|0);
+    gl.uniform1f(UP.uIntensity,state.intensity); gl.uniform1f(UP.uDisplace,state.displace); gl.uniform1f(UP.uFeedback,state.feedback);
+    gl.uniform1f(UP.uHueSpeed,state.huespeed); gl.uniform1f(UP.uThreshold,state.threshold);
+    gl.uniform1f(UP.uBright,state.bright); gl.uniform1f(UP.uContrast,state.contrast); gl.uniform1f(UP.uSat,state.sat);
+    gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, camTex); gl.uniform1i(UP.uCam,2);
+    gl.uniform1i(UP.uCamMode, camReady?state.camMode:0); gl.uniform1f(UP.uCamMix,state.cammix); gl.uniform1f(UP.uCamAspect,camAspect);
+    drawFS(progPost);
+
+    // pass 3 — blit → screen
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,W,H); gl.useProgram(progBlit);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, fbTex[writeIdx]); gl.uniform1i(UB.uTex,0); gl.uniform2f(UB.uRes,W,H);
+    drawFS(progBlit);
+
+    readIdx=writeIdx;
+
+    fpsN++; if(now-fpsT>500){ fpsEl.textContent=Math.round(fpsN*1000/(now-fpsT)); fpsT=now; fpsN=0; }
+    scheduleSaveURL();
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- UI wiring ---------- */
+  const panel=$("panel"), fab=$("fab"), hint=$("hint"), toast=$("toast");
+
+  function bindRange(id, key, fmt, onset){
+    const el=$(id), out=$("v_"+id);
+    el._sync=()=>{ let v=parseFloat(el.value); if(out) out.textContent=fmt?fmt(v):v; };
+    el.addEventListener("input", ()=>{ state[key]=parseFloat(el.value); el._sync(); if(onset) onset(state[key]); });
+  }
+  bindRange("power","power",v=>v.toFixed(2));
+  bindRange("iter","iter",v=>String(v|0));
+  bindRange("flyspd","flyspd",v=>v.toFixed(2));
+  bindRange("hue","hue",v=>v.toFixed(2));
+  bindRange("glow","glow",v=>v.toFixed(2));
+  bindRange("light","light",v=>v.toFixed(1));
+  bindRange("intensity","intensity",v=>v.toFixed(2));
+  bindRange("displace","displace",v=>v.toFixed(3));
+  bindRange("feedback","feedback",v=>v.toFixed(2));
+  bindRange("threshold","threshold",v=>v.toFixed(2));
+  bindRange("huespeed","huespeed",v=>v.toFixed(3));
+  bindRange("bright","bright",v=>v.toFixed(2));
+  bindRange("contrast","contrast",v=>v.toFixed(2));
+  bindRange("sat","sat",v=>v.toFixed(2));
+  bindRange("cammix","cammix",v=>v.toFixed(2));
+  bindRange("quality","quality",v=>QUALITY[v|0].name,()=>resize());
+
+  function bindToggle(id,key,extra){ const el=$(id); el._sync=()=>el.classList.toggle("on",!!state[key]);
+    el.addEventListener("click",()=>{ state[key]=!state[key]; el._sync(); if(extra) extra(); }); }
+  bindToggle("t_animate","animate"); bindToggle("t_rotate","rotate"); bindToggle("t_shadow","shadow"); bindToggle("t_fly","fly");
+  bindToggle("t_freeze","freeze");
+
+  // fractal chips
+  const fracWrap=$("fractals"), powerLabel=$("l_power");
+  const POWER_LABELS=["Power (morph)","Scale (morph)","Fold scale","Fold scale","Power (morph)"];
+  const FRAC_VIEW=[{dist:2.8,iter:12},{dist:6.5,iter:11},{dist:3.0,iter:8},{dist:2.6,iter:14},{dist:2.6,iter:12}];
+  function setFractal(i,applyDefaults){
+    state.fractal=i; [...fracWrap.children].forEach((x,j)=>x.classList.toggle("active",j===i));
+    hudName.textContent=FRACTALS[i]; powerLabel.textContent=POWER_LABELS[i];
+    if(applyDefaults){ const v=FRAC_VIEW[i]; state.dist=v.dist; state.target=[0,0,0]; state.iter=v.iter; $("iter").value=v.iter; if($("iter")._sync)$("iter")._sync(); }
+  }
+  FRACTALS.forEach((name,i)=>{ const c=document.createElement("div"); c.className="chip"; c.textContent=name;
+    c.addEventListener("click",()=>setFractal(i,true)); fracWrap.appendChild(c); });
+
+  // effect chips
+  const fxWrap=$("effects");
+  function setEffect(i){ state.effect=i; [...fxWrap.children].forEach((x,j)=>x.classList.toggle("active",j===i)); }
+  EFFECTS.forEach((name,i)=>{ const c=document.createElement("div"); c.className="chip"; c.textContent=name;
+    c.addEventListener("click",()=>setEffect(i)); fxWrap.appendChild(c); });
+
+  // camera-source chips (starts/stops the webcam on demand)
+  const camWrap=$("cammodes");
+  async function setCamMode(i, fromUI){
+    if(i!==0){ if(fromUI){ const ok=await startCamera(); if(!ok){ i=0; } } }
+    else { stopCamera(); }
+    state.camMode=i; [...camWrap.children].forEach((x,j)=>x.classList.toggle("active",j===i));
+  }
+  CAM_MODES.forEach((name,i)=>{ const c=document.createElement("div"); c.className="chip"; c.textContent=name;
+    c.addEventListener("click",()=>setCamMode(i,true)); camWrap.appendChild(c); });
+  const flipEl=$("t_flip");
+  flipEl._sync=()=>flipEl.classList.toggle("on", state.facing==="environment");
+  flipEl.addEventListener("click",async ()=>{ state.facing = state.facing==="user"?"environment":"user"; flipEl._sync();
+    if(camStream) await restartCamera(); });
+
+  // palette chips
+  const palWrap=$("palettes");
+  function setPalette(i){ state.palette=i; [...palWrap.children].forEach((x,j)=>x.classList.toggle("active",j===i)); }
+  PALETTES.forEach((p,i)=>{ const c=document.createElement("div"); c.className="chip"; c.textContent=p.name;
+    c.addEventListener("click",()=>setPalette(i)); palWrap.appendChild(c); });
+
+  // preset chips
+  const presetWrap=$("presets");
+  function applyPreset(name,markActive){
+    const p=PRESETS[name]; if(!p) return;
+    Object.keys(p).forEach(k=>{
+      if(k==="effect"){ setEffect(p.effect); return; }
+      if(k==="palette"){ setPalette(p.palette); return; }
+      state[k]=p[k]; const el=$(k); if(el){ el.value=p[k]; if(el._sync) el._sync(); }
+    });
+    if(markActive) [...presetWrap.children].forEach(x=>x.classList.toggle("active", x.textContent===name));
+  }
+  PRESET_NAMES.forEach(name=>{ const c=document.createElement("div"); c.className="chip preset"; c.textContent=name;
+    c.addEventListener("click",()=>applyPreset(name,true)); presetWrap.appendChild(c); });
+
+  function setPanel(show){ panel.classList.toggle("hidden",!show); fab.style.display=show?"none":"flex"; }
+  $("btnHide").addEventListener("click",()=>setPanel(false)); fab.addEventListener("click",()=>setPanel(true));
+
+  function resetView(){ state.yaw=0.6; state.pitch=0.35; state.dist=2.8; state.target=[0,0,0]; }
+  $("btnReset").addEventListener("click",resetView);
+
+  function setRange(id,v){ const el=$(id); el.value=v; el.dispatchEvent(new Event("input")); }
+  $("btnRandom").addEventListener("click",()=>{
+    setFractal(Math.floor(Math.random()*FRACTALS.length),true);
+    setPalette(Math.floor(Math.random()*PALETTES.length));
+    setEffect(Math.floor(Math.random()*EFFECTS.length));
+    setRange("power",(3+Math.random()*10).toFixed(2));
+    setRange("hue",Math.random().toFixed(2));
+    setRange("light",(Math.random()*6.28).toFixed(2));
+    setRange("glow",(0.15+Math.random()*0.5).toFixed(2));
+    setRange("intensity",Math.random().toFixed(2));
+    setRange("displace",(Math.random()*0.06).toFixed(3));
+    setRange("feedback",(Math.random()*0.7).toFixed(2));
+    setRange("huespeed",((Math.random()-0.5)*0.08).toFixed(3));
+    setRange("sat",(0.6+Math.random()*1.2).toFixed(2));
+    setRange("contrast",(0.8+Math.random()*0.7).toFixed(2));
+    state.juliaC=[(Math.random()-0.5)*1.2,(Math.random()-0.5)*1.2,(Math.random()-0.5)*1.2];
+    state.yaw=Math.random()*6.28; state.pitch=(Math.random()-0.5)*1.2; state.target=[0,0,0];
+    [...presetWrap.children].forEach(x=>x.classList.remove("active"));
+  });
+
+  let toastTimer;
+  function showToast(txt){ toast.textContent=txt; toast.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>toast.classList.remove("show"),1600); }
+
+  $("btnShot").addEventListener("click",()=>{ try{ const url=canvas.toDataURL("image/png"); const a=document.createElement("a"); a.href=url; a.download="fractalarium.png"; a.click(); }catch(e){} });
+
+  /* ---------- video recording ---------- */
+  let mediaRecorder=null, chunks=[], recording=false;
+  const recDot=$("recDot"), btnRecord=$("btnRecord");
+  function pickMime(){
+    const opts=["video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9","video/webm"];
+    for(const m of opts){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; } return "";
+  }
+  function startRecording(){
+    if(!canvas.captureStream || typeof MediaRecorder!=="function"){ showToast("recording unsupported"); return; }
+    const stream=canvas.captureStream(30); chunks=[]; const mime=pickMime();
+    try{ mediaRecorder=mime?new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:8000000}):new MediaRecorder(stream); }
+    catch(e){ try{ mediaRecorder=new MediaRecorder(stream); }catch(e2){ showToast("recording failed"); return; } }
+    mediaRecorder.ondataavailable=e=>{ if(e.data&&e.data.size>0) chunks.push(e.data); };
+    mediaRecorder.onstop=()=>{
+      const type=(mediaRecorder&&mediaRecorder.mimeType)||chunks[0]?.type||"video/webm";
+      const ext=type.indexOf("mp4")>=0?"mp4":"webm";
+      const blob=new Blob(chunks,{type}); const url=URL.createObjectURL(blob);
+      const a=document.createElement("a"); a.href=url; a.download="fractalarium_"+new Date().toISOString().slice(0,19).replace(/:/g,"-")+"."+ext;
+      a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); chunks=[];
+    };
+    mediaRecorder.start(1000); recording=true;
+    btnRecord.classList.add("on"); btnRecord.textContent="■ Stop"; recDot.hidden=false;
+  }
+  function stopRecording(){
+    if(mediaRecorder && mediaRecorder.state==="recording"){ try{ mediaRecorder.requestData(); }catch(_){} mediaRecorder.stop(); }
+    recording=false; btnRecord.classList.remove("on"); btnRecord.textContent="● Record"; recDot.hidden=true;
+  }
+  btnRecord.addEventListener("click",()=>{ recording?stopRecording():startRecording(); });
+
+  /* ---------- URL state ---------- */
+  const r3=n=>Math.round(n*1000)/1000;
+  function saveURL(force){
+    const s=state; const p=new URLSearchParams();
+    p.set("f",s.fractal); p.set("p",r3(s.power)); p.set("it",s.iter); p.set("pal",s.palette);
+    p.set("hue",r3(s.hue)); p.set("gl",r3(s.glow)); p.set("li",r3(s.light)); p.set("sh",s.shadow?1:0); p.set("q",s.quality);
+    p.set("an",s.animate?1:0); p.set("ro",s.rotate?1:0); p.set("fl",s.fly?1:0); p.set("fs",r3(s.flyspd));
+    p.set("fx",s.effect); p.set("in",r3(s.intensity)); p.set("dp",r3(s.displace)); p.set("fb",r3(s.feedback));
+    p.set("hs",r3(s.huespeed)); p.set("th",r3(s.threshold)); p.set("br",r3(s.bright)); p.set("ct",r3(s.contrast)); p.set("sa",r3(s.sat));
+    p.set("ya",r3(s.yaw)); p.set("pi",r3(s.pitch)); p.set("di",r3(s.dist));
+    p.set("tx",r3(s.target[0])); p.set("ty",r3(s.target[1])); p.set("tz",r3(s.target[2]));
+    p.set("jc",[r3(s.juliaC[0]),r3(s.juliaC[1]),r3(s.juliaC[2])].join("_"));
+    const hash="#"+p.toString();
+    if(force || hash!==location.hash) history.replaceState(null,"",location.pathname+location.search+hash);
+  }
+  let saveTimer=0;
+  function scheduleSaveURL(){ const t=performance.now(); if(t-saveTimer>700){ saveTimer=t; saveURL(false); } }
+  function loadURL(){
+    if(!location.hash||location.hash.length<2) return;
+    const p=new URLSearchParams(location.hash.slice(1));
+    const num=(k,d)=>p.has(k)?parseFloat(p.get(k)):d; const int=(k,d)=>p.has(k)?(parseInt(p.get(k),10)||0):d;
+    state.fractal=Math.max(0,Math.min(FRACTALS.length-1,int("f",state.fractal)));
+    state.power=num("p",state.power); state.iter=int("it",state.iter);
+    state.palette=Math.max(0,Math.min(PALETTES.length-1,int("pal",state.palette)));
+    state.hue=num("hue",state.hue); state.glow=num("gl",state.glow); state.light=num("li",state.light);
+    state.shadow=int("sh",1)===1; state.quality=Math.max(0,Math.min(3,int("q",state.quality)));
+    state.animate=int("an",0)===1; state.rotate=int("ro",1)===1; state.fly=int("fl",0)===1; state.flyspd=num("fs",state.flyspd);
+    state.effect=Math.max(0,Math.min(EFFECTS.length-1,int("fx",state.effect)));
+    state.intensity=num("in",state.intensity); state.displace=num("dp",state.displace); state.feedback=num("fb",state.feedback);
+    state.huespeed=num("hs",state.huespeed); state.threshold=num("th",state.threshold);
+    state.bright=num("br",state.bright); state.contrast=num("ct",state.contrast); state.sat=num("sa",state.sat);
+    state.yaw=num("ya",state.yaw); state.pitch=num("pi",state.pitch); state.dist=num("di",state.dist);
+    state.target=[num("tx",0),num("ty",0),num("tz",0)];
+    if(p.has("jc")){ const a=p.get("jc").split("_").map(parseFloat); if(a.length===3&&a.every(x=>!isNaN(x))) state.juliaC=a; }
+  }
+
+  function syncAllInputs(){
+    const ids=["power","iter","flyspd","hue","glow","light","intensity","displace","feedback","threshold","huespeed","bright","contrast","sat","cammix","quality"];
+    ids.forEach(id=>{ const el=$(id); if(el){ el.value=state[id]; if(el._sync) el._sync(); } });
+    ["t_animate","t_rotate","t_shadow","t_fly","t_freeze","t_flip"].forEach(id=>{ const el=$(id); if(el&&el._sync) el._sync(); });
+    setFractal(state.fractal); setEffect(state.effect); setPalette(state.palette); setCamMode(0,false);
+  }
+
+  /* ---------- pointer / touch ---------- */
+  let dragging=false,lastX=0,lastY=0,pinchDist=0;
+  function orbit(dx,dy){ state.yaw-=dx*0.006; state.pitch=Math.max(-1.5,Math.min(1.5,state.pitch+dy*0.006)); }
+  canvas.addEventListener("pointerdown",e=>{ dragging=true; lastX=e.clientX; lastY=e.clientY; canvas.classList.add("dragging"); canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener("pointermove",e=>{ if(!dragging) return; orbit(e.clientX-lastX,e.clientY-lastY); lastX=e.clientX; lastY=e.clientY; });
+  canvas.addEventListener("pointerup",()=>{ dragging=false; canvas.classList.remove("dragging"); });
+  canvas.addEventListener("pointercancel",()=>{ dragging=false; canvas.classList.remove("dragging"); });
+  canvas.addEventListener("wheel",e=>{ e.preventDefault(); state.dist=Math.max(0.05,Math.min(9,state.dist*(1+Math.sign(e.deltaY)*0.08))); },{passive:false});
+  canvas.addEventListener("touchmove",e=>{ if(e.touches.length===2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    if(pinchDist) state.dist=Math.max(0.05,Math.min(9,state.dist*(pinchDist/d))); pinchDist=d; e.preventDefault(); } },{passive:false});
+  canvas.addEventListener("touchend",()=>{ pinchDist=0; });
+
+  /* ---------- keyboard ---------- */
+  const keys={};
+  window.addEventListener("keydown",e=>{ const k=e.key.toLowerCase();
+    if(k==="h") setPanel(panel.classList.contains("hidden"));
+    else if(k===" "){ state.freeze=!state.freeze; $("t_freeze")._sync(); e.preventDefault(); }
+    else if(k==="r") resetView();
+    else if(k==="f"){ if(!document.fullscreenElement) document.documentElement.requestFullscreen?.(); else document.exitFullscreen?.(); }
+    else if("wasdqe".includes(k)){ keys[k]=true; e.preventDefault(); } });
+  window.addEventListener("keyup",e=>{ keys[e.key.toLowerCase()]=false; });
+  setInterval(()=>{ if(state.paused) return; const active="wasdqe".split("").some(k=>keys[k]); if(!active) return;
+    const c=camBasis(); const spd=0.02*Math.max(0.15,state.dist);
+    const mv=(v,s)=>{ state.target[0]+=v[0]*s; state.target[1]+=v[1]*s; state.target[2]+=v[2]*s; };
+    if(keys.w) mv(c.f,spd); if(keys.s) mv(c.f,-spd); if(keys.d) mv(c.r,spd); if(keys.a) mv(c.r,-spd); if(keys.e) mv(c.u,spd); if(keys.q) mv(c.u,-spd);
+  },16);
+
+  setTimeout(()=>{ if(hint) hint.style.opacity="0"; },7000);
+
+  /* ---------- go ---------- */
+  loadURL(); resize(); syncAllInputs(); msg.style.display="none"; requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
