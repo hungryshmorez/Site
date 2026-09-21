@@ -99,7 +99,7 @@ const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth,
 const maxDPR = isMobile ? 1.5 : 2;
 
 // ---- renderer ----
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance', preserveDrawingBuffer: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -799,13 +799,37 @@ const STAGE_PT = new THREE.Vector3(0, 1.6, -18); // audio swells as you approach
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
+  renderer.setPixelRatio(baseDPR * renderScale);
   renderer.setSize(innerWidth, innerHeight);
+  composer.setPixelRatio(baseDPR * renderScale);
   composer.setSize(innerWidth, innerHeight);
   fx.resize(innerWidth, innerHeight);
   vj.resize();
 });
 renderer.setSize(innerWidth, innerHeight);
+
+// ---- adaptive resolution: scale render pixels down when the frame-rate sags,
+// back up when it recovers. Invisible on machines that keep up; on slower ones
+// it trades a little sharpness for a smooth frame-rate instead of chugging.
+// (Shadows, bloom and the full scene stay on — only the pixel count flexes.)
+const baseDPR = Math.min(devicePixelRatio || 1, maxDPR);
+let renderScale = 1, dprAccum = 0, dprFrames = 0, dprCooldown = 1;
+function applyRenderScale() {
+  const dpr = baseDPR * renderScale;
+  renderer.setPixelRatio(dpr); renderer.setSize(innerWidth, innerHeight);
+  composer.setPixelRatio(dpr); composer.setSize(innerWidth, innerHeight);
+  fx.resize(innerWidth, innerHeight);
+}
+function adaptResolution(dt) {
+  if (dprCooldown > 0) { dprCooldown -= dt; return; }   // let load spikes settle
+  dprAccum += dt; dprFrames++;
+  if (dprAccum < 0.75) return;                           // average ~0.75s of frames
+  const fps = dprFrames / dprAccum; dprAccum = 0; dprFrames = 0;
+  let next = renderScale;
+  if (fps < 45 && renderScale > 0.6) next = Math.max(0.6, renderScale - 0.15);
+  else if (fps > 58 && renderScale < 1) next = Math.min(1, renderScale + 0.1);
+  if (next !== renderScale) { renderScale = next; applyRenderScale(); dprCooldown = 0.5; }
+}
 
 // ---- beat clock (128 BPM) → pulse spikes on each beat ----
 const BPM = 128;
@@ -835,6 +859,7 @@ function frame() {
   requestAnimationFrame(frame);
   if (document.hidden) return; // don't render/update while the tab is backgrounded
   const dt = Math.min(clock.getDelta(), 0.05);
+  adaptResolution(dt);        // keep the frame-rate smooth on weaker GPUs
   const time = clock.elapsedTime;
   const beat = time * (BPM / 60);
   const bpmPulse = Math.pow(1 - (beat % 1), 2.2);           // fallback: sharp on-beat, decays
