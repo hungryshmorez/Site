@@ -238,6 +238,7 @@ document.getElementById('prevCh').onclick = () => setChannel(chIndex - 1);
 // Showrunner page. Background music ducks while an episode plays. On entering the
 // theater a RANDOM episode auto-plays (see the enter handler → startRandomEpisode).
 let startRandomEpisode = () => {};
+let closeEpisodePlayer = () => {};
 {
   const panel = document.getElementById('epPanel');
   const grid = document.getElementById('epGrid');
@@ -283,6 +284,9 @@ let startRandomEpisode = () => {};
   }
   // auto-play a random episode when you first walk into the theater
   startRandomEpisode = () => { if (EPISODES.length) play(Math.floor(Math.random() * EPISODES.length)); };
+  // expose to the shows carousel + player-bar shortcuts (defined below)
+  closeEpisodePlayer = closePlayer;
+  document.getElementById('epToEps').onclick = () => { closePlayer(); openPanel(); };
 
   grid.querySelectorAll('.ep-card').forEach((card) => {
     const go = (e) => { if (e.target.closest('[data-stop]')) return; play(+card.dataset.i); };
@@ -322,6 +326,7 @@ let startRandomEpisode = () => {};
   const close = () => { panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); };
 
   document.getElementById('showBtn').onclick = open;
+  document.getElementById('epToShows').onclick = () => { closeEpisodePlayer(); open(); };  // reach the carousel from a playing episode
   document.getElementById('showClose').onclick = close;
   document.getElementById('showPrev').onclick = () => go(-1);
   document.getElementById('showNext').onclick = () => go(1);
