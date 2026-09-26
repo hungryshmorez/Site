@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createReducedMotion } from './player/motion.js';
-import { SHOW, EPISODES } from './data/episodes.js';
+import { STUDIO, EPISODES } from './data/episodes.js';
 import { SHOWS } from './data/shows.js';
 
 // DreamOS TV — a walk-in movie theater (its own lightweight page / Lab
@@ -247,18 +247,19 @@ let startRandomEpisode = () => {};
   const srLink = document.getElementById('epSrLink');
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  document.getElementById('epShowTitle').textContent = SHOW.title;
-  document.getElementById('epShowSub').textContent = `${EPISODES.length} EPISODES · ${SHOW.studio.toUpperCase()}`;
-  document.getElementById('epShowBlurb').textContent = SHOW.blurb;
+  const seriesCount = new Set(EPISODES.map((e) => e.show)).size;
+  document.getElementById('epShowTitle').textContent = STUDIO.title.toUpperCase();
+  document.getElementById('epShowSub').textContent = `${EPISODES.length} EPISODES · ${seriesCount} SERIES`;
+  document.getElementById('epShowBlurb').textContent = STUDIO.blurb;
 
   grid.innerHTML = EPISODES.map((ep, i) => `
-    <div class="ep-card" data-i="${i}" role="button" tabindex="0" aria-label="Play ${esc(ep.title)}">
-      <div class="ep-thumb" style="background-image:url('${esc(ep.still)}')">
+    <div class="ep-card" data-i="${i}" role="button" tabindex="0" aria-label="Play ${esc(ep.showTitle)} — ${esc(ep.title)}">
+      <div class="ep-thumb" style="background-image:url('${esc(ep.still || '')}')">
         <span class="play">▶</span>${ep.duration ? `<span class="dur">${esc(ep.duration)}</span>` : ''}
       </div>
       <div class="ep-meta">
         <div class="t">${esc(ep.title)}</div>
-        <div class="m">${esc(ep.seasonEpisode || '')}</div>
+        <div class="m">${esc(ep.showTitle)}${ep.seasonEpisode ? ` · ${esc(ep.seasonEpisode)}` : ''}</div>
       </div>
       <div class="ep-links"><a href="${esc(ep.showrunnerUrl)}" target="_blank" rel="noopener" data-stop>on Showrunner ↗</a></div>
     </div>`).join('');
@@ -269,7 +270,7 @@ let startRandomEpisode = () => {};
   function play(i) {
     const ep = EPISODES[i]; if (!ep) return;
     window.__gp?.pause();                 // duck the site music while the episode plays
-    nowTitle.textContent = `${ep.seasonEpisode ? ep.seasonEpisode + ' · ' : ''}${ep.title}`;
+    nowTitle.textContent = `${ep.showTitle} — ${ep.title}`;
     srLink.href = ep.showrunnerUrl;
     video.src = ep.videoUrl;
     playerEl.classList.add('open'); playerEl.setAttribute('aria-hidden', 'false');
