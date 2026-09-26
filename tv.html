@@ -57,6 +57,33 @@
     :focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
     .warp{position:fixed;inset:0;z-index:30;background:#02030a;opacity:0;pointer-events:none;transition:opacity .5s}
     .warp.go{opacity:1;pointer-events:auto}
+    /* ---- That Time Again episodes (streaming on Showrunner) ---- */
+    #epPanel{position:fixed;inset:0;z-index:22;display:none;flex-direction:column;padding:clamp(16px,4vw,44px);
+      background:radial-gradient(80% 70% at 50% 28%,rgba(12,6,26,.93),rgba(2,3,10,.98));overflow:auto}
+    #epPanel.open{display:flex}
+    .ep-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+    .ep-head h2{font-family:var(--mono);font-size:clamp(20px,3.4vw,32px);letter-spacing:.04em;color:var(--cyan);text-shadow:2px 0 var(--magenta)}
+    .ep-head .sub{font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:.14em}
+    .ep-blurb{font-size:12.5px;color:var(--muted);max-width:74ch;line-height:1.7;margin:8px 0 20px}
+    .ep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(208px,1fr));gap:14px}
+    .ep-card{background:#0a0b16;border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:hidden;cursor:pointer;transition:.15s;display:flex;flex-direction:column}
+    .ep-card:hover{transform:translateY(-3px);border-color:var(--cyan);box-shadow:0 12px 30px -12px rgba(0,243,255,.5)}
+    .ep-thumb{aspect-ratio:16/9;background-color:#05060d;background-size:cover;background-position:center;position:relative}
+    .ep-thumb .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;opacity:.92;text-shadow:0 2px 10px #000}
+    .ep-thumb .dur{position:absolute;right:6px;bottom:6px;font-family:var(--mono);font-size:9px;color:#fff;background:rgba(0,0,0,.66);padding:2px 5px;border-radius:4px}
+    .ep-meta{padding:9px 11px 4px}
+    .ep-meta .t{font-size:12.5px;color:var(--ink);font-weight:600;line-height:1.35}
+    .ep-meta .m{font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:.08em;margin-top:5px}
+    .ep-links{padding:6px 11px 11px;margin-top:auto}
+    .ep-links a{font-family:var(--mono);font-size:9.5px;color:var(--cyan);text-decoration:none;letter-spacing:.05em}
+    .ep-links a:hover{text-decoration:underline}
+    #epPlayer{position:fixed;inset:0;z-index:26;display:none;flex-direction:column;background:rgba(1,2,6,.97)}
+    #epPlayer.open{display:flex}
+    #epPlayer .bar{display:flex;align-items:center;gap:14px;padding:12px 16px;font-family:var(--mono)}
+    #epPlayer .bar .t{font-size:13px;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #epPlayer .bar a{font-size:11px;color:var(--cyan);text-decoration:none;white-space:nowrap;letter-spacing:.06em}
+    #epPlayer .bar a:hover{color:#fff}
+    #epPlayer video{flex:1;width:100%;min-height:0;background:#000}
   </style>
 </head>
 <body>
@@ -69,9 +96,26 @@
   <button class="hud btn back" id="backBtn">◄ leave the theater</button>
   <div class="hud chan">
     <button class="btn" id="prevCh">◄ ch</button>
+    <button class="btn" id="epBtn">🎬 episodes</button>
     <button class="btn" id="nextCh">ch ►</button>
   </div>
-  <div class="hud help"><kbd>W A S D</kbd> walk · <kbd>drag</kbd> look · <b>click the screen</b> to change channel</div>
+  <div class="hud help"><kbd>W A S D</kbd> walk · <kbd>drag</kbd> look · <b>click the screen</b> to change channel · <b>🎬 episodes</b> to watch the show</div>
+
+  <!-- That Time Again with Al & Sloppy — episodes streaming on Showrunner -->
+  <div id="epPanel" aria-hidden="true">
+    <button class="btn back" id="epClose" style="position:fixed;top:14px;right:16px;z-index:23">✕ close</button>
+    <div class="ep-head"><h2 id="epShowTitle">THAT TIME AGAIN</h2><span class="sub" id="epShowSub"></span></div>
+    <p class="ep-blurb" id="epShowBlurb"></p>
+    <div class="ep-grid" id="epGrid"></div>
+  </div>
+  <div id="epPlayer" aria-hidden="true">
+    <div class="bar">
+      <button class="btn" id="epBack">◄ episodes</button>
+      <span class="t" id="epNowTitle"></span>
+      <a id="epSrLink" href="#" target="_blank" rel="noopener">Watch on Showrunner ↗</a>
+    </div>
+    <video id="epVideo" controls playsinline preload="metadata"></video>
+  </div>
 
   <div class="warp" id="warp"></div>
   <div class="start" id="start">

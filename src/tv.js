@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createReducedMotion } from './player/motion.js';
+import { SHOW, EPISODES } from './data/episodes.js';
 
 // DreamOS TV — a walk-in movie theater (its own lightweight page / Lab
 // experiment). A big animated screen on channels, tiered seats, silhouette
@@ -230,6 +231,63 @@ function setChannel(i) {
 document.getElementById('nextCh').onclick = () => setChannel(chIndex + 1);
 document.getElementById('prevCh').onclick = () => setChannel(chIndex - 1);
 
+// ---- That Time Again episodes (streaming on Showrunner) ----
+// The theater's marquee show: a poster grid you open from the HUD; picking an
+// episode plays the real cut in a cinema overlay, with a link out to its
+// Showrunner page. Background music ducks while an episode plays.
+{
+  const panel = document.getElementById('epPanel');
+  const grid = document.getElementById('epGrid');
+  const playerEl = document.getElementById('epPlayer');
+  const video = document.getElementById('epVideo');
+  const nowTitle = document.getElementById('epNowTitle');
+  const srLink = document.getElementById('epSrLink');
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  document.getElementById('epShowTitle').textContent = SHOW.title;
+  document.getElementById('epShowSub').textContent = `${EPISODES.length} EPISODES · ${SHOW.studio.toUpperCase()}`;
+  document.getElementById('epShowBlurb').textContent = SHOW.blurb;
+
+  grid.innerHTML = EPISODES.map((ep, i) => `
+    <div class="ep-card" data-i="${i}" role="button" tabindex="0" aria-label="Play ${esc(ep.title)}">
+      <div class="ep-thumb" style="background-image:url('${esc(ep.still)}')">
+        <span class="play">▶</span>${ep.duration ? `<span class="dur">${esc(ep.duration)}</span>` : ''}
+      </div>
+      <div class="ep-meta">
+        <div class="t">${esc(ep.title)}</div>
+        <div class="m">${esc(ep.seasonEpisode || '')}</div>
+      </div>
+      <div class="ep-links"><a href="${esc(ep.showrunnerUrl)}" target="_blank" rel="noopener" data-stop>on Showrunner ↗</a></div>
+    </div>`).join('');
+
+  const openPanel = () => { panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false'); };
+  const closePanel = () => { panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); };
+
+  function play(i) {
+    const ep = EPISODES[i]; if (!ep) return;
+    window.__gp?.pause();                 // duck the site music while the episode plays
+    nowTitle.textContent = `${ep.seasonEpisode ? ep.seasonEpisode + ' · ' : ''}${ep.title}`;
+    srLink.href = ep.showrunnerUrl;
+    video.src = ep.videoUrl;
+    playerEl.classList.add('open'); playerEl.setAttribute('aria-hidden', 'false');
+    video.play().catch(() => { /* controls are visible — user can hit play */ });
+  }
+  function closePlayer() {
+    playerEl.classList.remove('open'); playerEl.setAttribute('aria-hidden', 'true');
+    video.pause(); video.removeAttribute('src'); video.load();
+  }
+
+  grid.querySelectorAll('.ep-card').forEach((card) => {
+    const go = (e) => { if (e.target.closest('[data-stop]')) return; play(+card.dataset.i); };
+    card.addEventListener('click', go);
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(e); } });
+  });
+  document.getElementById('epBtn').onclick = openPanel;
+  document.getElementById('epClose').onclick = closePanel;
+  document.getElementById('epBack').onclick = closePlayer;
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (playerEl.classList.contains('open')) closePlayer(); else if (panel.classList.contains('open')) closePanel(); } });
+}
+
 // ---- back portal → the Lab ----
 document.getElementById('backBtn').onclick = () => {
   const w = document.getElementById('warp'); if (w) w.classList.add('go');
@@ -241,6 +299,7 @@ const clock = new THREE.Clock();
 let running = false;
 function frame() {
   requestAnimationFrame(frame);
+  if (document.hidden) return;   // don't burn frames in a background tab
   const dt = Math.min(clock.getDelta(), 0.05);
   const time = clock.elapsedTime;
   screenMat.uniforms.t.value = time;
