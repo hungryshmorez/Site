@@ -149,8 +149,23 @@ function onDrag(e) {
 }
 function resetPos() { curX = 0; curY = 0; win.style.transform = ''; }
 
+// Only our own pages/games and embeddable "worlds" (websim / minimax) load inside
+// the framed window. Everything else — socials, store, GitHub, Bandcamp, HuggingFace,
+// Spotify, etc. — sets X-Frame-Options/CSP and refuses to embed, so those open in a
+// real new tab instead of showing a dead spinner.
+const EMBEDDABLE_HOST = /(?:^|\.)on\.websim\.com$|(?:^|\.)websim\.com$|\.space\.minimax\.io$/i;
+function canEmbed(url) {
+  try {
+    if (/^[./]/.test(url) || url.startsWith('about:')) return true;   // relative/local pages + games
+    const u = new URL(url, location.href);
+    if (u.origin === location.origin) return true;                    // same-origin (our games)
+    return EMBEDDABLE_HOST.test(u.hostname);
+  } catch (e) { return false; }
+}
+
 export function openWindow(title, url) {
   if (!url) return;
+  if (!canEmbed(url)) { window.open(url, '_blank', 'noopener'); return; }
   if (!built) make();
   lastFocused = document.activeElement;
   win.classList.remove('min', 'max'); resetPos();
