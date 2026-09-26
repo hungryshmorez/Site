@@ -304,7 +304,7 @@ renderer.render(scene, camera);
 
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
-  if (track) { track.volume = 0.5; track.play().catch(() => {}); }
+  window.__gp?.resume();   // global player owns music — the enter gesture resumes it (no restart)
   ambience.start();
   if (!running) { running = true; clock.start(); frame(); }
 };

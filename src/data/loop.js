@@ -3,10 +3,13 @@ import { buildDoor } from '../scene/door.js';
 // The big walk-through LOOP. Each room has a BACK door (to the previous room) and a
 // FORWARD door (to the next); the chain runs out of the warehouse and loops back to it.
 // Edit ORDER to reshuffle the whole loop — every room reads its neighbours from here.
-const ORDER = ['warehouse', 'dj', 'greenroom', 'lofi', 'abstract', 'studio', 'horrorcore', 'utility', 'gameroom', 'rooftop'];
+// The DJ DECKS no longer has its own dedicated room in the loop — every room now
+// carries a synced DJ booth (the global player), and the full $AUCELAB console is
+// reachable from the festival's center-stage DECKS rig and the 🎛 button on the
+// per-room player. So 'dj' is out of the walk-through ring.
+const ORDER = ['warehouse', 'greenroom', 'lofi', 'abstract', 'studio', 'horrorcore', 'utility', 'gameroom', 'rooftop'];
 const META = {
   warehouse:  { name: 'THE WAREHOUSE', page: 'warehouse.html', col: 0x8890e0 },
-  dj:         { name: 'DJ DECKS',      page: 'dj.html',        col: 0x00f3ff },
   greenroom:  { name: 'GREEN ROOM',    page: 'greenroom.html', col: 0x39ff88 },
   lofi:       { name: 'LO-FI LOUNGE',  page: 'lofi.html',      col: 0xb967ff },
   abstract:   { name: 'ABSTRACT',      page: 'abstract.html',  col: 0x00ffa8 },

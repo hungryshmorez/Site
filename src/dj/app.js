@@ -11,7 +11,8 @@ import {
   camelotCompatible,
 } from './audio.js';
 import WaveSurfer from 'wavesurfer.js';
-import { saveTrack, allTracks } from './store.js';
+import { saveTrack, allTracks, getAnalysis, saveAnalysis } from './store.js';
+import { analysisFor } from '../data/analysis.js';
 import { TRACKS, loadManifest } from '../data/tracks.js';
 import './styles.css';
 
@@ -88,9 +89,11 @@ async function loadSiteLibrary() {
       if (!t || typeof t.src !== 'string' || known.has(t.src)) continue;
       known.add(t.src);
       const name = String(t.title ?? t.src);
+      const cached = analysisFor(t.src) ?? getAnalysis(t.src);   // baked-in first, then this browser's cache
       library[`m-${i++}-${Math.random().toString(36).slice(2, 6)}`] = {
         name, genre: inferGenre(name), file: t.src,
-        bpm: null, key: null, camelot: null, analyzed: false, remote: true,
+        bpm: cached?.bpm ?? null, key: cached?.key ?? null, camelot: cached?.camelot ?? null,
+        analyzed: !!cached, remote: true,
       };
     }
     renderLibrary();
@@ -169,11 +172,14 @@ async function addTrack(name, genre, file) {
   const id = `t-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   const entry = { name, genre, file, bpm: null, key: null, camelot: null, analyzed: false };
   library[id] = entry;
+  const cached = analysisFor(file) ?? getAnalysis(file);   // baked-in first, then this browser's cache
+  if (cached) { Object.assign(entry, { bpm: cached.bpm, key: cached.key, camelot: cached.camelot, analyzed: true }); return id; }
   try {
     const buf = await fetch(file).then((r) => r.arrayBuffer());
     const audioBuf = await getAudioContext().decodeAudioData(buf.slice(0));
     const res = await analyzeTrack(audioBuf);
     Object.assign(entry, { bpm: res.bpm, key: res.key, camelot: res.camelot, analyzed: true });
+    saveAnalysis(file, res);
   } catch (e) { /* leave unanalyzed — the ANALYZE button can retry */ }
   return id;
 }
@@ -188,6 +194,7 @@ async function analyzeLibraryTrack(id) {
     const audioBuf = await getAudioContext().decodeAudioData(buf.slice(0));
     const res = await analyzeTrack(audioBuf);
     Object.assign(t, { bpm: res.bpm, key: res.key, camelot: res.camelot, analyzed: true });
+    if (!/^blob:/.test(t.file)) saveAnalysis(t.file, res);  // remember stable URLs; skip ephemeral blob: uploads
   } catch (e) { console.warn('analyze failed', e); }
   finally { t.analyzing = false; renderLibrary(); }
 }
@@ -279,6 +286,7 @@ async function analyzeLoadedDeck(deck, id, buffer) {
   try {
     const res = await analyzeTrack(buffer);
     Object.assign(t, { bpm: res.bpm, key: res.key, camelot: res.camelot, analyzed: true });
+    if (!/^blob:/.test(t.file)) saveAnalysis(t.file, res);  // remember stable URLs; skip ephemeral blob: uploads
     const info = getTrackInfo(deck);
     if (info && info.buffer === buffer) {
       info.bpm = res.bpm ?? 120; info.key = res.key; info.camelot = res.camelot;

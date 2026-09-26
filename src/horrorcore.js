@@ -197,7 +197,7 @@ function collectTape(i) {
 }
 function unlockTrack() {
   toast('☠ HIDDEN TRACK UNLOCKED — "BODIES IN THE CRAWLSPACE"');
-  if (track) { track.volume = 0.5; track.play().catch(() => {}); }
+  window.__gp?.resume();   // global player owns music — the enter gesture resumes it (no restart)
   // a glowing reward reel floats up at the crawlspace mouth
   reward = new THREE.Group(); reward.position.set(0, 1.4, RZ1 + 2);
   const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.06, 32), std({ color: 0x0a0a0a, emissive: C(0x6aff8a), emissiveIntensity: 0.4 })); disc.rotation.x = Math.PI / 2; reward.add(disc);

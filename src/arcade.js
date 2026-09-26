@@ -258,7 +258,7 @@ renderer.render(scene, camera);
 
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
-  if (track) { track.volume = 0.45; track.play().catch(() => {}); }
+  window.__gp?.resume();   // global player owns music — the enter gesture resumes it (no restart)
   if (!running) { running = true; clock.start(); frame(); }
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });

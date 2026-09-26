@@ -99,6 +99,7 @@ function reset() {
 const clock = new THREE.Clock();
 function frame() {
   requestAnimationFrame(frame);
+  if (document.hidden) return;   // don't burn frames in a background tab
   const dt = Math.min(clock.getDelta(), 0.05);
   controls.update(dt);
   if (playing) {

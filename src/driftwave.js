@@ -563,7 +563,7 @@ renderer.render(scene, camera); // one frame behind the overlay
 
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
-  if (track) { track.volume = 0.55; track.play().catch(() => {}); }
+  window.__gp?.resume();   // global player owns music — the enter gesture resumes it (no restart)
   ambience.start();
   startDreamTV(); // the DreamOS monitor starts playing the VJ playlist
   if (dwVideo) { dwVideo.play().catch(() => {}); } // VJ billboard clip (self-hosted)

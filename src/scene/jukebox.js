@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import { TRACKS, COVERS, loadManifest } from '../data/tracks.js';
+import { COVERS } from '../data/tracks.js';
 
-// A retro BOOMBOX jukebox that plays the DriftWave Static tape (bundled MP3s).
-// A front screen shows the current album art + track title; tap the deck to
-// play/pause, tap the ◀ / ▶ pads to skip. Auto-advances at track end. HTML5
-// <audio> so it streams (no giant decode); starts on the tap gesture.
+// A retro BOOMBOX jukebox — now a physical CONTROLLER for the site-wide global
+// player (window.__gp) rather than its own second audio stream. Tapping the deck
+// toggles play/pause; the ◀ / ▶ pads skip; the front screen shows the current
+// album art + title from whatever the global player is playing. This keeps ONE
+// continuous song across the whole site instead of a room-local tape.
 //
 //   const jb = buildJukebox({ onNowPlaying });
 //   scene.add(jb.group);   // tap: jb.tap(ray)   loop: jb.update(dt,t)
@@ -41,30 +42,32 @@ export function buildJukebox({ accent = 0x9a64ff, onNowPlaying } = {}) {
   const nextPad = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.34, 0.12), padMat.clone()); nextPad.position.set(1.0, 0.55, 0.37); group.add(nextPad);
   const glow = new THREE.PointLight(accent, 1.4, 9, 2); glow.position.set(0, 1.2, 1.2); group.add(glow);
 
-  // ---- audio ----
-  const audio = new Audio(); audio.preload = 'none'; audio.volume = 0.6; audio.crossOrigin = 'anonymous';
-  let i = 0, playing = false;
+  // ---- controls the site-wide global player (window.__gp) ----
+  const gp = () => window.__gp;
+  let playing = false, curTitle = '', artIdx = 0;
   function setArt(idx) { _texLoader.load(COVERS[idx % COVERS.length], (t) => { t.colorSpace = THREE.SRGBColorSpace; screenMat.map = t; screenMat.color.set(0xffffff); screenMat.needsUpdate = true; }, undefined, () => {}); }
   function drawTitle(txt) {
     ctx.clearRect(0, 0, 512, 64); ctx.fillStyle = 'rgba(6,6,14,0.9)'; ctx.fillRect(0, 0, 512, 64);
     ctx.fillStyle = '#9af7d0'; ctx.font = 'bold 26px ui-monospace, monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText((playing ? '▶ ' : '❚❚ ') + txt, 256, 34, 490); titleTex.needsUpdate = true;
   }
-  function load(idx) { i = (idx + TRACKS.length) % TRACKS.length; audio.src = TRACKS[i].src; setArt(i); drawTitle(TRACKS[i].title); onNowPlaying && onNowPlaying(TRACKS[i].title, playing); }
-  function play() { audio.play().then(() => { playing = true; drawTitle(TRACKS[i].title); onNowPlaying && onNowPlaying(TRACKS[i].title, true); }).catch(() => {}); }
-  function pause() { audio.pause(); playing = false; drawTitle(TRACKS[i].title); onNowPlaying && onNowPlaying(TRACKS[i].title, false); }
-  audio.addEventListener('ended', () => { load(i + 1); play(); });
-  load(0);
-
-  // Swap in the live playlist once it arrives. Re-seat on track 0 only if
-  // nothing has started yet — if the visitor already hit play, leave their
-  // track alone and let the longer list take effect at the next skip.
-  loadManifest().then((changed) => { if (changed && !playing) load(0); }).catch(() => {});
+  // reflect the global player's now-playing on the boombox screen
+  function reflect(title, isPlaying) {
+    if (title && title !== curTitle) { curTitle = title; setArt(++artIdx); }
+    playing = !!isPlaying;
+    drawTitle(curTitle || 'Static Drift');
+    onNowPlaying && onNowPlaying(curTitle, playing);
+  }
+  setArt(0); drawTitle('Static Drift');
+  // subscribe once the global player is up (boot script runs before this module)
+  const g = gp();
+  if (g) { reflect(g.current(), g.isPlaying()); g.onNowPlaying(reflect); }
 
   function tap(ray) {
-    if (ray.intersectObject(nextPad, false)[0]) { load(i + 1); play(); return true; }
-    if (ray.intersectObject(prevPad, false)[0]) { load(i - 1); play(); return true; }
-    if (ray.intersectObject(screen, false)[0] || ray.intersectObject(body, false)[0]) { playing ? pause() : play(); return true; }
+    const g2 = gp(); if (!g2) return false;
+    if (ray.intersectObject(nextPad, false)[0]) { g2.next(); return true; }
+    if (ray.intersectObject(prevPad, false)[0]) { g2.prev(); return true; }
+    if (ray.intersectObject(screen, false)[0] || ray.intersectObject(body, false)[0]) { g2.toggle(); return true; }
     return false;
   }
   function update(dt, t) {
@@ -73,5 +76,5 @@ export function buildJukebox({ accent = 0x9a64ff, onNowPlaying } = {}) {
     frame.material.color.copy(col).multiplyScalar(0.6 + (playing ? 0.4 + Math.sin(t * 8) * 0.3 : 0));
     for (const sp of [prevPad, nextPad]) sp.material.emissiveIntensity = 0.5 + (playing ? 0.3 + Math.sin(t * 4) * 0.2 : 0);
   }
-  return { group, tap, update, next: () => { load(i + 1); play(); }, get playing() { return playing; }, get title() { return TRACKS[i].title; } };
+  return { group, tap, update, next: () => gp()?.next(), get playing() { return playing; }, get title() { return curTitle; } };
 }

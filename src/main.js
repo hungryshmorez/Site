@@ -40,7 +40,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { WalkControls } from './player/controls.js';
 import { Hud } from './ui/hud.js';
 import { createAudioReactor } from './audio/reactor.js';
-import { TRACKS, loadManifest } from './data/tracks.js';
+import { initGlobalPlayer } from './player/globalplayer.js';
 
 // surface otherwise-silent runtime failures (a missing asset, a broken loader
 // chain) in the console instead of leaving the scene just quietly broken
@@ -50,43 +50,22 @@ window.addEventListener('unhandledrejection', (e) => console.error('[fatal]', e.
 const canvas = document.getElementById('scene');
 const body = document.body;
 
+// ---- global music player (shared across every room) ----
+// The festival hosts the same continuous player every room uses: on a first-ever
+// visit it opens on a random track (festival-radio feel); if you arrived from
+// another room it resumes whatever was already playing, at the right spot. The
+// player owns the playlist, persistence, skip and auto-advance; the reactor below
+// just analyses the same <audio> element for the beat pulse.
+const gp = initGlobalPlayer({ transport: true, autoResume: true, randomFirst: true });
+const trackEl = gp.getAudioEl();
+
 // ---- live audio → beat ----
-const reactor = createAudioReactor(document.getElementById('track'));
+const reactor = createAudioReactor(trackEl);
 const muteBtn = document.getElementById('mutebtn');
 if (muteBtn) muteBtn.onclick = () => {
   const m = !reactor.isMuted(); reactor.setMuted(m);
   muteBtn.textContent = m ? '🔇 muted' : '🔊 sound';
 };
-
-// ---- festival radio: a random track each visit, then shuffle on ----
-// Instead of looping one anthem, start on a RANDOM track from the live library
-// each time you join, and move to another when it ends. Falls back to the
-// bundled anthem if the manifest can't be reached.
-const trackEl = document.getElementById('track');
-const nowPlayingEl = document.getElementById('nowplaying');
-let radioIdx = -1, radioActive = false, radioErrs = 0;
-function pickFestivalTrack() {
-  if (!TRACKS.length) return;
-  let i = Math.floor(Math.random() * TRACKS.length);
-  if (TRACKS.length > 1 && i === radioIdx) i = (i + 1) % TRACKS.length;   // no instant repeat
-  radioIdx = i;
-  trackEl.src = TRACKS[i].src;
-  if (nowPlayingEl) nowPlayingEl.textContent = `♪ ${TRACKS[i].title}`;
-}
-trackEl.addEventListener('ended', () => {
-  radioErrs = 0; pickFestivalTrack();
-  if (reactor.isStarted()) trackEl.play().catch(() => {});
-});
-trackEl.addEventListener('error', () => {          // skip a track that won't load (cap retries)
-  if (!radioActive || radioErrs++ > 3) return;
-  pickFestivalTrack();
-  if (reactor.isStarted()) trackEl.play().catch(() => {});
-});
-loadManifest().then((changed) => {
-  if (!changed) return;                            // offline / no CDN → keep the bundled anthem
-  radioActive = true; pickFestivalTrack();
-  if (reactor.isStarted()) trackEl.play().catch(() => {});
-}).catch(() => {});
 
 // ---- reduced motion ----
 let reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -418,14 +397,13 @@ function toggleVJ() {
   // listen → un-mute the stage feed and duck the festival track so you can hear
   // the video that’s on the VJ screens
   const listenBtn = document.getElementById('vjListen');
-  const track = document.getElementById('track');
   if (listenBtn) listenBtn.onclick = () => {
     const listening = vj.toggleListen();
     listenBtn.classList.toggle('on', listening);
     listenBtn.textContent = listening ? '🔊 VJ audio' : '🔇 VJ audio';
-    // fully stop the festival anthem while you listen to the video, so only ONE
+    // fully stop the festival music while you listen to the video, so only ONE
     // thing plays; pausing (not just volume 0) guarantees no bleed-through
-    if (track) { track.muted = listening; if (listening) track.pause(); else { track.volume = 0.5; track.play().catch(() => {}); } }
+    if (listening) gp.pause(); else gp.resume();
     flash(listening ? '🔊 listening to the VJ feed' : '🔇 VJ muted — festival audio back');
   };
 }
@@ -951,7 +929,8 @@ function frame() {
 // ---- start ----
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
-  reactor.start();                       // user gesture → satisfies autoplay policy
+  reactor.start();                       // user gesture → satisfies autoplay policy (analyses + plays)
+  gp.resume();                           // …and make sure the global player is rolling
   if (intro) { controls.enabled = false; intro.start(); }   // cinematic sweep, then hands off at spawn
   if (!running) { running = true; clock.start(); frame(); }
 };

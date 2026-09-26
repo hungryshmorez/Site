@@ -263,7 +263,7 @@ function buildDoors() {
   const defs = [
     { x: -23, label: 'DREAM OS · THEATER', url: 'tv.html', color: 0xff8a2a },
     { x: -17.25, label: 'VJ · STAGE', url: 'vj.html', color: 0x8a5cff },
-    { x: -11.5, label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'dj.html', color: 0x00f3ff },
+    { x: -11.5, label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'greenroom.html', color: 0x00f3ff },
     { x: -5.75, label: 'THE GALLERY', url: 'museum.html', color: 0xe6c04a },
     { x: 0, label: 'ARCADE + KARAOKE', url: 'arcade.html', color: 0xff2bd0 },
     { x: 5.75, label: 'THE BLOCK', sub: 'street games + the racetrack', url: 'gamecity.html', color: 0x39ff14 },
@@ -389,7 +389,7 @@ function buildStreetGateways() {
   const g = new THREE.Group(); scene.add(g);
   const Zc = 40;                 // the spawn line
   const gates = [
-    { x: -30, ry: Math.PI / 2, url: 'dj.html', label: 'THE ROOMS ▸', sub: 'the loop — this way in', color: 0x00f3ff },
+    { x: -30, ry: Math.PI / 2, url: 'greenroom.html', label: 'THE ROOMS ▸', sub: 'the loop — this way in', color: 0x00f3ff },
     { x: 30, ry: -Math.PI / 2, url: 'rooftop.html', label: '◂ THE ROOMS', sub: 'the loop — the other end', color: 0x4ad0c0 },
   ];
   // The arch is authored in door.js's local convention: the opening faces +Z,
@@ -1108,7 +1108,7 @@ renderer.render(scene, camera);
 
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
-  if (track) { track.volume = 0.5; track.play().catch(() => {}); }
+  window.__gp?.resume();   // global player owns music — the enter gesture resumes it (no restart)
   ambience.start();
   runVoiceover();
   if (!running) { running = true; clock.start(); frame(); }

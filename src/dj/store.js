@@ -43,3 +43,26 @@ export async function deleteTrack(id) {
     });
   } catch (e) { /* noop */ }
 }
+
+// ── analysis cache ────────────────────────────────────────────────────────────
+// BPM/key/Camelot are expensive to compute (fetch + decode + analyse the whole
+// file), so once a track is analysed we remember the result KEYED BY ITS URL and
+// skip the work next time. Uploaded tracks already carry their analysis in the
+// IndexedDB record above; this cache is for the site's remote (stable-URL) tracks.
+// A small JSON map in localStorage — analysis is tiny and reads must be sync.
+const ACACHE = 'saucelab-analysis';
+function readCache() { try { return JSON.parse(localStorage.getItem(ACACHE) || '{}') || {}; } catch (e) { return {}; }
+}
+export function getAnalysis(src) {
+  if (!src) return null;
+  const v = readCache()[src];
+  return v && typeof v === 'object' ? v : null;
+}
+export function saveAnalysis(src, data) {
+  if (!src || !data) return;
+  try {
+    const m = readCache();
+    m[src] = { bpm: data.bpm ?? null, key: data.key ?? null, camelot: data.camelot ?? null };
+    localStorage.setItem(ACACHE, JSON.stringify(m));
+  } catch (e) { /* storage full / disabled — recompute next time */ }
+}
