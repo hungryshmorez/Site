@@ -66,11 +66,11 @@ export const DESTINATIONS = [
   },
   {
     id: 'store', name: 'THE MERCH TENT', model: 'stall',
-    role: 'the vendor // commissions', accent: PALETTE.green,
-    pos: [-25, 0, 4], tag: 'high-ticket commissions',
-    url: 'https://www.etsy.com/shop/12matt3r',
-    blurb: 'The vendor working the merch tent. Productized packages — visual identity, audio branding, a web-OS build like this one — with pricing, a tip jar, and an intake + NDA flow. Where the experience converts.',
-    cta: 'Browse commissions',
+    role: 'the vendor // store', accent: PALETTE.green,
+    pos: [-25, 0, 4], tag: 'shirts · caps · merch', newTab: true,
+    url: 'https://www.doesntmatter.store',
+    blurb: 'The vendor working the merch tent — the official 12matt3r store. Shirts, caps and drops. Opens the shop in a new tab so you can keep the festival running behind you.',
+    cta: 'Shop the store',
   },
   // DreamOS TV theater moved into THE COMPLEX (reached from the warehouse hub's
   // IMMERSIVE THEATER portal), so it's no longer a doorway on the festival grounds.

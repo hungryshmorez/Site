@@ -1112,6 +1112,9 @@ function enterDestination(dest) {
       // remember the portal so the return trip doesn't re-trigger it (see suppressPortal)
       try { sessionStorage.setItem('fest.fromPortal', dest.id); } catch (e) {}
       window.location.href = target;
+    } else if (dest.newTab) {
+      // commerce/socials that refuse to be framed (Shopify, etc.) → real new tab
+      window.open(target, '_blank', 'noopener');
     } else openWindow(dest.name, target);
   });
 }
