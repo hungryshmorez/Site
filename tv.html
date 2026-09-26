@@ -84,6 +84,19 @@
     #epPlayer .bar a{font-size:11px;color:var(--cyan);text-decoration:none;white-space:nowrap;letter-spacing:.06em}
     #epPlayer .bar a:hover{color:#fff}
     #epPlayer video{flex:1;width:100%;min-height:0;background:#000}
+    /* ---- shows carousel (shuffle the whole slate) ---- */
+    #showPanel{position:fixed;inset:0;z-index:24;display:none;align-items:center;justify-content:center;
+      padding:clamp(16px,4vw,40px);background:radial-gradient(80% 70% at 50% 40%,rgba(6,10,26,.94),rgba(1,2,8,.98))}
+    #showPanel.open{display:flex}
+    .show-card{display:flex;gap:clamp(16px,3vw,34px);max-width:900px;width:100%;align-items:center;flex-wrap:wrap}
+    .show-poster{flex:0 0 auto;width:min(300px,44vw);aspect-ratio:2/3;border-radius:14px;object-fit:cover;
+      border:1px solid rgba(255,255,255,.14);box-shadow:0 20px 60px -20px rgba(0,243,255,.45);background:#05060d}
+    .show-info{flex:1;min-width:min(100%,240px)}
+    .show-info .g{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--cyan);text-transform:uppercase}
+    .show-info h2{font-family:var(--mono);font-size:clamp(20px,3.2vw,30px);margin:8px 0 10px;letter-spacing:.02em;text-shadow:2px 0 var(--magenta)}
+    .show-info .desc{font-size:13px;color:#c9cede;line-height:1.7;max-height:36vh;overflow:auto}
+    .show-nav{display:flex;gap:8px;align-items:center;margin-top:16px;flex-wrap:wrap}
+    .show-count{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:4px}
   </style>
 </head>
 <body>
@@ -96,6 +109,7 @@
   <button class="hud btn back" id="backBtn">◄ leave the theater</button>
   <div class="hud chan">
     <button class="btn" id="prevCh">◄ ch</button>
+    <button class="btn" id="showBtn">📺 shows</button>
     <button class="btn" id="epBtn">🎬 episodes</button>
     <button class="btn" id="nextCh">ch ►</button>
   </div>
@@ -115,6 +129,24 @@
       <a id="epSrLink" href="#" target="_blank" rel="noopener">Watch on Showrunner ↗</a>
     </div>
     <video id="epVideo" controls playsinline preload="metadata"></video>
+  </div>
+  <!-- shuffle through the whole slate of shows: poster + description -->
+  <div id="showPanel" aria-hidden="true">
+    <button class="btn back" id="showClose" style="position:fixed;top:14px;right:16px;z-index:25">✕ close</button>
+    <div class="show-card">
+      <img class="show-poster" id="showPoster" alt="" />
+      <div class="show-info">
+        <div class="g" id="showGenre"></div>
+        <h2 id="showTitle"></h2>
+        <p class="desc" id="showDesc"></p>
+        <div class="show-nav">
+          <button class="btn" id="showPrev">◄ prev</button>
+          <button class="btn" id="showShuffle">🔀 shuffle</button>
+          <button class="btn" id="showNext">next ►</button>
+          <span class="show-count" id="showCount"></span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="warp" id="warp"></div>

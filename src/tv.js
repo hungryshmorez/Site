@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { createReducedMotion } from './player/motion.js';
 import { SHOW, EPISODES } from './data/episodes.js';
+import { SHOWS } from './data/shows.js';
 
 // DreamOS TV — a walk-in movie theater (its own lightweight page / Lab
 // experiment). A big animated screen on channels, tiered seats, silhouette
@@ -234,7 +235,9 @@ document.getElementById('prevCh').onclick = () => setChannel(chIndex - 1);
 // ---- That Time Again episodes (streaming on Showrunner) ----
 // The theater's marquee show: a poster grid you open from the HUD; picking an
 // episode plays the real cut in a cinema overlay, with a link out to its
-// Showrunner page. Background music ducks while an episode plays.
+// Showrunner page. Background music ducks while an episode plays. On entering the
+// theater a RANDOM episode auto-plays (see the enter handler → startRandomEpisode).
+let startRandomEpisode = () => {};
 {
   const panel = document.getElementById('epPanel');
   const grid = document.getElementById('epGrid');
@@ -275,7 +278,10 @@ document.getElementById('prevCh').onclick = () => setChannel(chIndex - 1);
   function closePlayer() {
     playerEl.classList.remove('open'); playerEl.setAttribute('aria-hidden', 'true');
     video.pause(); video.removeAttribute('src'); video.load();
+    window.__gp?.resume();               // bring the site music back
   }
+  // auto-play a random episode when you first walk into the theater
+  startRandomEpisode = () => { if (EPISODES.length) play(Math.floor(Math.random() * EPISODES.length)); };
 
   grid.querySelectorAll('.ep-card').forEach((card) => {
     const go = (e) => { if (e.target.closest('[data-stop]')) return; play(+card.dataset.i); };
@@ -286,6 +292,41 @@ document.getElementById('prevCh').onclick = () => setChannel(chIndex - 1);
   document.getElementById('epClose').onclick = closePanel;
   document.getElementById('epBack').onclick = closePlayer;
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (playerEl.classList.contains('open')) closePlayer(); else if (panel.classList.contains('open')) closePanel(); } });
+}
+
+// ---- shows carousel (shuffle the whole slate) ----
+// A lobby-style browser: flip/shuffle through every show's poster with its
+// genre + description. Doesn't touch playback — it's the "what's on" board.
+{
+  const panel = document.getElementById('showPanel');
+  const poster = document.getElementById('showPoster');
+  const titleEl = document.getElementById('showTitle');
+  const genreEl = document.getElementById('showGenre');
+  const descEl = document.getElementById('showDesc');
+  const countEl = document.getElementById('showCount');
+  let idx = SHOWS.length ? Math.floor(Math.random() * SHOWS.length) : 0;
+
+  function render() {
+    const s = SHOWS[idx]; if (!s) return;
+    poster.src = s.poster; poster.alt = `${s.title} poster`;
+    titleEl.textContent = s.title;
+    genreEl.textContent = s.genre;
+    descEl.textContent = s.description;
+    descEl.scrollTop = 0;
+    countEl.textContent = `${idx + 1} / ${SHOWS.length}`;
+  }
+  const go = (d) => { idx = ((idx + d) % SHOWS.length + SHOWS.length) % SHOWS.length; render(); };
+  const shuffle = () => { if (SHOWS.length < 2) return; let n; do { n = Math.floor(Math.random() * SHOWS.length); } while (n === idx); idx = n; render(); };
+  const open = () => { render(); panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false'); };
+  const close = () => { panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); };
+
+  document.getElementById('showBtn').onclick = open;
+  document.getElementById('showClose').onclick = close;
+  document.getElementById('showPrev').onclick = () => go(-1);
+  document.getElementById('showNext').onclick = () => go(1);
+  document.getElementById('showShuffle').onclick = shuffle;
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.classList.contains('open')) close(); });
+  render();
 }
 
 // ---- back portal → the Lab ----
@@ -314,6 +355,7 @@ renderer.render(scene, camera); // one frame behind the overlay
 document.getElementById('enterBtn').onclick = () => {
   document.getElementById('start').classList.add('gone');
   if (!running) { running = true; clock.start(); frame(); }
+  startRandomEpisode();   // the show's already on — a random episode plays as you walk in
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
