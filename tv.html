@@ -118,7 +118,7 @@
   <!-- That Time Again with Al & Sloppy — episodes streaming on Showrunner -->
   <div id="epPanel" aria-hidden="true">
     <button class="btn back" id="epClose" style="position:fixed;top:14px;right:16px;z-index:23">✕ close</button>
-    <div class="ep-head"><h2 id="epShowTitle">THAT TIME AGAIN</h2><span class="sub" id="epShowSub"></span></div>
+    <div class="ep-head"><button class="btn" id="epAllBtn" style="display:none">◄ all series</button><h2 id="epShowTitle">THAT TIME AGAIN</h2><span class="sub" id="epShowSub"></span></div>
     <p class="ep-blurb" id="epShowBlurb"></p>
     <div class="ep-grid" id="epGrid"></div>
   </div>
@@ -147,6 +147,7 @@
           <button class="btn" id="showNext">next ►</button>
           <span class="show-count" id="showCount"></span>
         </div>
+        <div class="show-nav"><button class="btn" id="showWatch">🎬 watch episodes</button></div>
       </div>
     </div>
   </div>

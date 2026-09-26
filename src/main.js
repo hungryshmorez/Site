@@ -83,7 +83,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = !isMobile;   // shadows are the big GPU cost on phones — drop them there
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setClearColor(0x05050e, 1);
 
@@ -103,7 +103,14 @@ const fx = createFXPass();
 composer.addPass(fx.pass);
 composer.setPixelRatio(Math.min(devicePixelRatio || 1, maxDPR));
 composer.setSize(innerWidth, innerHeight);
-function renderActive(s, cam) { renderPass.scene = s; renderPass.camera = cam; composer.render(); }
+function renderActive(s, cam) {
+  renderPass.scene = s; renderPass.camera = cam;
+  // Skip the whole post chain when nothing needs it (no bloom, no FX camera mode):
+  // saves the OutputPass + FX fullscreen passes every frame. Bloom is desktop-only,
+  // so on mobile this is a direct single-pass render unless a trippy mode is on.
+  if (useBloom || fx.pass.material.uniforms.uMode.value !== 0) composer.render();
+  else renderer.render(s, cam);
+}
 
 // ---- world ----
 const festival = buildFestival(scene);

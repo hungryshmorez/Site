@@ -239,6 +239,8 @@ document.getElementById('prevCh').onclick = () => setChannel(chIndex - 1);
 // theater a RANDOM episode auto-plays (see the enter handler → startRandomEpisode).
 let startRandomEpisode = () => {};
 let closeEpisodePlayer = () => {};
+let openShowEpisodes = () => {};   // shows carousel → episodes filtered to one series
+const episodeCount = (slug) => EPISODES.filter((e) => e.show === slug).length;
 {
   const panel = document.getElementById('epPanel');
   const grid = document.getElementById('epGrid');
@@ -246,14 +248,17 @@ let closeEpisodePlayer = () => {};
   const video = document.getElementById('epVideo');
   const nowTitle = document.getElementById('epNowTitle');
   const srLink = document.getElementById('epSrLink');
+  const allBtn = document.getElementById('epAllBtn');
+  const titleEl = document.getElementById('epShowTitle');
+  const subEl = document.getElementById('epShowSub');
+  const blurbEl = document.getElementById('epShowBlurb');
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
+  const showMeta = Object.fromEntries(SHOWS.map((s) => [s.slug, s]));
   const seriesCount = new Set(EPISODES.map((e) => e.show)).size;
-  document.getElementById('epShowTitle').textContent = STUDIO.title.toUpperCase();
-  document.getElementById('epShowSub').textContent = `${EPISODES.length} EPISODES · ${seriesCount} SERIES`;
-  document.getElementById('epShowBlurb').textContent = STUDIO.blurb;
+  // keep the ORIGINAL index so play(i) resolves against EPISODES even when filtered
+  const indexed = EPISODES.map((ep, i) => ({ ep, i }));
 
-  grid.innerHTML = EPISODES.map((ep, i) => `
+  const cardHtml = ({ ep, i }) => `
     <div class="ep-card" data-i="${i}" role="button" tabindex="0" aria-label="Play ${esc(ep.showTitle)} — ${esc(ep.title)}">
       <div class="ep-thumb" style="background-image:url('${esc(ep.still || '')}')">
         <span class="play">▶</span>${ep.duration ? `<span class="dur">${esc(ep.duration)}</span>` : ''}
@@ -263,7 +268,36 @@ let closeEpisodePlayer = () => {};
         <div class="m">${esc(ep.showTitle)}${ep.seasonEpisode ? ` · ${esc(ep.seasonEpisode)}` : ''}</div>
       </div>
       <div class="ep-links"><a href="${esc(ep.showrunnerUrl)}" target="_blank" rel="noopener" data-stop>on Showrunner ↗</a></div>
-    </div>`).join('');
+    </div>`;
+
+  function renderGrid(items) {
+    grid.innerHTML = items.map(cardHtml).join('');
+    grid.querySelectorAll('.ep-card').forEach((card) => {
+      const go = (e) => { if (e.target.closest('[data-stop]')) return; play(+card.dataset.i); };
+      card.addEventListener('click', go);
+      card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(e); } });
+    });
+  }
+  function showAll() {
+    titleEl.textContent = STUDIO.title.toUpperCase();
+    subEl.textContent = `${EPISODES.length} EPISODES · ${seriesCount} SERIES`;
+    blurbEl.textContent = STUDIO.blurb;
+    allBtn.style.display = 'none';
+    grid.scrollTop = 0;
+    renderGrid(indexed);
+  }
+  function filterShow(slug) {
+    const items = indexed.filter((x) => x.ep.show === slug);
+    if (!items.length) { showAll(); return; }
+    const meta = showMeta[slug];
+    titleEl.textContent = (meta ? meta.title : items[0].ep.showTitle).toUpperCase();
+    subEl.textContent = `${items.length} EPISODE${items.length === 1 ? '' : 'S'}${meta ? ` · ${meta.genre.toUpperCase()}` : ''}`;
+    blurbEl.textContent = meta ? meta.description : '';
+    allBtn.style.display = '';
+    grid.scrollTop = 0;
+    renderGrid(items);
+  }
+  showAll();
 
   const openPanel = () => { panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false'); };
   const closePanel = () => { panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); };
@@ -284,16 +318,13 @@ let closeEpisodePlayer = () => {};
   }
   // auto-play a random episode when you first walk into the theater
   startRandomEpisode = () => { if (EPISODES.length) play(Math.floor(Math.random() * EPISODES.length)); };
-  // expose to the shows carousel + player-bar shortcuts (defined below)
+  // expose to the shows carousel + player-bar shortcuts
   closeEpisodePlayer = closePlayer;
-  document.getElementById('epToEps').onclick = () => { closePlayer(); openPanel(); };
+  openShowEpisodes = (slug) => { filterShow(slug); openPanel(); };
+  document.getElementById('epToEps').onclick = () => { closePlayer(); showAll(); openPanel(); };
 
-  grid.querySelectorAll('.ep-card').forEach((card) => {
-    const go = (e) => { if (e.target.closest('[data-stop]')) return; play(+card.dataset.i); };
-    card.addEventListener('click', go);
-    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(e); } });
-  });
-  document.getElementById('epBtn').onclick = openPanel;
+  allBtn.onclick = showAll;
+  document.getElementById('epBtn').onclick = () => { showAll(); openPanel(); };
   document.getElementById('epClose').onclick = closePanel;
   document.getElementById('epBack').onclick = closePlayer;
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (playerEl.classList.contains('open')) closePlayer(); else if (panel.classList.contains('open')) closePanel(); } });
@@ -309,6 +340,7 @@ let closeEpisodePlayer = () => {};
   const genreEl = document.getElementById('showGenre');
   const descEl = document.getElementById('showDesc');
   const countEl = document.getElementById('showCount');
+  const watchBtn = document.getElementById('showWatch');
   let idx = SHOWS.length ? Math.floor(Math.random() * SHOWS.length) : 0;
 
   function render() {
@@ -319,6 +351,11 @@ let closeEpisodePlayer = () => {};
     descEl.textContent = s.description;
     descEl.scrollTop = 0;
     countEl.textContent = `${idx + 1} / ${SHOWS.length}`;
+    const n = episodeCount(s.slug);       // gate the watch button on real episodes
+    watchBtn.textContent = n ? `🎬 watch ${n} episode${n === 1 ? '' : 's'}` : 'no episodes yet';
+    watchBtn.disabled = !n;
+    watchBtn.style.opacity = n ? '1' : '.5';
+    watchBtn.style.cursor = n ? 'pointer' : 'default';
   }
   const go = (d) => { idx = ((idx + d) % SHOWS.length + SHOWS.length) % SHOWS.length; render(); };
   const shuffle = () => { if (SHOWS.length < 2) return; let n; do { n = Math.floor(Math.random() * SHOWS.length); } while (n === idx); idx = n; render(); };
@@ -331,6 +368,7 @@ let closeEpisodePlayer = () => {};
   document.getElementById('showPrev').onclick = () => go(-1);
   document.getElementById('showNext').onclick = () => go(1);
   document.getElementById('showShuffle').onclick = shuffle;
+  watchBtn.onclick = () => { const s = SHOWS[idx]; if (s && episodeCount(s.slug)) { close(); openShowEpisodes(s.slug); } };
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && panel.classList.contains('open')) close(); });
   render();
 }
