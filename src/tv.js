@@ -47,7 +47,6 @@ const CHANNELS = [
   { name: 'DEAD SIGNAL', col: 0xff2a4a },
   { name: 'DRIFTWAVE', col: 0xff6ab0 },
 ];
-let chIndex = 0;
 const screenMat = new THREE.ShaderMaterial({
   uniforms: { t: { value: 0 }, ch: { value: 0 } },
   vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
@@ -82,6 +81,19 @@ const bezel = new THREE.Mesh(new THREE.PlaneGeometry(SW + 0.6, SH + 0.6), std({ 
 bezel.position.set(0, SCY, ZB + 0.04); scene.add(bezel);
 const screen = new THREE.Mesh(new THREE.PlaneGeometry(SW, SH), screenMat);
 screen.position.set(0, SCY, ZB + 0.06); scene.add(screen);
+
+// The show plays on the BIG SCREEN inside the room (not a full-screen takeover):
+// a VideoTexture fed by the single episode <video>. The room — seats, crowd,
+// popcorn — stays around you. Tap the screen to pop it full-screen.
+const epVideoEl = document.getElementById('epVideo');
+epVideoEl.crossOrigin = 'anonymous';
+const epTexture = new THREE.VideoTexture(epVideoEl);
+epTexture.colorSpace = THREE.SRGBColorSpace;
+const screenVideoMat = new THREE.MeshBasicMaterial({ map: epTexture, toneMapped: false });
+function setScreenVideo(on) { screen.material = on ? screenVideoMat : screenMat; }
+// wired by the episodes block below; called from the screen tap + prev/next buttons
+let screenTapAction = () => {};
+let stepEpisode = () => {};
 
 // projector wash + ambient
 const screenLight = new THREE.PointLight(CHANNELS[0].col, 3.6, 54, 2);
@@ -212,7 +224,7 @@ canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.r
 function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
-  if (ray.intersectObject(screen, false)[0]) { setChannel(chIndex + 1); return; }
+  if (ray.intersectObject(screen, false)[0]) { screenTapAction(); return; }   // tap the screen → watch full-screen
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) player.target = g;
 }
@@ -220,17 +232,10 @@ addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if (['w', 'a
 addEventListener('keyup', (e) => player.keys.delete(e.key.toLowerCase()));
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); });
 
-// ---- channel UI ----
+// ---- now-playing readout + episode nav (prev/next step through the show) ----
 const chNameEl = document.getElementById('chName'), chNoEl = document.getElementById('chNo');
-function setChannel(i) {
-  chIndex = ((i % CHANNELS.length) + CHANNELS.length) % CHANNELS.length;
-  screenMat.uniforms.ch.value = chIndex;
-  screenLight.color.setHex(CHANNELS[chIndex].col);
-  if (chNameEl) chNameEl.textContent = CHANNELS[chIndex].name;
-  if (chNoEl) chNoEl.textContent = 'CH ' + String(chIndex + 1).padStart(2, '0');
-}
-document.getElementById('nextCh').onclick = () => setChannel(chIndex + 1);
-document.getElementById('prevCh').onclick = () => setChannel(chIndex - 1);
+document.getElementById('nextCh').onclick = () => stepEpisode(1);
+document.getElementById('prevCh').onclick = () => stepEpisode(-1);
 
 // ---- That Time Again episodes (streaming on Showrunner) ----
 // The theater's marquee show: a poster grid you open from the HUD; picking an
@@ -273,7 +278,7 @@ const episodeCount = (slug) => EPISODES.filter((e) => e.show === slug).length;
   function renderGrid(items) {
     grid.innerHTML = items.map(cardHtml).join('');
     grid.querySelectorAll('.ep-card').forEach((card) => {
-      const go = (e) => { if (e.target.closest('[data-stop]')) return; play(+card.dataset.i); };
+      const go = (e) => { if (e.target.closest('[data-stop]')) return; playOnScreen(+card.dataset.i); closePanel(); };
       card.addEventListener('click', go);
       card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(e); } });
     });
@@ -302,32 +307,50 @@ const episodeCount = (slug) => EPISODES.filter((e) => e.show === slug).length;
   const openPanel = () => { panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false'); };
   const closePanel = () => { panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); };
 
-  function play(i) {
-    const ep = EPISODES[i]; if (!ep) return;
-    window.__gp?.pause();                 // duck the site music while the episode plays
-    nowTitle.textContent = `${ep.showTitle} — ${ep.title}`;
-    srLink.href = ep.showrunnerUrl;
+  const epHidden = document.getElementById('epHidden');
+  const epSlot = document.getElementById('epVideoSlot');
+  let onScreenIndex = -1;
+
+  // Play an episode ON THE BIG SCREEN inside the room (the crowd, seats and
+  // popcorn stay around you). The show's audio fills the theater; site music ducks.
+  function playOnScreen(i) {
+    if (!EPISODES.length) return;
+    onScreenIndex = ((i % EPISODES.length) + EPISODES.length) % EPISODES.length;
+    const ep = EPISODES[onScreenIndex];
+    window.__gp?.pause();
     video.src = ep.videoUrl;
+    video.play().catch(() => {});
+    setScreenVideo(true);
+    screenLight.color.setHex(0xbfe0ff);              // neutral projector wash for video
+    srLink.href = ep.showrunnerUrl;
+    nowTitle.textContent = `${ep.showTitle} — ${ep.title}`;
+    if (chNameEl) chNameEl.textContent = ep.showTitle;
+    if (chNoEl) chNoEl.textContent = ep.seasonEpisode || 'NOW PLAYING';
+  }
+  // pop the currently-playing episode into a full-screen view (same <video>, moved)
+  function openFullscreen() {
+    if (onScreenIndex < 0) { playOnScreen(Math.floor(Math.random() * EPISODES.length)); }
+    epSlot.appendChild(video); video.controls = true;
     playerEl.classList.add('open'); playerEl.setAttribute('aria-hidden', 'false');
-    video.play().catch(() => { /* controls are visible — user can hit play */ });
   }
-  function closePlayer() {
+  // leave full-screen — the episode keeps playing on the 3D screen behind you
+  function closeFullscreen() {
     playerEl.classList.remove('open'); playerEl.setAttribute('aria-hidden', 'true');
-    video.pause(); video.removeAttribute('src'); video.load();
-    window.__gp?.resume();               // bring the site music back
+    video.controls = false; epHidden.appendChild(video);
   }
-  // auto-play a random episode when you first walk into the theater
-  startRandomEpisode = () => { if (EPISODES.length) play(Math.floor(Math.random() * EPISODES.length)); };
-  // expose to the shows carousel + player-bar shortcuts
-  closeEpisodePlayer = closePlayer;
+
+  startRandomEpisode = () => playOnScreen(Math.floor(Math.random() * EPISODES.length));
+  stepEpisode = (d) => playOnScreen((onScreenIndex < 0 ? 0 : onScreenIndex) + d);
+  screenTapAction = openFullscreen;                  // tap the big screen → full-screen
+  closeEpisodePlayer = closeFullscreen;
   openShowEpisodes = (slug) => { filterShow(slug); openPanel(); };
-  document.getElementById('epToEps').onclick = () => { closePlayer(); showAll(); openPanel(); };
+  document.getElementById('epToEps').onclick = () => { closeFullscreen(); showAll(); openPanel(); };
 
   allBtn.onclick = showAll;
   document.getElementById('epBtn').onclick = () => { showAll(); openPanel(); };
   document.getElementById('epClose').onclick = closePanel;
-  document.getElementById('epBack').onclick = closePlayer;
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (playerEl.classList.contains('open')) closePlayer(); else if (panel.classList.contains('open')) closePanel(); } });
+  document.getElementById('epBack').onclick = closeFullscreen;
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (playerEl.classList.contains('open')) closeFullscreen(); else if (panel.classList.contains('open')) closePanel(); } });
 }
 
 // ---- shows carousel (shuffle the whole slate) ----
@@ -403,4 +426,4 @@ document.getElementById('enterBtn').onclick = () => {
 };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
-if (import.meta.env.DEV) window.__tv = { player, setChannel, applyCam, scene };
+if (import.meta.env.DEV) window.__tv = { player, applyCam, scene };
