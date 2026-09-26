@@ -1,0 +1,867 @@
+{
+    "owner": "Thomas Ford (Sofakingsadboi)",
+    "bio": "The name is a clever play on words combining \"12\" (completeness/wholeness) and \"matter\" (substance). 12matt3r is a hybrid new media, experience design collective containing digital, analog & AI video artists. They also DJ, Rap, Produce and perform live without genre barriers. Based out of Charlotte, NC.",
+    "trippyCam": {
+        "name": "MY TRIPPY CAM",
+        "url": "https://g5kgb2qtzw2s.space.minimax.io/"
+    },
+    "artistEPKs": {
+        "SOFA KING SAD BOI": "https://sofa-king-sad-boi-official-epk--sofakingsadboi.on.websim.com/",
+        "DRIFTWAVE STATIC": "https://staticcorp--sofakingsadboi.on.websim.com/",
+        "RAVE CHARLES": "https://express.adobe.com/page/s43NCJty7DfTO/",
+        "TANKY JOHNSON": "https://tanky-johnson-epk--sofakingsadboi.on.websim.com/",
+        "SHMOREZ": "https://shmorez-official-epk--sofakingsadboi.on.websim.com/#visuals",
+        "12MATT3R": "https://glitch-portfolio--sofakingsadboi.on.websim.com/"
+    },
+    "categories": [
+        {
+            "id": "artist_profiles",
+            "title": "Artist Profiles",
+            "items": [
+                {
+                    "title": "SOFA KING SAD BOI",
+                    "url": "https://sofa-king-sad-boi-official-epk--sofakingsadboi.on.websim.com/",
+                    "note": "Dubstep, bass music, and genre-defying electronic productions. Embrace the weird.",
+                    "epk": "https://sofa-king-sad-boi-official-epk--sofakingsadboi.on.websim.com/",
+                    "links": [
+                        {"title": "Bandcamp", "url": "https://driftwavestatic.bandcamp.com"},
+                        {"title": "YouTube", "url": "https://www.youtube.com/@sofakingsadboi"},
+                        {"title": "Spotify", "url": "https://open.spotify.com/artist/0gI4DEY1dhARmuER7aPSJY"}
+                    ]
+                },
+                {
+                    "title": "DRIFTWAVE STATIC",
+                    "url": "https://staticcorp--sofakingsadboi.on.websim.com/",
+                    "note": "Slush wave, ambient, vaporwave producer. Dreamy soundscapes and nostalgic vibes.",
+                    "epk": "https://staticcorp--sofakingsadboi.on.websim.com/",
+                    "links": [
+                        {"title": "Bandcamp", "url": "https://driftwavestatic.bandcamp.com"},
+                        {"title": "SoundCloud", "url": "https://soundcloud.com/sofakingsadboi"}
+                    ]
+                },
+                {
+                    "title": "RAVE CHARLES",
+                    "url": "https://express.adobe.com/page/s43NCJty7DfTO/",
+                    "note": "Rapper, DJ, veteran producer. The wise elder of the collective with decades of experience.",
+                    "epk": "https://express.adobe.com/page/s43NCJty7DfTO/",
+                    "links": [
+                        {"title": "Facebook", "url": "https://www.facebook.com/sofakingsadboi/"}
+                    ]
+                },
+                {
+                    "title": "TANKY JOHNSON",
+                    "url": "https://tanky-johnson-epk--sofakingsadboi.on.websim.com/",
+                    "note": "Country music alias. Bringing southern charm to the experimental music collective.",
+                    "epk": "https://tanky-johnson-epk--sofakingsadboi.on.websim.com/",
+                    "links": []
+                },
+                {
+                    "title": "SHMOREZ",
+                    "url": "https://shmorez-official-epk--sofakingsadboi.on.websim.com/#visuals",
+                    "note": "New artist alias with unique visual and sonic identity.",
+                    "epk": "https://shmorez-official-epk--sofakingsadboi.on.websim.com/#visuals",
+                    "links": []
+                },
+                {
+                    "title": "12MATT3R",
+                    "url": "https://glitch-portfolio--sofakingsadboi.on.websim.com/",
+                    "note": "Main umbrella artist - Web stuff, coding, new media experience designer, digital artist. The collective hub.",
+                    "epk": "https://glitch-portfolio--sofakingsadboi.on.websim.com/",
+                    "links": [
+                        {"title": "Instagram", "url": "https://www.instagram.com/12matt3r/"},
+                        {"title": "GitHub", "url": "https://github.com/12Matt3r"}
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "deadnet",
+            "title": "Deadnet - Digital Afterlife",
+            "items": [
+                {
+                    "title": "Deadnet Portal",
+                    "url": "https://deadnet.on.websim.com",
+                    "note": "A unique generated internet experience. Enter the digital afterlife - an ever-evolving network of consciousness, glitched memories, and surreal connections."
+                }
+            ]
+        },
+        {
+            "id": "music",
+            "title": "Music",
+            "items": [
+                {
+                    "title": "Bandcamp - Drift Wave Static",
+                    "url": "https://driftwavestatic.bandcamp.com",
+                    "note": "Full discography, music releases, and merchandise."
+                },
+                {
+                    "title": "YouTube Channel",
+                    "url": "https://www.youtube.com/@sofakingsadboi",
+                    "note": "Music videos, visualizers, and audio-visual experiences."
+                },
+                {
+                    "title": "Viberate Analytics",
+                    "url": "https://www.viberate.com/artist/sofa-king-sad-boi-1",
+                    "note": "Professional music industry data and analytics."
+                },
+                {
+                    "title": "Slushwave Social Club Feature",
+                    "url": "https://slushwavesocialclub.bandcamp.com/track/12matt3r",
+                    "note": "Featured track on SSCC Volume 5."
+                }
+            ]
+        },
+        {
+            "id": "videos",
+            "title": "Videos",
+            "items": [
+                {
+                    "title": "Channel 1: Visual Archives",
+                    "url": "https://www.youtube.com/playlist?list=PLPug0RGgea9rahzI0npdf__ppqbBDOcoQ",
+                    "note": "Curated visual experiences and archives."
+                },
+                {
+                    "title": "Channel 2: Sonic Landscapes",
+                    "url": "https://www.youtube.com/playlist?list=PLPug0RGgea9ryXcvYaNnCIceGt9vGln2B",
+                    "note": "Audio-visual journeys and soundscapes."
+                },
+                {
+                    "title": "Channel 3: Abstract Transmissions",
+                    "url": "https://www.youtube.com/playlist?list=PLPug0RGgea9rLSABSb8-lRrU1fAyrBFyh",
+                    "note": "Experimental and abstract video works."
+                },
+                {
+                    "title": "Channel 4: Performance & Live",
+                    "url": "https://www.youtube.com/playlist?list=PLPug0RGgea9rUXp2NUYo-EcH-xc_92wks",
+                    "note": "Live performances and event footage."
+                }
+            ]
+        },
+        {
+            "id": "dreamos_tv",
+            "title": "DreamOS TV",
+            "items": [
+                {
+                    "title": "DreamOS TV Portal",
+                    "url": "assets/tv/tv.html",
+                    "note": "Interactive CRT television portal featuring curated video channels and playlists. Experience content through a nostalgic digital interface."
+                }
+            ]
+        },
+        {
+            "id": "dreamos",
+            "title": "DreamOS Ecosystem",
+            "items": [
+                {
+                    "title": "New Websim Project",
+                    "url": "https://dreamos-w-a-k-e-u-p.on.websim.com",
+                    "note": "Latest DreamOS activation protocol and system initialization."
+                },
+                {
+                    "title": "Dream OS Interface",
+                    "url": "https://dream-os--sofakingsadboi.on.websim.com",
+                    "note": "A surreal operating system interface featuring Nightmare Journal, Memory Fragments, and WAKE UP protocols."
+                },
+                {
+                    "title": "Main DreamOS Interface",
+                    "url": "https://64fm47unhpzo.space.minimax.io/",
+                    "note": "Central hub for the DreamOS network."
+                },
+                {
+                    "title": "DreamOS Wakeup",
+                    "url": "https://dreamos-wakeup.on.websim.com/",
+                    "note": "Initialization sequence for DreamOS."
+                },
+                {
+                    "title": "Surreal Windows 95/98 Experience",
+                    "url": "https://surreal-windows-95-98-experience-2--sofakingsadboi.on.websim.com/",
+                    "note": "A nostalgic yet surreal desktop experience with Art Room and DreamOS integration."
+                },
+                {
+                    "title": "Inside DreamOS",
+                    "url": "https://insidedreamos.on.websim.com/",
+                    "note": "Deep dive into the system architecture."
+                },
+                {
+                    "title": "TrippyKit",
+                    "url": "https://trippykit.on.websim.com/",
+                    "note": "Visual distortion toolkit."
+                },
+                {
+                    "title": "Minimax Space Game",
+                    "url": "https://r1hespvq2jb8.space.minimax.io",
+                    "note": "Space exploration game within the DreamOS ecosystem."
+                },
+                {
+                    "title": "Chroma Awards and Highlights",
+                    "url": "https://chromashift-hyper-surreal-dreamscape-3--sofakingsadboi.on.websim.com/",
+                    "note": "Hyper-surreal dreamscapes with consciousness-based gameplay and non-linear exploration."
+                }
+            ]
+        },
+        {
+            "id": "wakeup_games",
+            "title": "Wake Up Game Series",
+            "items": [
+                {
+                    "title": "Wake Up Game Experience #1 - DreamOS App",
+                    "url": "https://dreamos-wakeup.on.websim.com",
+                    "note": "The first wake up experience - DreamOS system initialization."
+                },
+                {
+                    "title": "Wake Up Game Experience #2",
+                    "url": "https://wakeup-please.on.websim.com",
+                    "note": "Please wake up. The simulation is calling."
+                },
+                {
+                    "title": "Please Wake Up",
+                    "url": "https://cursor-sharing-with-youtube--sofakingsadboi.on.websim.com",
+                    "note": "Collaborative cursor experience with embedded messages."
+                },
+                {
+                    "title": "Wake Up Dreamworld",
+                    "url": "https://dreams.on.websim.com",
+                    "note": "Explore the infinite layers of dream consciousness."
+                },
+                {
+                    "title": "Wake Up In Between",
+                    "url": "https://wakeup-story.on.websim.com/",
+                    "note": "Narrative journey through liminal spaces."
+                },
+                {
+                    "title": "Wake Up and Drive",
+                    "url": "https://wakeup-drive.on.websim.com/",
+                    "note": "Endless highway through dream landscapes."
+                },
+                {
+                    "title": "Wake Up and Fight",
+                    "url": "https://wakeupfps.on.websim.com",
+                    "note": "First-person shooter set in the DreamOS universe."
+                },
+                {
+                    "title": "Wake Up Again",
+                    "url": "https://wakeup-again.on.websim.com",
+                    "note": "Another layer, another awakening."
+                },
+                {
+                    "title": "Wake Up Theme Park",
+                    "url": "https://wakeup-themepark.on.websim.com",
+                    "note": "Surreal amusement park exploration."
+                },
+                {
+                    "title": "Wake Up 10",
+                    "url": "https://wake-up-10--sofakingsadboi.on.websim.com",
+                    "note": "The tenth iteration of the wake up protocol."
+                },
+                {
+                    "title": "The Liminal Sidewalk",
+                    "url": "https://wakeupordont.on.websim.com",
+                    "note": "Walk the edge between consciousness and dream."
+                },
+                {
+                    "title": "Where the Sidewalk Ends",
+                    "url": "https://where-the-sidewalk-ends-2--sofakingsadboi.on.websim.com",
+                    "note": "Abstract exploration sequel - what lies beyond the path?"
+                },
+                {
+                    "title": "Chilling in My Dreams",
+                    "url": "https://lofi-chillin.on.websim.com",
+                    "note": "Relaxing atmospheric dreamscape experience."
+                },
+                {
+                    "title": "Wake Up and Work",
+                    "url": "https://wakeupwork.on.websim.com",
+                    "note": "Navigate the surreal corporate dream office."
+                },
+                {
+                    "title": "Never Sleep Wake Up (Multiplayer Office)",
+                    "url": "https://multiplayer-office-exploration--sofakingsadboi.on.websim.com",
+                    "note": "Multiplayer office exploration - you're not alone in the dream."
+                },
+                {
+                    "title": "Wake Up Nightmare (Minimalist 3D)",
+                    "url": "https://minimalist-3d-multiplayer-movement-16--sofakingsadboi.on.websim.com",
+                    "note": "Minimalist nightmare realm with multiplayer elements."
+                },
+                {
+                    "title": "Wake Up in the Backrooms",
+                    "url": "https://the-backrooms-found-footage-2--sofakingsadboi.on.websim.com",
+                    "note": "Lost in the infinite yellow hallways of liminal space."
+                },
+                {
+                    "title": "Wake Up Destruction (Bean City)",
+                    "url": "https://bean-city-destruction--sofakingsadboi.on.websim.com",
+                    "note": "Destructive chaos in a surreal bean metropolis."
+                },
+                {
+                    "title": "Wake Up, Cursed Island",
+                    "url": "https://wakeupandrun.on.websim.com/?v=43",
+                    "note": "Survival horror on a mysterious cursed island."
+                }
+            ]
+        },
+        {
+            "id": "games",
+            "title": "Games",
+            "items": [
+                {
+                    "title": "WebSim 500 (Racing)",
+                    "url": "https://websim500.on.websim.com/",
+                    "note": "High-speed racing simulation."
+                },
+                {
+                    "title": "Liminal (3D Terrain)",
+                    "url": "https://3d-terrain-explorer--sofakingsadboi.on.websim.com/",
+                    "note": "3D terrain exploration through liminal spaces."
+                },
+                {
+                    "title": "Chroma Killer",
+                    "url": "https://chroma-award.on.websim.com/",
+                    "note": "Chromatic action game."
+                },
+                {
+                    "title": "Bikini Bottom Anomaly Hunt",
+                    "url": "https://fright-night.on.websim.com/",
+                    "note": "Horror investigation in an underwater world gone wrong."
+                },
+                {
+                    "title": "Cope (3D Survival)",
+                    "url": "https://3d-survival-room--datboodiebreadham.on.websim.com/",
+                    "note": "3D survival room experience."
+                },
+                {
+                    "title": "Crime Scene Response",
+                    "url": "https://crime-scene-response--sofakingsadboi.on.websim.com/",
+                    "note": "Forensic investigation simulator."
+                },
+                {
+                    "title": "Mariah's Rage",
+                    "url": "https://driver-s-seat-simulator-2--sofakingsadboi.on.websim.com/",
+                    "note": "Driver's seat simulator with rage elements."
+                },
+                {
+                    "title": "NPC Therapy",
+                    "url": "https://npctherapy.on.websim.com/",
+                    "note": "Digital counseling sessions for non-player characters."
+                },
+                {
+                    "title": "Beavis and Butthead Commentary",
+                    "url": "https://beavis-butt-head-music-video-commentary--sofakingsadboi.on.websim.com/",
+                    "note": "Pop culture commentary experience."
+                },
+                {
+                    "title": "Trippy Racing",
+                    "url": "https://dreamworld-cattle-racing-game--sofakingsadboi.on.websim.com/",
+                    "note": "Psychedelic racing through surreal dreamscapes."
+                },
+                {
+                    "title": "Steal a WebSim",
+                    "url": "https://steal-a-websim--sofakingsadboi.on.websim.com/",
+                    "note": "Interactive websim heist game."
+                },
+                {
+                    "title": "Sauce Lab DJ Battle",
+                    "url": "https://saucelab-dj.on.websim.com/",
+                    "note": "Music mixing battle interface."
+                },
+                {
+                    "title": "Trippy Kit",
+                    "url": "https://surreal.on.websim.com/",
+                    "note": "Surreal visual experience toolkit."
+                },
+                {
+                    "title": "Trippy Effects Tool",
+                    "url": "https://trippyeffectstool.on.websim.com/",
+                    "note": "Psychedelic effects generator."
+                },
+                {
+                    "title": "Space Game 1",
+                    "url": "https://bl3u85uzn9m5.space.minimax.io/",
+                    "note": "Space exploration game on Minimax."
+                },
+                {
+                    "title": "Spooky Three.js Themepark",
+                    "url": "https://dq2j5ppgh2ea.space.minimax.io/",
+                    "note": "Spooky 3D themepark experience."
+                },
+                {
+                    "title": "Space Game 2",
+                    "url": "https://hr0t0ue7epnr.space.minimax.io/",
+                    "note": "Second space exploration game."
+                },
+                {
+                    "title": "Space Game 3",
+                    "url": "https://xx6j9saqtatm.space.minimax.io/",
+                    "note": "Third space exploration game."
+                },
+                {
+                    "title": "Homer's Big House Adventure",
+                    "url": "https://homer-s-big-house-adventure--sofakingsadboi.on.websim.com/",
+                    "note": "Interactive narrative adventure."
+                },
+                {
+                    "title": "Fortzone Battle Royale",
+                    "url": "https://fortzone-battle-royale--sofakingsadboi.on.websim.com/",
+                    "note": "High-stakes survival combat simulation."
+                },
+                {
+                    "title": "Last Call: The Long Walk Home",
+                    "url": "https://lastcall.on.websim.com/",
+                    "note": "Narrative-driven late night atmospheric journey."
+                },
+                {
+                    "title": "Chicken Jockey Racing",
+                    "url": "https://chickenjockeyracing.on.websim.com/",
+                    "note": "Competitive racing game with barnyard chaos."
+                },
+                {
+                    "title": "Desert Bus Simulator",
+                    "url": "https://desert-bus-simulator--sofakingsadboi.on.websim.com/",
+                    "note": "Endurance driving experience."
+                },
+                {
+                    "title": "Urban Life Simulator",
+                    "url": "https://urban-life-simulator-5--sofakingsadboi.on.websim.com/",
+                    "note": "A complex simulation of city life dynamics and social interactions."
+                },
+                {
+                    "title": "NPC Therapy: Digital Consciousness Clinic",
+                    "url": "https://npc-therapy-digital-consciousness-clinic-4--sofakingsadboi.on.websim.com/",
+                    "note": "Advanced therapeutic protocols for artificial minds."
+                }
+            ]
+        },
+        {
+            "id": "flash_games",
+            "title": "Flash Games Portal",
+            "items": [
+                {
+                    "title": "Flash Games Collection",
+                    "url": "https://flash-games-collection--sofakingsadboi.on.websim.com/",
+                    "note": "Classic flash games reimagined. Hundreds of games across 20+ categories including Action, Adventure, Arcade, Fighting, Puzzle, and more."
+                }
+            ]
+        },
+        {
+            "id": "apps",
+            "title": "Apps & Tools",
+            "items": [
+                {
+                    "title": "Aesthetic Audio (Synthwave Sound Studio)",
+                    "url": "https://synthwave-sound-studio--sofakingsadboi.on.websim.com/",
+                    "note": "Create and explore synthwave soundscapes with real-time audio synthesis."
+                },
+                {
+                    "title": "Ultimate Main DreamOS",
+                    "url": "https://23qvtyf8nwfq.space.minimax.io/",
+                    "note": "The ultimate DreamOS interface and experience."
+                },
+                {
+                    "title": "Roost Desktop",
+                    "url": "https://roost.on.websim.com",
+                    "note": "Minimalist desktop environment and productivity workspace."
+                },
+                {
+                    "title": "Creative Idea",
+                    "url": "https://creative-idea.on.websim.com/",
+                    "note": "Ideation and brainstorming tool."
+                },
+                {
+                    "title": "Fuse 2",
+                    "url": "https://fuse2.on.websim.com/",
+                    "note": "Advanced fusion tool."
+                },
+                {
+                    "title": "SauceLab DJ",
+                    "url": "https://saucelab-dj.on.websim.com/",
+                    "note": "Music mixing and production interface."
+                },
+                {
+                    "title": "TrippyCam",
+                    "url": "https://trippycam.on.websim.com/",
+                    "note": "Psychedelic camera effects processor."
+                },
+                {
+                    "title": "EPK (Electronic Press Kit)",
+                    "url": "https://epk.on.websim.com/?v=11",
+                    "note": "Professional artist portfolio kit."
+                },
+                {
+                    "title": "3D Model Museum",
+                    "url": "https://3d-model-museum--sofakingsadboi.on.websim.com/",
+                    "note": "Virtual gallery of 3D assets."
+                },
+                {
+                    "title": "SauceLab VJ",
+                    "url": "https://saucelabvj.on.websim.com/",
+                    "note": "Visual performance tool."
+                },
+                {
+                    "title": "Microphone Shader Visualizer",
+                    "url": "https://microphone-shader-visualizer--sofakingsadboi.on.websim.com/",
+                    "note": "Audio-reactive visualizer."
+                },
+                {
+                    "title": "Phonk",
+                    "url": "https://phonk.on.websim.com/",
+                    "note": "Music genre exploration tool."
+                },
+                {
+                    "title": "Supervisor AI",
+                    "url": "https://dnhunosjbldz.space.minimax.io/",
+                    "note": "AI assistant and project management tool on Minimax platform."
+                }
+            ]
+        },
+        {
+            "id": "stories",
+            "title": "Stories & Experiences",
+            "items": [
+                {
+                    "title": "Curse of the Monkey Paw",
+                    "url": "https://wish.on.websim.com/",
+                    "note": "Be careful what you wish for - interactive narrative about desire and consequences."
+                },
+                {
+                    "title": "The Ultimate Guide to Thriving",
+                    "url": "https://the-ultimate-guide-to-thriving-in-life--sofakingsadboi.on.websim.com/",
+                    "note": "Self-help satire/guide through absurdist wisdom."
+                },
+                {
+                    "title": "GTA6",
+                    "url": "https://chromashift-hyper-surreal-dreamscape-8--sofakingsadboi.on.websim.com/",
+                    "note": "Hyper-surreal dreamscape narrative experience."
+                },
+                {
+                    "title": "ChrØmaShift",
+                    "url": "https://chromashift-hyper-surreal-dreamscape-9--sofakingsadboi.on.websim.com/",
+                    "note": "Chromatic shifting surreal dreamscape."
+                },
+                {
+                    "title": "The Other Chroma Shift",
+                    "url": "https://chromashift-hyper-surreal-dreamscape--sofakingsadboi.on.websim.com/",
+                    "note": "Original chromashift dreamscape experience."
+                },
+                {
+                    "title": "Back Rooms",
+                    "url": "https://aibackroomssimulator.on.websim.com/",
+                    "note": "AI-powered backrooms simulation."
+                },
+                {
+                    "title": "DreamOS For Him",
+                    "url": "https://dreamos-the-unwaking--sofakingsadboi.on.websim.com/",
+                    "note": "DreamOS experience - The Unwaking edition."
+                },
+                {
+                    "title": "GTA D&D",
+                    "url": "https://gta-6-d-d-edition-2--sofakingsadboi.on.websim.com/",
+                    "note": "GTA meets Dungeons & Dragons - role-playing adaptation."
+                },
+                {
+                    "title": "Discord Horror",
+                    "url": "https://discord-horror.on.websim.com/",
+                    "note": "Horror experience set in a Discord-like interface."
+                },
+                {
+                    "title": "Dream OS For Her",
+                    "url": "https://drea--sofakingsadboi.on.websim.com/",
+                    "note": "DreamOS experience - Her edition."
+                },
+                {
+                    "title": "The Confessional",
+                    "url": "https://confessional.on.websim.com/",
+                    "note": "Personal narrative space for anonymous digital confessions."
+                },
+                {
+                    "title": "Camp",
+                    "url": "https://camp.on.websim.com/",
+                    "note": "Interactive narrative experience."
+                },
+                {
+                    "title": "Websim Story",
+                    "url": "https://websim.com/p/83znmfg4k1bpo28szx8i",
+                    "note": "Meta-narrative about the platform."
+                },
+                {
+                    "title": "GTA 6 D&D Edition",
+                    "url": "https://gta-6-d-d-edition--sofakingsadboi.on.websim.com/",
+                    "note": "Original role-playing game adaptation."
+                },
+                {
+                    "title": "Layer 1: Awakening",
+                    "url": "https://websim.ai/@sofakingsadboi/layer-1-awakening",
+                    "note": "Multi-layered narrative awakening experience."
+                },
+                {
+                    "title": "Project Feature Eye",
+                    "url": "http://12matt3r.univer.se",
+                    "note": "Blog-style content exploring surveillance and observation."
+                },
+                {
+                    "title": "Enter the Void",
+                    "url": "assets/projects/Enter_The_Void/Sheet1.html",
+                    "note": "Hall of Legends - contacts and heroes archive."
+                }
+            ]
+        },
+        {
+            "id": "profiles",
+            "title": "Profiles & Websites",
+            "items": [
+                {
+                    "title": "Sofakingsadboi Main",
+                    "url": "https://sofakingsadboi--sofakingsadboi.on.websim.com/",
+                    "note": "Primary artist portfolio."
+                },
+                {
+                    "title": "Driftwave Static",
+                    "url": "https://driftwavestatic.on.websim.com/",
+                    "note": "Audio-visual project hub."
+                },
+                {
+                    "title": "Slushwave",
+                    "url": "https://slushwave.on.websim.com/",
+                    "note": "Vaporwave aesthetic project."
+                },
+                {
+                    "title": "Artist Bandcamp",
+                    "url": "https://driftwavestatic.bandcamp.com",
+                    "note": "Music releases and merchandise."
+                },
+                {
+                    "title": "YouTube Channel",
+                    "url": "https://www.youtube.com/@sofakingsadboi",
+                    "note": "Video content and visualizers."
+                },
+                {
+                    "title": "Other Works / Social Media",
+                    "url": "http://12matt3r.univer.se",
+                    "note": "Extended portfolio and social hub."
+                },
+                {
+                    "title": "Guns.lol Profile",
+                    "url": "http://guns.lol/sofakingsadboi",
+                    "note": "Social link aggregator."
+                },
+                {
+                    "title": "Full Backstory / History",
+                    "url": "http://12matt3r.univer.se/History",
+                    "note": "Artist biography and lore."
+                },
+                {
+                    "title": "Newgrounds Portal",
+                    "url": "https://newgrounds.on.websim.com",
+                    "note": "Classic internet culture homage and game portal."
+                },
+                {
+                    "title": "Contact Email",
+                    "url": "mailto:driftwavestatic@aol.com",
+                    "note": "Direct communication channel."
+                }
+            ]
+        },
+        {
+            "id": "downloads",
+            "title": "Downloads & Resources",
+            "items": [
+                {
+                    "title": "Artist Infrastructure Kit",
+                    "url": "assets/kits/Artist_Infrastructure/generic_artist_templates/pdfs/00_README_Kit_Index.pdf",
+                    "note": "Essential templates for artist management"
+                },
+                {
+                    "title": "DriftWave Ultimate Kit",
+                    "url": "assets/kits/DriftWave_Ultimate/DriftWave_Ultimate_Kit/README_TRANSMISSION_LOG.md",
+                    "note": "Visual identity, strategy assets, and character profile resources"
+                },
+                {
+                    "title": "GlitchAssist Tool",
+                    "url": "assets/software/GlitchAssist/dd_GlitchAssist/ReadMe.txt",
+                    "note": "Glitch art generation software"
+                },
+                {
+                    "title": "YourSpace Project (View/Experience)",
+                    "url": "assets/projects/YourSpace/README.md",
+                    "note": "Not for download - for viewing/experiencing. Web3 social platform and social media building project."
+                },
+                {
+                    "title": "Enter The Void III",
+                    "url": "assets/projects/Enter_The_Void/Sheet1.html",
+                    "note": "Hall of Legends project files"
+                },
+                {
+                    "title": "Project Feathereye",
+                    "url": "assets/projects/Feathereye/README.txt",
+                    "note": "Pigeon surveillance logs and dossier"
+                }
+            ]
+        },
+        {
+            "id": "social_footprint",
+            "title": "Social Footprint & Aliases",
+            "items": [
+                {
+                    "title": "12matt3r Collective Digital Archive",
+                    "url": "assets/archives/12matt3r_dossier.html",
+                    "note": "Comprehensive history and dossier of the collective."
+                },
+                {
+                    "title": "Rave Charles (Facebook)",
+                    "url": "https://www.facebook.com/sofakingsadboi/",
+                    "note": "Official Facebook Page"
+                },
+                {
+                    "title": "12matt3r (Instagram)",
+                    "url": "https://www.instagram.com/12matt3r/",
+                    "note": "Hybrid new media experience designer"
+                },
+                {
+                    "title": "Sofa King Sad Boi (Slushwave)",
+                    "url": "https://slushwavesocialclub.bandcamp.com/track/12matt3r",
+                    "note": "Featured on SSCC Volume 5"
+                },
+                {
+                    "title": "SadBois Official (Instagram)",
+                    "url": "https://www.instagram.com/sadbois_official/",
+                    "note": "Associated collective/community"
+                }
+            ]
+        },
+        {
+            "id": "social_links",
+            "title": "Social Links",
+            "items": [
+                {
+                    "title": "Roblox",
+                    "url": "https://roblox.com/users/7311598713/profile",
+                    "note": "Main Platforms - Gaming and social experiences"
+                },
+                {
+                    "title": "Twitch",
+                    "url": "https://twitch.tv/12matt3r",
+                    "note": "Main Platforms - Live streaming"
+                },
+                {
+                    "title": "X/Twitter",
+                    "url": "https://x.com/12matt3r",
+                    "note": "Main Platforms - Updates and thoughts"
+                },
+                {
+                    "title": "Instagram (SOFAKINGSADBOI)",
+                    "url": "https://instagram.com/sofakingsadboi",
+                    "note": "Main Platforms - Visual content"
+                },
+                {
+                    "title": "Instagram (12matt3r)",
+                    "url": "https://instagram.com/12matt3r",
+                    "note": "Main Platforms - Personal account"
+                },
+                {
+                    "title": "TikTok",
+                    "url": "https://tiktok.com/@sofakingsadboi",
+                    "note": "Main Platforms - Short form content"
+                },
+                {
+                    "title": "Snapchat",
+                    "url": "https://snapchat.com/add/notravecharles",
+                    "note": "Main Platforms - Stories and snaps"
+                },
+                {
+                    "title": "Discord",
+                    "url": "https://discord.gg/cxMW3aSmKX",
+                    "note": "Main Platforms - Community hub"
+                },
+                {
+                    "title": "GitHub",
+                    "url": "https://github.com/12Matt3r",
+                    "note": "Main Platforms - Code and projects"
+                },
+                {
+                    "title": "Spotify",
+                    "url": "https://open.spotify.com/artist/0gI4DEY1dhARmuER7aPSJY",
+                    "note": "Music Platforms - Stream music"
+                },
+                {
+                    "title": "Apple Music",
+                    "url": "https://music.apple.com/us/artist/sofa-king-sad-boi/1629010074",
+                    "note": "Music Platforms - Stream music"
+                },
+                {
+                    "title": "SoundCloud",
+                    "url": "https://soundcloud.com/sofakingsadboi",
+                    "note": "Music Platforms - Stream and download"
+                },
+                {
+                    "title": "Tidal",
+                    "url": "https://tidal.com/browse/artist/32847341",
+                    "note": "Music Platforms - High quality streaming"
+                },
+                {
+                    "title": "Bandcamp",
+                    "url": "https://driftwavestatic.bandcamp.com/",
+                    "note": "Music Platforms - Music releases and merch"
+                },
+                {
+                    "title": "Viberate",
+                    "url": "http://www.viberate.com/artist/sofa-king-sad-boi-1",
+                    "note": "Music Platforms - Music analytics"
+                },
+                {
+                    "title": "YouTube",
+                    "url": "https://youtube.com/channel/UC7Xif3cBh0qtZH2SgSq_Guw",
+                    "note": "Music Platforms - Videos and visualizers"
+                },
+                {
+                    "title": "Universe (Main)",
+                    "url": "https://12matt3r.univer.se/",
+                    "note": "Portfolio/Art - Main portfolio hub"
+                },
+                {
+                    "title": "Universe History",
+                    "url": "https://12matt3r.univer.se/history",
+                    "note": "Portfolio/Art - Artist biography"
+                },
+                {
+                    "title": "Universe Video Art",
+                    "url": "https://12matt3r.univer.se/video-art",
+                    "note": "Portfolio/Art - Video art collection"
+                },
+                {
+                    "title": "Universe AI Art",
+                    "url": "https://12matt3r.univer.se/ai-art",
+                    "note": "Portfolio/Art - AI-generated artwork"
+                },
+                {
+                    "title": "Guns.lol",
+                    "url": "https://guns.lol/sofakingsadboi",
+                    "note": "Portfolio/Art - Link aggregator"
+                },
+                {
+                    "title": "Drip.haus",
+                    "url": "https://drip.haus/12matt3r",
+                    "note": "Portfolio/Art - Digital art platform"
+                },
+                {
+                    "title": "Glif",
+                    "url": "https://glif.app/@12matt3r",
+                    "note": "Portfolio/Art - Creative AI platform"
+                },
+                {
+                    "title": "OpenSea",
+                    "url": "https://opensea.io/12matt3r",
+                    "note": "Portfolio/Art - NFT marketplace"
+                },
+                {
+                    "title": "Cash App",
+                    "url": "https://cash.app/$12matt3r",
+                    "note": "Support/Payment - Direct support"
+                },
+                {
+                    "title": "PayPal",
+                    "url": "https://paypal.me/sofakingsadboi",
+                    "note": "Support/Payment - Donations and payments"
+                }
+            ]
+        }
+    ]
+}

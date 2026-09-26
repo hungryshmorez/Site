@@ -261,16 +261,20 @@ function buildDoors() {
   const Z = 54, WH = 13, TH = 1.0, HALF = 26, GAP = 2.4, DOORH = 3.9;
   const wm = std({ color: 0x1a1a26, roughness: 0.85, metalness: 0.35, emissive: C(0x14142a), emissiveIntensity: 0.28 });
   const defs = [
-    { x: -23, label: 'DREAM OS · THEATER', url: 'tv.html', color: 0xff8a2a },
-    { x: -17.25, label: 'VJ · STAGE', url: 'vj.html', color: 0x8a5cff },
-    { x: -11.5, label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'greenroom.html', color: 0x00f3ff },
-    { x: -5.75, label: 'THE GALLERY', url: 'museum.html', color: 0xe6c04a },
-    { x: 0, label: 'ARCADE + KARAOKE', url: 'arcade.html', color: 0xff2bd0 },
-    { x: 5.75, label: 'THE BLOCK', sub: 'street games + the racetrack', url: 'gamecity.html', color: 0x39ff14 },
-    { x: 11.5, label: 'OPEN CITY', sub: 'free-roam driving sim', url: 'games/open-city/index.html', color: 0xffd24a },
-    { x: 17.25, label: 'BRIDGE HORROR HOUSE', sub: 'enter if you dare', url: 'games/horror-house/index.html', color: 0xcc1133 },
-    { x: 23, label: 'ROOM BUILDER', url: 'builder.html', color: 0xffffff },
+    { label: 'DREAM OS · THEATER', url: 'tv.html', color: 0xff8a2a },
+    { label: 'VJ · STAGE', url: 'vj.html', color: 0x8a5cff },
+    { label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'greenroom.html', color: 0x00f3ff },
+    { label: 'THE GALLERY', url: 'museum.html', color: 0xe6c04a },
+    { label: 'ARCADE + KARAOKE', url: 'arcade.html', color: 0xff2bd0 },
+    { label: 'THE BLOCK', sub: 'street games + the racetrack', url: 'gamecity.html', color: 0x39ff14 },
+    { label: 'OPEN CITY', sub: 'free-roam driving sim', url: 'games/open-city/index.html', color: 0xffd24a },
+    { label: 'BRIDGE HORROR HOUSE', sub: 'enter if you dare', url: 'games/horror-house/index.html', color: 0xcc1133 },
+    { label: 'LINKS · ALL PROJECTS', sub: 'every alias, app + social', url: 'links.html', color: 0x39ff88 },
+    { label: 'ROOM BUILDER', url: 'builder.html', color: 0xffffff },
   ];
+  // space the doors evenly across the wall so the count can grow without hand-tuning x
+  const SPAN = HALF - 3;
+  defs.forEach((d, i) => { d.x = defs.length > 1 ? -SPAN + (2 * SPAN * i) / (defs.length - 1) : 0; });
   // solid wall segments between/around the door openings (with collision)
   const edges = [-HALF]; for (const d of defs) { edges.push(d.x - GAP, d.x + GAP); } edges.push(HALF);
   for (let i = 0; i < edges.length; i += 2) {

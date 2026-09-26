@@ -40,6 +40,7 @@ export default defineConfig({
         museum: resolve(__dirname, 'museum.html'),
         race: resolve(__dirname, 'race.html'),
         gamecity: resolve(__dirname, 'gamecity.html'),
+        links: resolve(__dirname, 'links.html'),
       },
     },
   },
