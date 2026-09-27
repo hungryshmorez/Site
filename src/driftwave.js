@@ -471,6 +471,9 @@ updaters.push((dt, t) => jukebox.update(dt, t));
 // DriftWave Static's own websim profile — a link kiosk near the plaza
 const profileKiosk = buildLinkKiosk(scene, { pos: [8, 13], rotY: -Math.PI * 0.6, label: 'PROFILE', color: '#ff9ecb' });
 updaters.push((dt, t) => profileKiosk.update(dt, t));
+// portal to the VaporStudio rooms (lifted out of the old studio, now walkable here)
+const vaporKiosk = buildLinkKiosk(scene, { pos: [-8, 13], rotY: Math.PI * 0.6, label: 'VAPOR ROOMS', color: '#8a6cff' });
+updaters.push((dt, t) => vaporKiosk.update(dt, t));
 
 // ---------- layout editor (overhead move / rotate / resize / rename / relink) ----------
 const admin = createAdmin({
@@ -512,6 +515,7 @@ function tap(sx, sy) {
   if (dreamosProxy && ray.intersectObject(dreamosProxy, false)[0]) { openWindow('DREAMOS · VJ PLAYLIST', dreamosRef.url); return; }
   if (deadnetProxy && ray.intersectObject(deadnetProxy, false)[0]) { openWindow('DEADNET — the dead internet', deadnetRef.url); return; }
   if (profileKiosk.tryClick(ray)) { openWindow('DRIFTWAVE STATIC — PROFILE', 'https://driftwavestatic.on.websim.com/'); return; }
+  if (vaporKiosk.tryClick(ray)) { window.location.href = 'vaporrooms.html'; return; }
   if (parkour.portal && ray.intersectObject(parkour.portal, false)[0]) { openWindow('PARKOUR RUN', 'games/parkour/index.html'); return; }
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) { g.x = THREE.MathUtils.clamp(g.x, -27, 27); g.z = THREE.MathUtils.clamp(g.z, -27, 27); controls.walkTo(g); }

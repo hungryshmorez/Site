@@ -16,7 +16,7 @@ const PAGES = [
   'index', 'codex', 'driftwave', 'sofaboi', 'ravecharles', 'studio', 'tanky',
   'shmorez', 'arcade', 'bullethell', 'lab', 'tv', 'dj', 'warehouse', 'lofi',
   'horrorcore', 'abstract', 'rooftop', 'builder', 'hidden', 'vj', 'greenroom',
-  'utility', 'gameroom', 'museum', 'race', 'gamecity', 'links',
+  'utility', 'gameroom', 'museum', 'race', 'gamecity', 'links', 'vaporrooms',
 ];
 const PORT = 4319;
 const BASE = `http://localhost:${PORT}`;

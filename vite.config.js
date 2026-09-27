@@ -41,6 +41,7 @@ export default defineConfig({
         race: resolve(__dirname, 'race.html'),
         gamecity: resolve(__dirname, 'gamecity.html'),
         links: resolve(__dirname, 'links.html'),
+        vaporrooms: resolve(__dirname, 'vaporrooms.html'),
       },
     },
   },
