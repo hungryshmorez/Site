@@ -5,6 +5,8 @@ import { buildCowboy } from './scene/models.js';
 import { buildTailgate as buildBeerPongTable } from './scene/tailgate.js';
 import { createGameZones } from './scene/gamezones.js';
 import { openWindow } from './ui/popup.js';
+import { mountArtistLinks } from './ui/artistlinks.js';
+mountArtistLinks('TANKY JOHNSON');   // in-world EPK + correct links panel
 import { addMotes, addHaze } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';

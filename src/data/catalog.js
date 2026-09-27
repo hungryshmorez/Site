@@ -10,31 +10,23 @@ export const ALIASES = [
     name: 'SOFA KING SAD BOI', genre: 'Dubstep / Weird Bass',
     epk: 'https://sofa-king-sad-boi-official-epk--sofakingsadboi.on.websim.com/',
     links: [
+      { name: 'Bandcamp', url: 'https://driftwavestatic.bandcamp.com' },
+      { name: 'YouTube', url: 'https://www.youtube.com/@sofakingsadboi' },
       { name: 'Spotify', url: 'https://open.spotify.com/artist/0gI4DEY1dhARmuER7aPSJY' },
-      { name: 'Apple Music', url: 'https://music.apple.com/us/artist/sofa-king-sad-boi/1629010074' },
-      { name: 'SoundCloud', url: 'https://soundcloud.com/sofakingsadboi' },
-      { name: 'Tidal', url: 'https://tidal.com/browse/artist/32847341' },
-      { name: 'Instagram', url: 'https://instagram.com/sofakingsadboi' },
-      { name: 'TikTok', url: 'https://tiktok.com/@sofakingsadboi' },
-      { name: 'Guns.lol', url: 'https://guns.lol/sofakingsadboi' },
-      { name: 'Viberate', url: 'http://www.viberate.com/artist/sofa-king-sad-boi-1' },
     ],
   },
   {
     name: 'DRIFTWAVE STATIC', genre: 'Slushwave / Ambient / Vaporwave',
     epk: 'https://staticcorp--sofakingsadboi.on.websim.com/',
     links: [
-      { name: 'VAPORSTUDIO (generative music studio)', url: 'https://bl8ig28k7482x.space.minimax.io' },
-      { name: 'Bandcamp', url: 'https://driftwavestatic.bandcamp.com/' },
-      { name: 'Slushwave Catalog (every band camp)', url: 'https://slushwave.on.websim.com' },
-      { name: 'Booting DreamOS (Global Pattern)', url: 'https://globalpatterndigital.bandcamp.com/album/b-o-o-t-i-n-g-d-r-e-a-m-o-s-b-a-r-d-o-f-a-c-t-o-r-y-r-e-s-e-t' },
-      { name: 'Midnight Vapor Circuit (Freshwater)', url: 'https://freshwatermedia.bandcamp.com/album/midnight-vapor-circuit' },
+      { name: 'Bandcamp', url: 'https://driftwavestatic.bandcamp.com' },
+      { name: 'SoundCloud', url: 'https://soundcloud.com/sofakingsadboi' },
     ],
   },
   {
     name: 'RAVE CHARLES', genre: 'Rapper / DJ',
     epk: 'https://express.adobe.com/page/s43NCJty7DfTO/',
-    links: [{ name: 'Snapchat', url: 'https://snapchat.com/add/notravecharles' }],
+    links: [{ name: 'Facebook', url: 'https://www.facebook.com/sofakingsadboi/' }],
   },
   {
     name: 'TANKY JOHNSON', genre: 'Country',
@@ -48,11 +40,10 @@ export const ALIASES = [
   },
   {
     name: '12MATT3R', genre: 'Glitch Art / Coding',
-    epk: 'https://12matt3r.univer.se/',
+    epk: 'https://glitch-portfolio--sofakingsadboi.on.websim.com/',
     links: [
       { name: 'Instagram', url: 'https://www.instagram.com/12matt3r/' },
       { name: 'GitHub', url: 'https://github.com/12Matt3r' },
-      { name: 'Glitch Portfolio', url: 'https://glitch-portfolio--sofakingsadboi.on.websim.com/' },
     ],
   },
 ];

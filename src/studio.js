@@ -4,6 +4,8 @@ import { WalkControls } from './player/controls.js';
 import { addBaseboard } from './scene/roomkit.js';
 import { buildGlitch } from './scene/models.js';
 import { openWindow } from './ui/popup.js';
+import { mountArtistLinks } from './ui/artistlinks.js';
+mountArtistLinks('12MATT3R');   // in-world EPK + correct links panel
 import { addMotes } from './scene/ambientfx.js';
 import { createAmbience, AMBIENCE } from './audio/ambience.js';
 import { createReducedMotion, wireMuteButton, audioElMute } from './player/motion.js';
