@@ -42,6 +42,12 @@
     .btn:hover{border-color:var(--cyan);color:#fff}
     .back{position:fixed;z-index:9;top:14px;right:16px}
     .chan{bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:8px}
+    /* quick-launch app buttons — a small row above the channel controls */
+    .tvapps{bottom:60px;left:50%;transform:translateX(-50%);display:flex;gap:7px;flex-wrap:wrap;justify-content:center;max-width:94vw}
+    .tvapp{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--ink);cursor:pointer;
+      background:rgba(8,10,20,.62);border:1px solid rgba(255,255,255,.16);border-radius:20px;padding:6px 11px;backdrop-filter:blur(6px)}
+    .tvapp:hover{border-color:var(--cyan);color:#fff;box-shadow:0 0 14px -4px var(--cyan)}
+    @media(max-width:640px){.tvapps{bottom:56px}.tvapp{font-size:10px;padding:5px 9px}}
     .help{bottom:16px;left:16px;font-size:10.5px;color:var(--muted);background:rgba(8,8,18,.5);
       border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:7px 11px;backdrop-filter:blur(6px);line-height:1.6}
     .help kbd{color:var(--ink);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:0 5px}
@@ -117,6 +123,14 @@
     <button class="btn" id="nextCh">next ►</button>
   </div>
   <div class="hud help"><kbd>W A S D</kbd> walk · <kbd>drag</kbd> look · <b>click the screen</b> to watch full-screen · <b>🎬 episodes</b> to pick a show</div>
+
+  <!-- quick-launch app buttons (the original DreamOS TV bottom row) — each pops the real live app -->
+  <div class="hud tvapps">
+    <button class="tvapp" data-url="https://g5kgb2qtzw2s.space.minimax.io/" data-title="MY TRIPPY CAM">✦ trippy cam</button>
+    <button class="tvapp" data-url="https://dream-os--sofakingsadboi.on.websim.com" data-title="DREAM OS">◒ dreamos</button>
+    <button class="tvapp" data-url="https://saucelabvj.on.websim.com/" data-title="SAUCELAB VJ">◈ saucelab vj</button>
+    <button class="tvapp" data-url="https://deadnet.on.websim.com" data-title="DEADNET">☠ deadnet</button>
+  </div>
 
   <!-- That Time Again with Al & Sloppy — episodes streaming on Showrunner -->
   <div id="epPanel" aria-hidden="true">

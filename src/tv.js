@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createReducedMotion } from './player/motion.js';
+import { openWindow } from './ui/popup.js';
 import { STUDIO, EPISODES } from './data/episodes.js';
 import { SHOWS } from './data/shows.js';
 
@@ -236,6 +237,13 @@ addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; cam
 const chNameEl = document.getElementById('chName'), chNoEl = document.getElementById('chNo');
 document.getElementById('nextCh').onclick = () => stepEpisode(1);
 document.getElementById('prevCh').onclick = () => stepEpisode(-1);
+
+// quick-launch app buttons (Trippy Cam, DreamOS, SauceLab VJ, Deadnet) — each
+// pops the real live app in the in-page window (falls back to a new tab if the
+// app refuses to embed).
+for (const b of document.querySelectorAll('.tvapp')) {
+  b.onclick = () => openWindow(b.dataset.title || 'app', b.dataset.url);
+}
 
 // ---- That Time Again episodes (streaming on Showrunner) ----
 // The theater's marquee show: a poster grid you open from the HUD; picking an
