@@ -99,27 +99,11 @@ export function buildMallRoom(scene, onObjectClick = () => {}) {
   floor.position.y = 0;
   root.add(floor);
 
-  // ============ WALLS (the mall corridor) ============
-  // left wall
-  const leftWall = makeBox(0.3, 10, 30, 0x1a1020, { roughness: 0.6 });
-  leftWall.position.set(-10, 5, 0);
-  leftWall.receiveShadow = true;
-  root.add(leftWall);
-  // right wall
-  const rightWall = makeBox(0.3, 10, 30, 0x1a1020, { roughness: 0.6 });
-  rightWall.position.set(10, 5, 0);
-  rightWall.receiveShadow = true;
-  root.add(rightWall);
-  // back wall
-  const backWall = makeBox(20, 10, 0.3, 0x1a1020, { roughness: 0.6 });
-  backWall.position.set(0, 5, -15);
-  root.add(backWall);
-  // ceiling
-  const ceiling = makeBox(20, 0.3, 30, 0x0a0510, { roughness: 0.9 });
-  ceiling.position.set(0, 10, 0);
-  root.add(ceiling);
+  // walls + ceiling removed — the mall is laid open in the VaporStudio plaza.
+  // Neon signs, mannequins and escalators stay where the walls used to be so
+  // the shopfronts still read as an arcade strip you walk between.
 
-  // ============ NEON SHOP SIGNS (along the walls) ============
+  // ============ NEON SHOP SIGNS (where the corridor walls used to be) ============
   const buildNeonSign = (text, color, x, y, z, rotY = 0, width = 4) => {
     const canvas = document.createElement('canvas');
     canvas.width = 1024; canvas.height = 256;

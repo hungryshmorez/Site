@@ -14,21 +14,7 @@ export function buildLofiRoom(scene, onObjectClick = () => {}) {
   floor.position.set(0, -0.1, 0);
   floor.receiveShadow = true;
   root.add(floor);
-  // back wall
-  const backWall = makeBox(14, 6, 0.2, 0x3a2418, { roughness: 0.95 });
-  backWall.position.set(0, 3, -5);
-  backWall.receiveShadow = true;
-  root.add(backWall);
-  // left wall with window hole (we'll just do a wall + window frame overlay)
-  const leftWall = makeBox(0.2, 6, 10, 0x2e1c10, { roughness: 0.95 });
-  leftWall.position.set(-7, 3, 0);
-  leftWall.receiveShadow = true;
-  root.add(leftWall);
-  // right wall
-  const rightWall = makeBox(0.2, 6, 10, 0x2e1c10, { roughness: 0.95 });
-  rightWall.position.set(7, 3, 0);
-  rightWall.receiveShadow = true;
-  root.add(rightWall);
+  // walls removed — the room is laid open in the VaporStudio plaza
 
   // ============ WINDOW (left wall) with rain shader ============
   const windowGroup = new THREE.Group();

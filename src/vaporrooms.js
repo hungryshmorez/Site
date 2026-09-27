@@ -6,11 +6,12 @@ import { buildLofiRoom } from './scene/vapor/scene-lofi.js';
 import { buildMallRoom } from './scene/vapor/scene-mall.js';
 import { buildVaporRoom } from './scene/vapor/scene-vapor.js';
 
-// DRIFTWAVE STATIC — VaporStudio Rooms. The three environments lifted out of the
-// old VaporStudio app (Late-Night Lo-Fi dorm, Vaporwave Temple, Mallsoft Plaza),
-// with all the synth/theory/MIDI "studio" machinery stripped — just the rooms you
-// walk through. Reached from a portal in the DriftWave world. Site music keeps
-// playing (global player, booted from the HTML).
+// DRIFTWAVE STATIC — VaporStudio Plaza. The three environments lifted out of the
+// old VaporStudio app (Late-Night Lo-Fi dorm, Vaporwave Temple, Mallsoft Arcade)
+// with all the synth/theory/MIDI "studio" machinery stripped, their enclosing
+// walls removed, and now laid out side-by-side on ONE open vaporwave grid you
+// walk freely — no room switching, no loading between them. Reached from a portal
+// in the DriftWave world. Site music keeps playing (global player, from the HTML).
 
 window.addEventListener('error', (e) => console.error('[fatal]', e.error || e.message));
 
@@ -29,55 +30,99 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 attachAdaptiveResolution(renderer, isMobile ? 1.5 : 2);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0812);
-const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 200);
+scene.background = new THREE.Color(0x14082a);
+scene.fog = new THREE.Fog(0x14082a, 24, 90);
+const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 300);
 
-// gentle base lighting so the rooms read even before their own accents kick in
+// gentle shared lighting so every zone reads even before its own accents kick in
 scene.add(new THREE.HemisphereLight(0x9a8ad0, 0x140f1a, 0.5));
-scene.add(new THREE.AmbientLight(0x2a2440, 0.4));
+scene.add(new THREE.AmbientLight(0x2a2440, 0.35));
 
-const controls = new WalkControls(camera, { bounds: 6, eye: 1.55, zMin: -4.2 });
-controls.pos.set(0, 1.55, 3.4); controls.yaw = 0;
+// ---- shared vaporwave plaza ground: dark reflective floor + neon grid ----
+{
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(160, 90),
+    new THREE.MeshStandardMaterial({ color: 0x0c0618, roughness: 0.35, metalness: 0.5 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.02;
+  ground.receiveShadow = true;
+  scene.add(ground);
+  const grid = new THREE.GridHelper(160, 80, 0xff4fd8, 0x6a3aa8);
+  grid.position.y = 0.0;
+  grid.material.transparent = true;
+  grid.material.opacity = 0.5;
+  scene.add(grid);
+  // distant gradient sky dome (single, shared — the per-room domes are stripped)
+  const skyMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    depthWrite: false,
+    uniforms: {},
+    vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+    fragmentShader: `
+      varying vec3 vP;
+      void main(){
+        float h = normalize(vP).y * 0.5 + 0.5;
+        vec3 top = vec3(0.06, 0.02, 0.14);
+        vec3 mid = vec3(0.42, 0.10, 0.44);
+        vec3 low = vec3(0.95, 0.35, 0.55);
+        vec3 c = mix(low, mid, smoothstep(0.0, 0.45, h));
+        c = mix(c, top, smoothstep(0.4, 0.9, h));
+        gl_FragColor = vec4(c, 1.0);
+      }
+    `,
+  });
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(140, 32, 16), skyMat));
+}
 
 // The rooms register interactions via scene.addClickable() (the old studio's click
 // layer). We don't want the studio interactions — pass a no-op stub; all geometry
-// is added to each room's own root group, which we add/remove wholesale.
+// lands in each room's own root group, which we position into a plaza zone.
 const stub = { addClickable: () => {} };
-const NAV = {
-  lofi: { bounds: 6, zMin: -4.2, spawn: [0, 1.55, 3.6] },
-  vapor: { bounds: 9, zMin: -9, spawn: [0, 1.55, 7] },
-  mall: { bounds: 9, zMin: -9, spawn: [0, 1.55, 7] },
-};
-const ROOMS = {
-  lofi: { name: 'LATE-NIGHT LO-FI', build: buildLofiRoom },
-  vapor: { name: 'VAPORWAVE TEMPLE', build: buildVaporRoom },
-  mall: { name: 'MALLSOFT PLAZA', build: buildMallRoom },
-};
 
-let current = null, currentKey = null;
-function loadRoom(key) {
-  if (!ROOMS[key]) return;
-  if (current) { if (current.root) scene.remove(current.root); try { current.dispose && current.dispose(); } catch (e) { /* noop */ } current = null; }
-  let r;
-  try { r = ROOMS[key].build(stub); } catch (e) { console.error('room build failed', key, e); return; }
-  if (r.root) scene.add(r.root);
-  if (r.palette) {
-    scene.background = new THREE.Color(r.palette.bg ?? 0x0a0812);
-    scene.fog = new THREE.Fog(r.palette.fog ?? r.palette.bg ?? 0x0a0812, 10, 46);
+// Strip each room's self-contained environment shell so the three don't fight over
+// one space: their giant sky domes (big spheres) and full-bleed grid/tile floors
+// (big planes) are removed, leaving the props to sit on the shared plaza ground.
+function stripShell(root) {
+  const kill = [];
+  root.traverse((o) => {
+    if (!o.isMesh || !o.geometry) return;
+    const p = o.geometry.parameters || {};
+    const isDome = o.geometry.type === 'SphereGeometry' && (p.radius ?? 0) >= 40;
+    const isBigPlane = o.geometry.type === 'PlaneGeometry' && Math.max(p.width ?? 0, p.height ?? 0) >= 40;
+    if (isDome || isBigPlane) kill.push(o);
+  });
+  for (const o of kill) {
+    o.parent?.remove(o);
+    o.geometry.dispose();
+    if (o.material) { Array.isArray(o.material) ? o.material.forEach((m) => m.dispose()) : o.material.dispose(); }
   }
-  const nav = NAV[key] || { bounds: 7, zMin: -6, spawn: [0, 1.55, 4] };
-  controls.bounds = nav.bounds; controls.zMin = nav.zMin;
-  controls.pos.set(nav.spawn[0], nav.spawn[1], nav.spawn[2]); controls.yaw = 0;
-  current = r; currentKey = key;
-  for (const b of document.querySelectorAll('.rtab')) b.classList.toggle('on', b.dataset.room === key);
-  const nm = document.getElementById('roomName'); if (nm) nm.textContent = ROOMS[key].name;
+}
+
+// Three zones laid west→east on the shared grid. Each zone gets a display name, an
+// X offset for its room root, and a viewing spawn (where a teleport tab drops you).
+const ZONES = [
+  { key: 'lofi', name: 'LATE-NIGHT LO-FI', build: buildLofiRoom, x: -26, spawn: [-26, 1.55, 8] },
+  { key: 'vapor', name: 'VAPORWAVE TEMPLE', build: buildVaporRoom, x: 0, spawn: [0, 1.55, 15] },
+  { key: 'mall', name: 'MALLSOFT ARCADE', build: buildMallRoom, x: 28, spawn: [28, 1.55, 14] },
+];
+
+const rooms = [];
+for (const z of ZONES) {
+  let r;
+  try { r = z.build(stub); } catch (e) { console.error('room build failed', z.key, e); continue; }
+  if (!r?.root) continue;
+  stripShell(r.root);
+  r.root.position.x = z.x;
+  scene.add(r.root);
+  rooms.push({ zone: z, room: r });
 }
 
 // ---- Static Corp desk: a lit terminal showing the Static Corp + DriftWave logos.
-// Persists across room switches (added to the scene, not a room root). ----
+// Sits at the plaza entrance (between lo-fi and the temple). ----
 {
   const texLoader = new THREE.TextureLoader();
-  const g = new THREE.Group(); g.position.set(-3.2, 0, -3.4); g.rotation.y = 0.5; scene.add(g);
+  const g = new THREE.Group(); g.position.set(-13, 0, 12); g.rotation.y = 0.5; scene.add(g);
   const desk = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 1.0), new THREE.MeshStandardMaterial({ color: 0x14121c, roughness: 0.5, metalness: 0.4 }));
   desk.position.y = 0.95; g.add(desk);
   for (const lx of [-0.95, 0.95]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.95, 0.8), new THREE.MeshStandardMaterial({ color: 0x0c0a12 })); leg.position.set(lx, 0.47, 0); g.add(leg); }
@@ -90,6 +135,21 @@ function loadRoom(key) {
   scr('vapor/static-corp-logo.png', -0.62);
   scr('vapor/driftwave-logo.png', 0.62);
   const glow = new THREE.PointLight(0x8a6cff, 2.2, 8, 2); glow.position.set(0, 1.7, 0.8); g.add(glow);
+}
+
+// ---- one open field to roam: bounds span all three zones ----
+const controls = new WalkControls(camera, { bounds: 44, eye: 1.55, zMin: -18 });
+controls.pos.set(0, 1.55, 15); controls.yaw = 0;
+
+// nearest-zone label so the HUD always names where you're standing
+function nearestZone() {
+  let best = ZONES[0], bd = Infinity;
+  for (const z of ZONES) { const d = Math.abs(controls.pos.x - z.x); if (d < bd) { bd = d; best = z; } }
+  return best;
+}
+function setLabel(z) {
+  const nm = document.getElementById('roomName'); if (nm) nm.textContent = z.name;
+  for (const b of document.querySelectorAll('.rtab')) b.classList.toggle('on', b.dataset.room === z.key);
 }
 
 // ---- pointer look + tap-to-walk ----
@@ -115,14 +175,23 @@ function tap(sx, sy) {
 
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); });
 
-// ---- UI: room tabs + back + mute ----
-for (const b of document.querySelectorAll('.rtab')) b.onclick = () => loadRoom(b.dataset.room);
+// ---- UI: zone tabs teleport you to that zone, back + mute ----
+for (const b of document.querySelectorAll('.rtab')) {
+  b.onclick = () => {
+    const z = ZONES.find((zz) => zz.key === b.dataset.room);
+    if (!z) return;
+    controls.pos.set(z.spawn[0], z.spawn[1], z.spawn[2]); controls.yaw = 0;
+    if (controls.walkTarget) controls.walkTarget = null;
+    setLabel(z);
+  };
+}
 document.getElementById('backBtn').onclick = () => { window.location.href = 'driftwave.html'; };
 wireMuteButton([]);   // global player composes its own mute onto #mutebtn (created element)
 
 // ---- loop ----
 const clock = new THREE.Clock();
 let running = false;
+let lastLabel = null;
 function frame() {
   requestAnimationFrame(frame);
   if (document.hidden) return;
@@ -131,11 +200,15 @@ function frame() {
   controls.update(dt);
   const beatPulse = Math.pow(1 - ((t * (78 / 60)) % 1), 2.2);            // gentle synthetic 78bpm pulse
   const meters = { kick: beatPulse * 0.7, hat: 0.2 + 0.2 * Math.abs(Math.sin(t * 5)), bass: 0.3 + 0.2 * Math.sin(t * 1.5) };
-  if (current && current.update) { try { current.update(dt, { beatPulse, time: t, meters }); } catch (e) { /* room anim hiccup */ } }
+  for (const { room } of rooms) {
+    if (room.update) { try { room.update(dt, { beatPulse, time: t, meters }); } catch (e) { /* room anim hiccup */ } }
+  }
+  const z = nearestZone();
+  if (z !== lastLabel) { setLabel(z); lastLabel = z; }
   renderer.render(scene, camera);
 }
 
-loadRoom('lofi');
+setLabel(ZONES[1]);   // spawn faces the temple
 controls.update(0);
 renderer.render(scene, camera);
 document.getElementById('enterBtn').onclick = () => {
