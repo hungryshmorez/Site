@@ -40,9 +40,9 @@ footer{border-top:1px solid var(--line);padding:20px 4vw;color:#68757a;font-size
 <section class="hero">
 <div class="kicker">GMI CLOUD · TENCENT HUNYUAN HY IMAGE 3.5 · GAME ART · COMPLETE FORENSIC WORKFLOW</div>
 <h1>CHANNEL 86</h1><h2>Showing My Work</h2>
-<p>The finished 2K board is shown first. Directly underneath it, the evidence follows the actual production timeline from the first Hub build through every prompt, reference upload, GMI request, generated image, review decision, correction, final selection and final composite. <strong>Generated pictures are never hidden behind a click.</strong> Every available output is visible beside the exact prompt and workflow that produced it, and every image itself is clickable for the full-resolution source.</p>
+<p><strong>All six artworks used in the final CHANNEL 86 submission showcase were generated with Tencent Hunyuan HY IMAGE 3.5 through GMI Cloud.</strong> The finished 2K board is shown first. Directly underneath it, the evidence follows the actual production timeline from the first Hub build through every prompt, reference upload, GMI request, generated image, review decision, correction, final selection and final board assembly. Generated pictures are never hidden behind a click: every available output is visible beside the exact prompt and workflow that produced it.</p>
 <a class="showcase" href="https://co1doimgg1v0071f.public.blob.vercel-storage.com/competition-hub/composite/1790630160527-CHANNEL86_Final_Six-Image_Showcase-x4H3Z8dgLJv3j6btunwgWrB93trYfe.jpg" target="_blank" rel="noreferrer"><img src="https://co1doimgg1v0071f.public.blob.vercel-storage.com/competition-hub/composite/1790630160527-CHANNEL86_Final_Six-Image_Showcase-x4H3Z8dgLJv3j6btunwgWrB93trYfe.jpg" alt="CHANNEL 86 final six-image 2K showcase"></a>
-<div class="caption">FINAL 2K SHOWCASE · SIX APPROVED ARTWORKS · DETERMINISTIC COMPOSITE · NO NEW HY IMAGE GENERATION DURING THE COMPOSITE STEP</div>
+<div class="caption">FINAL 2K SHOWCASE · 6/6 SOURCE ARTWORKS GENERATED WITH TENCENT HUNYUAN HY IMAGE 3.5 VIA GMI CLOUD · FINAL BOARD ASSEMBLY PRESERVED THOSE HY IMAGE OUTPUTS WITHOUT RE-GENERATING THEM</div>
 <div class="stats" id="stats"></div>
 <div class="explain">
 <article><b>HOW TO READ THIS PAGE</b><p>Scroll straight down. Each generated image appears at the point it was made in the chronology. The image, <strong>full prompt</strong>, ordered reference images, model, seed, size, GMI request ID, output hash, cost, review state and related workflow events are kept together in the same card.</p></article>
@@ -75,7 +75,8 @@ const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=v=>v==null||v===''?'UNAVAILABLE':String(v);
 const money=v=>v==null?'UNAVAILABLE':'$'+Number(v).toFixed(3);
-const stamp=v=>{if(!v)return 'TIMESTAMP UNAVAILABLE';const d=new Date(v);return isNaN(d)?v:d.toISOString().replace('T',' ').replace('Z',' UTC')};
+const validTime=v=>v && !['n/a','unavailable','none'].includes(String(v).trim().toLowerCase());
+const stamp=v=>{if(!validTime(v))return 'TIMESTAMP UNAVAILABLE';const d=new Date(v);return isNaN(d)?v:d.toISOString().replace('T',' ').replace('Z',' UTC')};
 let D={};
 
 function promptByVersion(v){return (D.prompts||[]).find(p=>p.version===v)}
@@ -115,7 +116,8 @@ function generationItem(g){
  const hubSaved=related.find(e=>e.kind==='HUB_SAVED');
  const statusChange=related.find(e=>e.kind==='STATUS_CHANGE');
  const review=related.find(e=>e.kind==='REVIEW');
- const ts=g.gmi_created_at||submitted?.ts||g.hub_saved_at||success?.ts||null;
+ const composite=g.type==='composite';
+ const ts=validTime(g.gmi_created_at)?g.gmi_created_at:(validTime(submitted?.ts)?submitted.ts:(validTime(g.hub_saved_at)?g.hub_saved_at:(validTime(success?.ts)?success.ts:null)));
  const output=g.output_url||g.gmi_thumbnail_url;
  const current=g.hub_status_current||g.gmi_final_status||g.type||'recorded';
  const evalText=typeof g.evaluations==='string'?g.evaluations:JSON.stringify(g.evaluations??'UNAVAILABLE',null,2);
@@ -123,7 +125,7 @@ function generationItem(g){
  const refHtml=refs.length?refs.map(r=>{
    const u=r.url||r.asset_url||'';
    const name=r.name||r.ref_id||r.asset_id||'reference';
-   return u?'<a class="ref" href="'+esc(u)+'" target="_blank" rel="noreferrer"><img loading="lazy" src="'+esc(u)+'" alt="'+esc(name)+'"><span>'+esc(name)+'</span></a>':'<div class="ref"><span>'+esc(name)+'</span></div>';
+   return u?'<a class="ref" href="'+esc(u)+'" target="_blank" rel="noreferrer"><img loading="lazy" src="'+esc(u)+'" alt="'+esc(name)+'"><span>'+esc(name)+(composite&&r.request_id?'<br><strong>HY IMAGE 3.5 · GMI '+esc(r.request_id)+'</strong>':'')+'</span></a>':'<div class="ref"><span>'+esc(name)+'</span></div>';
  }).join(''):'<div class="noRefs">No reference images were sent with this request.</div>';
 
  const relatedHtml=related.slice().sort((a,b)=>String(a.ts||'').localeCompare(String(b.ts||''))).map(e=>
@@ -140,17 +142,24 @@ function generationItem(g){
          '<a class="outputLink" href="'+esc(output)+'" target="_blank" rel="noreferrer"><img loading="lazy" src="'+esc(output)+'" alt="'+esc(g.title||'generated output')+'"></a>':
          '<div class="noOutput">NO OUTPUT IMAGE — REQUEST FAILED OR OUTPUT UNAVAILABLE</div>')+
        '</div>'+
-       '<div class="promptSide"><div class="promptLabel"><b>EXACT PROMPT USED WITH THIS IMAGE</b><code>'+esc(g.prompt_version||p?.version||'UNAVAILABLE')+'</code></div><pre class="promptText">'+esc(p?.text||'PROMPT TEXT UNAVAILABLE')+'</pre></div>'+
+       '<div class="promptSide">'+(composite?'<div style="border:1px solid #617a35;background:#10150b;padding:11px;margin-bottom:10px;color:var(--lime);font-size:9px;line-height:1.55"><strong>FINAL SUBMISSION ARTWORK SOURCE:</strong> Every one of the six panels in this board is a finished Tencent Hunyuan HY IMAGE 3.5 generation produced through GMI Cloud. The text below documents only how those six HY IMAGE outputs were arranged into the final presentation board.</div>':'')+'<div class="promptLabel"><b>'+(composite?'FINAL BOARD ASSEMBLY INSTRUCTIONS':'EXACT PROMPT USED WITH THIS IMAGE')+'</b><code>'+esc(g.prompt_version||p?.version||'UNAVAILABLE')+'</code></div><pre class="promptText">'+esc(p?.text||'PROMPT TEXT UNAVAILABLE')+'</pre></div>'+
      '</div>'+
      '<div class="workflow"><div class="workflowTitle">WORKFLOW FOR THIS IMAGE</div><div class="flow">'+
+       (composite?
+       '<div class="flowStep"><small>1 · SOURCE ARTWORKS</small><b class="good">6 finished HY IMAGE 3.5 outputs</b></div>'+
+       '<div class="flowStep"><small>2 · SOURCE MODEL</small><b class="good">hy-image-v3.5-preview</b></div>'+
+       '<div class="flowStep"><small>3 · GMI EVIDENCE</small><b class="good">6 source GMI request IDs below</b></div>'+
+       '<div class="flowStep"><small>4 · BOARD ASSEMBLY</small><b>deterministic layout of HY IMAGE outputs</b></div>'+
+       '<div class="flowStep"><small>5 · FINAL STATUS</small><b class="good">FINAL SUBMISSION SHOWCASE</b></div>'
+       :
        '<div class="flowStep"><small>1 · INPUT REFERENCES</small><b>'+esc(g.reference_count??refs.length)+' ordered ref'+((g.reference_count??refs.length)===1?'':'s')+'</b></div>'+
        '<div class="flowStep"><small>2 · PROMPT</small><b>'+esc(g.prompt_version||p?.version||'UNAVAILABLE')+'</b></div>'+
        '<div class="flowStep"><small>3 · GMI REQUEST</small><code>'+esc(g.request_id||'UNAVAILABLE')+'</code></div>'+
        '<div class="flowStep"><small>4 · MODEL RESULT</small><b class="'+(failed?'bad':'good')+'">'+esc(flowStatus)+'</b></div>'+
-       '<div class="flowStep"><small>5 · HUB REVIEW</small><b class="'+(String(current).toLowerCase()==='final'?'good':String(current).toLowerCase()==='reject'?'bad':'')+'">'+esc(current)+'</b></div>'+
+       '<div class="flowStep"><small>5 · HUB REVIEW</small><b class="'+(String(current).toLowerCase()==='final'?'good':String(current).toLowerCase()==='reject'?'bad':'')+'">'+esc(current)+'</b></div>')+
      '</div>'+
      '<div class="metaGrid">'+
-       '<div><small>MODEL</small><b>'+esc(g.gmi_model||g.model||'UNAVAILABLE')+'</b></div>'+
+       '<div><small>'+(composite?'SOURCE ARTWORK MODEL':'MODEL')+'</small><b>'+esc(composite?'Tencent Hunyuan HY IMAGE 3.5 · hy-image-v3.5-preview (all 6 panels)':(g.gmi_model||g.model||'UNAVAILABLE'))+'</b></div>'+
        '<div><small>SIZE</small><b>'+esc(g.size||((g.width&&g.height)?g.width+'×'+g.height:'UNAVAILABLE'))+'</b></div>'+
        '<div><small>SEED</small><b>'+esc(fmt(g.seed))+'</b></div>'+
        '<div><small>COST</small><b>'+esc(g.cost_recorded_usd==null?'UNAVAILABLE':money(g.cost_recorded_usd))+'</b></div>'+
