@@ -11,7 +11,10 @@
 // Regenerate after refreshing the snapshot:  node scripts/gen-products.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const STORE_URL = 'https://www.doesntmatter.store';
+// Live storefront the catalogue was exported from — its product handles resolve
+// today (verified 200). Swap this to https://www.doesntmatter.store once that
+// domain is pointed at the store, then re-run this generator.
+const STORE_URL = 'https://zr1a7y-8x.myshopify.com';
 const src = JSON.parse(readFileSync('scripts/data/shopify-products.json', 'utf8'));
 
 // Group into shelves by product type, tees first (the bulk of the drop).
