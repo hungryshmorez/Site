@@ -270,6 +270,7 @@ function buildDoors() {
     { label: 'OPEN CITY', sub: 'free-roam driving sim', url: 'games/open-city/index.html', color: 0xffd24a },
     { label: 'BRIDGE HORROR HOUSE', sub: 'enter if you dare', url: 'games/horror-house/index.html', color: 0xcc1133 },
     { label: 'LINKS · ALL PROJECTS', sub: 'every alias, app + social', url: 'links.html', color: 0x39ff88 },
+    { label: 'THE BOARD', sub: 'blog + message board', url: 'blog.html', color: 0xff5ec7 },
     { label: 'ROOM BUILDER', url: 'builder.html', color: 0xffffff },
   ];
   // space the doors evenly across the wall so the count can grow without hand-tuning x

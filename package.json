@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/gen-posts.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint src",
@@ -19,6 +20,8 @@
   "devDependencies": {
     "eslint": "^9.39.5",
     "globals": "^17.12.0",
+    "mammoth": "^1.13.0",
+    "marked": "^18.0.14",
     "playwright": "^1.63.0",
     "vite": "^5.4.0"
   },
