@@ -12,7 +12,7 @@ header b{margin-right:auto;font-size:11px;letter-spacing:.13em}header a{text-dec
 main{max-width:1440px;margin:auto;padding:30px 22px 110px}.kicker{font-size:10px;color:var(--orange);letter-spacing:.2em;font-weight:900}.hero h1{font-size:clamp(58px,10vw,126px);line-height:.78;letter-spacing:-.06em;margin:18px 0 10px}.hero h2{font-size:clamp(22px,3vw,38px);color:var(--orange);margin:0 0 12px}.hero>p{max-width:980px;color:#a5afb3;line-height:1.6}
 .showcase{display:block;margin-top:24px;background:#020304;border:1px solid #4c3731;padding:7px}.showcase img{display:block;width:100%;height:auto}.caption{border:1px solid #312b29;border-top:0;padding:12px 14px;color:#8d999e;font-size:9px}
 .stats{display:grid;grid-template-columns:repeat(6,1fr);margin:22px 0;border:1px solid var(--line)}.stats>div{padding:14px;border-right:1px solid var(--line)}.stats>div:last-child{border:0}.stats b{display:block;font-size:25px;color:#f3dfca}.stats span{display:block;font-size:7px;color:var(--orange);letter-spacing:.12em}.stats small{display:block;color:#68757b;font-size:7px;margin-top:4px}
-.explain{display:grid;grid-template-columns:1.35fr .65fr;gap:10px;margin:18px 0 40px}.explain article{border:1px solid var(--line);background:#090d0f;padding:16px}.explain b{font-size:9px;color:var(--cyan);letter-spacing:.14em}.explain p{font-size:11px;line-height:1.6;color:#a2adb1}.explain strong{color:var(--lime)}
+.explain{display:grid;grid-template-columns:1.15fr .85fr .85fr;gap:10px;margin:18px 0 40px}.explain article{border:1px solid var(--line);background:#090d0f;padding:16px}.explain b{font-size:9px;color:var(--cyan);letter-spacing:.14em}.explain p{font-size:11px;line-height:1.6;color:#a2adb1}.explain strong{color:var(--lime)}
 .sectionHead{display:flex;justify-content:space-between;gap:20px;align-items:end;border-bottom:1px solid var(--line);padding-bottom:10px;margin:38px 0 18px}.sectionHead span{font-size:8px;color:var(--cyan);letter-spacing:.16em}.sectionHead h2{margin:3px 0 0;font-size:clamp(24px,4vw,44px)}.sectionHead small{color:#6c7980;font-size:8px;max-width:420px;text-align:right;line-height:1.5}
 .phaseNav{display:flex;gap:7px;overflow:auto;padding-bottom:9px;margin-bottom:22px;position:sticky;top:48px;z-index:40;background:#07090bea;backdrop-filter:blur(10px)}.phaseNav button{white-space:nowrap;background:#090d10;border:1px solid #303940;color:#99a5aa;padding:8px 10px;font-size:8px;cursor:pointer}.phaseNav button:hover{border-color:var(--lime);color:var(--lime)}
 .timeline{position:relative}.timeline:before{content:"";position:absolute;left:21px;top:0;bottom:0;width:1px;background:linear-gradient(var(--cyan),#2b3b42 30%,#4c2f36 70%,var(--orange))}
@@ -46,6 +46,7 @@ footer{border-top:1px solid var(--line);padding:20px 4vw;color:#68757a;font-size
 <div class="stats" id="stats"></div>
 <div class="explain">
 <article><b>HOW TO READ THIS PAGE</b><p>Scroll straight down. Each generated image appears at the point it was made in the chronology. The image, <strong>full prompt</strong>, ordered reference images, model, seed, size, GMI request ID, output hash, cost, review state and related workflow events are kept together in the same card.</p></article>
+<article><b>REFERENCE ART CREDIT</b><p>The original CHANNEL 86 character and world reference images were created with help from <strong>Showrunner</strong>. Those references were then used as visual inputs during the documented GMI Cloud / Tencent Hunyuan HY IMAGE 3.5 workflow.</p></article>
 <article><b>COMPLETE TIMELINE</b><p><strong id="eventTotal">387 preserved events</strong> are represented below. Generation-related events are grouped under their actual image so the evidence is readable without separating the prompt from the picture.</p></article>
 </div>
 </section>
@@ -56,6 +57,10 @@ footer{border-top:1px solid var(--line);padding:20px 4vw;color:#68757a;font-size
 <div class="timeline" id="timelineFeed"></div>
 </section>
 
+<section class="archiveSection">
+<div class="sectionHead"><div><span>CREDITS</span><h2>Reference Image Attribution</h2></div><small>Credits are shown on the presentation layer; the preserved forensic manifest remains unchanged.</small></div>
+<div class="panel"><p style="margin:0;color:#a5afb3;font-size:10px;line-height:1.65"><strong style="color:var(--orange)">Showrunner</strong> — helped create the original CHANNEL 86 character and world reference images used as visual inputs. <strong style="color:var(--lime)">Tencent Hunyuan HY IMAGE 3.5 via GMI Cloud</strong> — generated the documented competition artwork outputs and generated-reference images.</p></div>
+</section>
 <section id="archive" class="archiveSection">
 <div class="sectionHead"><div><span>SOURCE OF TRUTH</span><h2>Complete Raw Evidence</h2></div><small>The timeline above is a readable rendering of this normalized forensic manifest.</small></div>
 <div class="downloads"><a class="primary" href="./channel86-workflow-manifest.json">DOWNLOAD FULL FORENSIC MANIFEST JSON</a><a href="https://github.com/hungryshmorez/AI-Competition-Hub" target="_blank">GITHUB SOURCE</a><a href="https://ai-competition-hub-beta.vercel.app/" target="_blank">OPEN PRODUCTION HUB</a></div>
@@ -82,6 +87,7 @@ let D={};
 function promptByVersion(v){return (D.prompts||[]).find(p=>p.version===v)}
 function promptForGen(g){return (D.prompts||[]).find(p=>p.prompt_id===g.prompt_id)||promptByVersion(g.prompt_version)}
 function refFor(x){return (D.references||[]).find(r=>r.ref_id===x?.ref_id||r.asset_id===x?.asset_id||r.url===x?.url||r.name===x?.name)}
+function refCredit(r){return r && (r.kind==='character'||r.kind==='world') ? 'Original reference image · created with help from Showrunner' : (r?.kind==='generation' ? 'Generated reference · Tencent Hunyuan HY IMAGE 3.5 via GMI Cloud' : '')}
 function statusClass(g){const s=(String(g.hub_status_current||'')+' '+String(g.gmi_final_status||'')).toLowerCase();if(s.includes('final'))return 'final';if(s.includes('reject'))return 'reject';if(s.includes('failed'))return 'failed';return ''}
 function isFinal(g){return !!g.final_six_role||String(g.hub_status_current||'').toLowerCase()==='final'}
 
@@ -125,7 +131,7 @@ function generationItem(g){
  const refHtml=refs.length?refs.map(r=>{
    const u=r.url||r.asset_url||'';
    const name=r.name||r.ref_id||r.asset_id||'reference';
-   return u?'<a class="ref" href="'+esc(u)+'" target="_blank" rel="noreferrer"><img loading="lazy" src="'+esc(u)+'" alt="'+esc(name)+'"><span>'+esc(name)+(composite&&r.request_id?'<br><strong>HY IMAGE 3.5 · GMI '+esc(r.request_id)+'</strong>':'')+'</span></a>':'<div class="ref"><span>'+esc(name)+'</span></div>';
+   return u?'<a class="ref" href="'+esc(u)+'" target="_blank" rel="noreferrer"><img loading="lazy" src="'+esc(u)+'" alt="'+esc(name)+'"><span>'+esc(name)+(composite&&r.request_id?'<br><strong>HY IMAGE 3.5 · GMI '+esc(r.request_id)+'</strong>':'')+(refCredit(r)?'<br><em style="color:#ff9d57;font-style:normal">'+esc(refCredit(r))+'</em>':'')+'</span></a>':'<div class="ref"><span>'+esc(name)+(refCredit(r)?'<br><em style="color:#ff9d57;font-style:normal">'+esc(refCredit(r))+'</em>':'')+'</span></div>';
  }).join(''):'<div class="noRefs">No reference images were sent with this request.</div>';
 
  const relatedHtml=related.slice().sort((a,b)=>String(a.ts||'').localeCompare(String(b.ts||''))).map(e=>
@@ -184,7 +190,7 @@ function standaloneEvent(e){
  if(e.kind==='REFERENCE_UPLOAD'&&Array.isArray(e.names)){
    const refs=(D.references||[]).filter(r=>e.names.includes(r.name));
    if(refs.length){
-     extra+='<div class="eventRefs">'+refs.map(r=>r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noreferrer"><img loading="lazy" src="'+esc(r.url)+'" alt="'+esc(r.name)+'"><span>'+esc(r.name)+'</span></a>':'').join('')+'</div>';
+     extra+='<div class="eventRefs">'+refs.map(r=>r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noreferrer"><img loading="lazy" src="'+esc(r.url)+'" alt="'+esc(r.name)+'"><span>'+esc(r.name)+(refCredit(r)?'<br><em style="color:#ff9d57;font-style:normal">'+esc(refCredit(r))+'</em>':'')+'</span></a>':'').join('')+'</div>';
    }
  }
  if(e.kind==='COMPOSITE_RECORDED'||e.kind==='COMPOSITE_UPLOAD'){
