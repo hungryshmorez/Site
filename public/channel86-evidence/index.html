@@ -10,7 +10,7 @@
 header{position:sticky;top:0;z-index:50;background:#07090bf2;backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:10px 3vw;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 header b{margin-right:auto;font-size:11px;letter-spacing:.13em}header a{text-decoration:none;border:1px solid #303940;padding:7px 9px;font-size:8px;color:#9aa6ab;letter-spacing:.07em}
 main{max-width:1440px;margin:auto;padding:30px 22px 110px}.kicker{font-size:10px;color:var(--orange);letter-spacing:.2em;font-weight:900}.hero h1{font-size:clamp(58px,10vw,126px);line-height:.78;letter-spacing:-.06em;margin:18px 0 10px}.hero h2{font-size:clamp(22px,3vw,38px);color:var(--orange);margin:0 0 12px}.hero>p{max-width:980px;color:#a5afb3;line-height:1.6}
-.showcase{display:block;margin-top:24px;background:#020304;border:1px solid #4c3731;padding:7px}.showcase img{display:block;width:100%;height:auto}.caption{border:1px solid #312b29;border-top:0;padding:12px 14px;color:#8d999e;font-size:9px}
+.submissionBlock{margin:28px 0 34px;border:1px solid #46552e;background:linear-gradient(180deg,#10150b,#080c0e);padding:16px}.submissionEyebrow{font-size:8px;letter-spacing:.16em;color:var(--lime);font-weight:900;margin-bottom:8px}.submissionHeading{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:14px}.submissionHeading h3,.combinedTitle{font-size:clamp(22px,3vw,38px);margin:0 0 6px}.submissionHeading p,.combinedCopy{margin:0;color:#98a5aa;font-size:10px;line-height:1.6;max-width:930px}.submissionBadge{flex:0 0 auto;text-align:center;border:1px solid #607738;padding:10px 14px;color:var(--lime);font-weight:900;font-size:20px}.submissionBadge small{font-size:7px;letter-spacing:.12em}.submissionGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.submissionCard{border:1px solid #303b40;background:#06090a;overflow:hidden}.submissionCard a{display:block;position:relative;text-decoration:none}.submissionCard img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#020304}.submissionCard a:after{content:"OPEN ORIGINAL ↗";position:absolute;right:7px;bottom:7px;padding:5px 6px;background:#050708dc;border:1px solid #3a464c;color:#d1d7da;font-size:6px;letter-spacing:.08em}.submissionInfo{padding:9px}.submissionInfo small,.submissionInfo b,.submissionInfo code{display:block}.submissionInfo small{font-size:7px;color:var(--orange);letter-spacing:.08em}.submissionInfo b{font-size:9px;margin:4px 0}.submissionInfo code{font-size:6.5px;color:#68777c;word-break:break-all}.combinedBlock{margin:0 0 26px}.combinedBlock .submissionEyebrow{color:var(--cyan)}.showcase{display:block;margin-top:14px;background:#020304;border:1px solid #4c3731;padding:7px}.showcase img{display:block;width:100%;height:auto}.caption{border:1px solid #312b29;border-top:0;padding:12px 14px;color:#8d999e;font-size:9px}
 .stats{display:grid;grid-template-columns:repeat(6,1fr);margin:22px 0;border:1px solid var(--line)}.stats>div{padding:14px;border-right:1px solid var(--line)}.stats>div:last-child{border:0}.stats b{display:block;font-size:25px;color:#f3dfca}.stats span{display:block;font-size:7px;color:var(--orange);letter-spacing:.12em}.stats small{display:block;color:#68757b;font-size:7px;margin-top:4px}
 .explain{display:grid;grid-template-columns:1.15fr .85fr .85fr;gap:10px;margin:18px 0 40px}.explain article{border:1px solid var(--line);background:#090d0f;padding:16px}.explain b{font-size:9px;color:var(--cyan);letter-spacing:.14em}.explain p{font-size:11px;line-height:1.6;color:#a2adb1}.explain strong{color:var(--lime)}
 .sectionHead{display:flex;justify-content:space-between;gap:20px;align-items:end;border-bottom:1px solid var(--line);padding-bottom:10px;margin:38px 0 18px}.sectionHead span{font-size:8px;color:var(--cyan);letter-spacing:.16em}.sectionHead h2{margin:3px 0 0;font-size:clamp(24px,4vw,44px)}.sectionHead small{color:#6c7980;font-size:8px;max-width:420px;text-align:right;line-height:1.5}
@@ -30,19 +30,30 @@ main{max-width:1440px;margin:auto;padding:30px 22px 110px}.kicker{font-size:10px
 .archiveSection{margin-top:52px}.downloads{display:flex;gap:7px;flex-wrap:wrap}.downloads a{text-decoration:none;border:1px solid #303b41;padding:10px 12px;font-size:8px;color:#a7b2b6}.downloads .primary{background:var(--lime);border-color:var(--lime);color:#071014;font-weight:900}
 .raw{white-space:pre-wrap;overflow:auto;max-height:700px;background:#040607;border:1px solid #20272b;padding:12px;color:#718087;font:8px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}.hubBox{border:1px solid #39434a;background:#080b0d}.hubBar{padding:10px 12px;border-bottom:1px solid #39434a;display:flex;justify-content:space-between;gap:10px}.hubBar b{font-size:8px;color:var(--lime);letter-spacing:.12em}.hubBar a{font-size:8px;color:var(--cyan)}iframe{display:block;width:100%;height:780px;border:0;background:#080a0c}.fine{font-size:8px;color:#69767b;line-height:1.55}.error{color:#ff7e78}
 footer{border-top:1px solid var(--line);padding:20px 4vw;color:#68757a;font-size:8px;letter-spacing:.08em}
-@media(max-width:1000px){.stats{grid-template-columns:repeat(3,1fr)}.genMain{grid-template-columns:1fr}.imageSide{border-right:0;border-bottom:1px solid #30383d}.flow{grid-template-columns:1fr 1fr 1fr}.metaGrid{grid-template-columns:1fr 1fr}.eventRefs{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:700px){main{padding:20px 11px 70px}.stats{grid-template-columns:1fr 1fr}.explain{grid-template-columns:1fr}.sectionHead{align-items:flex-start;flex-direction:column}.sectionHead small{text-align:left}.timeline:before{left:10px}.timelineItem{padding-left:30px}.dot{left:3px}.genHeader{flex-direction:column}.flow{grid-template-columns:1fr 1fr}.refs{grid-template-columns:1fr 1fr}.relatedEvent{grid-template-columns:1fr;gap:2px}.eventRefs{grid-template-columns:repeat(3,1fr)}iframe{height:620px}}
+@media(max-width:1000px){.submissionGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(3,1fr)}.genMain{grid-template-columns:1fr}.imageSide{border-right:0;border-bottom:1px solid #30383d}.flow{grid-template-columns:1fr 1fr 1fr}.metaGrid{grid-template-columns:1fr 1fr}.eventRefs{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:700px){main{padding:20px 11px 70px}.submissionGrid{grid-template-columns:1fr}.submissionHeading{align-items:flex-start;flex-direction:column}.stats{grid-template-columns:1fr 1fr}.explain{grid-template-columns:1fr}.sectionHead{align-items:flex-start;flex-direction:column}.sectionHead small{text-align:left}.timeline:before{left:10px}.timelineItem{padding-left:30px}.dot{left:3px}.genHeader{flex-direction:column}.flow{grid-template-columns:1fr 1fr}.refs{grid-template-columns:1fr 1fr}.relatedEvent{grid-template-columns:1fr;gap:2px}.eventRefs{grid-template-columns:repeat(3,1fr)}iframe{height:620px}}
 </style>
 </head>
 <body>
-<header><b>CHANNEL 86 // SHOWING MY WORK</b><a href="#show-your-work">TIMELINE</a><a href="#archive">RAW EVIDENCE</a><a href="#hub">LIVE HUB</a></header>
+<header><b>CHANNEL 86 // SHOWING MY WORK</b><a href="#submission">SUBMISSION SET</a><a href="#show-your-work">TIMELINE</a><a href="#archive">RAW EVIDENCE</a><a href="#hub">LIVE HUB</a></header>
 <main>
 <section class="hero">
 <div class="kicker">GMI CLOUD · TENCENT HUNYUAN HY IMAGE 3.5 · GAME ART · COMPLETE FORENSIC WORKFLOW</div>
 <h1>CHANNEL 86</h1><h2>Showing My Work</h2>
-<p><strong>All six source artworks shown in the CHANNEL 86 evidence board were generated with Tencent Hunyuan HY IMAGE 3.5 through GMI Cloud.</strong> The 2K board at the top is an evidence overview only — it is not being presented as the contest submission image. The actual contest submission image must itself be produced by HY IMAGE 3.5 through GMI Cloud and have its own model request record. Directly underneath, the evidence follows the production timeline through every prompt, reference upload, GMI request, generated image, review decision and correction.</p>
-<a class="showcase" href="https://co1doimgg1v0071f.public.blob.vercel-storage.com/competition-hub/composite/1790630160527-CHANNEL86_Final_Six-Image_Showcase-x4H3Z8dgLJv3j6btunwgWrB93trYfe.jpg" target="_blank" rel="noreferrer"><img src="https://co1doimgg1v0071f.public.blob.vercel-storage.com/competition-hub/composite/1790630160527-CHANNEL86_Final_Six-Image_Showcase-x4H3Z8dgLJv3j6btunwgWrB93trYfe.jpg" alt="CHANNEL 86 final six-image 2K showcase"></a>
-<div class="caption">2K EVIDENCE OVERVIEW BOARD · 6/6 SOURCE ARTWORKS GENERATED WITH TENCENT HUNYUAN HY IMAGE 3.5 VIA GMI CLOUD · THIS COMPOSITE IS EVIDENCE/PRESENTATION MATERIAL, NOT THE CONTEST SUBMISSION IMAGE</div>
+<p><strong>The official CHANNEL 86 submission is the six-image set shown directly below.</strong> Every image in the set was individually generated with Tencent Hunyuan HY IMAGE 3.5 through GMI Cloud and retains its own prompt, model record, seed, references and GMI request ID. The combined six-in-one 2K board is also preserved on this page as the presentation overview we created from those same six selected artworks. Under both, the evidence follows the production timeline through the complete workflow.</p>
+<section id="submission" class="submissionBlock">
+<div class="submissionEyebrow">OFFICIAL GAME ART SUBMISSION · SIX SELECTED IMAGES</div>
+<div class="submissionHeading"><div><h3>CHANNEL 86 — Official Submission Set</h3><p>These are the six selected artworks being submitted as the set. Each one is an original Tencent Hunyuan HY IMAGE 3.5 output generated through GMI Cloud. Click any image to open the original full-resolution output.</p></div><div class="submissionBadge">6 / 6<br><small>HY IMAGE 3.5</small></div></div>
+<div class="submissionGrid" id="submissionGrid"></div>
+</section>
+
+<section class="combinedBlock">
+<div class="submissionEyebrow">COMBINED SIX-IN-ONE PRESENTATION BOARD</div>
+<h3 class="combinedTitle">The same six selected images, together</h3>
+<p class="combinedCopy">This is the combined 2K board we already created from the official six-image submission set. It stays on the site as the overview/presentation version while the six original HY IMAGE outputs above remain the actual submission set.</p>
+<a class="showcase" href="https://co1doimgg1v0071f.public.blob.vercel-storage.com/competition-hub/composite/1790630160527-CHANNEL86_Final_Six-Image_Showcase-x4H3Z8dgLJv3j6btunwgWrB93trYfe.jpg" target="_blank" rel="noreferrer"><img src="https://co1doimgg1v0071f.public.blob.vercel-storage.com/competition-hub/composite/1790630160527-CHANNEL86_Final_Six-Image_Showcase-x4H3Z8dgLJv3j6btunwgWrB93trYfe.jpg" alt="CHANNEL 86 combined six-image 2K showcase"></a>
+<div class="caption">COMBINED 2K PRESENTATION BOARD · BUILT FROM THE SAME 6 SELECTED HY IMAGE 3.5 OUTPUTS · KEPT IN ADDITION TO THE SIX INDIVIDUAL SUBMISSION IMAGES ABOVE</div>
+</section>
 <div class="stats" id="stats"></div>
 <div class="explain">
 <article><b>HOW TO READ THIS PAGE</b><p>Scroll straight down. Each generated image appears at the point it was made in the chronology. The image, <strong>full prompt</strong>, ordered reference images, model, seed, size, GMI request ID, output hash, cost, review state and related workflow events are kept together in the same card.</p></article>
@@ -90,6 +101,20 @@ function refFor(x){return (D.references||[]).find(r=>r.ref_id===x?.ref_id||r.ass
 function refCredit(r){return r && (r.kind==='character'||r.kind==='world') ? 'Original reference image · created with help from Showrunner' : (r?.kind==='generation' ? 'Generated reference · Tencent Hunyuan HY IMAGE 3.5 via GMI Cloud' : '')}
 function statusClass(g){const s=(String(g.hub_status_current||'')+' '+String(g.gmi_final_status||'')).toLowerCase();if(s.includes('final'))return 'final';if(s.includes('reject'))return 'reject';if(s.includes('failed'))return 'failed';return ''}
 function isFinal(g){return !!g.final_six_role||String(g.hub_status_current||'').toLowerCase()==='final'}
+
+function renderSubmission(){
+ const finals=(D.finals||[]).slice().sort((a,b)=>(Number(a.order)||0)-(Number(b.order)||0));
+ const cards=finals.map((f,i)=>{
+   const g=(D.generations||[]).find(x=>x.short_id===f.short_id||x.request_id===f.request_id||String(x.request_id||'').startsWith(String(f.short_id||'')))||{};
+   const out=g.output_url||g.gmi_thumbnail_url||'';
+   const title=f.title||g.title||('Submission Image '+(i+1));
+   const role=f.role||g.final_six_role||'Selected final artwork';
+   return '<article class="submissionCard">'+
+     (out?'<a href="'+esc(out)+'" target="_blank" rel="noreferrer"><img src="'+esc(out)+'" loading="'+(i<3?'eager':'lazy')+'" alt="'+esc(title)+'"></a>':'<div class="noOutput">OUTPUT UNAVAILABLE</div>')+
+     '<div class="submissionInfo"><small>SUBMISSION '+(i+1)+' OF '+finals.length+' · '+esc(role)+'</small><b>'+esc(title)+'</b><code>HY IMAGE 3.5 · GMI REQUEST '+esc(f.request_id||g.request_id||'UNAVAILABLE')+'</code></div></article>';
+ }).join('');
+ $('#submissionGrid').innerHTML=cards;
+}
 
 function stats(){
  const t=D.totals||{};
@@ -148,7 +173,7 @@ function generationItem(g){
          '<a class="outputLink" href="'+esc(output)+'" target="_blank" rel="noreferrer"><img loading="lazy" src="'+esc(output)+'" alt="'+esc(g.title||'generated output')+'"></a>':
          '<div class="noOutput">NO OUTPUT IMAGE — REQUEST FAILED OR OUTPUT UNAVAILABLE</div>')+
        '</div>'+
-       '<div class="promptSide">'+(composite?'<div style="border:1px solid #617a35;background:#10150b;padding:11px;margin-bottom:10px;color:var(--lime);font-size:9px;line-height:1.55"><strong>EVIDENCE BOARD SOURCE:</strong> Every one of the six panels in this board is a finished Tencent Hunyuan HY IMAGE 3.5 generation produced through GMI Cloud. This board is kept as presentation/evidence material only. A separate HY IMAGE 3.5 output with its own GMI request record is required for the actual contest submission.</div>':'')+'<div class="promptLabel"><b>'+(composite?'FINAL BOARD ASSEMBLY INSTRUCTIONS':'EXACT PROMPT USED WITH THIS IMAGE')+'</b><code>'+esc(g.prompt_version||p?.version||'UNAVAILABLE')+'</code></div><pre class="promptText">'+esc(p?.text||'PROMPT TEXT UNAVAILABLE')+'</pre></div>'+
+       '<div class="promptSide">'+(composite?'<div style="border:1px solid #617a35;background:#10150b;padding:11px;margin-bottom:10px;color:var(--lime);font-size:9px;line-height:1.55"><strong>EVIDENCE BOARD SOURCE:</strong> Every one of the six panels in this board is a finished Tencent Hunyuan HY IMAGE 3.5 generation produced through GMI Cloud. This board is kept as presentation/evidence material only. The actual contest submission is the six original HY IMAGE 3.5 outputs shown in the official submission set above.</div>':'')+'<div class="promptLabel"><b>'+(composite?'FINAL BOARD ASSEMBLY INSTRUCTIONS':'EXACT PROMPT USED WITH THIS IMAGE')+'</b><code>'+esc(g.prompt_version||p?.version||'UNAVAILABLE')+'</code></div><pre class="promptText">'+esc(p?.text||'PROMPT TEXT UNAVAILABLE')+'</pre></div>'+
      '</div>'+
      '<div class="workflow"><div class="workflowTitle">WORKFLOW FOR THIS IMAGE</div><div class="flow">'+
        (composite?
@@ -156,7 +181,7 @@ function generationItem(g){
        '<div class="flowStep"><small>2 · SOURCE MODEL</small><b class="good">hy-image-v3.5-preview</b></div>'+
        '<div class="flowStep"><small>3 · GMI EVIDENCE</small><b class="good">6 source GMI request IDs below</b></div>'+
        '<div class="flowStep"><small>4 · BOARD ASSEMBLY</small><b>deterministic layout of HY IMAGE outputs</b></div>'+
-       '<div class="flowStep"><small>5 · STATUS</small><b>EVIDENCE OVERVIEW BOARD — NOT SUBMISSION IMAGE</b></div>'
+       '<div class="flowStep"><small>5 · STATUS</small><b>COMBINED PRESENTATION BOARD — OFFICIAL SUBMISSION IS THE SIX SOURCE IMAGES</b></div>'
        :
        '<div class="flowStep"><small>1 · INPUT REFERENCES</small><b>'+esc(g.reference_count??refs.length)+' ordered ref'+((g.reference_count??refs.length)===1?'':'s')+'</b></div>'+
        '<div class="flowStep"><small>2 · PROMPT</small><b>'+esc(g.prompt_version||p?.version||'UNAVAILABLE')+'</b></div>'+
@@ -230,7 +255,7 @@ function buildPhaseNav(gens){
 
 async function load(){
  D=await fetch('./channel86-workflow-manifest.json').then(r=>{if(!r.ok)throw new Error('Manifest failed to load: '+r.status);return r.json()});
- stats();buildTimeline();
+ renderSubmission();stats();buildTimeline();
  $('#rawJson').textContent=JSON.stringify(D,null,2);
 }
 load().catch(err=>document.body.insertAdjacentHTML('beforeend','<pre class="error">'+esc(err.stack||err)+'</pre>'));
