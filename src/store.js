@@ -232,7 +232,14 @@ addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; cam
 // ---- detail overlay (DOM) ----
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-let currentProduct = null, selectedSize = null;
+let currentProduct = null, selectedVariant = null;
+// pick the variant for a chosen size (size can sit in any option slot); prefer an available one
+function variantForSize(p, size) {
+  const vs = p.variants || [];
+  const match = (v) => [v.option1, v.option2, v.option3].some((o) => o === size) || String(v.title).split('/').pop().trim() === size;
+  return vs.find((v) => v.available && match(v)) ?? vs.find((v) => match(v)) ?? null;
+}
+function firstVariant(p) { const vs = p.variants || []; return vs.find((v) => v.available) ?? vs[0] ?? null; }
 function openDetail(p) {
   currentProduct = p;
   $('dTitle').textContent = p.title;
@@ -240,30 +247,33 @@ function openDetail(p) {
   $('dPrice').textContent = priceLabel(p);
   $('dDesc').textContent = p.desc || '';
   $('dTags').innerHTML = (p.tags || []).map((t) => `<span class="chip">${esc(t)}</span>`).join('');
-  // size availability from variants (variant title like "Classic Black / M")
   const availSizes = new Set();
   for (const v of p.variants || []) { if (v.available) { const m = String(v.title).split('/').pop().trim(); availSizes.add(m); } }
   const sizes = p.sizes || [];
-  selectedSize = sizes.find((s) => availSizes.has(s)) ?? sizes[0] ?? null;
+  selectedVariant = (sizes.find((s) => availSizes.has(s)) && variantForSize(p, sizes.find((s) => availSizes.has(s)))) || firstVariant(p);
+  const selSize = selectedVariant ? [selectedVariant.option1, selectedVariant.option2, selectedVariant.option3].find((o) => sizes.includes(o)) : null;
   $('dSizes').innerHTML = sizes.length
     ? '<span class="lbl">size</span>' + sizes.map((s) => {
         const out = !availSizes.has(s);
-        return `<span class="chip pick ${out ? 'out' : ''} ${s === selectedSize ? 'sel' : ''}" data-size="${esc(s)}">${esc(s)}</span>`;
+        return `<span class="chip pick ${out ? 'out' : ''} ${s === selSize ? 'sel' : ''}" data-size="${esc(s)}">${esc(s)}</span>`;
       }).join('')
     : '';
   // images (front + back if present), sized larger
   $('dImgs').innerHTML = (p.images || []).slice(0, 2).map((src, i) =>
     `<img src="${esc(sized(src, 900))}" alt="${esc(p.title)} ${i === 0 ? 'front' : 'back'}" loading="lazy">`).join('');
-  const buy = $('dBuy'); buy.href = p.url; buy.onclick = () => { try { window.open(p.url, '_blank', 'noopener'); } catch (e) { /* popup blocked */ } return false; };
+  const buy = $('dBuy');
+  const buyUrl = () => (selectedVariant ? `${STORE_URL}/cart/${selectedVariant.id}:1` : p.url);
+  buy.href = buyUrl();
+  buy.onclick = () => { try { window.open(buyUrl(), '_blank', 'noopener'); } catch (e) { /* popup blocked */ } return false; };
   $('detail').classList.add('open');
 }
-// pick a size
+// pick a size → select its variant
 $('dSizes').addEventListener('click', (e) => {
-  const chip = e.target.closest('.chip.pick'); if (!chip) return;
-  selectedSize = chip.dataset.size;
+  const chip = e.target.closest('.chip.pick'); if (!chip || !currentProduct) return;
+  selectedVariant = variantForSize(currentProduct, chip.dataset.size) ?? selectedVariant;
   for (const c of $('dSizes').querySelectorAll('.chip')) c.classList.toggle('sel', c === chip);
 });
-$('dAdd').onclick = () => { if (currentProduct) { addToCart(currentProduct, selectedSize); openCart(); } };
+$('dAdd').onclick = () => { if (currentProduct) { addToCart(currentProduct, selectedVariant); openCart(); } };
 function closeDetail() { $('detail').classList.remove('open'); }
 $('dClose').onclick = closeDetail;
 $('detail').addEventListener('click', (e) => { if (e.target.id === 'detail') closeDetail(); });
@@ -279,17 +289,22 @@ function applyFilter(type) {
 }
 document.querySelectorAll('.ftab').forEach((b) => { b.onclick = () => applyFilter(b.dataset.type); });
 
-// ---- cart (localStorage wishlist; checkout hands off to the real store) ----
-const CART_KEY = 'fp:store:cart:v1';
-function loadCart() { try { const v = JSON.parse(localStorage.getItem(CART_KEY) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+// ---- cart (localStorage; checkout deep-links straight into Shopify) ----
+const CART_KEY = 'fp:store:cart:v2';   // v2: lines carry a Shopify variantId
+function loadCart() { try { const v = JSON.parse(localStorage.getItem(CART_KEY) || '[]'); return Array.isArray(v) ? v.filter((l) => l && l.variantId) : []; } catch (e) { return []; } }
 function saveCart() { try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) { /* private mode */ } updateBadge(); }
 let cart = loadCart();
 
-function addToCart(p, size) {
-  const key = p.id + '|' + (size || '');
+function addToCart(p, variant) {
+  const v = variant || firstVariant(p);
+  if (!v) return;
+  const key = String(v.id);
   const line = cart.find((l) => l.key === key);
   if (line) line.qty = (line.qty || 1) + 1;
-  else cart.push({ key, id: p.id, title: p.title, price: p.priceMin, size: size || '', url: p.url, image: (p.images || [])[0] || '', qty: 1 });
+  else {
+    const size = [v.option1, v.option2, v.option3].find((o) => (p.sizes || []).includes(o)) || '';
+    cart.push({ key, variantId: String(v.id), id: p.id, title: p.title, price: v.price ?? p.priceMin, size, url: p.url, image: (p.images || [])[0] || '', qty: 1 });
+  }
   saveCart(); renderCart();
 }
 function setQty(key, d) {
@@ -336,8 +351,10 @@ $('cartBtn').onclick = () => { $('drawer').classList.contains('open') ? closeCar
 $('cartClose').onclick = closeCart;
 $('cartCheckout').onclick = () => {
   if (!cart.length) return;
-  // No backend here — hand off to the real storefront to finish the order.
-  try { window.open(STORE_URL + '/collections/all', '_blank', 'noopener'); } catch (e) { /* noop */ }
+  // Shopify cart permalink → items land in the cart and go straight to checkout.
+  const parts = cart.filter((l) => l.variantId).map((l) => `${l.variantId}:${l.qty || 1}`);
+  const url = parts.length ? `${STORE_URL}/cart/${parts.join(',')}` : `${STORE_URL}/collections/all`;
+  try { window.open(url, '_blank', 'noopener'); } catch (e) { /* noop */ }
 };
 addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCart(); });
 
