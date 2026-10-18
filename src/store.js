@@ -53,6 +53,26 @@ scene.add(new THREE.AmbientLight(0x2a2440, 0.35));
   // back wall + entrance sky glow
   const back = new THREE.Mesh(new THREE.BoxGeometry(13.5, 6, 0.3), wallMat);
   back.position.set(0, 3, -34); scene.add(back);
+
+  // ---- gondola shelving down each wall, so the pieces read as stock on shelves.
+  // Dark metal boards with a neon front edge, at the two product-row heights. ----
+  const shelfMat = new THREE.MeshStandardMaterial({ color: 0x1a1430, roughness: 0.45, metalness: 0.5 });
+  const edgeMat = new THREE.MeshBasicMaterial({ color: 0x57e6ff, toneMapped: false });
+  const Z_MID = -13.5, Z_LEN = 31;          // board run spans the product columns
+  for (const sx of [-1, 1]) {
+    const x = sx * 6.0;
+    for (const sy of [0.42, 2.02]) {         // just under each product row
+      const board = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.1, Z_LEN), shelfMat);
+      board.position.set(x, sy, Z_MID); board.receiveShadow = true; scene.add(board);
+      const edge = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, Z_LEN), edgeMat);
+      edge.position.set(x - sx * 0.27, sy + 0.02, Z_MID); scene.add(edge);
+    }
+    // vertical uprights every few columns for the gondola frame
+    for (let z = 1.0; z >= Z_MID - Z_LEN / 2; z -= 6.3) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.4, 0.12), shelfMat);
+      post.position.set(x + sx * 0.22, 2.2, z); scene.add(post);
+    }
+  }
 }
 
 // ---- neon sign helper (canvas → plane) ----
@@ -212,7 +232,9 @@ addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; cam
 // ---- detail overlay (DOM) ----
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let currentProduct = null, selectedSize = null;
 function openDetail(p) {
+  currentProduct = p;
   $('dTitle').textContent = p.title;
   $('dType').textContent = p.type;
   $('dPrice').textContent = priceLabel(p);
@@ -221,8 +243,13 @@ function openDetail(p) {
   // size availability from variants (variant title like "Classic Black / M")
   const availSizes = new Set();
   for (const v of p.variants || []) { if (v.available) { const m = String(v.title).split('/').pop().trim(); availSizes.add(m); } }
-  $('dSizes').innerHTML = (p.sizes || []).length
-    ? '<span class="lbl">sizes</span>' + p.sizes.map((s) => `<span class="chip ${availSizes.has(s) ? '' : 'out'}">${esc(s)}</span>`).join('')
+  const sizes = p.sizes || [];
+  selectedSize = sizes.find((s) => availSizes.has(s)) ?? sizes[0] ?? null;
+  $('dSizes').innerHTML = sizes.length
+    ? '<span class="lbl">size</span>' + sizes.map((s) => {
+        const out = !availSizes.has(s);
+        return `<span class="chip pick ${out ? 'out' : ''} ${s === selectedSize ? 'sel' : ''}" data-size="${esc(s)}">${esc(s)}</span>`;
+      }).join('')
     : '';
   // images (front + back if present), sized larger
   $('dImgs').innerHTML = (p.images || []).slice(0, 2).map((src, i) =>
@@ -230,6 +257,13 @@ function openDetail(p) {
   const buy = $('dBuy'); buy.href = p.url; buy.onclick = () => { try { window.open(p.url, '_blank', 'noopener'); } catch (e) { /* popup blocked */ } return false; };
   $('detail').classList.add('open');
 }
+// pick a size
+$('dSizes').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip.pick'); if (!chip) return;
+  selectedSize = chip.dataset.size;
+  for (const c of $('dSizes').querySelectorAll('.chip')) c.classList.toggle('sel', c === chip);
+});
+$('dAdd').onclick = () => { if (currentProduct) { addToCart(currentProduct, selectedSize); openCart(); } };
 function closeDetail() { $('detail').classList.remove('open'); }
 $('dClose').onclick = closeDetail;
 $('detail').addEventListener('click', (e) => { if (e.target.id === 'detail') closeDetail(); });
@@ -245,10 +279,73 @@ function applyFilter(type) {
 }
 document.querySelectorAll('.ftab').forEach((b) => { b.onclick = () => applyFilter(b.dataset.type); });
 
+// ---- cart (localStorage wishlist; checkout hands off to the real store) ----
+const CART_KEY = 'fp:store:cart:v1';
+function loadCart() { try { const v = JSON.parse(localStorage.getItem(CART_KEY) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } }
+function saveCart() { try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) { /* private mode */ } updateBadge(); }
+let cart = loadCart();
+
+function addToCart(p, size) {
+  const key = p.id + '|' + (size || '');
+  const line = cart.find((l) => l.key === key);
+  if (line) line.qty = (line.qty || 1) + 1;
+  else cart.push({ key, id: p.id, title: p.title, price: p.priceMin, size: size || '', url: p.url, image: (p.images || [])[0] || '', qty: 1 });
+  saveCart(); renderCart();
+}
+function setQty(key, d) {
+  const line = cart.find((l) => l.key === key); if (!line) return;
+  line.qty = (line.qty || 1) + d;
+  if (line.qty <= 0) cart = cart.filter((l) => l.key !== key);
+  saveCart(); renderCart();
+}
+function removeLine(key) { cart = cart.filter((l) => l.key !== key); saveCart(); renderCart(); }
+function cartCount() { return cart.reduce((n, l) => n + (l.qty || 1), 0); }
+function cartTotal() { return cart.reduce((s, l) => s + (l.price || 0) * (l.qty || 1), 0); }
+function updateBadge() { const n = cartCount(); $('cartN').textContent = String(n); }
+
+function renderCart() {
+  const items = $('cartItems');
+  if (!cart.length) { items.innerHTML = `<div class="cempty">Your cart is empty.<br>Tap a piece, pick a size, add it.</div>`; }
+  else {
+    items.innerHTML = cart.map((l) => `
+      <div class="citem" data-key="${esc(l.key)}">
+        <img src="${l.image ? esc(sized(l.image, 120)) : ''}" alt="">
+        <div class="ci">
+          <div class="ct">${esc(l.title)}</div>
+          <div class="cm">${l.size ? esc(l.size) + ' · ' : ''}$${(l.price || 0).toFixed(2)}</div>
+          <div class="cq"><button data-act="dec">–</button><span>${l.qty || 1}</span><button data-act="inc">+</button></div>
+        </div>
+        <button class="cx" data-act="rm" aria-label="Remove">✕</button>
+      </div>`).join('');
+  }
+  $('cartTotal').textContent = '$' + cartTotal().toFixed(2);
+  $('cartCheckout').disabled = !cart.length;
+  updateBadge();
+}
+$('cartItems').addEventListener('click', (e) => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  const row = e.target.closest('.citem'); if (!row) return;
+  const key = row.dataset.key, act = btn.dataset.act;
+  if (act === 'inc') setQty(key, 1);
+  else if (act === 'dec') setQty(key, -1);
+  else if (act === 'rm') removeLine(key);
+});
+function openCart() { renderCart(); $('drawer').classList.add('open'); }
+function closeCart() { $('drawer').classList.remove('open'); }
+$('cartBtn').onclick = () => { $('drawer').classList.contains('open') ? closeCart() : openCart(); };
+$('cartClose').onclick = closeCart;
+$('cartCheckout').onclick = () => {
+  if (!cart.length) return;
+  // No backend here — hand off to the real storefront to finish the order.
+  try { window.open(STORE_URL + '/collections/all', '_blank', 'noopener'); } catch (e) { /* noop */ }
+};
+addEventListener('keydown', (e) => { if (e.key === 'Escape') closeCart(); });
+
 // ---- HUD wiring ----
 $('backBtn').onclick = () => { window.location.href = 'index.html'; };
 $('shopAll').onclick = () => { try { window.open(STORE_URL, '_blank', 'noopener'); } catch (e) { /* noop */ } };
 $('prodCount').textContent = `${PRODUCTS.length} pieces`;
+updateBadge();
 wireMuteButton([]);
 
 // ---- loop ----

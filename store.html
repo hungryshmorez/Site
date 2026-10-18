@@ -59,9 +59,45 @@
     .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-right:4px}
     .chip{font-family:var(--mono);font-size:11px;color:var(--ink);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:4px 10px}
     .chip.out{opacity:.32;text-decoration:line-through}
-    .dbuy{display:block;text-align:center;margin-top:6px;font-family:var(--mono);font-size:14px;letter-spacing:.14em;font-weight:700;
+    .chip.pick{cursor:pointer}
+    .chip.pick:hover{border-color:var(--cyan)}
+    .chip.sel{background:rgba(87,230,255,.18);border-color:var(--cyan);color:#fff}
+    .dbtns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+    .dadd{flex:1;min-width:140px;text-align:center;font-family:var(--mono);font-size:14px;letter-spacing:.12em;font-weight:700;cursor:pointer;
+      color:#0a0713;background:var(--cyan);border:none;border-radius:11px;padding:14px;box-shadow:0 0 30px -8px var(--cyan)}
+    .dadd:hover{background:#fff}
+    .dbuy{flex:1;min-width:140px;display:block;text-align:center;font-family:var(--mono);font-size:14px;letter-spacing:.12em;font-weight:700;
       color:#0a0713;background:var(--magenta);border-radius:11px;padding:14px;text-decoration:none;box-shadow:0 0 30px -6px var(--magenta)}
     .dbuy:hover{background:#fff}
+    /* cart button + drawer */
+    .cartbtn{position:fixed;z-index:9;top:128px;right:16px}
+    .cartbtn .n{display:inline-block;min-width:16px;margin-left:4px;padding:0 5px;border-radius:10px;background:var(--cyan);color:#0a0713;font-weight:700}
+    .drawer{position:fixed;top:0;right:0;z-index:35;height:100%;width:min(380px,92vw);transform:translateX(102%);transition:transform .28s ease;
+      background:#120c1e;border-left:1px solid rgba(87,230,255,.3);box-shadow:-20px 0 60px -20px #000;display:flex;flex-direction:column}
+    .drawer.open{transform:none}
+    .drawer header{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.1)}
+    .drawer header h3{font-family:var(--mono);font-size:13px;letter-spacing:.18em;color:#fff;flex:1}
+    .drawer header button{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+    .drawer header button:hover{color:#fff}
+    .citems{flex:1;overflow:auto;padding:10px 14px;display:flex;flex-direction:column;gap:10px}
+    .citem{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px}
+    .citem img{width:48px;height:48px;object-fit:cover;border-radius:7px;background:#0a0713;flex:none}
+    .citem .ci{flex:1;min-width:0}
+    .citem .ct{font-size:12px;color:var(--ink);line-height:1.3;max-height:2.6em;overflow:hidden}
+    .citem .cm{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px}
+    .citem .cq{display:flex;align-items:center;gap:6px;margin-top:4px}
+    .citem .cq button{width:20px;height:20px;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:var(--ink);cursor:pointer;font-size:12px;line-height:1}
+    .citem .cx{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px}
+    .citem .cx:hover{color:var(--magenta)}
+    .cempty{color:var(--muted);font-family:var(--mono);font-size:12px;text-align:center;padding:30px 10px;line-height:1.8}
+    .drawer footer{padding:14px 18px;border-top:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;gap:10px}
+    .ctotal{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;color:#fff}
+    .ctotal b{color:var(--cyan)}
+    .ccheckout{text-align:center;font-family:var(--mono);font-size:13px;letter-spacing:.14em;font-weight:700;color:#0a0713;background:var(--magenta);
+      border:none;border-radius:11px;padding:13px;cursor:pointer;box-shadow:0 0 30px -8px var(--magenta)}
+    .ccheckout:hover{background:#fff}
+    .ccheckout:disabled{opacity:.4;cursor:default;box-shadow:none}
+    .cnote{font-size:10px;color:var(--muted);font-family:var(--mono);text-align:center;line-height:1.6}
     .start{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
       text-align:center;padding:24px;background:radial-gradient(70% 60% at 50% 45%,rgba(40,10,40,.7),rgba(6,4,14,.97));transition:opacity .7s}
     .start.gone{opacity:0;pointer-events:none}
@@ -77,10 +113,11 @@
   <canvas id="scene"></canvas>
 
   <div class="hud brand"><b>12MATT3R STORE</b><span>THE MERCH TENT</span></div>
-  <div class="hud now">🛍 <span id="prodCount">—</span> · tap a piece to inspect</div>
+  <div class="hud now">🛍 <span id="prodCount">—</span> · tap a piece → pick a size → add to cart</div>
   <button class="hud btn back" id="backBtn">◄ back to festival</button>
   <button class="hud btn mutebtn" id="mutebtn" title="Sound">🔊 sound</button>
   <button class="hud btn shopall" id="shopAll" title="Open the full shop">🛒 shop all ↗</button>
+  <button class="hud btn cartbtn" id="cartBtn" title="Your cart">🛒 cart<span class="n" id="cartN">0</span></button>
   <div class="hud filters">
     <button class="ftab on" data-type="all">all</button>
     <button class="ftab" data-type="T-Shirt">tees</button>
@@ -99,14 +136,30 @@
         <div class="row" id="dSizes"></div>
         <div class="row" id="dTags"></div>
         <div class="ddesc" id="dDesc"></div>
-        <a class="dbuy" id="dBuy" href="#" target="_blank" rel="noopener">BUY THIS PIECE ↗</a>
+        <div class="dbtns">
+          <button class="dadd" id="dAdd">ADD TO CART</button>
+          <a class="dbuy" id="dBuy" href="#" target="_blank" rel="noopener">BUY NOW ↗</a>
+        </div>
       </div>
     </div>
   </div>
 
+  <aside class="drawer" id="drawer" aria-label="Cart">
+    <header>
+      <h3>YOUR CART</h3>
+      <button id="cartClose" aria-label="Close cart">✕</button>
+    </header>
+    <div class="citems" id="cartItems"></div>
+    <footer>
+      <div class="ctotal"><span>Total</span><b id="cartTotal">$0.00</b></div>
+      <button class="ccheckout" id="cartCheckout">CHECKOUT ↗</button>
+      <div class="cnote">Checkout opens your items on the real store to complete the order.</div>
+    </footer>
+  </aside>
+
   <div class="start" id="start">
     <div class="g">12MATT3R STORE</div>
-    <div class="s">the merch tent — a walk-in boutique of the doesntmatter.store drop. walk the neon hall, tap any piece to see front &amp; back, sizes and price, then buy. WASD / drag to look / tap to move.</div>
+    <div class="s">the merch tent — a walk-in boutique of the doesntmatter.store drop, stocked on neon shelves. walk the aisle, tap any piece to see front &amp; back, pick a size, add it to your cart, then check out on the real store. WASD / drag to look / tap to move.</div>
     <button class="enter" id="enterBtn">▶ ENTER THE STORE</button>
   </div>
 
