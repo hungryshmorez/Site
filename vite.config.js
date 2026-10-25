@@ -44,6 +44,8 @@ export default defineConfig({
         vaporrooms: resolve(__dirname, 'vaporrooms.html'),
         store: resolve(__dirname, 'store.html'),
         blog: resolve(__dirname, 'blog.html'),
+        chroma: resolve(__dirname, 'chroma.html'),
+        chromaTheater: resolve(__dirname, 'chroma-theater.html'),
       },
     },
   },

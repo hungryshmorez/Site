@@ -134,6 +134,17 @@ Driftwave, click to switch), **tiered seats** with **silhouette NPCs**, **popcor
 projector flicker, and a portal back to the festival. Real video drops in later as a VideoTexture
 channel.
 
+## 06b · Chroma Awards — the DreamOS desktop + screening room (built)
+
+`chroma.html` is a windowed DreamOS desktop for the Chroma Awards. **This year's** entries are icons on the
+desktop (and an explorer window opens on boot); **earlier years** live in archive folders. Each entry opens in
+its own draggable/resizable window with a taskbar button. The **Theater** icon walks into
+`chroma-theater.html` — the DreamOS TV room (shared via `scene/theater.js`) with each entry's title card on
+the big screen (or a `trailer` video if the entry has one); click the screen to play it. Reached from the
+Complex hub's **CHROMA AWARDS** door and a button on the TV room's app row. Everything is generated from
+`data/chroma.js`. Entries so far: **SEVEN DAYS** (2026, self-hosted static build in `public/games/seven-days/`)
+plus last year's Chroma links seeded from the Lab catalog.
+
 ## 07 · The classic (flat) site — built
 
 `classic.html` is a **two-column menu index** for anyone who doesn't want the 3D walk. At the **top is
@@ -186,7 +197,11 @@ Three.js + Vite, procedural primitives, **data-driven** roster + catalog. Each w
 | `scene/campfire.js` · `tailgate.js` · `lounge.js` · `fireworks.js` | micro-scenes + beat-drop bursts |
 | `player/controls.js` | walk/look/auto-walk, head-bob, ground-height (stage ramp) |
 | `ui/hud.js` · `audio/reactor.js` | name tags + panel · Web-Audio pulse + spatial/low-pass |
-| `tv.html` + `src/tv.js` | the DreamOS TV theater world (own page) |
+| `tv.html` + `src/tv.js` | the DreamOS TV theater world (own page) — channels + episode/shows UI |
+| `scene/theater.js` | the shared theater room (screen, seats, NPCs, popcorn, walk controls) used by `tv.html` and `chroma-theater.html` |
+| `chroma.html` + `src/chroma.js` | the Chroma Awards DreamOS desktop — windowed launcher for every entry |
+| `chroma-theater.html` + `src/chroma-theater.js` | the Chroma screening room (title cards / trailers on the big screen) |
+| `data/chroma.js` | every Chroma Awards entry by year — edit here to add one |
 | `lab.html` + `src/lab.js` | the Lab DreamOS terminal (launcher, from catalog) |
 | `classic.html` + `src/classic.js` | the flat menu site (from catalog) |
 | `codex.html` | this encyclopedia, on the site |
