@@ -134,6 +134,37 @@ Driftwave, click to switch), **tiered seats** with **silhouette NPCs**, **popcor
 projector flicker, and a portal back to the festival. Real video drops in later as a VideoTexture
 channel.
 
+## 06b · Chroma Awards — the DreamOS desktop + screening room (built)
+
+`chroma.html` is a windowed DreamOS desktop for the Chroma Awards. **This year's** entries are icons on the
+desktop (and an explorer window opens on boot); **earlier years** live in archive folders. Each entry opens in
+its own draggable/resizable window with a taskbar button. The **Theater** icon walks into
+`screening.html?room=chroma` — the DreamOS TV room (shared via `scene/theater.js`) screening the Chroma videos on
+the big screen (or a `trailer` video if the entry has one); click the screen to play it. Reached from the
+Complex hub's **CHROMA AWARDS** door and a button on the TV room's app row. Everything is generated from
+`data/chroma.js`. Entries so far: **SEVEN DAYS** (2026, self-hosted static build in `public/games/seven-days/`)
+plus last year's Chroma links seeded from the Lab catalog.
+
+## 06c · The Movie Theater Lobby (built)
+
+`lobby.html` is a walkable movie-theater lobby (reached from the Complex hub's **MOVIE LOBBY** door).
+- **Five theaters** on the north wall, left → right (`data/theaters.js`): **CHROMA AWARDS 2025** (gold — play the
+  games, watch the films), **NEW MOBILE THEATER** (9×16 — an IMAX-tall room with a portrait screen hung high),
+  **CHROMA AWARDS** dead ahead down a red carpet (Fourth-of-July marquee: chasing red/white/blue bulbs, bunting,
+  fireworks, paparazzi flashing on the carpet), **16×9**, and **ENTER THE VOID** (off to the side; plays the
+  Enter the Void playlist). All are `screening.html?room=…`.
+- 16×9 gets every non-vertical YouTube video on the site, New Mobile every `tall` one (`data/videos.js` — none are
+  vertical yet, so it starts empty). The Chroma rooms have a DreamOS terminal listing the videos + games.
+- Items are video files, YouTube videos/playlists or playable pages; non-file items load on the big screen as a
+  live CSS3D iframe (`showEmbed()` in `scene/theater.js`) — "step up" to the screen to play / control it.
+- **Arcade** (west wall): pad → the **Arcade theater** (`room=arcade`), a DreamOS terminal of every game; pick one
+  and it loads on the big screen.
+- **Voting booths are everywhere** — four in the lobby, two in every theater, a 🗳 button on each page and a VOTE
+  icon on the desktop (`scene/booth.js`, `ui/vote.js`). They open `vote.html` in the in-site window, which frames
+  the Chroma Awards vote page (`voteHub` / per-entry `vote` in `data/chroma.js`) so nobody leaves the site.
+- **Food court** (east side): four stalls + tables. Decorative for now.
+`scene/theater.js` has `setScreenAspect()` and the tall room (`?room=vertical`).
+
 ## 07 · The classic (flat) site — built
 
 `classic.html` is a **two-column menu index** for anyone who doesn't want the 3D walk. At the **top is
@@ -186,7 +217,15 @@ Three.js + Vite, procedural primitives, **data-driven** roster + catalog. Each w
 | `scene/campfire.js` · `tailgate.js` · `lounge.js` · `fireworks.js` | micro-scenes + beat-drop bursts |
 | `player/controls.js` | walk/look/auto-walk, head-bob, ground-height (stage ramp) |
 | `ui/hud.js` · `audio/reactor.js` | name tags + panel · Web-Audio pulse + spatial/low-pass |
-| `tv.html` + `src/tv.js` | the DreamOS TV theater world (own page) |
+| `tv.html` + `src/tv.js` | the DreamOS TV theater world (own page) — channels + episode/shows UI |
+| `scene/theater.js` | the shared theater room (screen, seats, NPCs, popcorn, walk controls) used by `tv.html` and `screening.html` |
+| `lobby.html` + `src/lobby.js` | the movie theater lobby (4 theater doors, arcade, voting booth, food court) |
+| `screening.html` + `src/screening.js` | the 9×16 / 16×9 / Void theaters (from `data/theaters.js`) |
+| `vote.html` + `src/vote.js` | the voting page — the Chroma Awards vote page in an iframe |
+| `scene/booth.js` · `scene/signs.js` · `ui/vote.js` | the shared voting booth prop, sign planes, and the open-the-vote-window helper |
+| `data/videos.js` | every YouTube video on the site, for the 16×9 / New Mobile theaters |
+| `chroma.html` + `src/chroma.js` | the Chroma Awards DreamOS desktop — windowed launcher for every entry |
+| `data/chroma.js` | every Chroma Awards entry by year — edit here to add one |
 | `lab.html` + `src/lab.js` | the Lab DreamOS terminal (launcher, from catalog) |
 | `classic.html` + `src/classic.js` | the flat menu site (from catalog) |
 | `codex.html` | this encyclopedia, on the site |

@@ -1,0 +1,354 @@
+import * as THREE from 'three';
+import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
+
+// The DreamOS theater room, shared by every page that screens something:
+// tv.html (the TV channels / episodes) and screening.html (the lobby theaters: Chroma Awards,
+// entries). A dark walk-in movie theater — big animated screen, tiered seats,
+// silhouette NPCs, popcorn arcing through the projector haze, first-person walk.
+// The page decides WHAT is on the screen (setScreenMap) and what a tap on it does
+// (onScreenTap); this module owns the room and the render loop.
+//
+// Importing it wires up the #tv canvas, so a page needs exactly one.
+
+const canvas = document.getElementById('tv');
+const isMobile = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x02030a);
+scene.fog = new THREE.Fog(0x03040c, 9, 32);
+const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 120);
+
+const std = (o) => new THREE.MeshStandardMaterial(o);
+
+// ---- room ----
+// The New Mobile (9×16) theater is an IMAX-style tall room: a much higher ceiling and
+// a portrait screen hung way up on the wall. Picked from the page's ?room= param.
+export const TALL = new URLSearchParams(location.search).get('room') === 'vertical';
+const RW = 9, ZB = -13.5, ZF = 7, H = TALL ? 15 : 6;
+const wallMat = std({ color: 0x0a0b16, roughness: 0.96 });
+function wall(w, h, pos, rot) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), wallMat);
+  m.position.copy(pos); if (rot) m.rotation.copy(rot); scene.add(m); return m;
+}
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(RW * 2, ZF - ZB), std({ color: 0x070810, roughness: 1 }));
+floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, (ZB + ZF) / 2); scene.add(floor);
+const ceil = new THREE.Mesh(new THREE.PlaneGeometry(RW * 2, ZF - ZB), std({ color: 0x05060d }));
+ceil.rotation.x = Math.PI / 2; ceil.position.set(0, H, (ZB + ZF) / 2); scene.add(ceil);
+wall(RW * 2, H, new THREE.Vector3(0, H / 2, ZB - 0.05));
+wall(RW * 2, H, new THREE.Vector3(0, H / 2, ZF + 0.05), new THREE.Euler(0, Math.PI, 0));
+wall(ZF - ZB, H, new THREE.Vector3(-RW, H / 2, (ZB + ZF) / 2), new THREE.Euler(0, Math.PI / 2, 0));
+wall(ZF - ZB, H, new THREE.Vector3(RW, H / 2, (ZB + ZF) / 2), new THREE.Euler(0, -Math.PI / 2, 0));
+
+// ---- the screen ----
+const CHANNELS = [
+  { name: 'ENTER THE VOID', col: 0xb060ff },
+  { name: 'DEAD SIGNAL', col: 0xff2a4a },
+  { name: 'DRIFTWAVE', col: 0xff6ab0 },
+];
+const screenMat = new THREE.ShaderMaterial({
+  uniforms: { t: { value: 0 }, ch: { value: 0 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
+  fragmentShader: `
+    uniform float t; uniform float ch; varying vec2 vUv;
+    float rand(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
+    void main(){
+      vec2 u=vUv; vec3 c;
+      if(ch<0.5){
+        vec2 p=u-0.5; float a=atan(p.y,p.x); float r=length(p);
+        c=0.5+0.5*cos(vec3(0.0,2.0,4.0)+a*3.0+t*1.5-r*14.0);
+        c*=0.55+0.45*sin(a*8.0+t*2.0-r*22.0);
+      } else if(ch<1.5){
+        float n=rand(u+floor(t*20.0)*0.017);
+        float scan=sin(u.y*180.0)*0.14;
+        float bar=step(0.97,fract(u.y*2.0-t*0.6));
+        c=vec3(n)*0.5+scan; c+=bar*vec3(1.0,0.0,0.4); c.r*=1.1;
+      } else {
+        vec3 top=vec3(0.30,0.08,0.45), bot=vec3(1.0,0.42,0.62);
+        c=mix(bot,top,u.y);
+        float sun=smoothstep(0.26,0.24,length((u-vec2(0.5,0.6))*vec2(1.0,1.15)));
+        float band=step(0.55,fract(u.y*22.0-t*0.5));
+        c=mix(c, vec3(1.0,0.85,0.4), sun*band);
+      }
+      c*=1.0-0.45*length(u-0.5);
+      c*=0.92+0.08*sin(u.y*420.0);
+      gl_FragColor=vec4(c,1.0);
+    }`,
+});
+const SW = 15, SH = 6.4, SCY = 3.5;
+const bezel = new THREE.Mesh(new THREE.PlaneGeometry(SW + 0.6, SH + 0.6), std({ color: 0x000000, roughness: 0.5 }));
+bezel.position.set(0, SCY, ZB + 0.04); scene.add(bezel);
+const screen = new THREE.Mesh(new THREE.PlaneGeometry(SW, SH), screenMat);
+screen.position.set(0, SCY, ZB + 0.06); scene.add(screen);
+
+
+// projector wash + ambient
+const screenLight = new THREE.PointLight(CHANNELS[0].col, 3.6, 54, 2);
+screenLight.position.set(0, SCY, ZB + 5); scene.add(screenLight);
+scene.add(new THREE.AmbientLight(0x1a2138, 0.55));
+// a faint downlight at the back so the entrance/aisle reads
+const back = new THREE.PointLight(0x33406a, 0.8, 18, 2); back.position.set(0, H - 0.5, ZF - 1); scene.add(back);
+
+// ---- seats (tiered, center aisle) ----
+const COLS = [-7, -5.85, -4.7, -3.55, -2.4, 2.4, 3.55, 4.7, 5.85, 7];
+const ROWS = isMobile ? 6 : 8;
+const seats = [];
+for (let r = 0; r < ROWS; r++) {
+  const z = -8 + r * 1.65, y = r * (TALL ? 0.3 : 0.14);
+  for (const x of COLS) seats.push({ x, y, z });
+}
+const seatMat = std({ color: 0x3a1522, roughness: 0.85 });
+const baseM = new THREE.InstancedMesh(new THREE.BoxGeometry(0.85, 0.28, 0.8), seatMat, seats.length);
+const backM = new THREE.InstancedMesh(new THREE.BoxGeometry(0.85, 0.9, 0.2), seatMat, seats.length);
+const dummy = new THREE.Object3D();
+seats.forEach((s, i) => {
+  dummy.position.set(s.x, s.y + 0.35, s.z); dummy.rotation.set(0, 0, 0); dummy.updateMatrix(); baseM.setMatrixAt(i, dummy.matrix);
+  dummy.position.set(s.x, s.y + 0.85, s.z - 0.32); dummy.updateMatrix(); backM.setMatrixAt(i, dummy.matrix);
+});
+scene.add(baseM, backM);
+
+// ---- silhouette NPCs in ~55% of seats ----
+const npc = seats.filter(() => Math.random() < 0.55);
+const npcMat = std({ color: 0x050509, roughness: 1 });
+const bodyM = new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.27, 0.5, 4, 8), npcMat, npc.length);
+const headM = new THREE.InstancedMesh(new THREE.SphereGeometry(0.2, 12, 10), npcMat, npc.length);
+npc.forEach((s, i) => {
+  dummy.position.set(s.x, s.y + 0.92, s.z - 0.12); dummy.rotation.set(0, 0, 0); dummy.updateMatrix(); bodyM.setMatrixAt(i, dummy.matrix);
+  dummy.position.set(s.x, s.y + 1.4, s.z - 0.12); dummy.updateMatrix(); headM.setMatrixAt(i, dummy.matrix);
+});
+scene.add(bodyM, headM);
+
+// ---- popcorn ----
+const POP = isMobile ? 28 : 48;
+const popM = new THREE.InstancedMesh(
+  new THREE.SphereGeometry(0.05, 6, 6),
+  new THREE.MeshStandardMaterial({ color: 0xfff2c0, emissive: 0x3a3012, emissiveIntensity: 0.5, roughness: 0.6 }),
+  POP
+);
+popM.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(popM);
+const kernels = Array.from({ length: POP }, () => ({ active: false, p: new THREE.Vector3(), v: new THREE.Vector3() }));
+const hidden = new THREE.Object3D(); hidden.scale.setScalar(0); hidden.updateMatrix();
+for (let i = 0; i < POP; i++) popM.setMatrixAt(i, hidden.matrix);
+popM.instanceMatrix.needsUpdate = true;
+
+function spawnPopcorn() {
+  if (!npc.length) return;
+  const k = kernels.find((x) => !x.active); if (!k) return;
+  const s = npc[(Math.random() * npc.length) | 0];
+  k.active = true;
+  k.p.set(s.x + (Math.random() - 0.5) * 0.3, s.y + 1.55, s.z - 0.1);
+  k.v.set((Math.random() - 0.5) * 1.4, 3.4 + Math.random() * 1.6, -1.6 - Math.random() * 1.8);
+}
+let popTimer = 0;
+function updatePopcorn(dt) {
+  popTimer -= dt;
+  if (popTimer <= 0) { const n = 1 + ((Math.random() * 3) | 0); for (let j = 0; j < n; j++) spawnPopcorn(); popTimer = 0.5 + Math.random() * 0.9; }
+  let dirty = false;
+  for (let i = 0; i < POP; i++) {
+    const k = kernels[i];
+    if (!k.active) continue;
+    k.v.y -= 9.8 * dt;
+    k.p.addScaledVector(k.v, dt);
+    if (k.p.y < 0.05) { k.active = false; popM.setMatrixAt(i, hidden.matrix); dirty = true; continue; }
+    dummy.position.copy(k.p); dummy.rotation.set(k.p.x * 3, k.p.z * 3, 0); dummy.scale.setScalar(1); dummy.updateMatrix();
+    popM.setMatrixAt(i, dummy.matrix); dirty = true;
+  }
+  if (dirty) popM.instanceMatrix.needsUpdate = true;
+}
+
+// AABBs the player can't walk into (a page can add props: voting booths…)
+const blockers = [];
+export const addBlockers = (list) => blockers.push(...list);
+
+// ---- first-person controller (clamped to the room) ----
+const player = { pos: new THREE.Vector3(0, 1.6, 5.6), yaw: 0, pitch: TALL ? 0.3 : -0.03, keys: new Set(), target: null };
+const _t = new THREE.Vector3();
+function look(dx, dy) {
+  if (screenMode) return;
+  player.yaw -= dx * 0.0045;
+  player.pitch = THREE.MathUtils.clamp(player.pitch - dy * 0.0045, -0.6, TALL ? 1.0 : 0.5);
+}
+function applyCam() {
+  camera.position.copy(player.pos);
+  _t.set(
+    player.pos.x - Math.sin(player.yaw) * Math.cos(player.pitch),
+    player.pos.y + Math.sin(player.pitch),
+    player.pos.z - Math.cos(player.yaw) * Math.cos(player.pitch)
+  );
+  camera.lookAt(_t);
+}
+function moveUpdate(dt) {
+  if (glide(dt)) return;
+  const k = player.keys;
+  const fwd = (k.has('w') || k.has('arrowup') ? 1 : 0) - (k.has('s') || k.has('arrowdown') ? 1 : 0);
+  const str = (k.has('d') || k.has('arrowright') ? 1 : 0) - (k.has('a') || k.has('arrowleft') ? 1 : 0);
+  const run = k.has('shift') ? 1.7 : 1, sp = 4.6;
+  if (fwd || str) {
+    const s = Math.sin(player.yaw), c = Math.cos(player.yaw);
+    let vx = (-s * fwd + c * str), vz = (-c * fwd - s * str);
+    const l = Math.hypot(vx, vz) || 1; vx /= l; vz /= l;
+    player.pos.x += vx * sp * run * dt; player.pos.z += vz * sp * run * dt;
+    player.target = null;
+  } else if (player.target) {
+    _t.subVectors(player.target, player.pos); _t.y = 0;
+    if (_t.length() < 1) player.target = null;
+    else { _t.normalize(); player.pos.x += _t.x * sp * dt; player.pos.z += _t.z * sp * dt; player.yaw = easeAngle(player.yaw, Math.atan2(-_t.x, -_t.z), 1 - Math.pow(0.002, dt)); }
+  }
+  player.pos.x = THREE.MathUtils.clamp(player.pos.x, -RW + 0.8, RW - 0.8);
+  player.pos.z = THREE.MathUtils.clamp(player.pos.z, ZB + 1.5, ZF - 0.7);
+  for (const b of blockers) {
+    const p = player.pos, R = 0.45;
+    if (p.x > b.x0 - R && p.x < b.x1 + R && p.z > b.z0 - R && p.z < b.z1 + R) {
+      const dx = Math.min(p.x - (b.x0 - R), b.x1 + R - p.x), dz = Math.min(p.z - (b.z0 - R), b.z1 + R - p.z);
+      if (dx < dz) p.x = p.x - (b.x0 - R) < b.x1 + R - p.x ? b.x0 - R : b.x1 + R; else p.z = p.z - (b.z0 - R) < b.z1 + R - p.z ? b.z0 - R : b.z1 + R;
+    }
+  }
+  applyCam();
+}
+function easeAngle(a, b, t) { let d = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI; return a + d * t; }
+
+// ---- input ----
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+let down = null, dragged = false;
+canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY, id: e.pointerId }; dragged = false; canvas.classList.add('drag'); });
+canvas.addEventListener('pointermove', (e) => {
+  if (!down || e.pointerId !== down.id) return;
+  const dx = e.clientX - down.x, dy = e.clientY - down.y;
+  if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
+  look(e.movementX || dx * 0.2, e.movementY || dy * 0.2);
+  down.x = e.clientX; down.y = e.clientY;
+});
+canvas.addEventListener('pointerup', (e) => { canvas.classList.remove('drag'); if (down && !dragged) tap(e.clientX, e.clientY); down = null; });
+canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
+function tap(sx, sy) {
+  ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
+  ray.setFromCamera(ndc, camera);
+  if (screenMode) return;
+  if (ray.intersectObject(screen, false)[0]) { screenTapAction(); return; }   // tap the screen → watch full-screen
+  const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
+  if (g) player.target = g;
+}
+addEventListener('keydown', (e) => { if (screenMode || e.target instanceof HTMLInputElement || document.querySelector('.wp-ov.on')) return; const k = e.key.toLowerCase(); if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) { player.keys.add(k); player.target = null; } });
+addEventListener('keyup', (e) => player.keys.delete(e.key.toLowerCase()));
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); cssRenderer.setSize(innerWidth, innerHeight); });
+
+
+// ---- live embeds on the big screen (YouTube, a game) ----
+// A page can pin a live <iframe> to the screen as a CSS3D object that tracks the
+// camera. It is click-through while you walk the room (so drag-to-look still works);
+// setScreenMode(true) glides the camera up to the screen and makes the embed
+// interactive — that's how you play a game on it. Exit with setScreenMode(false).
+const PPU = 120;
+const cssScene = new THREE.Scene();
+const cssRenderer = new CSS3DRenderer();
+cssRenderer.setSize(innerWidth, innerHeight);
+Object.assign(cssRenderer.domElement.style, { position: 'fixed', top: '0', left: '0', pointerEvents: 'none', zIndex: '2' });
+document.body.appendChild(cssRenderer.domElement);
+let embed = null;
+const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+export function showEmbed(url) {
+  clearEmbed();
+  const w = SW * screen.scale.x, h = SH * screen.scale.y;
+  const wrap = document.createElement('div');
+  Object.assign(wrap.style, { width: `${w * PPU}px`, height: `${h * PPU}px`, background: '#000', overflow: 'hidden', pointerEvents: screenMode ? 'auto' : 'none' });
+  const frame = document.createElement('iframe');
+  Object.assign(frame.style, { width: '100%', height: '100%', border: '0', pointerEvents: 'inherit' });
+  frame.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture; gamepad; pointer-lock; clipboard-write; accelerometer; gyroscope';
+  frame.setAttribute('allowfullscreen', '');
+  frame.src = url;
+  wrap.appendChild(frame);
+  const obj = new CSS3DObject(wrap);
+  obj.position.set(0, screen.position.y, screen.position.z + 0.03);
+  obj.scale.setScalar(1 / PPU);
+  cssScene.add(obj);
+  embed = { obj, wrap, frame };
+  screen.material = blackMat;
+}
+export function clearEmbed() {
+  if (!embed) return;
+  cssScene.remove(embed.obj); embed.frame.src = 'about:blank'; embed.wrap.remove();
+  embed = null;
+}
+let screenMode = false, goal = null, saved = null;
+export function setScreenMode(on) {
+  if (on === screenMode) return;
+  screenMode = on;
+  if (embed) embed.wrap.style.pointerEvents = on ? 'auto' : 'none';
+  if (on) {
+    saved = { pos: player.pos.clone(), yaw: player.yaw, pitch: player.pitch };
+    const h = SH * screen.scale.y, w = SW * screen.scale.x, tv = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const d = Math.max(3.2, h / (2 * tv * 0.86), w / (2 * tv * camera.aspect * 0.94));
+    goal = { pos: new THREE.Vector3(0, screen.position.y, screen.position.z + d), yaw: 0, pitch: 0 };
+  } else goal = saved;
+}
+export const inScreenMode = () => screenMode;
+// ease the camera toward `goal`; returns true while it is driving the camera
+function glide(dt) {
+  if (!goal) return false;
+  const t = 1 - Math.pow(0.0008, dt);
+  player.pos.lerp(goal.pos, t); player.yaw = easeAngle(player.yaw, goal.yaw, t); player.pitch += (goal.pitch - player.pitch) * t;
+  if (player.pos.distanceTo(goal.pos) < 0.02) { player.pos.copy(goal.pos); player.yaw = goal.yaw; player.pitch = goal.pitch; if (!screenMode) goal = null; }
+  applyCam();
+  return screenMode || !!goal;
+}
+
+// ---- screen content + tap ----
+// A page hands in a THREE.Texture (a VideoTexture, a CanvasTexture) to show on the
+// big screen, or null to fall back to the animated static channel.
+const mapMats = new Map();
+export function setScreenMap(tex, lightHex = 0xbfe0ff) {
+  clearEmbed();
+  if (!tex) { screen.material = screenMat; return; }
+  let m = mapMats.get(tex);
+  if (!m) { m = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }); mapMats.set(tex, m); }
+  screen.material = m;
+  screenLight.color.setHex(lightHex);   // neutral projector wash for picture
+}
+let screenTapAction = () => {};
+export function onScreenTap(fn) { screenTapAction = fn; }
+
+// ---- loop ----
+const clock = new THREE.Clock();
+let running = false;
+const frameHooks = [];
+export function onFrame(fn) { frameHooks.push(fn); }
+function frame() {
+  requestAnimationFrame(frame);
+  if (document.hidden) return;   // don't burn frames in a background tab
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const time = clock.elapsedTime;
+  screenMat.uniforms.t.value = time;
+  screenLight.intensity = 3.2 + Math.sin(time * 24) * 0.28 + Math.random() * 0.4; // projector flicker
+  moveUpdate(dt);
+  updatePopcorn(dt);
+  for (const fn of frameHooks) fn(dt, time);
+  renderer.render(scene, camera);
+  if (embed) cssRenderer.render(cssScene, camera);
+}
+applyCam();
+renderer.render(scene, camera); // one frame behind the overlay
+
+export function start() {
+  if (running) return;
+  running = true; clock.start(); frame();
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
+
+// Fit the screen to a picture aspect (w/h): 16:9 fills the wall, 9:16 becomes a tall
+// portrait screen. Keeps it clear of the ceiling; call once at setup.
+export function setScreenAspect(aspect) {
+  const maxW = SW, maxH = TALL ? H - 2.4 : 5.2;
+  const w = Math.min(maxW, maxH * aspect), h = w / aspect;
+  const y = (TALL ? 1.6 : 0.7) + h / 2;
+  screen.scale.set(w / SW, h / SH, 1); screen.position.y = y;
+  bezel.scale.set((w + 0.6) / (SW + 0.6), (h + 0.6) / (SH + 0.6), 1); bezel.position.y = y;
+  screenLight.position.y = y;
+}
+
+export { THREE, scene, RW, ZF, camera, renderer, screen, screenMat, screenLight, player, applyCam, isMobile };
