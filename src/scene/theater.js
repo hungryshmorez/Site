@@ -261,4 +261,15 @@ export function start() {
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
 
+// Fit the screen to a picture aspect (w/h): 16:9 fills the wall, 9:16 becomes a tall
+// portrait screen. Keeps it clear of the ceiling; call once at setup.
+export function setScreenAspect(aspect) {
+  const maxW = SW, maxH = 5.2;
+  const w = Math.min(maxW, maxH * aspect), h = w / aspect;
+  const y = 0.7 + h / 2;
+  screen.scale.set(w / SW, h / SH, 1); screen.position.y = y;
+  bezel.scale.set((w + 0.6) / (SW + 0.6), (h + 0.6) / (SH + 0.6), 1); bezel.position.y = y;
+  screenLight.position.y = y;
+}
+
 export { THREE, scene, camera, renderer, screen, screenMat, screenLight, player, applyCam, isMobile };

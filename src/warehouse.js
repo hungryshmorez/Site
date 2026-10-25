@@ -262,7 +262,8 @@ function buildDoors() {
   const wm = std({ color: 0x1a1a26, roughness: 0.85, metalness: 0.35, emissive: C(0x14142a), emissiveIntensity: 0.28 });
   const defs = [
     { label: 'DREAM OS · THEATER', url: 'tv.html', color: 0xff8a2a },
-    { label: 'CHROMA AWARDS', sub: 'every entry + the screening room', url: 'chroma.html', color: 0xff2a4a },
+    { label: 'MOVIE LOBBY', sub: '4 theaters · arcade · food · vote', url: 'lobby.html', color: 0xff2a4a },
+    { label: 'CHROMA AWARDS', sub: 'the DreamOS desktop', url: 'chroma.html', color: 0xff8a2a },
     { label: 'VJ · STAGE', url: 'vj.html', color: 0x8a5cff },
     { label: 'THE ROOMS ▸', sub: 'the big loop starts here', url: 'greenroom.html', color: 0x00f3ff },
     { label: 'THE GALLERY', url: 'museum.html', color: 0xe6c04a },

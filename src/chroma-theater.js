@@ -93,8 +93,9 @@ onFrame((dt, t) => {
 
 $('backBtn').onclick = () => {
   $('warp').classList.add('go');
-  setTimeout(() => { location.href = 'chroma.html'; }, 480);
+  setTimeout(() => { location.href = 'lobby.html'; }, 480);
 };
+$('deskBtn').onclick = () => { location.href = 'chroma.html'; };
 $('enterBtn').onclick = () => { started = true; $('start').classList.add('gone'); start(); video.muted = false; };
 
 show(idx);

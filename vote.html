@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vote // Chroma Awards // 12matt3r</title>
+  <meta name="theme-color" content="#05050e">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <style>
+    :root{--cyan:#00F3FF;--magenta:#FF0055;--mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{min-height:100vh;background:radial-gradient(90% 60% at 50% 0%,rgba(255,0,85,.22),transparent 70%),#05050e;color:#e6e6f0;font-family:var(--mono);padding:min(6vw,40px)}
+    h1{font-size:clamp(24px,5vw,44px);letter-spacing:.08em;color:#fff;text-shadow:3px 0 var(--magenta),-3px 0 var(--cyan)}
+    .sub{font-size:11px;letter-spacing:.28em;color:#8a8a99;margin:8px 0 20px}
+    p.lead{font-family:system-ui,sans-serif;font-size:14px;line-height:1.7;color:#c9cede;max-width:62ch;margin-bottom:26px}
+    h2{font-size:12px;letter-spacing:.24em;color:var(--cyan);margin:22px 0 12px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+    .card{border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:16px;background:#0b0b18;display:flex;flex-direction:column;gap:8px}
+    .card:hover{border-color:var(--a)}
+    .card .n{font-size:16px;letter-spacing:.05em;color:#fff}
+    .card .t{font-size:10px;letter-spacing:.14em;color:var(--a);text-transform:uppercase}
+    .card .d{font-family:system-ui,sans-serif;font-size:12.5px;line-height:1.6;color:#aab0c4;flex:1}
+    a.btn,span.btn{display:inline-block;text-align:center;font-size:12px;letter-spacing:.1em;font-weight:700;padding:11px 14px;border-radius:9px;text-decoration:none}
+    a.btn{background:var(--a);color:#05050e}
+    a.btn:hover{filter:brightness(1.15)}
+    span.btn{border:1px dashed rgba(255,255,255,.25);color:#8a8a99;font-weight:500}
+    :focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+  </style>
+</head>
+<body>
+  <h1>THE VOTING BOOTH</h1>
+  <div class="sub">CHROMA AWARDS // 12MATT3R</div>
+  <p class="lead">Every Chroma Awards entry of mine has its own page where you can vote for it. Pick one below — it opens on the Chroma Awards site.</p>
+  <div id="app"></div>
+  <script type="module" src="/src/vote.js"></script>
+</body>
+</html>

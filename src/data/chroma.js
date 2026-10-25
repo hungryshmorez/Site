@@ -13,11 +13,15 @@
 //           has an "open in tab" button for those.
 //   accent  the entry's colour (icon, marquee glow)
 //   glyph   emoji for the desktop icon
+//   vote    (optional) the Chroma Awards page where people vote for THIS entry.
+//           The voting booth in the lobby (vote.html) links straight to it.
 //   trailer (optional) a direct .mp4/.webm URL — plays on the theater screen
 //           instead of the title card
 
 export const CHROMA = {
   name: 'CHROMA AWARDS',
+  // The general Chroma Awards voting/landing page, used when an entry has no `vote` link yet.
+  voteHub: '',
   blurb: 'Every entry I have put into the Chroma Awards — this year on the desktop, last year in the archive. Open one to play it, or take a seat in the theater to see them on the big screen.',
   years: [
     {
@@ -26,6 +30,7 @@ export const CHROMA = {
       entries: [
         {
           id: 'seven-days',
+          vote: '',
           title: 'SEVEN DAYS',
           tag: 'found-footage horror · cinematic + first-person',
           blurb: 'A found-footage horror game: the Prologue plus seven days, each a recorded tape you can only partly steer. The cinematic game and the first-person search game are one app that hands you back and forth between them.',
@@ -43,6 +48,7 @@ export const CHROMA = {
       entries: [
         {
           id: 'chromashift',
+          vote: '',
           title: 'ChromaShift',
           tag: 'hyper-surreal dreamscape · story',
           blurb: 'The Chroma Awards hyper-surreal dreamscape entry. A scarier cut, ChrØmaShift, lives in the Lab.',
@@ -52,6 +58,7 @@ export const CHROMA = {
         },
         {
           id: 'chroma-killer',
+          vote: '',
           title: 'Chroma Killer',
           tag: 'game',
           blurb: 'A Chroma Awards game entry.',
@@ -61,6 +68,7 @@ export const CHROMA = {
         },
         {
           id: 'npc-therapy',
+          vote: '',
           title: 'NPC Therapy',
           tag: 'game · Chroma winner',
           blurb: 'Chroma Awards winner.',
