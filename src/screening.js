@@ -1,16 +1,19 @@
 import * as THREE from 'three';
 import { createReducedMotion } from './player/motion.js';
-import { THEATERS } from './data/theaters.js';
-import { setScreenMap, setScreenAspect, onScreenTap, onFrame, start } from './scene/theater.js';
+import { THEATERS, ARCADE } from './data/theaters.js';
+import { setScreenMap, setScreenAspect, showEmbed, setScreenMode, inScreenMode, onScreenTap, start } from './scene/theater.js';
 
-// A lobby theater (9×16 / 16×9 / Enter the Void) — the shared DreamOS room
-// (scene/theater.js) sized to the room's aspect, playing that room's `items` from
-// data/theaters.js. A room with nothing booked shows a card (or, for the Void, the
-// animated trip shader). Tap the screen or the button to play / pause.
+// A lobby theater (Chroma Awards / 9×16 / 16×9 / Enter the Void / the Arcade) — the
+// shared DreamOS room (scene/theater.js) sized to the room's aspect, playing that
+// room's `items` from data/theaters.js. An item is a video file (`src`), a YouTube
+// video (`yt`) or a playable page (`url`); the last two load on the big screen as a
+// live embed — "step up" to the screen to control / play it. The Arcade adds a
+// DreamOS terminal to pick the game. A room with nothing booked shows a card (or,
+// for the Void, the animated trip shader).
 
 createReducedMotion();
 const $ = (id) => document.getElementById(id);
-const cfg = THEATERS.find((t) => t.id === new URLSearchParams(location.search).get('room')) || THEATERS[1];
+const cfg = [...THEATERS, ARCADE].find((t) => t.id === new URLSearchParams(location.search).get('room')) || THEATERS[1];
 const items = cfg.items || [];
 let idx = 0;
 
@@ -53,26 +56,89 @@ video.addEventListener('ended', () => show(idx + 1));
 const videoTex = new THREE.VideoTexture(video); videoTex.colorSpace = THREE.SRGBColorSpace;
 let started = false;
 
+const kindOf = (it) => (it.yt ? 'embed' : it.url ? 'embed' : 'video');
+const embedUrl = (it) => (it.yt
+  ? `https://www.youtube.com/embed/${encodeURIComponent(it.yt)}?autoplay=1&rel=0&modestbranding=1&playsinline=1&origin=${encodeURIComponent(location.origin)}`
+  : new URL(it.url, location.href).href);
+
 function show(i) {
+  video.pause();
   if (!items.length) {
     if (cfg.shader) { setScreenMap(null); $('chName').textContent = cfg.name; $('chNo').textContent = 'LOOPING'; }
     else { drawCard(cfg.name, 'now booking — nothing screening yet'); setScreenMap(cardTex, 0xffffff); $('chName').textContent = cfg.name; $('chNo').textContent = 'NOW BOOKING'; }
-    return;
+    syncButtons(); return;
   }
   idx = ((i % items.length) + items.length) % items.length;
   const it = items[idx];
   $('chName').textContent = it.title; $('chNo').textContent = `${idx + 1} / ${items.length}${it.note ? ` · ${it.note}` : ''}`;
-  video.src = it.src; video.muted = !started; video.play().catch(() => {});
-  setScreenMap(videoTex);
+  if (kindOf(it) === 'embed') { setScreenMap(null); showEmbed(embedUrl(it)); }
+  else { video.src = it.src; video.muted = !started; video.play().catch(() => {}); setScreenMap(videoTex); }
+  syncButtons();
 }
-const toggle = () => { if (!items.length) return; if (video.paused) video.play().catch(() => {}); else video.pause(); };
+const current = () => items[idx];
+const isEmbed = () => items.length && kindOf(current()) === 'embed';
+function syncButtons() {
+  $('playBtn').textContent = isEmbed() ? (inScreenMode() ? '◄ step back' : '🎮 step up to the screen') : '⏯ play / pause';
+  $('playBtn').style.display = items.length ? '' : 'none';
+}
+const toggle = () => {
+  if (!items.length) return;
+  if (isEmbed()) { setScreenMode(!inScreenMode()); syncButtons(); return; }
+  if (video.paused) video.play().catch(() => {}); else video.pause();
+};
 onScreenTap(toggle);
 $('playBtn').onclick = toggle;
-$('nextCh').onclick = () => show(idx + 1);
-$('prevCh').onclick = () => show(idx - 1);
+$('nextCh').onclick = () => { setScreenMode(false); show(idx + 1); };
+$('prevCh').onclick = () => { setScreenMode(false); show(idx - 1); };
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && inScreenMode()) { setScreenMode(false); syncButtons(); } });
 $('marq').style.display = 'none';
-onFrame(() => {});
+if (cfg.desktop) { $('deskBtn').style.display = ''; $('deskBtn').onclick = () => { location.href = 'chroma.html'; }; }
+
+// ---- the arcade's DreamOS terminal: pick a game, it loads on the big screen ----
+if (cfg.terminal) {
+  const css = document.createElement('style');
+  css.textContent = `
+  #term{position:fixed;z-index:25;left:16px;top:70px;bottom:70px;width:min(380px,calc(100vw - 32px));display:none;flex-direction:column;
+    background:rgba(2,18,10,.94);border:1px solid rgba(57,255,20,.5);border-radius:12px;color:#c9ffd0;
+    font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;box-shadow:0 0 40px -10px rgba(57,255,20,.5);overflow:hidden}
+  #term.on{display:flex}
+  #term .th{padding:12px 14px;border-bottom:1px solid rgba(57,255,20,.3);color:#39ff14;letter-spacing:.14em;font-size:12px;display:flex;justify-content:space-between;align-items:center}
+  #term .th button{background:none;border:1px solid rgba(57,255,20,.4);color:#39ff14;border-radius:6px;padding:3px 8px;cursor:pointer;font:inherit;font-size:11px}
+  #term input{margin:10px 12px 4px;padding:9px 11px;background:rgba(57,255,20,.06);border:1px solid rgba(57,255,20,.35);border-radius:8px;color:#c9ffd0;font:inherit;font-size:13px}
+  #term .tabs{display:flex;gap:6px;flex-wrap:wrap;padding:6px 12px}
+  #term .tabs button{font:inherit;font-size:10.5px;letter-spacing:.08em;padding:5px 9px;border-radius:14px;cursor:pointer;color:#7fd98a;background:none;border:1px solid rgba(57,255,20,.3)}
+  #term .tabs button.on{background:#39ff14;color:#02120a;font-weight:700}
+  #term .list{flex:1;overflow:auto;padding:6px 12px 12px;display:flex;flex-direction:column;gap:6px}
+  #term .g{display:block;text-align:left;width:100%;padding:10px 12px;border-radius:9px;cursor:pointer;font:inherit;font-size:13px;color:#c9ffd0;background:rgba(57,255,20,.04);border:1px solid rgba(57,255,20,.25)}
+  #term .g:hover,#term .g.on{border-color:#39ff14;box-shadow:0 0 18px -8px #39ff14;color:#fff}
+  #term .g small{display:block;color:#3fa04a;font-size:10px;letter-spacing:.1em;margin-top:3px}
+  #term .none{color:#3fa04a;font-size:12px;padding:8px 2px}
+  #termBtn{display:inline-block}`;
+  document.head.appendChild(css);
+  const term = document.createElement('div'); term.id = 'term';
+  term.innerHTML = '<div class="th"><span>DREAMOS TERMINAL // ARCADE</span><button type="button" id="termX" aria-label="Hide terminal">hide</button></div><input id="termQ" type="search" placeholder="search games…" autocomplete="off" aria-label="Search games"><div class="tabs" id="termTabs"></div><div class="list" id="termList"></div>';
+  document.body.appendChild(term);
+  const tb = document.createElement('button'); tb.className = 'btn'; tb.id = 'termBtn'; tb.textContent = '🖥 terminal';
+  $('prevCh').before(tb);
+  let tab = 'ALL';
+  const tabs = ['ALL', ...cfg.groups.map((g) => g.name)];
+  const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function draw() {
+    const q = $('termQ').value.trim().toLowerCase();
+    $('termTabs').innerHTML = tabs.map((t) => `<button type="button" class="${t === tab ? 'on' : ''}" data-t="${esc(t)}">${esc(t)}</button>`).join('');
+    const list = items.map((it, i) => ({ it, i })).filter(({ it }) => (tab === 'ALL' || cfg.groups.find((g) => g.name === tab).items.includes(it)) && (!q || it.title.toLowerCase().includes(q)));
+    $('termList').innerHTML = list.length ? list.map(({ it, i }) => `<button type="button" class="g${i === idx ? ' on' : ''}" data-i="${i}">${esc(it.title)}${it.note ? `<small>${esc(it.note.toUpperCase())}</small>` : ''}</button>`).join('') : '<div class="none">no games match.</div>';
+  }
+  const open = () => { setScreenMode(false); term.classList.add('on'); draw(); syncButtons(); };
+  const close = () => term.classList.remove('on');
+  $('termTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-t]'); if (b) { tab = b.dataset.t; draw(); } });
+  $('termQ').addEventListener('input', draw);
+  $('termList').addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (!b) return; show(+b.dataset.i); close(); setScreenMode(true); syncButtons(); });
+  $('termX').onclick = close;
+  tb.onclick = () => (term.classList.contains('on') ? close() : open());
+  window.__openTerminal = open;
+}
 
 $('backBtn').onclick = () => { $('warp').classList.add('go'); setTimeout(() => { location.href = 'lobby.html'; }, 480); };
-$('enterBtn').onclick = () => { started = true; $('start').classList.add('gone'); start(); video.muted = false; };
-show(0);
+$('enterBtn').onclick = () => { started = true; $('start').classList.add('gone'); start(); video.muted = false; if (cfg.terminal) window.__openTerminal(); };
+if (!cfg.terminal) show(0); else { drawCard(cfg.name, 'pick a game on the terminal'); setScreenMap(cardTex, 0xffffff); $('chName').textContent = cfg.name; $('chNo').textContent = 'DREAMOS TERMINAL'; syncButtons(); }

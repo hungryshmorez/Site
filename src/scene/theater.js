@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 
 // The DreamOS theater room, shared by every page that screens something:
-// tv.html (the TV channels / episodes) and chroma-theater.html (the Chroma Awards
+// tv.html (the TV channels / episodes) and screening.html (the lobby theaters: Chroma Awards,
 // entries). A dark walk-in movie theater — big animated screen, tiered seats,
 // silhouette NPCs, popcorn arcing through the projector haze, first-person walk.
 // The page decides WHAT is on the screen (setScreenMap) and what a tap on it does
@@ -161,6 +162,7 @@ function updatePopcorn(dt) {
 const player = { pos: new THREE.Vector3(0, 1.6, 5.6), yaw: 0, pitch: -0.03, keys: new Set(), target: null };
 const _t = new THREE.Vector3();
 function look(dx, dy) {
+  if (screenMode) return;
   player.yaw -= dx * 0.0045;
   player.pitch = THREE.MathUtils.clamp(player.pitch - dy * 0.0045, -0.6, 0.5);
 }
@@ -174,6 +176,7 @@ function applyCam() {
   camera.lookAt(_t);
 }
 function moveUpdate(dt) {
+  if (glide(dt)) return;
   const k = player.keys;
   const fwd = (k.has('w') || k.has('arrowup') ? 1 : 0) - (k.has('s') || k.has('arrowdown') ? 1 : 0);
   const str = (k.has('d') || k.has('arrowright') ? 1 : 0) - (k.has('a') || k.has('arrowleft') ? 1 : 0);
@@ -212,20 +215,81 @@ canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.r
 function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
+  if (screenMode) return;
   if (ray.intersectObject(screen, false)[0]) { screenTapAction(); return; }   // tap the screen → watch full-screen
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) player.target = g;
 }
-addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) { player.keys.add(k); player.target = null; } });
+addEventListener('keydown', (e) => { if (screenMode || e.target instanceof HTMLInputElement) return; const k = e.key.toLowerCase(); if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) { player.keys.add(k); player.target = null; } });
 addEventListener('keyup', (e) => player.keys.delete(e.key.toLowerCase()));
-addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); });
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); cssRenderer.setSize(innerWidth, innerHeight); });
 
+
+// ---- live embeds on the big screen (YouTube, a game) ----
+// A page can pin a live <iframe> to the screen as a CSS3D object that tracks the
+// camera. It is click-through while you walk the room (so drag-to-look still works);
+// setScreenMode(true) glides the camera up to the screen and makes the embed
+// interactive — that's how you play a game on it. Exit with setScreenMode(false).
+const PPU = 120;
+const cssScene = new THREE.Scene();
+const cssRenderer = new CSS3DRenderer();
+cssRenderer.setSize(innerWidth, innerHeight);
+Object.assign(cssRenderer.domElement.style, { position: 'fixed', top: '0', left: '0', pointerEvents: 'none', zIndex: '2' });
+document.body.appendChild(cssRenderer.domElement);
+let embed = null;
+const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+export function showEmbed(url) {
+  clearEmbed();
+  const w = SW * screen.scale.x, h = SH * screen.scale.y;
+  const wrap = document.createElement('div');
+  Object.assign(wrap.style, { width: `${w * PPU}px`, height: `${h * PPU}px`, background: '#000', overflow: 'hidden', pointerEvents: screenMode ? 'auto' : 'none' });
+  const frame = document.createElement('iframe');
+  Object.assign(frame.style, { width: '100%', height: '100%', border: '0', pointerEvents: 'inherit' });
+  frame.allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture; gamepad; pointer-lock; clipboard-write; accelerometer; gyroscope';
+  frame.setAttribute('allowfullscreen', '');
+  frame.src = url;
+  wrap.appendChild(frame);
+  const obj = new CSS3DObject(wrap);
+  obj.position.set(0, screen.position.y, screen.position.z + 0.03);
+  obj.scale.setScalar(1 / PPU);
+  cssScene.add(obj);
+  embed = { obj, wrap, frame };
+  screen.material = blackMat;
+}
+export function clearEmbed() {
+  if (!embed) return;
+  cssScene.remove(embed.obj); embed.frame.src = 'about:blank'; embed.wrap.remove();
+  embed = null;
+}
+let screenMode = false, goal = null, saved = null;
+export function setScreenMode(on) {
+  if (on === screenMode) return;
+  screenMode = on;
+  if (embed) embed.wrap.style.pointerEvents = on ? 'auto' : 'none';
+  if (on) {
+    saved = { pos: player.pos.clone(), yaw: player.yaw, pitch: player.pitch };
+    const h = SH * screen.scale.y, w = SW * screen.scale.x, tv = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const d = Math.max(3.2, h / (2 * tv * 0.86), w / (2 * tv * camera.aspect * 0.94));
+    goal = { pos: new THREE.Vector3(0, screen.position.y, screen.position.z + d), yaw: 0, pitch: 0 };
+  } else goal = saved;
+}
+export const inScreenMode = () => screenMode;
+// ease the camera toward `goal`; returns true while it is driving the camera
+function glide(dt) {
+  if (!goal) return false;
+  const t = 1 - Math.pow(0.0008, dt);
+  player.pos.lerp(goal.pos, t); player.yaw = easeAngle(player.yaw, goal.yaw, t); player.pitch += (goal.pitch - player.pitch) * t;
+  if (player.pos.distanceTo(goal.pos) < 0.02) { player.pos.copy(goal.pos); player.yaw = goal.yaw; player.pitch = goal.pitch; if (!screenMode) goal = null; }
+  applyCam();
+  return screenMode || !!goal;
+}
 
 // ---- screen content + tap ----
 // A page hands in a THREE.Texture (a VideoTexture, a CanvasTexture) to show on the
 // big screen, or null to fall back to the animated static channel.
 const mapMats = new Map();
 export function setScreenMap(tex, lightHex = 0xbfe0ff) {
+  clearEmbed();
   if (!tex) { screen.material = screenMat; return; }
   let m = mapMats.get(tex);
   if (!m) { m = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }); mapMats.set(tex, m); }
@@ -251,6 +315,7 @@ function frame() {
   updatePopcorn(dt);
   for (const fn of frameHooks) fn(dt, time);
   renderer.render(scene, camera);
+  if (embed) cssRenderer.render(cssScene, camera);
 }
 applyCam();
 renderer.render(scene, camera); // one frame behind the overlay

@@ -1,6 +1,6 @@
 // ── CHROMA AWARDS — every entry, by year ─────────────────────────────────────
 // Single source of truth for the Chroma Awards section: the DreamOS desktop
-// (chroma.html) and the screening theater (chroma-theater.html) are both
+// (chroma.html) and the lobby's Chroma theater (screening.html?room=chroma) are both
 // generated from this list, so adding an entry here puts it in both.
 //
 // To add one: append to the right year's `entries`. Fields:
@@ -21,7 +21,8 @@
 export const CHROMA = {
   name: 'CHROMA AWARDS',
   // The general Chroma Awards voting/landing page, used when an entry has no `vote` link yet.
-  voteHub: '',
+  // Chroma Awards watch page — used as the vote link for any entry without its own `vote` yet.
+  voteHub: 'https://submit.chromaawards.com/watch/d321d4fa-eae1-40ae-bb56-bf8da96d4e94',
   blurb: 'Every entry I have put into the Chroma Awards — this year on the desktop, last year in the archive. Open one to play it, or take a seat in the theater to see them on the big screen.',
   years: [
     {
@@ -60,9 +61,9 @@ export const CHROMA = {
           id: 'chroma-killer',
           vote: '',
           title: 'Chroma Killer',
-          tag: 'game',
-          blurb: 'A Chroma Awards game entry.',
-          url: 'https://chroma-award.on.websim.com/',
+          tag: 'game · Urban Life Simulator',
+          blurb: 'A Chroma Awards game entry (ULS Chroma Killer).',
+          url: 'https://urban-life-simulator-5--sofakingsadboi.on.websim.com/',
           accent: '#39ff14',
           glyph: '🔪',
         },
@@ -80,5 +81,14 @@ export const CHROMA = {
     },
   ],
 };
+
+// The Chroma Awards videos — screened in the lobby's Chroma theater (YouTube ids).
+export const CHROMA_VIDEOS = [
+  { yt: 'EvpLAbOw7E4', title: 'SOFA KING SAD BOI × Chroma Awards — DATAMOSH EDM', note: 'AI music video' },
+  { yt: 'FBaN4QWFucg', title: 'The Crawling Mind', note: 'Experimental AI film' },
+  { yt: '1lAA395N8FE', title: "Cowboys Don't Cry — Tanky Johnson", note: 'AI/VFX music video' },
+  { yt: 'dLWHNiePR8g', title: 'NPC Therapy — game entry', note: 'Experimental AI game' },
+  { yt: 'jfSAfMNQCNY', title: 'NPC Therapy — credits', note: 'Game credits' },
+];
 
 export const ALL_ENTRIES = CHROMA.years.flatMap((y) => y.entries.map((e) => ({ ...e, year: y.year })));

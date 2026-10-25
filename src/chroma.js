@@ -5,7 +5,7 @@ import { createReducedMotion } from './player/motion.js';
 // This year's entries sit on the desktop as icons (and open in an explorer window
 // on boot); earlier years live in archive folders. Each entry opens in its own
 // draggable window with a taskbar button; the Theater icon walks you into the
-// screening room (chroma-theater.html). Everything is generated from
+// screening room (screening.html?room=chroma). Everything is generated from
 // data/chroma.js — add an entry there and it appears here and in the theater.
 
 createReducedMotion();
@@ -15,7 +15,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 const narrow = () => matchMedia('(max-width: 700px)').matches;
 
 const [current, ...past] = CHROMA.years;
-const theaterUrl = (id) => `chroma-theater.html${id ? `?e=${encodeURIComponent(id)}` : ''}`;
+const theaterUrl = () => 'screening.html?room=chroma';
 
 // ---- window manager ----
 const winsEl = $('wins'), tasksEl = $('tasks');
@@ -156,7 +156,7 @@ function openReadme() {
 
 function goTheater(id) {
   document.body.style.transition = 'opacity .4s'; document.body.style.opacity = '0';
-  setTimeout(() => { location.href = theaterUrl(id); }, 380);
+  setTimeout(() => { location.href = theaterUrl(); }, 380);
 }
 function goFestival() { location.href = 'index.html'; }
 

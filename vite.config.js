@@ -45,7 +45,6 @@ export default defineConfig({
         store: resolve(__dirname, 'store.html'),
         blog: resolve(__dirname, 'blog.html'),
         chroma: resolve(__dirname, 'chroma.html'),
-        chromaTheater: resolve(__dirname, 'chroma-theater.html'),
         lobby: resolve(__dirname, 'lobby.html'),
         screening: resolve(__dirname, 'screening.html'),
         vote: resolve(__dirname, 'vote.html'),

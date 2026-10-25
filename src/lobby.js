@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { createReducedMotion, prefersReducedMotion } from './player/motion.js';
 import { openWindow } from './ui/popup.js';
-import { THEATERS } from './data/theaters.js';
+import { THEATERS, ARCADE } from './data/theaters.js';
 
 // THE LOBBY — a walkable movie-theater lobby. Straight ahead of the spawn is the
 // CHROMA AWARDS theater, lit up like the Fourth of July (marquee bulbs, bunting,
@@ -9,7 +9,7 @@ import { THEATERS } from './data/theaters.js';
 // (9×16, 16×9, Enter the Void); the arcade runs down the west wall, a voting booth
 // sits beside it, and the food court fills the east side.
 //   · theater doors → walk through → that theater's page
-//   · arcade pad    → arcade.html in the in-site window (every game)
+//   · arcade pad    → the Arcade theater (a DreamOS terminal picks a game; it loads on the big screen)
 //   · voting booth  → vote.html in the in-site window (links to each entry's vote page)
 // Theaters are defined in data/theaters.js; the Chroma entries in data/chroma.js.
 
@@ -228,11 +228,11 @@ for (const t of THEATERS) doors[t.id] = theaterDoor(t, doorXs[t.id], t.id === 'c
   }
   animators.push((dt, t) => screens.forEach((s, i) => { s.material.color.setHex(neon[i % neon.length]).multiplyScalar(0.55 + 0.45 * Math.abs(Math.sin(t * 2.3 + i))); }));
   const sign = textPlane('ARCADE', 7, 1.7, { color: '#ff2bd0', bg: '#0a0614', glow: '#ff2bd0', sub: 'EVERY GAME · PLAY ANYTHING' }); sign.position.set(-RX + 0.05, 5.6, 8.5); sign.rotation.y = Math.PI / 2; scene.add(sign);
-  // the play pad: step on it and every game opens in a window
+  // the play pad: step on it to walk into the Arcade theater
   const pad = new THREE.Mesh(new THREE.RingGeometry(0.7, 1.1, 40), basic(0xff2bd0, { toneMapped: false })); pad.rotation.x = -Math.PI / 2; pad.position.set(-17.2, 0.03, 8.5); scene.add(pad);
   const lbl = textPlane('▶ PLAY', 2, 0.6, { color: '#fff', glow: '#ff2bd0' }); lbl.rotation.x = -Math.PI / 2; lbl.position.set(-17.2, 0.04, 9.7); scene.add(lbl);
   animators.push((dt, t) => { pad.scale.setScalar(1 + 0.08 * Math.sin(t * 4)); });
-  trig(-18.3, -16.1, 7.4, 9.6, () => openWindow('ARCADE', new URL('arcade.html', location.href).href));
+  trig(-18.3, -16.1, 7.4, 9.6, () => goTo(ARCADE.page, 'entering the arcade…'));
 }
 
 // ---- VOTING BOOTH (west, between the theaters and the arcade) ----
