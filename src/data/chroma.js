@@ -82,13 +82,14 @@ export const CHROMA = {
   ],
 };
 
-// The Chroma Awards videos — screened in the lobby's Chroma theater (YouTube ids).
+// The Chroma Awards videos (YouTube ids) — screened in the lobby's Chroma theaters.
+// `year` is a guess for now (all 2025); fix any that belong to this year.
 export const CHROMA_VIDEOS = [
-  { yt: 'EvpLAbOw7E4', title: 'SOFA KING SAD BOI × Chroma Awards — DATAMOSH EDM', note: 'AI music video' },
-  { yt: 'FBaN4QWFucg', title: 'The Crawling Mind', note: 'Experimental AI film' },
-  { yt: '1lAA395N8FE', title: "Cowboys Don't Cry — Tanky Johnson", note: 'AI/VFX music video' },
-  { yt: 'dLWHNiePR8g', title: 'NPC Therapy — game entry', note: 'Experimental AI game' },
-  { yt: 'jfSAfMNQCNY', title: 'NPC Therapy — credits', note: 'Game credits' },
+  { yt: 'EvpLAbOw7E4', title: 'SOFA KING SAD BOI × Chroma Awards — DATAMOSH EDM', note: 'AI music video', year: 2025 },
+  { yt: 'FBaN4QWFucg', title: 'The Crawling Mind', note: 'Experimental AI film', year: 2025 },
+  { yt: '1lAA395N8FE', title: "Cowboys Don't Cry — Tanky Johnson", note: 'AI/VFX music video', year: 2025 },
+  { yt: 'dLWHNiePR8g', title: 'NPC Therapy — game entry', note: 'Experimental AI game', year: 2025 },
+  { yt: 'jfSAfMNQCNY', title: 'NPC Therapy — credits', note: 'Game credits', year: 2025 },
 ];
 
 export const ALL_ENTRIES = CHROMA.years.flatMap((y) => y.entries.map((e) => ({ ...e, year: y.year })));

@@ -154,6 +154,14 @@ function openReadme() {
   });
 }
 
+// the voting booth, in a window — the Chroma Awards vote page (vote.html) in an iframe
+function openVote() {
+  openWin({
+    id: 'vote', title: 'VOTE // CHROMA AWARDS', glyph: '🗳', w: 980, h: 640,
+    build(body) { body.innerHTML = '<iframe title="Chroma Awards voting" referrerpolicy="no-referrer-when-downgrade"></iframe>'; body.querySelector('iframe').src = 'vote.html'; },
+  });
+}
+
 function goTheater(id) {
   document.body.style.transition = 'opacity .4s'; document.body.style.opacity = '0';
   setTimeout(() => { location.href = theaterUrl(); }, 380);
@@ -178,6 +186,7 @@ function icon({ glyph, label, accent, sys, run }) {
 
 icon({ glyph: '🏆', label: `${CHROMA.name} ${current.year}`, accent: '#ffd24a', sys: true, run: () => openYear(current) });
 current.entries.forEach((e) => icon({ glyph: e.glyph, label: e.title, accent: e.accent, run: () => playEntry(e) }));
+icon({ glyph: '🗳', label: 'VOTE', accent: '#2a5bff', sys: true, run: openVote });
 icon({ glyph: '🎬', label: 'THEATER', accent: '#ff8a2a', sys: true, run: () => goTheater() });
 past.forEach((y) => icon({ glyph: '📁', label: `${y.year} ARCHIVE`, accent: '#b967ff', sys: true, run: () => openYear(y) }));
 icon({ glyph: '📄', label: 'README.txt', sys: true, run: openReadme });
@@ -195,6 +204,7 @@ menu.innerHTML = [
   '<hr>',
   ...past.flatMap((y) => [`<div class="hd">${y.year} · ${esc(y.label)}</div>`, ...y.entries.map((e) => menuItem(e.glyph, e.title, reg(() => playEntry(e)))), menuItem('📁', `${y.year} archive`, reg(() => openYear(y)))]),
   '<hr>',
+  menuItem('🗳', 'Vote for my entries', reg(openVote)),
   menuItem('🎬', 'Theater', reg(() => goTheater())),
   menuItem('📄', 'README.txt', reg(openReadme)),
   menuItem('🎪', 'Back to the festival', reg(goFestival)),

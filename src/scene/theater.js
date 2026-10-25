@@ -27,7 +27,10 @@ const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.1, 12
 const std = (o) => new THREE.MeshStandardMaterial(o);
 
 // ---- room ----
-const RW = 9, ZB = -13.5, ZF = 7, H = 6;
+// The New Mobile (9×16) theater is an IMAX-style tall room: a much higher ceiling and
+// a portrait screen hung way up on the wall. Picked from the page's ?room= param.
+export const TALL = new URLSearchParams(location.search).get('room') === 'vertical';
+const RW = 9, ZB = -13.5, ZF = 7, H = TALL ? 15 : 6;
 const wallMat = std({ color: 0x0a0b16, roughness: 0.96 });
 function wall(w, h, pos, rot) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), wallMat);
@@ -96,7 +99,7 @@ const COLS = [-7, -5.85, -4.7, -3.55, -2.4, 2.4, 3.55, 4.7, 5.85, 7];
 const ROWS = isMobile ? 6 : 8;
 const seats = [];
 for (let r = 0; r < ROWS; r++) {
-  const z = -8 + r * 1.65, y = r * 0.14;
+  const z = -8 + r * 1.65, y = r * (TALL ? 0.3 : 0.14);
   for (const x of COLS) seats.push({ x, y, z });
 }
 const seatMat = std({ color: 0x3a1522, roughness: 0.85 });
@@ -158,13 +161,17 @@ function updatePopcorn(dt) {
   if (dirty) popM.instanceMatrix.needsUpdate = true;
 }
 
+// AABBs the player can't walk into (a page can add props: voting booths…)
+const blockers = [];
+export const addBlockers = (list) => blockers.push(...list);
+
 // ---- first-person controller (clamped to the room) ----
-const player = { pos: new THREE.Vector3(0, 1.6, 5.6), yaw: 0, pitch: -0.03, keys: new Set(), target: null };
+const player = { pos: new THREE.Vector3(0, 1.6, 5.6), yaw: 0, pitch: TALL ? 0.3 : -0.03, keys: new Set(), target: null };
 const _t = new THREE.Vector3();
 function look(dx, dy) {
   if (screenMode) return;
   player.yaw -= dx * 0.0045;
-  player.pitch = THREE.MathUtils.clamp(player.pitch - dy * 0.0045, -0.6, 0.5);
+  player.pitch = THREE.MathUtils.clamp(player.pitch - dy * 0.0045, -0.6, TALL ? 1.0 : 0.5);
 }
 function applyCam() {
   camera.position.copy(player.pos);
@@ -194,6 +201,13 @@ function moveUpdate(dt) {
   }
   player.pos.x = THREE.MathUtils.clamp(player.pos.x, -RW + 0.8, RW - 0.8);
   player.pos.z = THREE.MathUtils.clamp(player.pos.z, ZB + 1.5, ZF - 0.7);
+  for (const b of blockers) {
+    const p = player.pos, R = 0.45;
+    if (p.x > b.x0 - R && p.x < b.x1 + R && p.z > b.z0 - R && p.z < b.z1 + R) {
+      const dx = Math.min(p.x - (b.x0 - R), b.x1 + R - p.x), dz = Math.min(p.z - (b.z0 - R), b.z1 + R - p.z);
+      if (dx < dz) p.x = p.x - (b.x0 - R) < b.x1 + R - p.x ? b.x0 - R : b.x1 + R; else p.z = p.z - (b.z0 - R) < b.z1 + R - p.z ? b.z0 - R : b.z1 + R;
+    }
+  }
   applyCam();
 }
 function easeAngle(a, b, t) { let d = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI; return a + d * t; }
@@ -220,7 +234,7 @@ function tap(sx, sy) {
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) player.target = g;
 }
-addEventListener('keydown', (e) => { if (screenMode || e.target instanceof HTMLInputElement) return; const k = e.key.toLowerCase(); if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) { player.keys.add(k); player.target = null; } });
+addEventListener('keydown', (e) => { if (screenMode || e.target instanceof HTMLInputElement || document.querySelector('.wp-ov.on')) return; const k = e.key.toLowerCase(); if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'].includes(k)) { player.keys.add(k); player.target = null; } });
 addEventListener('keyup', (e) => player.keys.delete(e.key.toLowerCase()));
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); cssRenderer.setSize(innerWidth, innerHeight); });
 
@@ -329,12 +343,12 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) cloc
 // Fit the screen to a picture aspect (w/h): 16:9 fills the wall, 9:16 becomes a tall
 // portrait screen. Keeps it clear of the ceiling; call once at setup.
 export function setScreenAspect(aspect) {
-  const maxW = SW, maxH = 5.2;
+  const maxW = SW, maxH = TALL ? H - 2.4 : 5.2;
   const w = Math.min(maxW, maxH * aspect), h = w / aspect;
-  const y = 0.7 + h / 2;
+  const y = (TALL ? 1.6 : 0.7) + h / 2;
   screen.scale.set(w / SW, h / SH, 1); screen.position.y = y;
   bezel.scale.set((w + 0.6) / (SW + 0.6), (h + 0.6) / (SH + 0.6), 1); bezel.position.y = y;
   screenLight.position.y = y;
 }
 
-export { THREE, scene, camera, renderer, screen, screenMat, screenLight, player, applyCam, isMobile };
+export { THREE, scene, RW, ZF, camera, renderer, screen, screenMat, screenLight, player, applyCam, isMobile };

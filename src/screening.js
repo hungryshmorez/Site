@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { createReducedMotion } from './player/motion.js';
 import { THEATERS, ARCADE } from './data/theaters.js';
-import { setScreenMap, setScreenAspect, showEmbed, setScreenMode, inScreenMode, onScreenTap, start } from './scene/theater.js';
+import { setScreenMap, setScreenAspect, showEmbed, setScreenMode, inScreenMode, onScreenTap, onFrame, start, scene, addBlockers, player, RW, ZF } from './scene/theater.js';
+import { votingBooth } from './scene/booth.js';
+import { openVote } from './ui/vote.js';
 
 // A lobby theater (Chroma Awards / 9×16 / 16×9 / Enter the Void / the Arcade) — the
 // shared DreamOS room (scene/theater.js) sized to the room's aspect, playing that
@@ -18,7 +20,7 @@ const items = cfg.items || [];
 let idx = 0;
 
 document.title = `${cfg.name} // Theater // 12matt3r`;
-$('roomName').textContent = `${cfg.name} THEATER`;
+$('roomName').textContent = /THEATER|ARCADE/.test(cfg.name) ? cfg.name : `${cfg.name} THEATER`;
 $('roomSub').textContent = cfg.sub.toUpperCase();
 $('startName').textContent = cfg.name;
 setScreenAspect(cfg.aspect);
@@ -56,9 +58,10 @@ video.addEventListener('ended', () => show(idx + 1));
 const videoTex = new THREE.VideoTexture(video); videoTex.colorSpace = THREE.SRGBColorSpace;
 let started = false;
 
-const kindOf = (it) => (it.yt ? 'embed' : it.url ? 'embed' : 'video');
-const embedUrl = (it) => (it.yt
-  ? `https://www.youtube.com/embed/${encodeURIComponent(it.yt)}?autoplay=1&rel=0&modestbranding=1&playsinline=1&origin=${encodeURIComponent(location.origin)}`
+const kindOf = (it) => (it.yt || it.pl || it.url ? 'embed' : 'video');
+const yt = `autoplay=1&rel=0&modestbranding=1&playsinline=1&origin=${encodeURIComponent(location.origin)}`;
+const embedUrl = (it) => (it.yt ? `https://www.youtube.com/embed/${encodeURIComponent(it.yt)}?${yt}`
+  : it.pl ? `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(it.pl)}&${yt}`
   : new URL(it.url, location.href).href);
 
 function show(i) {
@@ -92,6 +95,17 @@ $('nextCh').onclick = () => { setScreenMode(false); show(idx + 1); };
 $('prevCh').onclick = () => { setScreenMode(false); show(idx - 1); };
 addEventListener('keydown', (e) => { if (e.key === 'Escape' && inScreenMode()) { setScreenMode(false); syncButtons(); } });
 $('marq').style.display = 'none';
+
+// ---- voting booths: walk in (or press 🗳) and the Chroma Awards vote page opens in the site ----
+const booths = [-7, 7].map((x) => votingBooth({ parent: scene, x, z: 5.5, rotY: x < 0 ? 0 : Math.PI }));
+addBlockers(booths.flatMap((b) => b.blockers));
+const zones = booths.map((b) => ({ ...b.trigger, armed: true }));
+const inside = (z, m = 0) => player.pos.x > z.x0 - m && player.pos.x < z.x1 + m && player.pos.z > z.z0 - m && player.pos.z < z.z1 + m;
+onFrame((dt, t) => {
+  booths.forEach((b) => b.update(dt, t));
+  for (const z of zones) { if (inside(z)) { if (z.armed) { z.armed = false; openVote(); } } else if (!z.armed && !inside(z, 1.2)) z.armed = true; }
+});
+$('voteBtn').onclick = openVote;
 if (cfg.desktop) { $('deskBtn').style.display = ''; $('deskBtn').onclick = () => { location.href = 'chroma.html'; }; }
 
 // ---- the arcade's DreamOS terminal: pick a game, it loads on the big screen ----
@@ -116,7 +130,7 @@ if (cfg.terminal) {
   #termBtn{display:inline-block}`;
   document.head.appendChild(css);
   const term = document.createElement('div'); term.id = 'term';
-  term.innerHTML = '<div class="th"><span>DREAMOS TERMINAL // ARCADE</span><button type="button" id="termX" aria-label="Hide terminal">hide</button></div><input id="termQ" type="search" placeholder="search games…" autocomplete="off" aria-label="Search games"><div class="tabs" id="termTabs"></div><div class="list" id="termList"></div>';
+  term.innerHTML = '<div class="th"><span>DREAMOS TERMINAL // ' + cfg.name + '</span><button type="button" id="termX" aria-label="Hide terminal">hide</button></div><input id="termQ" type="search" placeholder="search…" autocomplete="off" aria-label="Search"><div class="tabs" id="termTabs"></div><div class="list" id="termList"></div>';
   document.body.appendChild(term);
   const tb = document.createElement('button'); tb.className = 'btn'; tb.id = 'termBtn'; tb.textContent = '🖥 terminal';
   $('prevCh').before(tb);
@@ -141,4 +155,4 @@ if (cfg.terminal) {
 
 $('backBtn').onclick = () => { $('warp').classList.add('go'); setTimeout(() => { location.href = 'lobby.html'; }, 480); };
 $('enterBtn').onclick = () => { started = true; $('start').classList.add('gone'); start(); video.muted = false; if (cfg.terminal) window.__openTerminal(); };
-if (!cfg.terminal) show(0); else { drawCard(cfg.name, 'pick a game on the terminal'); setScreenMap(cardTex, 0xffffff); $('chName').textContent = cfg.name; $('chNo').textContent = 'DREAMOS TERMINAL'; syncButtons(); }
+if (!cfg.terminal) show(0); else { drawCard(cfg.name, 'pick something on the terminal'); setScreenMap(cardTex, 0xffffff); $('chName').textContent = cfg.name; $('chNo').textContent = 'DREAMOS TERMINAL'; syncButtons(); }

@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { createReducedMotion, prefersReducedMotion } from './player/motion.js';
-import { openWindow } from './ui/popup.js';
+import { textPlane } from './scene/signs.js';
+import { votingBooth } from './scene/booth.js';
+import { openVote } from './ui/vote.js';
 import { THEATERS, ARCADE } from './data/theaters.js';
 
 // THE LOBBY — a walkable movie-theater lobby. Straight ahead of the spawn is the
@@ -76,20 +78,6 @@ for (const [x, z] of [[-11, 10], [11, 10], [-11, -6], [11, -6], [0, 2]]) {
 }
 
 // ---- helpers ----
-function textPlane(text, w, h, { color = '#fff', bg = null, glow = null, weight = '700', sub = null } = {}) {
-  const px = 110, c = document.createElement('canvas'); c.width = Math.round(w * px); c.height = Math.round(h * px);
-  const g = c.getContext('2d');
-  if (bg) { g.fillStyle = bg; g.fillRect(0, 0, c.width, c.height); }
-  g.textAlign = 'center'; g.textBaseline = 'middle';
-  let size = Math.round(c.height * (sub ? 0.5 : 0.6));
-  do { g.font = `${weight} ${size}px ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace`; size -= 4; } while (g.measureText(text).width > c.width * 0.92 && size > 12);
-  if (glow) { g.shadowColor = glow; g.shadowBlur = size * 0.35; }
-  g.fillStyle = color; g.fillText(text, c.width / 2, c.height * (sub ? 0.36 : 0.52));
-  if (sub) { g.shadowBlur = 0; g.font = `500 ${Math.round(c.height * 0.17)}px ui-monospace, Menlo, monospace`; g.fillStyle = 'rgba(255,255,255,.75)'; g.fillText(sub, c.width / 2, c.height * 0.78); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: t, transparent: !bg, toneMapped: false }));
-  return m;
-}
 function box(w, h, d, mat, x, y, z, parent = scene) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); parent.add(m); return m; }
 
 const blockers = [];   // AABBs the player can't walk into: {x0,x1,z0,z1}
@@ -105,27 +93,25 @@ function neonFrame(g, w, h, color, thick = 0.18) {
   const m = basic(color, { toneMapped: false });
   box(thick, h, 0.2, m, -w / 2, h / 2, 0.06, g); box(thick, h, 0.2, m, w / 2, h / 2, 0.06, g); box(w + thick, thick, 0.2, m, 0, h, 0.06, g);
 }
+// door sizes by theater: the Chroma one is the grand entrance; the New Mobile door is
+// tall and narrow (a portrait screen); the 2025 room gets a gold frame
+const DOOR = { chroma: [5.6, 5.4], vertical: [3.2, 6], wide: [4.4, 4.2], void: [3.4, 4.4], chroma25: [3.6, 4.6] };
 function theaterDoor(cfg, x, big) {
   const g = new THREE.Group(); g.position.set(x, 0, WALL_Z + 0.05); scene.add(g);
-  const w = big ? 5.6 : 3.2, h = big ? 5.4 : 4.2, accent = hex(cfg.accent);
+  const [w, h] = DOOR[cfg.id] || [3.2, 4.2], accent = hex(cfg.accent);
   const hole = new THREE.Mesh(new THREE.PlaneGeometry(w, h), basic(0x000000)); hole.position.set(0, h / 2, 0.03); g.add(hole);
   // a faint projector glow spilling out of the doorway
   const spill = new THREE.Mesh(new THREE.PlaneGeometry(w, h), basic(accent, { transparent: true, opacity: 0.18, toneMapped: false })); spill.position.set(0, h / 2, 0.04); g.add(spill);
   neonFrame(g, w, h, big ? WHITE : accent);
-  const mw = big ? 12.5 : 5.2, mh = big ? 2.7 : 1.5, my = h + (big ? 2.1 : 1.3);
+  const mw = big ? 12.5 : 5.4, mh = big ? 2.7 : 1.6, my = h + (big ? 2.1 : 1.3);
   const sign = textPlane(cfg.name, mw, mh, { color: big ? '#fff' : cfg.accent, bg: big ? '#16060c' : '#0a0a14', glow: big ? '#ff2a4a' : cfg.accent, sub: cfg.sub.toUpperCase() });
   sign.position.set(0, my, 0.1); g.add(sign);
   const hw = w / 2 - 0.1;
   trig(x - hw, x + hw, WALL_Z, WALL_Z + 1.6, () => goTo(cfg.page, `entering ${cfg.name}…`));
   return { g, w, h, mw, mh, my, accent };
 }
-const doorXs = { vertical: -16, wide: -8, chroma: 0, void: 8 };
 const doors = {};
-for (const t of THEATERS) doors[t.id] = theaterDoor(t, doorXs[t.id], t.id === 'chroma');
-// the spare bay on the end — a poster for the next booking
-{
-  const p = textPlane('NOW BOOKING', 4, 5.2, { color: '#8a8aa0', bg: '#0c0c18', sub: 'ROOM 5 · COMING SOON' }); p.position.set(16, 3.2, WALL_Z + 0.08); scene.add(p);
-}
+for (const t of THEATERS) doors[t.id] = theaterDoor(t, t.doorX, t.id === 'chroma');
 
 // ---- CHROMA AWARDS: lit up like the Fourth of July ----
 {
@@ -150,7 +136,6 @@ for (const t of THEATERS) doors[t.id] = theaterDoor(t, doorXs[t.id], t.id === 'c
     bm.instanceColor.needsUpdate = true;
   });
   // stars flanking the marquee
-  for (const sx of [-1, 1]) { const s = textPlane('★', 2, 2, { color: sx < 0 ? '#ff4a5a' : '#4a7bff', glow: '#fff' }); s.position.set(sx * (d.mw / 2 + 1.5), d.my, 0.12); g.add(s); }
   // bunting swagged across the wall: red / white / blue pennants on a sagging line
   const flagGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-0.28, 0, 0), new THREE.Vector3(0.28, 0, 0), new THREE.Vector3(0, -0.7, 0)]);
   flagGeo.computeVertexNormals();
@@ -211,6 +196,49 @@ for (const t of THEATERS) doors[t.id] = theaterDoor(t, doorXs[t.id], t.id === 'c
   });
 }
 
+// ---- PAPARAZZI on the red carpet: flashbulbs popping as you walk the runway ----
+// (kept to ~3 flashes a second in total, and switched off for reduced-motion users)
+{
+  const suit = std({ color: 0x0b0b14, roughness: 1 }), skin = std({ color: 0x2a1f24, roughness: 1 }), camM = std({ color: 0x16161e, roughness: 0.5 });
+  const lens = basic(0x9ab8ff);
+  const sc = document.createElement('canvas'); sc.width = sc.height = 64;
+  const sg = sc.getContext('2d'), gr = sg.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, '#fff'); gr.addColorStop(0.25, 'rgba(255,255,255,.85)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); sg.fillStyle = gr; sg.fillRect(0, 0, 64, 64);
+  const flashTex = new THREE.CanvasTexture(sc);
+  const pool = [0, 1, 2].map(() => { const l = new THREE.PointLight(0xffffff, 0, 10, 1.6); scene.add(l); return l; });
+  let poolI = 0;
+  const press = [0xff2a3a, 0xffd24a, 0x39ff14, 0x00f3ff];
+  const figs = [];
+  const zs = [-14, -10.5, -7, -3.5, 0, 3.5, 7.5, 11];
+  zs.forEach((z, i) => {
+    const sx = i % 2 ? 1 : -1, x = sx * (3.5 + (i % 3) * 0.35), zz = z + (i % 3) * 0.6;
+    const g = new THREE.Group(); g.position.set(x, 0, zz); g.rotation.y = sx < 0 ? Math.PI / 2 : -Math.PI / 2; scene.add(g);
+    const bodyM = new THREE.Mesh(new THREE.CapsuleGeometry(0.27, 0.8, 4, 8), suit); bodyM.position.y = 0.95; g.add(bodyM);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.21, 12, 10), skin); head.position.y = 1.72; g.add(head);
+    const tag = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.16, 0.04), basic(press[i % 4])); tag.position.set(0, 1.25, 0.27); g.add(tag);
+    for (const ax of [-1, 1]) { const arm = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.09, 0.5), suit); arm.position.set(ax * 0.2, 1.55, 0.3); g.add(arm); }
+    const cam = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 0.16), camM); cam.position.set(0, 1.72, 0.52); g.add(cam);
+    const lz = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.16, 10), lens); lz.rotation.x = Math.PI / 2; lz.position.set(0, 1.72, 0.66); g.add(lz);
+    const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: flashTex, color: 0xffffff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+    flash.position.set(0, 1.78, 0.78); flash.scale.setScalar(0); g.add(flash);
+    figs.push({ g, flash, next: 0.5 + Math.random() * 3.5, t: 0, ph: Math.random() * 6 });
+  });
+  animators.push((dt, t) => {
+    const calm = prefersReducedMotion();
+    for (const f of figs) {
+      f.g.position.y = calm ? 0 : Math.abs(Math.sin(t * 2 + f.ph)) * 0.03;
+      if (calm) { f.flash.scale.setScalar(0); continue; }
+      f.next -= dt;
+      if (f.next <= 0) {
+        f.t = 0.14; f.next = 1.6 + Math.random() * 4.2;
+        const l = pool[poolI++ % pool.length]; l.position.set(f.g.position.x * 0.8, 1.9, f.g.position.z); l.intensity = 26;
+      }
+      if (f.t > 0) { f.t -= dt; f.flash.scale.setScalar(1.3 + Math.random() * 0.5); } else f.flash.scale.setScalar(0);
+    }
+    for (const l of pool) l.intensity = Math.max(0, l.intensity - dt * 230);
+  });
+}
+
 // ---- ARCADE (west wall) ----
 {
   const ax = -RX + 1.1, z0 = 2, z1 = 15, n = 9;
@@ -235,28 +263,13 @@ for (const t of THEATERS) doors[t.id] = theaterDoor(t, doorXs[t.id], t.id === 'c
   trig(-18.3, -16.1, 7.4, 9.6, () => goTo(ARCADE.page, 'entering the arcade…'));
 }
 
-// ---- VOTING BOOTH (west, between the theaters and the arcade) ----
-{
-  const bx = -17.5, bz = -5;
-  const panel = std({ color: 0xf2f2f6, roughness: 0.7 });
-  box(0.15, 3, 2.8, panel, bx - 1.35, 1.5, bz);          // back
-  box(2.7, 3, 0.15, panel, bx, 1.5, bz - 1.4);            // sides
-  box(2.7, 3, 0.15, panel, bx, 1.5, bz + 1.4);
-  box(2.9, 0.15, 3, panel, bx, 3.05, bz);                 // roof
-  block(bx - 1.45, bx - 1.25, bz - 1.5, bz + 1.5); block(bx - 1.4, bx + 1.4, bz - 1.5, bz - 1.3); block(bx - 1.4, bx + 1.4, bz + 1.3, bz + 1.5);
-  // striped valance across the open front
-  const stripe = [RED, WHITE, BLUE];
-  for (let i = 0; i < 9; i++) box(0.12, 0.6, 3 / 9, basic(stripe[i % 3], { toneMapped: false }), bx + 1.4, 2.7, bz - 1.33 + i * (2.66 / 8));
-  // desk + glowing ballot screen
-  box(1.2, 0.9, 1.4, std({ color: 0x20243a }), bx - 0.7, 0.45, bz);
-  const ballot = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.7), basic(0x00f3ff, { toneMapped: false })); ballot.position.set(bx - 0.08, 1.25, bz); ballot.rotation.y = Math.PI / 2; ballot.rotation.z = 0; scene.add(ballot);
-  const vs = textPlane('VOTE', 3.2, 1.1, { color: '#fff', bg: '#102a8a', glow: '#2a5bff', sub: 'CHROMA AWARDS' }); vs.position.set(bx + 1.5, 3.9, bz); vs.rotation.y = Math.PI / 2; scene.add(vs);
-  const vs2 = vs.clone(); vs2.rotation.y = -Math.PI / 2; vs2.position.x = bx - 1.5; scene.add(vs2);
-  const L = new THREE.PointLight(0x6a9aff, 6, 8, 1.6); L.position.set(bx, 2.6, bz); scene.add(L);
-  animators.push((dt, t) => { ballot.material.color.setHex(0x00f3ff).multiplyScalar(0.7 + 0.3 * Math.sin(t * 3)); });
-  // walk into the booth → the voting page
-  trig(bx - 0.9, bx + 0.5, bz - 0.8, bz + 0.8, () => openWindow('VOTE // CHROMA AWARDS', new URL('vote.html', location.href).href));
-  const pad = new THREE.Mesh(new THREE.RingGeometry(0.45, 0.7, 32), basic(0x2a5bff, { toneMapped: false })); pad.rotation.x = -Math.PI / 2; pad.position.set(bx - 0.2, 0.03, bz); scene.add(pad);
+// ---- VOTING BOOTHS — everywhere. Walk in → the Chroma Awards vote page opens in the site ----
+const booths = [[-17.5, -5, 0], [-5.5, 9, 0], [5.5, 9, Math.PI], [15, -12, Math.PI]];
+for (const [x, z, r] of booths) {
+  const b = votingBooth({ parent: scene, x, z, rotY: r });
+  b.blockers.forEach((k) => block(k.x0, k.x1, k.z0, k.z1));
+  const t = b.trigger; trig(t.x0, t.x1, t.z0, t.z1, openVote);
+  animators.push(b.update);
 }
 
 // ---- FOOD COURT (east side) ----
@@ -290,8 +303,8 @@ for (const t of THEATERS) doors[t.id] = theaterDoor(t, doorXs[t.id], t.id === 'c
 // ---- lobby dressing: a "now showing" standee + a few moviegoers ----
 {
   const board = textPlane('NOW SHOWING', 5, 1.4, { color: '#fff', bg: '#0d0d1c', glow: '#00f3ff', sub: THEATERS.map((t) => t.name).join(' · ') });
-  board.position.set(7, 2.3, 8); board.rotation.y = -0.5; scene.add(board);
-  box(0.25, 1.6, 0.25, std({ color: 0x222233 }), 7, 0.8, 8);
+  board.position.set(-12, 2.3, 9); board.rotation.y = 0.5; scene.add(board);
+  box(0.25, 1.6, 0.25, std({ color: 0x222233 }), -12, 0.8, 9);
   const npcMat = std({ color: 0x07070c, roughness: 1 });
   const spots = [[-6, 4], [-5, 5.2], [6, 3], [7.5, 4.5], [-9, -2], [3, -10], [-3, -12], [12, 14], [8, 15], [-12, 12]];
   const bodies = new THREE.InstancedMesh(new THREE.CapsuleGeometry(0.27, 0.8, 4, 8), npcMat, spots.length);
@@ -377,9 +390,10 @@ function goTo(url, msg) {
   say(msg); $('warp').classList.add('go');
   setTimeout(() => { location.href = url; }, 520);
 }
+const LABEL = { chroma25: '🏆 Chroma 2025', vertical: '📱 New Mobile', chroma: '🎆 Chroma Awards', wide: '🎬 16×9', void: '🌀 Enter the Void' };
 const spots = [
-  ...THEATERS.map((t) => ({ label: t.id === 'chroma' ? '🎆 Chroma Awards' : t.id === 'void' ? '🌀 Enter the Void' : `🎬 ${t.name}`, x: doorXs[t.id], z: WALL_Z + 2.6, hot: t.id === 'chroma' })),
-  { label: '🕹 Arcade', x: -17.2, z: 8.5 }, { label: '🗳 Vote', x: -17.5, z: -5 }, { label: '🍿 Food court', x: 12, z: 2 },
+  ...THEATERS.map((t) => ({ label: LABEL[t.id] || t.name, x: t.doorX, z: WALL_Z + 2.6, hot: t.id === 'chroma' })),
+  { label: '🕹 Arcade', x: -17.2, z: 8.5 }, { label: '🗳 Vote', x: -15.5, z: -5 }, { label: '🍿 Food court', x: 12, z: 2 },
 ];
 for (const s of spots) {
   const b = document.createElement('button'); b.className = `btn${s.hot ? ' hot' : ''}`; b.textContent = s.label;

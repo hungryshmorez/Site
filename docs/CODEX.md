@@ -148,17 +148,22 @@ plus last year's Chroma links seeded from the Lab catalog.
 ## 06c · The Movie Theater Lobby (built)
 
 `lobby.html` is a walkable movie-theater lobby (reached from the Complex hub's **MOVIE LOBBY** door).
-- **Four theaters** on the north wall (`data/theaters.js`): **CHROMA AWARDS** dead ahead down a red carpet — a
-  Fourth-of-July marquee (red/white/blue chasing bulbs, bunting, fireworks) → `screening.html?room=chroma` (the Chroma Awards YouTube videos);
-  **9×16** (portrait screen), **16×9** (seeded with the TV episode slate) and **ENTER THE VOID** (trip shader)
-  → `screening.html?room=…`. Fill a room by adding `items: [{ title, src }]`.
-- **Arcade** (west wall): step on the pad → the **Arcade theater** (`screening.html?room=arcade`): a DreamOS
-  terminal lists the Chroma entries + the Lab's games/stories; pick one and it loads on the big screen — step
-  up to the screen to play it. (Embeds are CSS3D iframes pinned to the screen — `showEmbed()` in `scene/theater.js`.)
-- **Voting booth**: walk in → `vote.html`, one card per Chroma entry linking to its `vote` URL
-  (`data/chroma.js`; blank until you add the links).
+- **Five theaters** on the north wall, left → right (`data/theaters.js`): **CHROMA AWARDS 2025** (gold — play the
+  games, watch the films), **NEW MOBILE THEATER** (9×16 — an IMAX-tall room with a portrait screen hung high),
+  **CHROMA AWARDS** dead ahead down a red carpet (Fourth-of-July marquee: chasing red/white/blue bulbs, bunting,
+  fireworks, paparazzi flashing on the carpet), **16×9**, and **ENTER THE VOID** (off to the side; plays the
+  Enter the Void playlist). All are `screening.html?room=…`.
+- 16×9 gets every non-vertical YouTube video on the site, New Mobile every `tall` one (`data/videos.js` — none are
+  vertical yet, so it starts empty). The Chroma rooms have a DreamOS terminal listing the videos + games.
+- Items are video files, YouTube videos/playlists or playable pages; non-file items load on the big screen as a
+  live CSS3D iframe (`showEmbed()` in `scene/theater.js`) — "step up" to the screen to play / control it.
+- **Arcade** (west wall): pad → the **Arcade theater** (`room=arcade`), a DreamOS terminal of every game; pick one
+  and it loads on the big screen.
+- **Voting booths are everywhere** — four in the lobby, two in every theater, a 🗳 button on each page and a VOTE
+  icon on the desktop (`scene/booth.js`, `ui/vote.js`). They open `vote.html` in the in-site window, which frames
+  the Chroma Awards vote page (`voteHub` / per-entry `vote` in `data/chroma.js`) so nobody leaves the site.
 - **Food court** (east side): four stalls + tables. Decorative for now.
-`scene/theater.js` gained `setScreenAspect()` for the portrait room.
+`scene/theater.js` has `setScreenAspect()` and the tall room (`?room=vertical`).
 
 ## 07 · The classic (flat) site — built
 
@@ -216,7 +221,9 @@ Three.js + Vite, procedural primitives, **data-driven** roster + catalog. Each w
 | `scene/theater.js` | the shared theater room (screen, seats, NPCs, popcorn, walk controls) used by `tv.html` and `screening.html` |
 | `lobby.html` + `src/lobby.js` | the movie theater lobby (4 theater doors, arcade, voting booth, food court) |
 | `screening.html` + `src/screening.js` | the 9×16 / 16×9 / Void theaters (from `data/theaters.js`) |
-| `vote.html` + `src/vote.js` | the voting booth page — per-entry vote links |
+| `vote.html` + `src/vote.js` | the voting page — the Chroma Awards vote page in an iframe |
+| `scene/booth.js` · `scene/signs.js` · `ui/vote.js` | the shared voting booth prop, sign planes, and the open-the-vote-window helper |
+| `data/videos.js` | every YouTube video on the site, for the 16×9 / New Mobile theaters |
 | `chroma.html` + `src/chroma.js` | the Chroma Awards DreamOS desktop — windowed launcher for every entry |
 | `data/chroma.js` | every Chroma Awards entry by year — edit here to add one |
 | `lab.html` + `src/lab.js` | the Lab DreamOS terminal (launcher, from catalog) |

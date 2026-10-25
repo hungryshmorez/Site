@@ -1,17 +1,24 @@
 import { CHROMA } from './data/chroma.js';
 
-// The voting booth page (opened from the lobby's booth): one card per Chroma Awards
-// entry, linking to that entry's vote page (`vote` in data/chroma.js). Entries
-// without a link yet show a placeholder instead of a dead button.
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const safe = (u) => { if (!u) return ''; try { const x = new URL(u, location.href); return x.protocol === 'https:' || x.protocol === 'http:' ? x.href : ''; } catch { return ''; } };
-
-document.getElementById('app').innerHTML = CHROMA.years.map((y) => `
-  <h2>${y.year} · ${esc(y.label)}</h2>
-  <div class="grid">${y.entries.map((e) => {
-    const url = safe(e.vote || CHROMA.voteHub || '');
-    return `<div class="card" style="--a:${esc(e.accent)}">
-      <div class="n">${esc(e.glyph)} ${esc(e.title)}</div><div class="t">${esc(e.tag)}</div><div class="d">${esc(e.blurb)}</div>
-      ${url ? `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">VOTE FOR ${esc(e.title.toUpperCase())} ↗</a>` : '<span class="btn">VOTE LINK COMING SOON</span>'}
-    </div>`;
-  }).join('')}</div>`).join('');
+// The voting booth page, shown inside the site (an in-site window → this page → an
+// iframe of the Chroma Awards vote page). Each Chroma entry can have its own `vote`
+// link in data/chroma.js; entries without one fall back to the general Chroma Awards
+// link (`voteHub`). One tab per distinct link.
+const safe = (u) => { if (!u) return ''; try { const x = new URL(u, location.href); return x.protocol === 'https:' ? x.href : ''; } catch { return ''; } };
+const hub = safe(CHROMA.voteHub);
+const tabs = [];
+for (const y of CHROMA.years) for (const e of y.entries) {
+  const url = safe(e.vote) || hub;
+  if (url && !tabs.some((t) => t.url === url)) tabs.push({ url, label: safe(e.vote) ? e.title : 'CHROMA AWARDS' });
+}
+const frame = document.getElementById('frame'), ext = document.getElementById('ext'), bar = document.getElementById('tabs');
+function pick(i) {
+  const t = tabs[i]; if (!t) return;
+  frame.src = t.url; ext.href = t.url;
+  [...bar.children].forEach((b, j) => b.classList.toggle('on', j === i));
+}
+if (!tabs.length) { document.getElementById('note').textContent = 'voting links are not set up yet'; ext.style.display = 'none'; }
+else {
+  if (tabs.length > 1) tabs.forEach((t, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = t.label; b.onclick = () => pick(i); bar.appendChild(b); });
+  pick(0);
+}
