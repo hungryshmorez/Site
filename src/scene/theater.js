@@ -164,6 +164,9 @@ function updatePopcorn(dt) {
 // AABBs the player can't walk into (a page can add props: voting booths…)
 const blockers = [];
 export const addBlockers = (list) => blockers.push(...list);
+// tap/click testers for props: (ray) => true if it handled the tap
+const clickables = [];
+export const addClickable = (fn) => clickables.push(fn);
 
 // ---- first-person controller (clamped to the room) ----
 const player = { pos: new THREE.Vector3(0, 1.6, 5.6), yaw: 0, pitch: TALL ? 0.3 : -0.03, keys: new Set(), target: null };
@@ -230,6 +233,7 @@ function tap(sx, sy) {
   ndc.x = (sx / innerWidth) * 2 - 1; ndc.y = -(sy / innerHeight) * 2 + 1;
   ray.setFromCamera(ndc, camera);
   if (screenMode) return;
+  for (const f of clickables) if (f(ray)) return;
   if (ray.intersectObject(screen, false)[0]) { screenTapAction(); return; }   // tap the screen → watch full-screen
   const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3());
   if (g) player.target = g;

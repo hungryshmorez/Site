@@ -157,9 +157,13 @@ plus last year's Chroma links seeded from the Lab catalog.
   vertical yet, so it starts empty). The Chroma rooms have a DreamOS terminal listing the videos + games.
 - Items are video files, YouTube videos/playlists or playable pages; non-file items load on the big screen as a
   live CSS3D iframe (`showEmbed()` in `scene/theater.js`) — "step up" to the screen to play / control it.
-- **Arcade** (west wall): pad → the **Arcade theater** (`room=arcade`), a DreamOS terminal of every game; pick one
-  and it loads on the big screen.
-- **Voting booths are everywhere** — four in the lobby, two in every theater, a 🗳 button on each page and a VOTE
+- **Arcade terminal** (west wall desk — no cabinets): walk up or click → the **Arcade theater** (`room=arcade`). A
+  DreamOS terminal desk in the room lists every game; pick one and it loads on the big movie screen (the room
+  stays around you; click the screen to step up and play).
+- **Photo booth** (the festival's, west wall) → Trippy Cam window; **Merch tent** (the festival's stall, south wall)
+  → `store.html`.
+- **Voting booths are everywhere** — four in the lobby (flush against the walls like vending machines, clear of the
+  walkways), two in every theater, a 🗳 button on each page and a VOTE
   icon on the desktop (`scene/booth.js`, `ui/vote.js`). They open `vote.html` in the in-site window, which frames
   the Chroma Awards vote page (`voteHub` / per-entry `vote` in `data/chroma.js`) so nobody leaves the site.
 - **Food court** (east side): four stalls + tables. Decorative for now.

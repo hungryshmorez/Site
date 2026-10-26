@@ -125,6 +125,14 @@
     .task{flex:0 1 160px;min-width:60px;height:30px;padding:0 10px;border-radius:7px;cursor:pointer;font-size:11px;letter-spacing:.05em;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05)}
     .task.on{border-color:var(--cyan);background:rgba(0,243,255,.14)}
+    .music{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+    .music button{height:28px;padding:0 9px;border-radius:7px;cursor:pointer;font-size:11px;letter-spacing:.04em;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06)}
+    .music button:hover{border-color:var(--cyan)}
+    .music button.off{color:#8a8a99;border-style:dashed}
+    .music .np{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10.5px;color:var(--muted);margin-right:4px}
+    .music input{width:78px;accent-color:var(--cyan)}
+    @media(max-width:900px){.music .np{display:none}}
+    @media(max-width:560px){.music input,#mPrev,#mNext{display:none}.clock{display:none}}
     .clock{font-size:11px;letter-spacing:.1em;color:var(--muted);padding:0 6px;white-space:nowrap}
     #menu{position:fixed;left:8px;bottom:calc(var(--bar) + 6px);z-index:55;width:min(300px,92vw);display:none;padding:8px;border-radius:12px;
       background:rgba(10,10,24,.97);border:1px solid rgba(0,243,255,.4);box-shadow:0 20px 60px -10px rgba(0,243,255,.3)}
@@ -159,6 +167,13 @@
   <div class="taskbar">
     <button class="start" id="startBtn" aria-haspopup="true" aria-expanded="false">◢ START</button>
     <div id="tasks"></div>
+    <div class="music" id="music" role="group" aria-label="Music">
+      <span class="np" id="np" aria-live="polite">♪ —</span>
+      <button id="mPrev" title="Previous song" aria-label="Previous song">◄◄</button>
+      <button id="mPlay" title="Turn the music on / off" aria-label="Music on or off">♪ on</button>
+      <button id="mNext" title="Next song" aria-label="Next song">►►</button>
+      <input id="mVol" type="range" min="0" max="100" value="20" title="Volume" aria-label="Music volume">
+    </div>
     <div class="clock" id="clock"></div>
   </div>
 
@@ -168,7 +183,6 @@
     <div class="s">DREAMOS // CHROMA AWARDS</div>
   </div>
 
-  <script type="module" src="/src/player/globalplayer-boot.js"></script>
   <script type="module" src="/src/chroma.js"></script>
   <div class="rm-dock">
     <button id="rmbtn" title="Reduced motion">◐ motion</button>
