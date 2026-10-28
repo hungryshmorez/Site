@@ -1,5 +1,6 @@
 import { CHROMA_VIDEOS, ALL_ENTRIES } from './chroma.js';
 import { VIDEOS } from './videos.js';
+import { TTA_TALL, TTA_WIDE } from './tta.js';
 import { LAB } from './catalog.js';
 
 // ── THE LOBBY'S THEATERS ─────────────────────────────────────────────────────
@@ -27,7 +28,7 @@ export const THEATERS = [
   {
     id: 'vertical', name: 'NEW MOBILE THEATER', sub: 'vertical · 9×16 · the portrait IMAX', page: 'screening.html?room=vertical',
     aspect: 9 / 16, accent: '#ff2bd0', doorX: -9,
-    items: VIDEOS.filter((v) => v.tall).map((v) => ({ title: v.title, yt: v.yt })),
+    items: [...TTA_TALL.map(({ title, src, note }) => ({ title, src, note })), ...VIDEOS.filter((v) => v.tall).map((v) => ({ title: v.title, yt: v.yt }))],
   },
   {
     id: 'chroma', name: 'CHROMA AWARDS', sub: 'this year · every entry · the big one', page: 'screening.html?room=chroma',
@@ -37,7 +38,7 @@ export const THEATERS = [
   {
     id: 'wide', name: '16×9', sub: 'widescreen · every video on the site', page: 'screening.html?room=wide',
     aspect: 16 / 9, accent: '#00f3ff', doorX: 9,
-    items: VIDEOS.filter((v) => !v.tall).map((v) => ({ title: v.title, yt: v.yt })),
+    items: [...TTA_WIDE.map(({ title, src, note }) => ({ title, src, note })), ...VIDEOS.filter((v) => !v.tall).map((v) => ({ title: v.title, yt: v.yt }))],
   },
   {
     id: 'void', name: 'ENTER THE VOID', sub: 'the trip room · its own thing', page: 'screening.html?room=void',
