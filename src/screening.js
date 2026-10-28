@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { createReducedMotion } from './player/motion.js';
 import { THEATERS, ARCADE } from './data/theaters.js';
-import { setScreenMap, setScreenAspect, showEmbed, setScreenMode, inScreenMode, onScreenTap, onFrame, start, scene, addBlockers, player, RW, ZF } from './scene/theater.js';
+import { setScreenMap, setScreenAspect, showEmbed, setScreenMode, inScreenMode, onScreenTap, onFrame, start, scene, addBlockers, addClickable, player, RW, ZF } from './scene/theater.js';
+import { textPlane } from './scene/signs.js';
 import { votingBooth } from './scene/booth.js';
 import { openVote } from './ui/vote.js';
 
@@ -147,10 +148,23 @@ if (cfg.terminal) {
   const close = () => term.classList.remove('on');
   $('termTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-t]'); if (b) { tab = b.dataset.t; draw(); } });
   $('termQ').addEventListener('input', draw);
-  $('termList').addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (!b) return; show(+b.dataset.i); close(); setScreenMode(true); syncButtons(); });
+  $('termList').addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (!b) return; show(+b.dataset.i); close(); $('chNo').textContent += ' · click the screen to step up and play'; });
   $('termX').onclick = close;
   tb.onclick = () => (term.classList.contains('on') ? close() : open());
   window.__openTerminal = open;
+
+  // the DreamOS terminal desk in the room — click it (or the 🖥 button) to pick something
+  // else. Your pick plays on the big movie screen; the room stays around you.
+  const kg = new THREE.Group(); kg.position.set(1.5, 0, 2.7); scene.add(kg);
+  const deskM = new THREE.MeshStandardMaterial({ color: 0x1a2a22, roughness: 0.6 });
+  const part = (w, h, d, m, x, y, z) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); kg.add(o); return o; };
+  part(1.5, 0.85, 0.8, deskM, 0, 0.425, 0);
+  part(1.0, 0.8, 0.45, new THREE.MeshStandardMaterial({ color: 0x0c1410 }), 0, 1.25, -0.1);
+  const scr = textPlane('DREAMOS', 0.85, 0.62, { color: '#39ff14', bg: '#02120a', glow: '#39ff14', sub: 'TERMINAL' }); scr.position.set(0, 1.25, 0.13); kg.add(scr);
+  const kl = new THREE.PointLight(0x39ff14, 5, 7, 1.7); kl.position.set(0, 1.9, 0.9); kg.add(kl);
+  const proxy = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2, 1.2), new THREE.MeshBasicMaterial({ visible: false })); proxy.position.set(0, 1, 0.1); kg.add(proxy);
+  addBlockers([{ x0: 0.7, x1: 2.3, z0: 2.25, z1: 3.15 }]);
+  addClickable((ray) => (ray.intersectObject(proxy, false)[0] ? (open(), true) : false));
 }
 
 $('backBtn').onclick = () => { $('warp').classList.add('go'); setTimeout(() => { location.href = 'lobby.html'; }, 480); };

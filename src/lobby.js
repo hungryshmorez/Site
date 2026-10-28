@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { createReducedMotion, prefersReducedMotion } from './player/motion.js';
 import { textPlane } from './scene/signs.js';
 import { votingBooth } from './scene/booth.js';
+import { buildPhotoBooth } from './scene/photobooth.js';
+import { buildStall } from './scene/models.js';
+import { openWindow } from './ui/popup.js';
 import { openVote } from './ui/vote.js';
 import { THEATERS, ARCADE } from './data/theaters.js';
 
@@ -11,7 +14,8 @@ import { THEATERS, ARCADE } from './data/theaters.js';
 // (9×16, 16×9, Enter the Void); the arcade runs down the west wall, a voting booth
 // sits beside it, and the food court fills the east side.
 //   · theater doors → walk through → that theater's page
-//   · arcade pad    → the Arcade theater (a DreamOS terminal picks a game; it loads on the big screen)
+//   · arcade terminal desk → the Arcade theater (a DreamOS terminal picks a game; it loads on the big screen)
+//   · photo booth   → the Trippy Cam in the in-site window; merch tent → store.html
 //   · voting booth  → vote.html in the in-site window (links to each entry's vote page)
 // Theaters are defined in data/theaters.js; the Chroma entries in data/chroma.js.
 
@@ -239,32 +243,72 @@ for (const t of THEATERS) doors[t.id] = theaterDoor(t, t.doorX, t.id === 'chroma
   });
 }
 
-// ---- ARCADE (west wall) ----
+// ---- WALL FIXTURES: everything lives against the walls, vending-machine style, so the
+// middle of the lobby (the red carpet and the paths to the theaters) stays clear ----
+// world AABB for a local rect on a prop placed at (x, z) turned `rot` (multiple of π/2)
+function wrect(x, z, rot, x0, x1, z0, z1) {
+  const c = Math.round(Math.cos(rot)), s = Math.round(Math.sin(rot));
+  const pts = [[x0, z0], [x0, z1], [x1, z0], [x1, z1]].map(([lx, lz]) => [x + lx * c + lz * s, z - lx * s + lz * c]);
+  const xs = pts.map((p) => p[0]), zs = pts.map((p) => p[1]);
+  return [Math.min(...xs), Math.max(...xs), Math.min(...zs), Math.max(...zs)];
+}
+const clickables = [];   // (ray) => boolean — tap/click on a prop
+
+// DREAMOS ARCADE TERMINAL — a desk with a glowing monitor. Walk up or click it: it takes
+// you to the Arcade theater, where the game you pick plays on the big movie screen.
 {
-  const ax = -RX + 1.1, z0 = 2, z1 = 15, n = 9;
-  block(-RX, ax + 0.6, z0 - 1, z1 + 1);
-  const body = std({ color: 0x3a2a5c, roughness: 0.6, emissive: 0x160c28 });
-  const neon = [0xff2bd0, 0x00f3ff, 0xffd24a, 0x39ff14, 0xb967ff];
-  const screens = [];
-  for (let i = 0; i < n; i++) {
-    const z = z0 + (z1 - z0) * (i / (n - 1)), c = neon[i % neon.length];
-    const g = new THREE.Group(); g.position.set(ax, 0, z); g.rotation.y = Math.PI / 2; scene.add(g);
-    box(1.1, 2.3, 0.9, body, 0, 1.15, 0, g);
-    const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.85, 0.7), basic(c, { toneMapped: false })); scr.position.set(0, 1.55, 0.46); scr.rotation.x = -0.12; g.add(scr); screens.push(scr);
-    box(1.14, 0.18, 0.95, basic(c, { toneMapped: false }), 0, 2.32, 0, g);
-    box(1.0, 0.1, 0.5, body, 0, 0.95, 0.5, g);
-  }
-  animators.push((dt, t) => screens.forEach((s, i) => { s.material.color.setHex(neon[i % neon.length]).multiplyScalar(0.55 + 0.45 * Math.abs(Math.sin(t * 2.3 + i))); }));
-  const sign = textPlane('ARCADE', 7, 1.7, { color: '#ff2bd0', bg: '#0a0614', glow: '#ff2bd0', sub: 'EVERY GAME · PLAY ANYTHING' }); sign.position.set(-RX + 0.05, 5.6, 8.5); sign.rotation.y = Math.PI / 2; scene.add(sign);
-  // the play pad: step on it to walk into the Arcade theater
-  const pad = new THREE.Mesh(new THREE.RingGeometry(0.7, 1.1, 40), basic(0xff2bd0, { toneMapped: false })); pad.rotation.x = -Math.PI / 2; pad.position.set(-17.2, 0.03, 8.5); scene.add(pad);
-  const lbl = textPlane('▶ PLAY', 2, 0.6, { color: '#fff', glow: '#ff2bd0' }); lbl.rotation.x = -Math.PI / 2; lbl.position.set(-17.2, 0.04, 9.7); scene.add(lbl);
-  animators.push((dt, t) => { pad.scale.setScalar(1 + 0.08 * Math.sin(t * 4)); });
-  trig(-18.3, -16.1, 7.4, 9.6, () => goTo(ARCADE.page, 'entering the arcade…'));
+  const x = -20.6, z = 4, rot = Math.PI / 2;
+  const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rot; scene.add(g);
+  const body = std({ color: 0x1a2a22, roughness: 0.6 });
+  box(1.9, 0.85, 0.9, body, 0, 0.425, 0, g);
+  box(1.2, 0.95, 0.5, std({ color: 0x0c1410, roughness: 0.5 }), 0, 1.33, -0.1, g);
+  const scr = textPlane('DREAMOS', 1.0, 0.75, { color: '#39ff14', bg: '#02120a', glow: '#39ff14', sub: 'TERMINAL' });
+  scr.position.set(0, 1.33, 0.16); g.add(scr);
+  box(0.8, 0.04, 0.28, std({ color: 0x0c1410 }), 0, 0.87, 0.3, g);
+  const L = new THREE.PointLight(0x39ff14, 6, 8, 1.7); L.position.set(0, 1.8, 0.8); g.add(L);
+  const sign = textPlane('ARCADE TERMINAL', 5, 1.2, { color: '#39ff14', bg: '#0a0614', glow: '#39ff14', sub: 'PICK A GAME · IT PLAYS ON THE BIG SCREEN' });
+  sign.position.set(0, 3.4, -0.46); g.add(sign);
+  const pad = new THREE.Mesh(new THREE.RingGeometry(0.55, 0.85, 36), basic(0x39ff14, { toneMapped: false })); pad.rotation.x = -Math.PI / 2; pad.position.set(0, 0.03, 1.3); g.add(pad);
+  animators.push((dt, t) => { pad.scale.setScalar(1 + 0.08 * Math.sin(t * 4)); scr.material.color.setScalar(0.8 + 0.2 * Math.sin(t * 3)); });
+  block(...wrect(x, z, rot, -1.0, 1.0, -0.55, 0.5));
+  const proxy = new THREE.Mesh(new THREE.BoxGeometry(2, 2.4, 1.6), new THREE.MeshBasicMaterial({ visible: false })); proxy.position.set(0, 1.2, 0.3); g.add(proxy);
+  const go = () => goTo(ARCADE.page, 'booting the arcade…');
+  clickables.push((ray) => (ray.intersectObject(proxy, false)[0] ? (go(), true) : false));
+  const [x0, x1, z0, z1] = wrect(x, z, rot, -0.8, 0.8, 0.9, 1.7); trig(x0, x1, z0, z1, go);
 }
 
-// ---- VOTING BOOTHS — everywhere. Walk in → the Chroma Awards vote page opens in the site ----
-const booths = [[-17.5, -5, 0], [-5.5, 9, 0], [5.5, 9, Math.PI], [15, -12, Math.PI]];
+// PHOTO BOOTH — the festival's curtained booth with the big glass lens. Step in (or click)
+// and the Trippy Cam opens in a window: your webcam, turned psychedelic.
+{
+  const x = -21.15, z = -5, rot = Math.PI / 2;
+  const open = () => openWindow('PHOTO BOOTH // TRIPPY CAM', 'https://g5kgb2qtzw2s.space.minimax.io/');
+  const pb = buildPhotoBooth(scene, { pos: [x, 0, z], accent: '#00F3FF', onActivate: open });
+  pb.group.rotation.y = rot;
+  animators.push((dt, t) => pb.update(dt, t, 0.5 + 0.5 * Math.sin(t * 2)));
+  block(...wrect(x, z, rot, -0.95, 0.95, -0.9, -0.7)); block(...wrect(x, z, rot, 0.79, 0.91, -0.9, 0.8)); block(...wrect(x, z, rot, -0.91, -0.79, -0.9, 0.8));
+  const [x0, x1, z0, z1] = wrect(x, z, rot, -0.6, 0.6, -0.5, 0.5); trig(x0, x1, z0, z1, open);
+  clickables.push((ray) => pb.tryClick(ray));
+}
+
+// MERCH TENT — the festival's striped stall, with the vendor, shirt stacks and tee rack.
+// Walk up to the counter (or click it) → the 3D store.
+{
+  const x = -12, z = 18.6, rot = Math.PI;
+  const st = buildStall('#39FF14');
+  st.group.position.set(x, 0, z); st.group.rotation.y = rot; scene.add(st.group);
+  animators.push((dt, t) => st.update(t, 0.5 + 0.5 * Math.sin(t * 2)));
+  const sign = textPlane('MERCH TENT', 5, 1.1, { color: '#39ff14', bg: '#0a0614', glow: '#39ff14', sub: 'WALK UP TO THE COUNTER → THE 3D STORE' });
+  sign.position.set(x, 4.6, 19.95); sign.rotation.y = Math.PI; scene.add(sign);
+  block(...wrect(x, z, rot, -1.6, 1.6, 0.7, 1.3)); block(...wrect(x, z, rot, -1.6, 1.6, -1.3, -0.8));
+  const go = () => goTo('store.html', 'off to the merch store…');
+  const [x0, x1, z0, z1] = wrect(x, z, rot, -1.5, 1.5, 1.45, 2.4); trig(x0, x1, z0, z1, go);
+  const proxy = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.6, 2.6), new THREE.MeshBasicMaterial({ visible: false })); proxy.position.set(0, 1.3, 0.4); st.group.add(proxy);
+  clickables.push((ray) => (ray.intersectObject(proxy, false)[0] ? (go(), true) : false));
+}
+
+// VOTING BOOTHS — flush against the walls, away from the walkways. Walk in → the Chroma
+// Awards vote page opens in the site.
+const booths = [[-20.5, -13, 0], [-20.5, 12, 0], [12, 18.5, Math.PI / 2], [20.5, 17.5, Math.PI]];
 for (const [x, z, r] of booths) {
   const b = votingBooth({ parent: scene, x, z, rotY: r });
   b.blockers.forEach((k) => block(k.x0, k.x1, k.z0, k.z1));
@@ -373,7 +417,7 @@ canvas.addEventListener('pointerup', (e) => {
   canvas.classList.remove('drag');
   if (down && !dragged) {
     ndc.x = (e.clientX / innerWidth) * 2 - 1; ndc.y = -(e.clientY / innerHeight) * 2 + 1; ray.setFromCamera(ndc, camera);
-    const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3()); if (g) player.target = g;
+    if (!clickables.some((f) => f(ray))) { const g = ray.ray.intersectPlane(GROUND, new THREE.Vector3()); if (g) player.target = g; }
   }
   down = null;
 });
@@ -393,7 +437,7 @@ function goTo(url, msg) {
 const LABEL = { chroma25: '🏆 Chroma 2025', vertical: '📱 New Mobile', chroma: '🎆 Chroma Awards', wide: '🎬 16×9', void: '🌀 Enter the Void' };
 const spots = [
   ...THEATERS.map((t) => ({ label: LABEL[t.id] || t.name, x: t.doorX, z: WALL_Z + 2.6, hot: t.id === 'chroma' })),
-  { label: '🕹 Arcade', x: -17.2, z: 8.5 }, { label: '🗳 Vote', x: -15.5, z: -5 }, { label: '🍿 Food court', x: 12, z: 2 },
+  { label: '🖥 Arcade terminal', x: -18.2, z: 4 }, { label: '📷 Photo booth', x: -19.2, z: -5 }, { label: '🛍 Merch', x: -12, z: 15.8 }, { label: '🗳 Vote', x: -19, z: -13 }, { label: '🍿 Food court', x: 12, z: 2 },
 ];
 for (const s of spots) {
   const b = document.createElement('button'); b.className = `btn${s.hot ? ' hot' : ''}`; b.textContent = s.label;

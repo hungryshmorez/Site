@@ -129,6 +129,7 @@ export function initGlobalPlayer(opts = {}) {
   function toggle() { (audio.paused ? resume : pause)(); }
   function next() { load(index + 1, { play: true }); }
   function prev() { load(index - 1, { play: true }); }
+  function setVolume(v) { volume = Math.min(1, Math.max(0, +v || 0)); audio.volume = volume; save(true); }
   function setMuted(v) { muted = !!v; audio.muted = muted; if (ui && ui.muteBtn) ui.muteBtn.textContent = muted ? '🔇' : '🔊'; save(); }
 
   // First user gesture anywhere resumes playback that autoplay policy blocked.
@@ -197,7 +198,7 @@ export function initGlobalPlayer(opts = {}) {
 
   paint();
 
-  const api = { getAudioEl: () => audio, resume, pause, toggle, next, prev, setMuted, isPlaying: () => !audio.paused, current: () => titleOf(index), onNowPlaying };
+  const api = { getAudioEl: () => audio, resume, pause, toggle, next, prev, setMuted, setVolume, getVolume: () => volume, isPlaying: () => !audio.paused, current: () => titleOf(index), onNowPlaying };
   window.__gp = api;
   return api;
 

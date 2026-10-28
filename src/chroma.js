@@ -1,5 +1,6 @@
 import { CHROMA, ALL_ENTRIES } from './data/chroma.js';
 import { createReducedMotion } from './player/motion.js';
+import { initGlobalPlayer } from './player/globalplayer.js';
 
 // CHROMA AWARDS — a DreamOS-style desktop for every Chroma Awards entry.
 // This year's entries sit on the desktop as icons (and open in an explorer window
@@ -232,3 +233,27 @@ function finishBoot() {
 boot.addEventListener('click', finishBoot);
 boot.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') finishBoot(); });
 setTimeout(finishBoot, 1300);
+
+// ---- music: the site's player, with a proper control in the taskbar ----
+// The floating transport sat under the taskbar, and the volume was fixed at 60% — far too
+// loud for a desktop. Now: on/off, previous / next song, a volume slider (remembered),
+// and it starts quiet until you pick a level.
+{
+  const gp = initGlobalPlayer({ transport: false, autoResume: true });
+  const VOL_KEY = 'chroma:vol';
+  let vol = 0.2;
+  try { const v = parseFloat(localStorage.getItem(VOL_KEY)); if (v >= 0 && v <= 1) vol = v; } catch { /* storage off */ }
+  gp.setVolume(vol);
+  const slider = $('mVol'), play = $('mPlay'), np = $('np');
+  slider.value = String(Math.round(vol * 100));
+  slider.oninput = () => {
+    const v = slider.value / 100; gp.setVolume(v);
+    try { localStorage.setItem(VOL_KEY, String(v)); } catch { /* storage off */ }
+  };
+  const paint = () => { const on = gp.isPlaying(); play.textContent = on ? '♪ on' : '♪ off'; play.classList.toggle('off', !on); };
+  gp.onNowPlaying((title) => { np.textContent = `♪ ${title}`; paint(); });
+  play.onclick = () => { gp.toggle(); setTimeout(paint, 60); };
+  $('mNext').onclick = () => gp.next();
+  $('mPrev').onclick = () => gp.prev();
+  np.textContent = `♪ ${gp.current()}`; paint();
+}
