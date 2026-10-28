@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FEVER DREAM — Production Bible Hub</title>
+<meta name="description" content="Agent-facing production hub for FEVER DREAM: the dual conjoined 228-clip screenplay, master bible, continuity locks, prompt lint, and a proof-of-work checklist.">
+<link rel="stylesheet" href="assets/css/app.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0908'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%23c8913c' font-family='monospace'%3EF%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">FEVER&nbsp;DREAM</div>
+    <div class="brand-sub">Production Bible Hub <span class="dot">·</span> <span id="brand-variant">228-clip conjoined</span></div>
+  </div>
+
+  <div class="topbar-tools">
+    <div class="ring-wrap" title="Overall checklist completion">
+      <svg class="ring" viewBox="0 0 44 44" aria-hidden="true">
+        <circle class="ring-bg" cx="22" cy="22" r="18"></circle>
+        <circle class="ring-fg" cx="22" cy="22" r="18" id="ring-fg"></circle>
+      </svg>
+      <span class="ring-label" id="ring-label">0%</span>
+    </div>
+    <div class="top-stat"><span class="k">Done</span><span class="v" id="stat-done">0</span></div>
+    <div class="top-stat"><span class="k">Open</span><span class="v" id="stat-open">0</span></div>
+    <button class="btn btn-ghost" id="btn-protocol" title="Agent protocol">Protocol</button>
+    <button class="btn btn-ghost" id="btn-export" title="Export proof log">Export</button>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="sidenav" id="sidenav">
+    <a class="nav-item" data-view="start"><span class="ni">01</span> Start Here</a>
+    <a class="nav-item" data-view="bible"><span class="ni">02</span> Master Bible</a>
+    <a class="nav-item" data-view="clips"><span class="ni">03</span> Clip Board</a>
+    <a class="nav-item" data-view="checklist"><span class="ni">04</span> Checklist &amp; Log</a>
+    <a class="nav-item" data-view="lint"><span class="ni">05</span> Prompt Lint</a>
+    <a class="nav-item" data-view="models"><span class="ni">06</span> Models &amp; Docs</a>
+    <a class="nav-item" data-view="sources"><span class="ni">07</span> Sources</a>
+    <a class="nav-item" data-view="protocol"><span class="ni">08</span> Agent Protocol</a>
+    <div class="nav-foot">
+      <div class="storage-note" id="storage-note">localStorage · <span id="storage-count">0</span> records</div>
+      <button class="btn btn-danger btn-tiny" id="btn-reset">Reset all state</button>
+    </div>
+  </nav>
+
+  <main class="content" id="content" tabindex="-1"></main>
+</div>
+
+<!-- Clip detail drawer -->
+<div class="drawer-scrim" id="drawer-scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="Clip detail">
+  <button class="drawer-close" id="drawer-close" aria-label="Close">×</button>
+  <div class="drawer-body" id="drawer-body"></div>
+</aside>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="assets/js/data/lore.js"></script>
+<script src="assets/js/protocol.js"></script>
+<script src="assets/js/core.js"></script>
+<script src="assets/js/lint.js"></script>
+<script src="assets/js/checklist.js"></script>
+<script src="assets/js/views.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+# FEVER DREAM — Agent Protocol
+
+You are working on **Fever Dream**, a dual-track experimental film: 228 consecutive
+15-second generations (57:00) interleaving two comatose patients' separate journeys
+through a shared trauma, conjoining at the end. This site is the complete production
+context. You do not need the source PDFs — everything is parsed and searchable here.
+
+---
+
+## 1. The fastest way to start
+
+1. Open **Start Here** — read the premise, then open **Next up**.
+2. Open **Master Bible** — lock the premise, both continuity locks, the carried relics
+   and the five surgical directives.
+3. Open **Checklist & Log** — the first open task is a reference sheet, not a clip.
+   Do the pre-production work first; every clip inherits the look you lock there.
+4. For each clip task: copy the source prompt, generate, then fill in the proof record
+   and press **Mark complete**.
+
+## 2. Where everything is
+
+| What | Where |
+|---|---|
+| Every generation, every script | **Clip Board** (9 scripts, search + filters) |
+| Premise, continuity locks, relics, directives | **Master Bible** |
+| Task board + proof records + ledger | **Checklist & Log** |
+| Pre-send validation of a prompt | **Prompt Lint** |
+| Model choices and their documentation | **Models & Docs** |
+| The seven source PDFs and what is in them | **Sources** |
+
+Raw machine-readable data is also served as plain JavaScript globals:
+
+- `window.FD_LORE` — documents, characters, relics, directives, acts, phases, checks, models
+- `window.FD_VARIANTS["<variant>"]` — the clip array for that script
+
+Variants: `clips228` (flagship, 228), `bible_boy`, `bible_girl`, `bible_conjoined`,
+`plan`, `boy`, `girl`, `conjoined`, `original`.
+
+Each clip record:
+
+```json
+{
+  "id": "clips228-001",
+  "variant": "clips228",
+  "n": 1,
+  "seq": 1,
+  "start": 0, "end": 15,
+  "timecode": "00:00-00:15",
+  "track": "boy",
+  "act": "I",
+  "actName": "The Parallel Awakening",
+  "beat": "The Synaptic Eyelid",
+  "setting": "Sepia Void / Dune Interface",
+  "camera": "100mm Macro Close-Up",
+  "prompt": "…the Visual Generation Prompt…",
+  "action": "00-05s: …",
+  "audio": "…",
+  "subtext": "…"
+}
+```
+
+## 3. Task ids
+
+Task ids are stable strings. Use them verbatim.
+
+| Kind | Pattern | Example |
+|---|---|---|
+| Pre-production / delivery phase | `phase:<slug>` | `phase:refs-boy` |
+| Clip | `clip:<variant>:<clipId>` | `clip:clips228:clips228-001` |
+| Continuity review question | `check:<slug>` | `check:continuity-persist` |
+
+## 4. Proof records — what "done" means
+
+A task is only done when its proof record is filled in. The record is stored under
+`localStorage["feverdream.production.v1"].tasks[<task id>]`:
+
+```json
+{
+  "id": "clip:clips228:clips228-001",
+  "done": true,
+  "doneAt": "2026-10-28T15:40:00.000Z",
+  "model": "Seedance 2.5",
+  "modelVersion": "doubao-seedance-2-5-260628",
+  "promptUsed": "the exact prompt you sent",
+  "docUrl": "https://…documentation for the model…",
+  "shotUrl": "https://…the generated clip or a screenshot…",
+  "notes": "seed, resolution, what you changed, why it passed",
+  "shotId": "clip:clips228:clips228-001",
+  "shotBytes": 51230,
+  "checksum": "a1b2c3d4",
+  "updatedAt": "2026-10-28T15:40:00.000Z"
+}
+```
+
+`checksum` is an FNV-1a fingerprint over the proof fields. It is regenerated on every
+write, so a record that has been altered since it was written will not match its
+earlier ledger entry. Attach the documentation link and a screenshot link (or attach the
+image itself — it is stored locally and rendered in the proof panel) so a third party can
+verify the work.
+
+## 5. Writing to the checklist from an agent
+
+### In the browser (Playwright, a browser-driving agent, the console)
+
+```js
+// mark a clip complete with proof
+FD.complete("clip:clips228:clips228-001", {
+  model: "Seedance 2.5",
+  modelVersion: "doubao-seedance-2-5-260628",
+  promptUsed: "…",
+  docUrl: "https://seed.bytedance.com/en/seedance2_5",
+  shotUrl: "https://…",
+  notes: "seed 42, 1080p, one take"
+});
+
+// what to do next
+FD.nextTasks(1);                       // [{ key, title, group, … }]
+FD.buildTaskList("clips228");          // the whole board with proof merged in
+FD.getTask("clip:clips228:clips228-001");
+
+// read and write state
+FD.getState();
+FD.exportState();                      // JSON
+FD.exportMarkdown();                   // human-readable proof report
+FD.exportCSV();
+FD.importState(obj, /* merge */ true);
+FD.verify();                           // re-derive every checksum + cross-check the ledger
+
+// lint a prompt before you spend a generation
+FD.lint(text, { variant: "clips228", clipNumber: 45 });
+
+// the clip itself
+FD.clipById("clips228", "clips228-001");
+```
+
+### Outside the browser
+
+The checklist is `localStorage`, so a non-browser agent cannot write to it directly.
+Use one of these instead:
+
+- **Drive the page.** Load this site in a browser, run the `FD.*` calls above with
+  `page.evaluate`, then read back `FD.exportState()`.
+- **Export and import.** Export the ledger JSON from the Checklist view, edit it, and
+  import it back (import merges by task id and keeps the newer `done` record).
+- **Use the files directly.** The clip data is plain JSON inside the data files; parse
+  it yourself, produce your own ledger in the same shape, and import it.
+
+## 6. Rules you must not break
+
+These come from the source documents, not from this site. The Prompt Lint panel enforces
+the first two automatically.
+
+1. **AI-Tell Absolute Ban.** Never use: *testament, beacon, symphony, labyrinthine,
+   tapestry, delve, navigate, palpable*. Any sentence harboring one of these is
+   incinerated.
+2. **Sensory Filter Stripping.** Never use: *felt, saw, heard, noticed, watched,
+   realized*. The camera never observes passive perception — stimuli hit the meat
+   directly.
+3. **Messy Biological Realism.** Every action beat carries clumsiness, exhaustion,
+   coughing spasms, torn cuticles, slipping on greasy tile, dragging numb limbs.
+4. **Hospital Grounding Protocol.** Every biome maps to a failing physiological system
+   (checkerboard desert/bone spire → skeletal stiffness and neurological shock;
+   flesh forests/dialysis channels → renal failure and vascular constriction;
+   crumbling monuments → ventricular fibrillation and cardiac storm). Figments are
+   anatomical amalgamations of medical hardware welded to traumatic memory, never
+   abstract monsters.
+5. **Strict Generation Cadence.** Exactly 15 seconds per generation, one discrete
+   cinematic take: locked focal length, clear optical physics, spatial blocking, audio cue.
+6. **Continuity.** The coat, injuries, carried objects and fatigue persist clip to clip.
+   Relics appear only after they are acquired — the cup from generation 23, the mirror
+   from 45, the key from 65. Screen direction, light direction and physical position
+   are preserved across cuts.
+7. **Texture.** If a clip looks too polished, too colourful or too clean, regenerate it.
+   Zero sterile CGI. Distressed 35mm/VHS grain, gate weave, soft focus edges, tactile grime.
+8. **No tidy cure.** The ending stays deliberately unresolved. No explanatory
+   voice-over, no grand awakening, no monster fight.
+
+## 7. Source defects — do not "fix" these
+
+The Girl's solo script (and the original plan it descends from) mislabels its
+generation numbers: **031 and 091 are each labelled twice, and 068 is skipped**. The
+Boy's solo script is clean. This site keeps every entry's true sequence position and
+flags the two duplicated ones with an `anomaly` field.
+
+The 228-clip flagship inherits the same defect: its girl clips are labelled
+`Memory Generation <NNN> Adaptation`, where `NNN` is the Girl script's own printed
+number. Aligning the two scripts by that printed label lines up only 54 of 102 clips.
+Aligning by **true sequence position** lines up 102 of 102, one for one and in order —
+the flagship reuses the Girl script's first 102 generations and folds her remaining
+twelve into the shared climax at clips 205–228. Every such clip carries a `srcRef`
+field naming the correct Girl script entry.
+
+**Use `seq`, not the source number `n`.** If you renumber by the printed labels you will
+shift 112 generations by one.
+
+## 8. Storage keys
+
+| Key | Contents |
+|---|---|
+| `feverdream.production.v1` | `{ version, createdAt, updatedAt, activeVariant, tasks, ledger, settings }` |
+| `feverdream.shots.v1` | Fallback screenshot storage (data URLs) when IndexedDB is unavailable |
+
+Screenshots are stored in IndexedDB under database `feverdream-shots`, object store
+`shots`, keyed by task id. The `shotBytes` and `checksum` fields in the task record
+reference them.
+
+`ledger` is append-only: `{ ts, type, taskId, model, modelVersion, docUrl, shotUrl,
+checksum, summary }`. Types seen so far: `completed`, `updated`, `reopened`,
+`screenshot`, `imported`, `reset`.
+
+To prove the records are genuine, call `FD.verify()`. It re-derives the checksum from
+each stored proof record and matches it against the ledger entry written when the task
+was completed. It returns `{ checked, ok, tampered[], missing[], orphaned[],
+ledgerEntries, verified }`. A record edited after it was written will not match its
+earlier ledger entry, and `verified` will be false.
+
+## 9. Export formats
+
+- **JSON** — the complete state, re-importable.
+- **Markdown** — a finished proof report: every completed task with model, version,
+  documentation link, screenshot link, timestamp and checksum, plus the open items and
+  the full event ledger.
+- **CSV** — one row per task, for spreadsheets.
+
+Commit the exported ledger next to the rendered clips. It is the record that the work
+was actually done, not just that it was claimed.

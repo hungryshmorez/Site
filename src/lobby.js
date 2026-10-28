@@ -316,6 +316,17 @@ for (const [x, z, r] of booths) {
   animators.push(b.update);
 }
 
+
+// LIBRARY DOOR — the Fever Dream production library, through the east wall at the north end.
+{
+  const z = -16, g = new THREE.Group(); g.position.set(RX - 0.05, 0, z); g.rotation.y = -Math.PI / 2; scene.add(g);
+  const hole = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 4.4), basic(0x000000)); hole.position.set(0, 2.2, 0.03); g.add(hole);
+  const spill = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 4.4), basic(0xffb000, { transparent: true, opacity: 0.2, toneMapped: false })); spill.position.set(0, 2.2, 0.04); g.add(spill);
+  neonFrame(g, 3.2, 4.4, 0xffb000);
+  const sign = textPlane('FEVER DREAM', 4.6, 1.5, { color: '#ffb000', bg: '#0a0604', glow: '#ffb000', sub: 'THE PRODUCTION LIBRARY' }); sign.position.set(0, 5.6, 0.1); g.add(sign);
+  trig(RX - 1.7, RX, z - 1.4, z + 1.4, () => goTo('library.html', 'entering the Fever Dream library…'));
+}
+
 // ---- FOOD COURT (east side) ----
 {
   const stalls = [
@@ -437,7 +448,7 @@ function goTo(url, msg) {
 const LABEL = { chroma25: '🏆 Chroma 2025', vertical: '📱 New Mobile', chroma: '🎆 Chroma Awards', wide: '🎬 16×9', void: '🌀 Enter the Void' };
 const spots = [
   ...THEATERS.map((t) => ({ label: LABEL[t.id] || t.name, x: t.doorX, z: WALL_Z + 2.6, hot: t.id === 'chroma' })),
-  { label: '🖥 Arcade terminal', x: -18.2, z: 4 }, { label: '📷 Photo booth', x: -19.2, z: -5 }, { label: '🛍 Merch', x: -12, z: 15.8 }, { label: '🗳 Vote', x: -19, z: -13 }, { label: '🍿 Food court', x: 12, z: 2 },
+  { label: '🖥 Arcade terminal', x: -18.2, z: 4 }, { label: '📷 Photo booth', x: -19.2, z: -5 }, { label: '🛍 Merch', x: -12, z: 15.8 }, { label: '🗳 Vote', x: -19, z: -13 }, { label: '🍿 Food court', x: 12, z: 2 }, { label: '📚 Fever Dream library', x: RX - 3.4, z: -16 },
 ];
 for (const s of spots) {
   const b = document.createElement('button'); b.className = `btn${s.hot ? ' hot' : ''}`; b.textContent = s.label;
