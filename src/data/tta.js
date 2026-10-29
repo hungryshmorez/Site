@@ -1,5 +1,5 @@
 // ── EVERY VIDEO ON THE MAIN PAGE (itsthat.site — That Time Again Studios) ─────
-// Pulled from the episode list on the main page (source: hungryshmorez/notmyspace,
+// Pulled from the episode list on the main page plus the 'combine' clips on the Showrunner show page (source: hungryshmorez/notmyspace,
 // that-time-again-studios). Each is a direct .mp4; w/h are the real frame size, which
 // decides the theater: taller than wide → NEW MOBILE THEATER (9×16), otherwise → 16×9.
 // To add one: append { title, src, w, h, note } — the lobby re-sorts them.
@@ -26,6 +26,18 @@ export const TTA = [
   { title: 'S2 E20 · Dust Bunny Uprising', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4113/4a889378-0bcd-41cc-8df4-66f3483d9f70/mp4/4113_avc_1080p.mp4', w: 1890, h: 1080, note: '1:00' },
   { title: 'S2 E21 · Drunk at the Door', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4114/c5dc59ba-eb16-48b9-9663-2e8441572a3b/mp4/4114_avc_1080p.mp4', w: 1890, h: 1080, note: '1:00' },
   { title: 'S2 E22 · The Endless Transmission', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4359/c3b4c8cc-5c88-4e14-bbbb-d8edbbaf0ed8/mp4/4359_avc_1080p.mp4', w: 1920, h: 1080, note: '4:31' },
+  { title: 'Combine · The Spaghetti Dimension', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/3959/789d4453-ce7e-4485-a2e8-0d37456281a3/mp4/3959_avc_1080p.mp4', w: 864, h: 496, note: '1:27' },
+  { title: 'Combine · Synthetic Realness', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4009/555ebb75-398a-4e3a-b58a-879344a79d59/mp4/4009_avc_1080p.mp4', w: 1920, h: 1080, note: '1:15' },
+  { title: 'Combine · Marinara Matrix', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4020/85487869-941e-4f0d-a0e0-11dfe1b51100/mp4/4020_avc_1080p.mp4', w: 1920, h: 1080, note: '1:12' },
+  { title: 'Combine · Shattered Reflections', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4105/b8a8d125-b0e5-420b-adfc-7660f3b541e3/mp4/4105_avc_1080p.mp4', w: 1080, h: 1920, note: '1:27' },
+  { title: 'Combine · The Pilot Paradox', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4209/16d57aeb-0a6c-41d7-92e4-ab819b8b27f2/mp4/4209_avc_1080p.mp4', w: 1920, h: 1080, note: '1:15' },
+  { title: 'Combine · Chaos in the Cabinets', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4210/d810b9fc-dfa0-49b6-a65c-aba7134c3591/mp4/4210_avc_1080p.mp4', w: 1920, h: 1080, note: '0:45' },
+  { title: 'Combine · The Engagement Wall', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4224/74c21854-0c01-4ae0-b3a6-5efe7053ed77/mp4/4224_avc_1080p.mp4', w: 1920, h: 1080, note: '1:00' },
+  { title: 'Combine · The Attic of the Universe', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4234/6212a290-b42b-44d3-b4be-1ae217a237ec/mp4/4234_avc_1080p.mp4', w: 1920, h: 1080, note: '1:39' },
+  { title: 'Combine · Pulse of the Forgotten', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4235/15a9a005-71b3-4993-bc9c-2c5b216781ae/mp4/4235_avc_1080p.mp4', w: 1920, h: 1080, note: '1:24' },
+  { title: 'Combine · The Spaghetti Dimension', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4242/f131855e-e21b-4306-aecf-3ca24a5ca37e/mp4/4242_avc_1080p.mp4', w: 1920, h: 1080, note: '3:28' },
+  { title: 'Combine · The Gaps Between Frames', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4358/e970f743-eff9-47f0-8a28-6f9252d7b19f/mp4/4358_avc_1080p.mp4', w: 1920, h: 1080, note: '0:30' },
+  { title: 'Combine · The City Inside the Whale', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4360/3d509a67-21f8-4ea2-9cfc-efff62dda58a/mp4/4360_avc_1080p.mp4', w: 1920, h: 1080, note: '3:19' },
 ];
 
 export const TTA_TALL = TTA.filter((v) => v.h > v.w);
