@@ -47,6 +47,7 @@ export default defineConfig({
         chroma: resolve(__dirname, 'chroma.html'),
         lobby: resolve(__dirname, 'lobby.html'),
         library: resolve(__dirname, 'library.html'),
+        underground: resolve(__dirname, 'underground.html'),
         screening: resolve(__dirname, 'screening.html'),
         vote: resolve(__dirname, 'vote.html'),
       },
