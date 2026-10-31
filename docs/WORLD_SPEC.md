@@ -105,6 +105,22 @@ Rebuilt from the supplied Unity project (`B2Buddy Underground`); coordinates bel
 Screens play the studios' videos *only while you are inside the room* (muted until you interact); desks skip to the
 next video. The club "show" is a **simulated** 120 BPM clock (as in the Unity original), not audio analysis.
 
+
+### 4.3b The street (outside the club) — from the Unity "outside world"
+`x −42…42, z −61…−38.6` (Unity metres; the club's arrival lounge is at z −38…−24). You leave the club through **sliding smoked-glass
+doors** (they open as you approach) onto a wet-asphalt street with sidewalks, lane dashes, a crosswalk at x = 18, streetlamps,
+parked cars, and the club's neon facade (canopy, velvet rope, queue).
+
+| End of the street | What | Opens |
+|---|---|---|
+| West (x = −42) | **THE COMPLEX** — rusted warehouse, sliding door at z = −51 | `warehouse.html` |
+| East (x = +42) | **B2BUDDY RECORDS** — record-shop front (vinyl · decks · open late) | in-site music window |
+| South sidewalk (x = 38, z = −62) | **THE MOVIE LOBBY** — sliding doors under a CINEMA marquee | `lobby.html` |
+| South (x = 18, z = −61) | **THE FESTIVAL gateway** — pillars + 7 pulsing rings + floor chevrons | `index.html` |
+
+The Unity project also models the festival grounds, the Midway big top, the Complex's interior (hide-and-seek, five wings, a hidden
+room) and the Movie Lobby/library/towers in the same scene; on the web those remain their own pages, reached through the doors above.
+
 ### 4.4 The two towers (gallery ends)
 Footprint 20×10 m, **8 m per floor**, an elevator on the far wall of every floor (click the doorway or its amber button →
 floor list → camera glide to the chosen floor).
