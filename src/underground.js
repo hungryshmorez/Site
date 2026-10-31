@@ -288,12 +288,13 @@ function lobby() {
 }
 function gallery() {
   floorSlab(0, 0, 29, 48, 10);
-  box(M.wall, 0.4, 7, 10, -24, 3.5, 29); box(M.wall, 0.4, 7, 10, 24, 3.5, 29); box(M.wall, 48, 0.35, 10, 0, 7, 29);
+  box(M.wall, 0.4, 7, 10, -24, 3.5, 29); box(M.wall, 0.4, 7, 1.5, 24, 3.5, 24.75); box(M.wall, 0.4, 7, 1.5, 24, 3.5, 33.25); box(M.wall, 0.4, 2.2, 7, 24, 5.9, 29); box(M.wall, 48, 0.35, 10, 0, 7, 29);
   box(M.wall, 3, 7, 0.4, -22.5, 3.5, 34); box(M.wall, 12, 7, 0.4, -1, 3.5, 34); box(M.wall, 6, 7, 0.4, 21, 3.5, 34);
   portal(-14, 33.8, 10, 5.7, M.violet, '04   NEON ARCADE'); portal(12, 33.8, 10, 5.7, M.amber, '05   CINEMA SOCIETY');
   for (let i = 0; i < 12; i++) { const x = -22 + i * 4; box(M.metal, 0.16, 0.25, 8, x, 6.7, 29); box(i < 6 ? M.violet : M.amber, 0.04, 0.04, 7.2, x, 6.5, 29); }
   for (const x of [-19, 19]) { sofa(x, 27, 180, 3, M.velvet); table(x, 28.5, 1.2, 0.8); }
   text('←  ARCADE     /     CINEMAS  →', 0, 5.8, 33.72, 0.27, '#ffffff');
+  text('THE ROOMS  →', 23.7, 4.9, 29, 0.32, '#ff2bd0', 90); portal(24, 29, 7, 4.2, M.violet, '', 90);
   rect(-23.5, 23.5, 24.3, 33.7); rect(-18.8, -9.2, 33.4, 34.8); rect(7.2, 16.8, 33.4, 34.8);
 }
 // ---- neon arcade (every cabinet opens a real game) ----
@@ -402,11 +403,49 @@ const crowd = (() => {
   return (t, p) => { pos.forEach(([x, z, ph], i) => { const b = Math.abs(Math.sin(t * 4.2 + ph)) * 0.18 * p; o.position.set(x, 0.85 + b, -z); o.updateMatrix(); bodies.setMatrixAt(i, o.matrix); o.position.set(x, 1.62 + b, -z); o.updateMatrix(); heads.setMatrixAt(i, o.matrix); }); bodies.instanceMatrix.needsUpdate = heads.instanceMatrix.needsUpdate = true; };
 })();
 
+
+// ---- THE ROOMS: a hall of doors to every little room on the site (each opens that room's own 3D page) ----
+const ROOMS = [
+  ['RAVE CHARLES', 'ravecharles.html', 0xff2bd0], ['DRIFTWAVE STATIC', 'driftwave.html', 0xa64bff], ['VAPORSTUDIO ROOMS', 'vaporrooms.html', 0x7a5cff],
+  ['SOFA KING SAD BOI', 'sofaboi.html', 0x5b6bff], ['TANKY JOHNSON', 'tanky.html', 0xffd24a], ['SHMOREZ · THE FIRE', 'shmorez.html', 0xff8a2a],
+  ['THE GLITCH ROOM', 'studio.html', 0x00f3ff], ['SURREAL LO-FI', 'lofi.html', 0xff9ec7], ['HORRORCORE', 'horrorcore.html', 0xcc1133],
+  ['ABSTRACT PSYCHEDELIC', 'abstract.html', 0x39ff88], ['THE GREEN ROOM', 'greenroom.html', 0x39ff14], ['THE ROOFTOP', 'rooftop.html', 0x4ad0c0],
+  ['CONTROL ROOM', 'utility.html', 0xc0c8d8], ['GAME ROOM', 'gameroom.html', 0xff5ec7], ['THE GALLERY', 'museum.html', 0xe6c04a],
+];
+const doorTriggers = [];
+function roomsHall() {
+  floorSlab(47, 0, 29, 46, 10);
+  box(M.wall, 46, 7, 0.4, 47, 3.5, 34.2); box(M.wall, 46, 7, 0.4, 47, 3.5, 23.8); box(M.wall, 0.4, 7, 10, 70, 3.5, 29); box(M.wall, 46, 0.35, 10, 47, 7, 29);
+  for (let i = 0; i < 16; i++) box(i % 2 ? M.violet : M.cyan, 0.04, 0.04, 9, 25 + i * 2.9, 6.6, 29);
+  text('THE ROOMS', 69.6, 4.6, 29, 0.7, '#ff2bd0', -90); text('EVERY LITTLE ROOM · WALK THROUGH A DOOR', 69.6, 3.5, 29, 0.2, '#99e0ff', -90);
+  ROOMS.forEach(([label, url, color], i) => {
+    const north = i % 2 === 0, x = 29.5 + Math.floor(i / 2) * 5.1, z = north ? 33.75 : 24.25, mat = glow(color);
+    group(x, 0, z, north ? 0 : 180, () => {
+      box(M.metal, 0.3, 4.2, 0.5, -1.7, 2.1, 0); box(M.metal, 0.3, 4.2, 0.5, 1.7, 2.1, 0); box(M.metal, 3.7, 0.4, 0.5, 0, 4.2, 0);
+      box(mat, 0.07, 4.0, 0.07, -1.5, 2.1, -0.3); box(mat, 0.07, 4.0, 0.07, 1.5, 2.1, -0.3); box(mat, 3.0, 0.07, 0.07, 0, 4.0, -0.3);
+      quad(doorGlow(color), 3.0, 4.0, 0, 2.0, -0.22);
+      text(label, 0, 5.0, -0.3, 0.27, '#' + color.toString(16).padStart(6, '0'));
+      hotspot(0, 2, -0.5, 3.2, 4.2, 0.8, () => goTo(url, `entering ${label.toLowerCase()}…`), label);
+    });
+    const zc = north ? 32.7 : 25.3;
+    doorTriggers.push({ x0: x - 1.2, x1: x + 1.2, z0: north ? 32.9 : 24.0, z1: north ? 34.0 : 25.1, armed: true, url, label });
+  });
+  point(36, 5, 29, CY, 40, 24); point(58, 5, 29, VI, 40, 24);
+  rect(24.6, 69.4, 24.6, 33.4); rect(23.4, 25, 25.6, 32.4);
+  for (let i = 0; i < 4; i++) { sofa(35 + i * 9, 29, 0, 3, M.velvet); solid(35 + i * 9 - 1.7, 35 + i * 9 + 1.7, 28.2, 29.8); }
+}
+const doorMats = new Map();
+function doorGlow(color) {
+  if (!doorMats.has(color)) doorMats.set(color, new THREE.ShaderMaterial({ uniforms: { t: uTime, c: { value: new THREE.Color(color) } }, vertexShader: 'varying vec2 v; void main(){ v=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+    fragmentShader: 'varying vec2 v; uniform float t; uniform vec3 c; void main(){ float g=.35+.25*sin(t*1.5+v.y*6.); float e=smoothstep(.0,.5,v.y)*.6+.4; gl_FragColor=vec4(c*g*e,1.); }' }));
+  return doorMats.get(color);
+}
+
 // ---- assemble ----
 mkScreen('main', null, 0x0f2b6a, 0x7a22d8); mkScreen('vip', null, 0x6a2a10, 0x3a1088);
 arenaShell(); arena(); vip(); lobby(); gallery();
 group(-14, 0, 43, 0, arcade);
-cinemaLobby();
+cinemaLobby(); roomsHall();
 group(15, 0, 59, 0, mainCinema);
 group(37, 0, 46, 0, privateCinema);
 // walkable rects for the wings (world Unity coords)
@@ -494,7 +533,7 @@ function goTo(url, msg) { say(msg); $('warp').classList.add('go'); setTimeout(()
 const face = (dx, dz) => Math.atan2(-dx, dz);   // yaw that looks along (dx, dz) in Unity coords
 const spots = [
   ['🚪 Lobby', 0, -33, 0, face(0, 1), true], ['🎧 Arena', 0, -12, 0, face(0, 1)], ['◀ Stage A', -14, 0, 0, face(-1, 0)], ['Stage B ▶', 14, 0, 0, face(1, 0)],
-  ['🥂 VIP balcony', 0, -21, 4, face(0, 1)], ['🕹 Arcade', -14, 38, 0, face(0, 1)], ['🎬 Cinema', 15, 40, 0, face(0, 1)], ['🍿 Main screen', 15, 52, 2.2, face(0, 1)], ['🛋 Private', 33, 41, 0, face(1, 0)],
+  ['🥂 VIP balcony', 0, -21, 4, face(0, 1)], ['🕹 Arcade', -14, 38, 0, face(0, 1)], ['🎬 Cinema', 15, 40, 0, face(0, 1)], ['🍿 Main screen', 15, 52, 2.2, face(0, 1)], ['🛋 Private', 33, 41, 0, face(1, 0)], ['🚪 The Rooms', 30, 29, 0, face(1, 0)],
 ];
 for (const [label, x, z, h, yaw, hot] of spots) { const b = document.createElement('button'); b.className = `btn${hot ? ' hot' : ''}`; b.textContent = label; b.onclick = () => teleport(x, z, h, yaw); $('goRow').appendChild(b); }
 $('backBtn').onclick = () => goTo('lobby.html', 'back to the festival lobby…');
@@ -524,6 +563,7 @@ function frame() {
     if (inside && s.playing && s.video.paused && !s.video.ended) s.video.play().catch(() => { });
   }
   moveUpdate(dt);
+  for (const d of doorTriggers) { const inside = player.x > d.x0 && player.x < d.x1 && player.z > d.z0 && player.z < d.z1; if (inside && d.armed) { d.armed = false; goTo(d.url, `entering ${d.label.toLowerCase()}…`); } else if (!inside && Math.abs(player.x - (d.x0 + 1.2)) > 3) d.armed = true; }
   renderer.render(scene, camera);
 }
 teleport(0, -33, 0, face(0, 1)); moveUpdate(0.016); renderer.render(scene, camera);
