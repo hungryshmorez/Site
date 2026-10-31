@@ -435,13 +435,13 @@ function themedDoor(x, z, yaw, w, h, color, label, url, sub = '', floor = 0, y =
 }
 
 // ---- THE TOWER: bottom floor is the museum; an elevator serves a different room on every floor above ----
-const FLOORS = [
+const FLOORS = [   // 0 = ground; 1–6 the artist worlds; 7–14 the big loop in order (warehouse → … → rooftop), so the Rooftop is the top floor
   ['THE GALLERY · MUSEUM', 'museum.html', 0xe6c04a, 'the ground floor'],
   ['RAVE CHARLES', 'ravecharles.html', 0xff2bd0, '~400 shows'], ['DRIFTWAVE STATIC', 'driftwave.html', 0xa64bff, 'slushwave · ambient'], ['VAPORSTUDIO ROOMS', 'vaporrooms.html', 0x7a5cff, 'the vapor rooms'],
   ['SOFA KING SAD BOI', 'sofaboi.html', 0x5b6bff, 'dubstep · weird bass'], ['TANKY JOHNSON', 'tanky.html', 0xffd24a, 'outlaw of the void'], ['SHMOREZ · THE FIRE', 'shmorez.html', 0xff8a2a, 'the s’mores fire'],
-  ['THE GLITCH ROOM', 'studio.html', 0x00f3ff, '12matt3r'], ['SURREAL LO-FI', 'lofi.html', 0xff9ec7, 'the beat room'], ['HORRORCORE', 'horrorcore.html', 0xcc1133, 'the crawlspace'],
-  ['ABSTRACT PSYCHEDELIC', 'abstract.html', 0x39ff88, 'paint the void'], ['THE GREEN ROOM', 'greenroom.html', 0x39ff14, 'backstage'], ['THE ROOFTOP', 'rooftop.html', 0x4ad0c0, 'the chill zone'],
-  ['CONTROL ROOM', 'utility.html', 0xc0c8d8, 'utility'], ['GAME ROOM', 'gameroom.html', 0xff5ec7, 'interactive'],
+  ['THE GREEN ROOM', 'greenroom.html', 0x39ff88, 'loop · backstage'], ['SURREAL LO-FI', 'lofi.html', 0xb967ff, 'loop · the beat room'], ['ABSTRACT PSYCHEDELIC', 'abstract.html', 0x00ffa8, 'loop · paint the void'],
+  ['THE GLITCH ROOM', 'studio.html', 0x39ff14, 'loop · 12matt3r'], ['HORRORCORE', 'horrorcore.html', 0xff2b2b, 'loop · the crawlspace'], ['CONTROL ROOM', 'utility.html', 0xffb020, 'loop · utility'],
+  ['GAME ROOM', 'gameroom.html', 0xff66cc, 'loop · interactive'], ['THE ROOFTOP', 'rooftop.html', 0x4ad0c0, 'top floor · the chill zone'],
 ];
 let towerLight = null;
 const FH = 8, TX = { x0: 24, x1: 44, z0: 24, z1: 34 }, TW = { x: 34, z: 29 };
