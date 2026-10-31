@@ -105,6 +105,7 @@ export const LAB = {
     { name: 'Wake Up 10', url: 'https://wake-up-10--sofakingsadboi.on.websim.com' },
   ],
   'Games': [
+    { name: 'Open City (free-roam driving sim)', url: 'games/open-city/index.html' },
     { name: 'Bridge Horror House', url: 'games/horror-house/index.html' },
     { name: 'WebSim 500 (Racing)', url: 'https://websim500.on.websim.com/' },
     { name: 'Liminal (3D Terrain)', url: 'https://3d-terrain-explorer--sofakingsadboi.on.websim.com/' },
