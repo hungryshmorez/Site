@@ -4,7 +4,17 @@
 // decides the theater: taller than wide → NEW MOBILE THEATER (9×16), otherwise → 16×9.
 // To add one: append { title, src, w, h, note } — the lobby re-sorts them.
 
-export const TTA = [
+import { EPISODES } from './episodes.js';
+
+// Every episode of every series on the studios page (data/episodes.js — 63), then the
+// extra Showrunner clips below that aren't in that list. Each entry's frame size decides
+// the theater; episodes.js already flags vertical ones.
+const fromEpisodes = EPISODES.map((e) => ({
+  title: `${e.showTitle} · ${e.seasonEpisode} · ${e.title}`,
+  src: e.videoUrl, w: e.vertical ? 1080 : 1920, h: e.vertical ? 1920 : 1080, note: e.duration,
+}));
+
+const EXTRA = [
   { title: 'S1 E1 · Pilot', src: 'https://d2a132qjpri1we.cloudfront.net/episodes/6016df4d-ab12-40f0-8bd1-776acf16f83d/d9038ac1-b01a-4bb4-90fd-d3b1216bd2b1/d3975f6b-55d9-4dbe-8fd0-21d9f7afbe93/mp4/d9038ac1-b01a-4bb4-90fd-d3b1216bd2b1_avc_360p.mp4', w: 640, h: 360, note: '1:01:24' },
   { title: 'S1 E2 · The Prompt That Ate the Show.', src: 'https://d2a132qjpri1we.cloudfront.net/episodes/6016df4d-ab12-40f0-8bd1-776acf16f83d/315acb46-c373-42d9-b774-3e5b77f82c68/5c1a7811-838e-4f68-9990-0293343ad63f/mp4/315acb46-c373-42d9-b774-3e5b77f82c68_avc_360p.mp4', w: 640, h: 360, note: '16:21' },
   { title: 'S1 E3 · What is that time again?', src: 'https://d2a132qjpri1we.cloudfront.net/episodes/6016df4d-ab12-40f0-8bd1-776acf16f83d/27f9eabd-090d-47ba-adca-677f9bc88ff7/30261216-c5fc-4e50-a8ca-bb688d4af50f/mp4/27f9eabd-090d-47ba-adca-677f9bc88ff7_avc_720p.mp4', w: 1280, h: 720, note: '9:29' },
@@ -39,6 +49,9 @@ export const TTA = [
   { title: 'Combine · The Gaps Between Frames', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4358/e970f743-eff9-47f0-8a28-6f9252d7b19f/mp4/4358_avc_1080p.mp4', w: 1920, h: 1080, note: '0:30' },
   { title: 'Combine · The City Inside the Whale', src: 'https://d2a132qjpri1we.cloudfront.net/combines/6016df4d-ab12-40f0-8bd1-776acf16f83d/4360/3d509a67-21f8-4ea2-9cfc-efff62dda58a/mp4/4360_avc_1080p.mp4', w: 1920, h: 1080, note: '3:19' },
 ];
+
+const seen = new Set(fromEpisodes.map((v) => v.src));
+export const TTA = [...fromEpisodes, ...EXTRA.filter((v) => !seen.has(v.src))];
 
 export const TTA_TALL = TTA.filter((v) => v.h > v.w);
 export const TTA_WIDE = TTA.filter((v) => v.h <= v.w);
