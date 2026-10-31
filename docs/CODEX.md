@@ -167,6 +167,13 @@ plus last year's Chroma links seeded from the Lab catalog.
   icon on the desktop (`scene/booth.js`, `ui/vote.js`). They open `vote.html` in the in-site window, which frames
   the Chroma Awards vote page (`voteHub` / per-entry `vote` in `data/chroma.js`) so nobody leaves the site.
 - **Food court** (east side): four stalls + tables. Decorative for now.
+- **The Underground** (cyan door, south wall behind the spawn) → `underground.html`: the B2Buddy entertainment complex
+  from the supplied Unity project (`Assets/B2BuddyUnderground`), rebuilt in Three.js by `src/underground.js` from the
+  Unity venue builder's coordinates (metres, arena centre at the origin): main lobby → concert arena (two DJ stages with
+  the supplied eye artwork, neon dance floor, halo rig, crowd, VIP balconies up the stairs) → gallery → neon arcade
+  (every cabinet opens a real game from the catalog in the in-site window; the three supplied horse sculptures) →
+  cinema society (concession bar, main auditorium and private screen that play the studios' videos while you sit in
+  them). The show pulses at a simulated 120 BPM like the Unity original. Decimated GLBs live in `public/underground/`.
 - **Fever Dream library** (amber door, east wall, north end) → `library.html`: a walkable reading room for the show's
   production documents (`data/library.js`; files in `public/library/fever-dream/`, the interactive hub site in
   `public/library/fever-dream-hub/`). One book per document on the long table (click → opens in the in-site window),

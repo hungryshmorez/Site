@@ -327,6 +327,17 @@ for (const [x, z, r] of booths) {
   trig(RX - 1.7, RX, z - 1.4, z + 1.4, () => goTo('library.html', 'entering the Fever Dream library…'));
 }
 
+// THE UNDERGROUND — the entertainment complex (DJ arena, VIP balconies, neon arcade, cinema society),
+// through a neon door in the south wall behind the spawn point.
+{
+  const g = new THREE.Group(); g.position.set(0, 0, RZ - 0.05); g.rotation.y = Math.PI; scene.add(g);
+  const hole = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 4.6), basic(0x000000)); hole.position.set(0, 2.3, 0.03); g.add(hole);
+  const spill = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 4.6), basic(0x10c4ff, { transparent: true, opacity: 0.22, toneMapped: false })); spill.position.set(0, 2.3, 0.04); g.add(spill);
+  neonFrame(g, 3.6, 4.6, 0x10c4ff);
+  const sign = textPlane('THE UNDERGROUND', 6, 1.4, { color: '#10c4ff', bg: '#05060d', glow: '#a326ff', sub: 'DJ ARENA · ARCADE · CINEMA SOCIETY' }); sign.position.set(0, 5.9, 0.1); g.add(sign);
+  trig(-1.6, 1.6, RZ - 1.6, RZ, () => goTo('underground.html', 'descending to the Underground…'));
+}
+
 // ---- FOOD COURT (east side) ----
 {
   const stalls = [
@@ -448,7 +459,7 @@ function goTo(url, msg) {
 const LABEL = { chroma25: '🏆 Chroma 2025', vertical: '📱 New Mobile', chroma: '🎆 Chroma Awards', wide: '🎬 16×9', void: '🌀 Enter the Void' };
 const spots = [
   ...THEATERS.map((t) => ({ label: LABEL[t.id] || t.name, x: t.doorX, z: WALL_Z + 2.6, hot: t.id === 'chroma' })),
-  { label: '🖥 Arcade terminal', x: -18.2, z: 4 }, { label: '📷 Photo booth', x: -19.2, z: -5 }, { label: '🛍 Merch', x: -12, z: 15.8 }, { label: '🗳 Vote', x: -19, z: -13 }, { label: '🍿 Food court', x: 12, z: 2 }, { label: '📚 Fever Dream library', x: RX - 3.4, z: -16 },
+  { label: '🖥 Arcade terminal', x: -18.2, z: 4 }, { label: '📷 Photo booth', x: -19.2, z: -5 }, { label: '🛍 Merch', x: -12, z: 15.8 }, { label: '🗳 Vote', x: -19, z: -13 }, { label: '🍿 Food court', x: 12, z: 2 }, { label: '📚 Fever Dream library', x: RX - 3.4, z: -16 }, { label: '🎧 The Underground', x: 0, z: RZ - 2.2 },
 ];
 for (const s of spots) {
   const b = document.createElement('button'); b.className = `btn${s.hot ? ' hot' : ''}`; b.textContent = s.label;
