@@ -177,7 +177,9 @@ plus last year's Chroma links seeded from the Lab catalog.
   The gallery's two ends are the **Chroma Awards theater doors** (2025 west, this year east); the east end also opens
   into **the Rooms tower**: the ground floor is the museum, an elevator (click it) serves 14 floors above, each a
   vestibule with a big neon door into one of the site's rooms (Rave Charles, Driftwave Static, … Game Room). Floors
-  live in `FLOORS` in `src/underground.js`.
+  live in `TOWERS` in `src/underground.js`. The west end of the gallery mirrors it: **the Archive** tower holds everything else
+  on the site (festival, warehouse, movie lobby, every game in `public/games/`, retro, arcade row, stages, studios, tools)
+  with four doors a floor, and the EPKs on the roof floors.
 - **Fever Dream library** (amber door, east wall, north end) → `library.html`: a walkable reading room for the show's
   production documents (`data/library.js`; files in `public/library/fever-dream/`, the interactive hub site in
   `public/library/fever-dream-hub/`). One book per document on the long table (click → opens in the in-site window),
