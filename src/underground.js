@@ -288,7 +288,7 @@ function lobby() {
 }
 function gallery() {
   floorSlab(0, 0, 29, 48, 10);
-  box(M.wall, 0.4, 7, 10, -24, 3.5, 29); box(M.wall, 48, 0.35, 10, 0, 7, 29);
+  box(M.wall, 0.4, 7, 5.4, -24, 3.5, 26.7); box(M.wall, 0.4, 7, 0.5, -24, 3.5, 33.75); box(M.wall, 0.4, 3, 4, -24, 5.5, 31.5); box(M.wall, 48, 0.35, 10, 0, 7, 29);
   // east end: wall with the Chroma Awards theater door, then the opening into the tower lobby
   box(M.wall, 0.4, 7, 5.4, 24, 3.5, 26.7); box(M.wall, 0.4, 7, 0.5, 24, 3.5, 33.75); box(M.wall, 0.4, 3, 4, 24, 5.5, 31.5);
   box(M.wall, 3, 7, 0.4, -22.5, 3.5, 34); box(M.wall, 12, 7, 0.4, -1, 3.5, 34); box(M.wall, 6, 7, 0.4, 21, 3.5, 34);
@@ -296,11 +296,12 @@ function gallery() {
   for (let i = 0; i < 12; i++) { const x = -22 + i * 4; box(M.metal, 0.16, 0.25, 8, x, 6.7, 29); box(i < 6 ? M.violet : M.amber, 0.04, 0.04, 7.2, x, 6.5, 29); }
   for (const x of [-19, 19]) { sofa(x, 27, 180, 3, M.velvet); table(x, 28.5, 1.2, 0.8); }
   text('←  ARCADE     /     CINEMAS  →', 0, 5.8, 33.72, 0.27, '#ffffff');
-  themedDoor(-24, 29, -90, 4.2, 5, 0xffd24a, 'CHROMA AWARDS 2025', 'screening.html?room=chroma25', 'last year · games + films');
+  themedDoor(-24, 26.7, -90, 4.2, 5, 0xffd24a, 'CHROMA AWARDS 2025', 'screening.html?room=chroma25', 'last year · games + films');
   themedDoor(24, 26.7, 90, 4.2, 5, 0xff2a4a, 'CHROMA AWARDS', 'screening.html?room=chroma', 'this year · the big one');
   text('TOWER  →  THE ROOMS', 23.7, 5.9, 31.5, 0.3, '#ff2bd0', 90);
   rect(-23.5, 23.5, 24.3, 33.7); rect(-18.8, -9.2, 33.4, 34.8); rect(7.2, 16.8, 33.4, 34.8);
-  rect(23.4, 25, 29.7, 33.3);   // gallery → tower lobby
+  rect(23.4, 25, 29.7, 33.3); rect(-25, -23.4, 29.7, 33.3);   // gallery → the two tower lobbies
+  text('TOWER  →  THE ARCHIVE', -23.7, 5.9, 31.5, 0.3, '#39ff14', -90);
 }
 // ---- neon arcade (every cabinet opens a real game) ----
 const GAMES = LAB.Games.slice(0, 10);
@@ -419,13 +420,13 @@ function doorGlow(color) {
 }
 const hexs = (c) => '#' + c.toString(16).padStart(6, '0');
 // (x, z) is on the wall; yaw turns the door so its text reads from inside; walk through or click to enter
-function themedDoor(x, z, yaw, w, h, color, label, url, sub = '', floor = 0, y = 0) {
+function themedDoor(x, z, yaw, w, h, color, label, url, sub = '', floor = 0, y = 0, size = 0.3) {
   const mat = glow(color);
   group(x, y, z, yaw, () => {
     box(M.metal, 0.3, h, 0.5, -w / 2 - 0.15, h / 2, 0); box(M.metal, 0.3, h, 0.5, w / 2 + 0.15, h / 2, 0); box(M.metal, w + 0.6, 0.4, 0.5, 0, h + 0.2, 0);
     box(mat, 0.07, h - 0.1, 0.07, -w / 2, h / 2, -0.3); box(mat, 0.07, h - 0.1, 0.07, w / 2, h / 2, -0.3); box(mat, w, 0.07, 0.07, 0, h - 0.1, -0.3);
     quad(doorGlow(color), w, h - 0.1, 0, h / 2, -0.22);
-    text(label, 0, h + 1.0, -0.3, 0.3, hexs(color)); if (sub) text(sub.toUpperCase(), 0, h + 0.55, -0.3, 0.14, '#cfe6ff');
+    text(label, 0, h + 1.0, -0.3, size, hexs(color)); if (sub) text(sub.toUpperCase(), 0, h + 0.55, -0.3, Math.min(0.14, size * 0.5), '#cfe6ff');
     hotspot(0, h / 2, -0.5, w + 0.2, h, 0.8, () => goTo(url, `entering ${label.toLowerCase()}…`), label);
     // a walk-in zone just inside the doorway (in world Unity coords)
     const c = Math.cos(THREE.MathUtils.degToRad(yaw)), sn = Math.sin(THREE.MathUtils.degToRad(yaw)), wp = wpos(0, 0, -0.9);
@@ -435,67 +436,86 @@ function themedDoor(x, z, yaw, w, h, color, label, url, sub = '', floor = 0, y =
 }
 
 // ---- THE TOWER: bottom floor is the museum; an elevator serves a different room on every floor above ----
-const FLOORS = [   // 0 = ground; 1–6 the artist worlds; 7–14 the big loop in order (warehouse → … → rooftop), so the Rooftop is the top floor
-  ['THE GALLERY · MUSEUM', 'museum.html', 0xe6c04a, 'the ground floor'],
-  ['RAVE CHARLES', 'ravecharles.html', 0xff2bd0, '~400 shows'], ['DRIFTWAVE STATIC', 'driftwave.html', 0xa64bff, 'slushwave · ambient'], ['VAPORSTUDIO ROOMS', 'vaporrooms.html', 0x7a5cff, 'the vapor rooms'],
-  ['SOFA KING SAD BOI', 'sofaboi.html', 0x5b6bff, 'dubstep · weird bass'], ['TANKY JOHNSON', 'tanky.html', 0xffd24a, 'outlaw of the void'], ['SHMOREZ · THE FIRE', 'shmorez.html', 0xff8a2a, 'the s’mores fire'],
-  ['THE GREEN ROOM', 'greenroom.html', 0x39ff88, 'loop · backstage'], ['SURREAL LO-FI', 'lofi.html', 0xb967ff, 'loop · the beat room'], ['ABSTRACT PSYCHEDELIC', 'abstract.html', 0x00ffa8, 'loop · paint the void'],
-  ['THE GLITCH ROOM', 'studio.html', 0x39ff14, 'loop · 12matt3r'], ['HORRORCORE', 'horrorcore.html', 0xff2b2b, 'loop · the crawlspace'], ['CONTROL ROOM', 'utility.html', 0xffb020, 'loop · utility'],
-  ['GAME ROOM', 'gameroom.html', 0xff66cc, 'loop · interactive'], ['THE ROOFTOP', 'rooftop.html', 0x4ad0c0, 'top floor · the chill zone'],
+const one = ([name, url, color, sub]) => ({ name, color, sub, doors: [[name, url, color]] });
+const TOWERS = [
+  { sx: 1, title: 'THE ROOMS', color: '#ff2bd0', floors: [   // 0 = ground; 1–6 the artist worlds; 7–14 the big loop in order, so the Rooftop is the top floor
+    ['THE GALLERY · MUSEUM', 'museum.html', 0xe6c04a, 'the ground floor'],
+    ['RAVE CHARLES', 'ravecharles.html', 0xff2bd0, '~400 shows'], ['DRIFTWAVE STATIC', 'driftwave.html', 0xa64bff, 'slushwave · ambient'], ['VAPORSTUDIO ROOMS', 'vaporrooms.html', 0x7a5cff, 'the vapor rooms'],
+    ['SOFA KING SAD BOI', 'sofaboi.html', 0x5b6bff, 'dubstep · weird bass'], ['TANKY JOHNSON', 'tanky.html', 0xffd24a, 'outlaw of the void'], ['SHMOREZ · THE FIRE', 'shmorez.html', 0xff8a2a, 'the s’mores fire'],
+    ['THE GREEN ROOM', 'greenroom.html', 0x39ff88, 'loop · backstage'], ['SURREAL LO-FI', 'lofi.html', 0xb967ff, 'loop · the beat room'], ['ABSTRACT PSYCHEDELIC', 'abstract.html', 0x00ffa8, 'loop · paint the void'],
+    ['THE GLITCH ROOM', 'studio.html', 0x39ff14, 'loop · 12matt3r'], ['HORRORCORE', 'horrorcore.html', 0xff2b2b, 'loop · the crawlspace'], ['CONTROL ROOM', 'utility.html', 0xffb020, 'loop · utility'],
+    ['GAME ROOM', 'gameroom.html', 0xff66cc, 'loop · interactive'], ['THE ROOFTOP', 'rooftop.html', 0x4ad0c0, 'top floor · the chill zone'],
+  ].map(one) },
+  { sx: -1, title: 'THE ARCHIVE', color: '#39ff14', floors: [   // everything else on the site: games, stages, the street, tools — four doors a floor — and the EPKs on the roof
+    { name: 'THE FESTIVAL', color: 0xff2a4a, sub: 'ground floor · the grounds, the lobby, the Chroma desktop', doors: [['FESTIVAL GROUNDS', 'index.html', 0xff2bd0], ['THE WAREHOUSE', 'warehouse.html', 0x8890e0], ['MOVIE LOBBY', 'lobby.html', 0xff2a4a], ['CHROMA DESKTOP', 'chroma.html', 0xff8a2a]] },
+    { name: 'GAMES I', color: 0xffd24a, sub: 'horror · open world · the knock', doors: [['KNOCK KNOCK', 'games/knock-knock/index.html', 0xe8e8ff], ['LO-FI 3D ROOM', 'games/lofi-room/index.html', 0xb967ff], ['BRIDGE HORROR HOUSE', 'games/horror-house/index.html', 0xcc1133], ['OPEN CITY', 'games/open-city/index.html', 0xffd24a]] },
+    { name: 'GAMES II', color: 0x39ff14, sub: 'racing · parkour · found footage', doors: [['TURBO KART RUSH', 'games/turbo-kart-rush/index.html', 0xff8a2a], ['DRIFT DRIVE', 'games/drift-drive/index.html', 0x00f3ff], ['PARKOUR', 'games/parkour/index.html', 0x39ff88], ['SEVEN DAYS', 'games/seven-days/index.html', 0xff2a4a]] },
+    { name: 'GAMES III', color: 0x00f3ff, sub: 'blocks · fractals · hydra', doors: [['VOXELCRAFT', 'games/minecraft/index.html', 0x39ff14], ['MINECRAFT CLASSIC', 'games/minecraft-classic/index.html', 0x8bc34a], ['FRACTALARIUM', 'games/fractalarium/index.html', 0xb967ff], ['HYDRACTRL', 'games/hydractrl/index.html', 0xff5ec7]] },
+    { name: 'RETRO', color: 0xb967ff, sub: 'flash · browser games · old internet', doors: [['FLASH GAMES', 'games/flashstorage-archive/index.html', 0xff8a2a], ['BROWSER GAMES', 'games/browsergames/hub.html', 0x00f3ff], ['WINDOWS 97', 'games/windows97/index.html', 0x5b8cff], ['CLASSIC SITE', 'classic/index.html', 0xe6c04a]] },
+    { name: 'ARCADE ROW', color: 0xff2bd0, sub: 'the block, the track, the cabinets', doors: [['ARCADE + KARAOKE', 'arcade.html', 0xff2bd0], ['THE BLOCK', 'gamecity.html', 0x39ff14], ['THE RACE TRACK', 'race.html', 0xff8a2a], ['BULLET HELL', 'bullethell.html', 0xff2a4a]] },
+    { name: 'STAGES', color: 0x8a5cff, sub: 'tv · decks · visuals · the lab', doors: [['DREAMOS TV', 'tv.html', 0xff8a2a], ['SAUCELAB DJ', 'dj.html', 0x00f3ff], ['VJ STAGE', 'vj.html', 0x8a5cff], ['THE LAB', 'lab.html', 0x39ff88]] },
+    { name: 'STUDIOS', color: 0xffcf9a, sub: 'shows, links, the board, the store', doors: [['THAT TIME AGAIN', 'studios/index.html', 0xffcf9a], ['LINKS · ALL PROJECTS', 'links.html', 0x39ff88], ['THE BOARD', 'blog.html', 0xff5ec7], ['MERCH STORE', 'store.html', 0x39ff14]] },
+    { name: 'TOOLS + ARCHIVES', color: 0xc0c8d8, sub: 'build, read, investigate', doors: [['ROOM BUILDER', 'builder.html', 0xffffff], ['THE CODEX', 'codex.html', 0x99e0ff], ['CHANNEL 86 EVIDENCE', 'channel86-evidence/index.html', 0xcc1133], ['FEVER DREAM LIBRARY', 'library.html', 0xffb000]] },
+    { name: 'ROOF · THE EPKs', color: 0x4ad0c0, sub: 'the press kits, up on the roof', doors: [['RAVE CHARLES EPK', 'epk/ravecharles/index.html', 0xff2bd0], ['SHMOREZ EPK', 'epk/shmorez/index.html', 0xff8a2a], ['TANKY JOHNSON EPK', 'epk/tanky/index.html', 0xffd24a], ['DRIFTWAVE EPK', 'epk/driftwave/index.html', 0xa64bff]] },
+    { name: 'ROOF · MORE EPKs', color: 0x4ad0c0, sub: 'sofa king and the glitch room', doors: [['SOFA KING EPK', 'epk/sofaboi/index.html', 0x5b6bff], ['GLITCH ART EPK', 'epk/glitch/glitch-art-epk.html', 0x39ff14]] },
+  ] },
 ];
-let towerLight = null;
 const FH = 8, TX = { x0: 24, x1: 44, z0: 24, z1: 34 }, TW = { x: 34, z: 29 };
 const fy = (i) => i * FH;
-const LIFT = { x: 43.3, z: 29 };
-function tower() {
-  FLOORS.forEach(([name, url, color, sub], i) => {
-    const y = fy(i), mat = glow(color);
-    floorSlab(34, y, 29, 20, 10);
-    if (i > 0) box(M.wall, 0.4, FH - 0.4, 10, 24, y + FH / 2, 29);   // on the ground floor the gallery's east wall is the west wall
-    box(M.wall, 0.4, FH - 0.4, 10, 44, y + FH / 2, 29); box(M.wall, 20, FH - 0.4, 0.4, 34, y + FH / 2, 34.2); box(M.wall, 20, FH - 0.4, 0.4, 34, y + FH / 2, 23.8);
-    if (i === 0) box(M.wall, 20, 0.35, 10, 34, FH - 0.2, 29);
-    box(mat, 19.6, 0.05, 0.06, 34, y + FH - 0.5, 28.3); box(mat, 19.6, 0.05, 0.06, 34, y + FH - 0.5, 29.7);
-    text(`FLOOR ${i}`, 24.25, y + 5.2, 29, 0.5, hexs(color), 90); text(name, 24.25, y + 4.2, 29, 0.24, '#ffffff', 90);
-    themedDoor(34, 33.8, 0, 6, 4.8, color, name, url, sub, i, y);
-    sofa(29, 27.2, 180, 3, M.velvet, y); table(29, 28.6, 1.2, 0.8, y);
-    if (i === 0) for (let k = 0; k < 5; k++) { const fx = 27 + k * 3.6; quad(doorGlow(k % 2 ? 0xe6c04a : 0xff6aa0), 2.2, 2.8, fx, 3.2, 24.5, 180); box(M.metal, 2.5, 3.1, 0.12, fx, 3.2, 24.35); }
-    // elevator alcove on the east wall
-    group(43.8, y, 29, 90, () => {
+const towerAt = (x) => TOWERS[x < 0 ? 1 : 0];
+const towerLights = [];
+function buildTower(T) {
+  const sx = T.sx, X = (x) => sx * x, Y = (yaw) => (sx > 0 ? yaw : -yaw), hi = (a, b) => [Math.min(X(a), X(b)), Math.max(X(a), X(b))];
+  T.floors.forEach((F, i) => {
+    const y = fy(i), mat = glow(F.color), n = F.doors.length;
+    floorSlab(X(34), y, 29, 20, 10);
+    if (i > 0) box(M.wall, 0.4, FH - 0.4, 10, X(24), y + FH / 2, 29);   // on the ground floor the gallery's end wall is this wall
+    box(M.wall, 0.4, FH - 0.4, 10, X(44), y + FH / 2, 29); box(M.wall, 20, FH - 0.4, 0.4, X(34), y + FH / 2, 34.2); box(M.wall, 20, FH - 0.4, 0.4, X(34), y + FH / 2, 23.8);
+    if (i === 0) box(M.wall, 20, 0.35, 10, X(34), FH - 0.2, 29);
+    box(mat, 19.6, 0.05, 0.06, X(34), y + FH - 0.5, 28.3); box(mat, 19.6, 0.05, 0.06, X(34), y + FH - 0.5, 29.7);
+    text(`FLOOR ${i}`, X(24.25), y + 5.2, 29, 0.5, hexs(F.color), Y(90)); text(F.name, X(24.25), y + 4.2, 29, 0.24, '#ffffff', Y(90));
+    if (n === 1) themedDoor(X(34), 33.8, 0, 6, 4.8, F.doors[0][2], F.doors[0][0], F.doors[0][1], F.sub, i, y, 0.3);
+    else F.doors.forEach(([label, url, color], k) => themedDoor(X(34 + (k - (n - 1) / 2) * 4.8), 33.8, 0, 3.4, 4.4, color, label, url, k === 0 ? F.sub : '', i, y, 0.2));
+    sofa(X(29), 27.2, 180, 3, M.velvet, y); table(X(29), 28.6, 1.2, 0.8, y);
+    if (i === 0 && sx > 0) for (let k = 0; k < 5; k++) { const fx = 27 + k * 3.6; quad(doorGlow(k % 2 ? 0xe6c04a : 0xff6aa0), 2.2, 2.8, fx, 3.2, 24.5, 180); box(M.metal, 2.5, 3.1, 0.12, fx, 3.2, 24.35); }
+    group(X(43.8), y, 29, Y(90), () => {   // elevator alcove on the far wall
       box(M.metal, 0.3, 3.8, 0.5, -1.6, 1.9, 0); box(M.metal, 0.3, 3.8, 0.5, 1.6, 1.9, 0); box(M.metal, 3.5, 0.4, 0.5, 0, 3.8, 0); box(M.glass, 2.8, 3.4, 0.1, 0, 1.7, 0.1); box(mat, 0.07, 3.6, 0.07, -1.4, 1.8, -0.3); box(mat, 0.07, 3.6, 0.07, 1.4, 1.8, -0.3); box(mat, 2.8, 0.07, 0.07, 0, 3.6, -0.3);
       text('ELEVATOR', 0, 4.5, -0.3, 0.25, '#ffffff'); box(M.amber, 0.3, 0.3, 0.06, 2.4, 1.4, -0.3); text('▲▼', 2.4, 1.4, -0.36, 0.14, '#000000');
-      hotspot(0, 1.8, -0.4, 3.4, 3.8, 1, () => openLift(), 'Elevator'); hotspot(2.4, 1.4, -0.4, 0.8, 0.8, 0.8, () => openLift(), 'Elevator');
+      hotspot(0, 1.8, -0.4, 3.4, 3.8, 1, () => openLift(sx), 'Elevator'); hotspot(2.4, 1.4, -0.4, 0.8, 0.8, 0.8, () => openLift(sx), 'Elevator');
     });
   });
-  towerLight = point(34, 5, 29, 0xff9aa8, 35, 22);
-  rect(24.6, 40.8, 24.6, 33.4); solid(41, 44, 27, 31);
-  box(M.metal, 1, 150, 1, 24.5, 75, 24.5); box(M.metal, 1, 150, 1, 43.5, 75, 24.5); box(M.metal, 1, 150, 1, 24.5, 75, 33.5); box(M.metal, 1, 150, 1, 43.5, 75, 33.5);
-  box(M.violet, 20, 0.2, 10.4, 34, fy(FLOORS.length) + 0.2, 29);
-  text('THE ROOMS', 34, fy(FLOORS.length) + 3, 23.5, 1.2, '#ff2bd0', 180);
+  towerLights.push(point(X(34), 5, 29, 0xff9aa8, 35, 22));
+  const [r0, r1] = hi(24.6, 40.8); rect(r0, r1, 24.6, 33.4); const [s0, s1] = hi(41, 44); solid(s0, s1, 27, 31);
+  for (const px of [24.5, 43.5]) for (const pz of [24.5, 33.5]) box(M.metal, 1, 150, 1, X(px), 75, pz);
+  const top = fy(T.floors.length); box(M.violet, 20, 0.2, 10.4, X(34), top + 0.2, 29);
+  text(T.title, X(34), top + 3, 23.5, 1.2, T.color, 180);
 }
 // elevator ride state + overlay
-const ride = { on: false, from: 0, to: 0, t: 0, dur: 1, target: 0 };
-function openLift() {
+const ride = { on: false, from: 0, to: 0, t: 0, dur: 1, target: 0, sx: 1 };
+function openLift(sx) {
   const el = $('lift'); if (!el) return;
-  const list = $('liftList'); list.replaceChildren();
-  FLOORS.slice().reverse().forEach((f, k) => {
-    const i = FLOORS.length - 1 - k, b = document.createElement('button'); b.className = 'lt-row';
-    b.innerHTML = `<span class="ic" style="color:${hexs(f[2])}">●</span><span><span class="t"></span><span class="m"></span><span class="d"></span></span>`;
-    b.querySelector('.t').textContent = `FLOOR ${i} — ${f[0]}`; b.querySelector('.m').textContent = i === player.floor ? ' · you are here' : ''; b.querySelector('.d').textContent = f[3];
-    b.onclick = () => { el.classList.remove('on'); rideTo(i); }; list.appendChild(b);
+  const T = sx < 0 ? TOWERS[1] : TOWERS[0], list = $('liftList'); list.replaceChildren();
+  $('liftTitle').textContent = `ELEVATOR // ${T.title}`;
+  T.floors.slice().reverse().forEach((f, k) => {
+    const i = T.floors.length - 1 - k, b = document.createElement('button'); b.className = 'lt-row';
+    b.innerHTML = `<span class="ic" style="color:${hexs(f.color)}">●</span><span><span class="t"></span><span class="m"></span><span class="d"></span></span>`;
+    b.querySelector('.t').textContent = `FLOOR ${i} — ${f.name}`; b.querySelector('.m').textContent = i === player.floor && towerAt(player.x) === T ? ' · you are here' : ''; b.querySelector('.d').textContent = f.doors.length > 1 ? f.doors.map((d) => d[0]).join(' · ') : f.sub;
+    b.onclick = () => { el.classList.remove('on'); rideTo(i, sx); }; list.appendChild(b);
   });
   el.classList.add('on'); player.keys.clear();
 }
-function rideTo(i) {
-  if (i === player.floor) { say('already on this floor'); return; }
-  ride.on = true; ride.from = player.h; ride.to = fy(i); ride.target = i; ride.t = 0; ride.dur = Math.min(6, 1.2 + Math.abs(ride.to - ride.from) / 14);
-  say(`▲▼ going to floor ${i} — ${FLOORS[i][0]}`);
+function rideTo(i, sx = towerAt(player.x).sx) {
+  if (i === player.floor && towerAt(player.x).sx === sx) { say('already on this floor'); return; }
+  const T = sx < 0 ? TOWERS[1] : TOWERS[0];
+  ride.on = true; ride.sx = sx; ride.from = player.h; ride.to = fy(i); ride.target = i; ride.t = 0; ride.dur = Math.min(6, 1.2 + Math.abs(ride.to - ride.from) / 14);
+  say(`▲▼ going to floor ${i} — ${T.floors[i].name}`);
 }
 
 // ---- assemble ----
 mkScreen('main', null, 0x0f2b6a, 0x7a22d8); mkScreen('vip', null, 0x6a2a10, 0x3a1088);
 arenaShell(); arena(); vip(); lobby(); gallery();
 group(-14, 0, 43, 0, arcade);
-cinemaLobby(); tower();
+cinemaLobby(); TOWERS.forEach(buildTower);
 group(15, 0, 59, 0, mainCinema);
 group(37, 0, 46, 0, privateCinema);
 // walkable rects for the wings (world Unity coords)
@@ -522,8 +542,8 @@ function heightAt(x, z, prev) {
   if (x > 3.7 && x < 6.3 && z > 45.6 && z < 49.6) c.push(Math.min(2.24, (Math.floor((z - 45.6) / 0.4) + 1) * 0.224));                        // auditorium entry stair
   let best = 0; for (const v of c) if (v <= prev + 0.6 && v > best) best = v; return best;
 }
-const TOWER_RECT = { x0: 24.6, x1: 40.8, z0: 24.6, z1: 33.4 };
-const inRects = (x, z, upper) => player.floor > 0 ? (x > TOWER_RECT.x0 && x < TOWER_RECT.x1 && z > TOWER_RECT.z0 && z < TOWER_RECT.z1) : rects.some((r) => (upper || !r.u) && x > r.x0 && x < r.x1 && z > r.z0 && z < r.z1);
+const inTowerRect = (x, z) => Math.abs(x) > 24.6 && Math.abs(x) < 40.8 && z > 24.6 && z < 33.4;
+const inRects = (x, z, upper) => player.floor > 0 ? inTowerRect(x, z) : rects.some((r) => (upper || !r.u) && x > r.x0 && x < r.x1 && z > r.z0 && z < r.z1);
 const blocked = (x, z) => player.floor === 0 && solids.some((b) => x > b.x0 - R && x < b.x1 + R && z > b.z0 - R && z < b.z1 + R);
 const okAt = (x, z, upper) => inRects(x, z, upper) && !blocked(x, z);
 function step(dx, dz) {
@@ -539,7 +559,7 @@ function moveUpdate(dt) {
   if (ride.on) {   // elevator: glide the camera up/down, then land on the new floor
     ride.t += dt; const e = Math.min(1, ride.t / ride.dur), q = e * e * (3 - 2 * e);
     player.h = ride.from + (ride.to - ride.from) * q;
-    if (e >= 1) { ride.on = false; player.floor = ride.target; player.h = ride.to; player.x = 39.6; player.z = 29; player.yaw = face(-1, 0); player.target = null; say(`floor ${ride.target} — ${FLOORS[ride.target][0]}`); }
+    if (e >= 1) { ride.on = false; player.floor = ride.target; player.h = ride.to; player.x = 39.6 * ride.sx; player.z = 29; player.yaw = face(-ride.sx, 0); player.target = null; say(`floor ${ride.target} — ${(ride.sx < 0 ? TOWERS[1] : TOWERS[0]).floors[ride.target].name}`); }
     camera.position.set(player.x, 1.65 + player.h, -player.z); camera.lookAt(camera.position.x - Math.sin(player.yaw), camera.position.y + Math.sin(player.pitch) * 0.2, camera.position.z - Math.cos(player.yaw)); return;
   }
   // view yaw is in three space; Unity z = -three z, so heading in Unity coords is (−sin, +cos)·…
@@ -591,7 +611,7 @@ function say(msg) { toast.textContent = msg; toast.classList.add('on'); clearTim
 function goTo(url, msg) { say(msg); $('warp').classList.add('go'); setTimeout(() => { location.href = url; }, 520); }
 const spots = [
   ['🚪 Lobby', 0, -33, 0, face(0, 1), true], ['🎧 Arena', 0, -12, 0, face(0, 1)], ['◀ Stage A', -14, 0, 0, face(-1, 0)], ['Stage B ▶', 14, 0, 0, face(1, 0)],
-  ['🥂 VIP balcony', 0, -21, 4, face(0, 1)], ['🕹 Arcade', -14, 38, 0, face(0, 1)], ['🎬 Cinema', 15, 40, 0, face(0, 1)], ['🍿 Main screen', 15, 52, 2.2, face(0, 1)], ['🛋 Private', 33, 41, 0, face(1, 0)], ['🏢 Tower · museum', 32, 29, 0, face(1, 0)],
+  ['🥂 VIP balcony', 0, -21, 4, face(0, 1)], ['🕹 Arcade', -14, 38, 0, face(0, 1)], ['🎬 Cinema', 15, 40, 0, face(0, 1)], ['🍿 Main screen', 15, 52, 2.2, face(0, 1)], ['🛋 Private', 33, 41, 0, face(1, 0)], ['🏢 Tower · museum', 32, 29, 0, face(1, 0)], ['🗄 The Archive', -32, 29, 0, face(-1, 0)],
 ];
 for (const [label, x, z, h, yaw, hot] of spots) { const b = document.createElement('button'); b.className = `btn${hot ? ' hot' : ''}`; b.textContent = label; b.onclick = () => teleport(x, z, h, yaw); $('goRow').appendChild(b); }
 $('liftX').onclick = () => $('lift').classList.remove('on');
@@ -624,10 +644,10 @@ function frame() {
   }
   moveUpdate(dt);
   for (const d of doorTriggers) { const inside = !ride.on && d.floor === player.floor && player.x > d.x0 && player.x < d.x1 && player.z > d.z0 && player.z < d.z1; if (inside && d.armed) { d.armed = false; goTo(d.url, `entering ${d.label.toLowerCase()}…`); } else if (!inside) d.armed = true; }
-  if (towerLight) { towerLight.position.set(34, fy(player.floor) + 5, -29); towerLight.color.setHex(FLOORS[player.floor][2]); }
+  towerLights.forEach((l, k) => { const T = TOWERS[k], on = towerAt(player.x) === T && player.x * T.sx > 20, f = on ? player.floor : 0; l.position.set(T.sx * 34, fy(f) + 5, -29); l.color.setHex(T.floors[f].color); });
   renderer.render(scene, camera);
 }
 teleport(0, -33, 0, face(0, 1)); moveUpdate(0.016); renderer.render(scene, camera);
 $('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); } };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { player, scene, teleport, camera, rideTo, openLift, doorTriggers };
+if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS };
