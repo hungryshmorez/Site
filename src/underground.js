@@ -10,6 +10,9 @@ import { TTA_WIDE, TTA_TALL } from './data/tta.js';
 import { LIBRARY } from './data/library.js';
 import { THEATERS, ARCADE } from './data/theaters.js';
 import { ALL_ENTRIES, CHROMA_VIDEOS } from './data/chroma.js';
+import { buildTrash } from './scene/trash.js';
+import { buildDealer } from './scene/dealer.js';
+import { buildLitter } from './scene/litter.js';
 import './player/globalplayer-boot.js';
 
 // THE UNDERGROUND — the B2Buddy entertainment complex, rebuilt for the web from the Unity project's
@@ -433,11 +436,21 @@ function doorGlow(color) {
 const hexs = (c) => '#' + c.toString(16).padStart(6, '0');
 // (x, z) is on the wall; yaw turns the door so its text reads from inside; walk through or click to enter
 const LEVEL_INFO = {
-  'museum.html': 'The gallery of works, the ground floor.', 'ravecharles.html': 'About 400 shows by Rave Charles. Pick one and play it.', 'driftwave.html': 'Slushwave and ambient, drifting through a dream room.',
-  'vaporrooms.html': 'The VaporStudio rooms: a vapor gallery to wander.', 'sofaboi.html': 'Sofa King Sad Boi. Dubstep and weird bass, from the sofa.', 'tanky.html': 'Tanky Johnson, outlaw of the void.',
-  'shmorez.html': 'Shmorez, by the s’mores fire.', 'greenroom.html': 'The loop begins backstage in the green room.', 'lofi.html': 'A surreal lo-fi room, built around the beat.',
-  'abstract.html': 'Paint the void: abstract, psychedelic, spinning.', 'studio.html': 'The glitch room: 12matt3r’s own studio.', 'horrorcore.html': 'Horrorcore: down the crawlspace.',
-  'utility.html': 'The control room: utility, switches, tools.', 'gameroom.html': 'The game room: interactive, pick something up.', 'rooftop.html': 'The rooftop, the chill zone at the top of the loop.',
+  'museum.html': 'A walkable marble gallery hung with the whole roster. Walk up to any picture to read its plaque.',
+  'ravecharles.html': 'Rave Charles: the masked headliner. A neon mosh pit, a coast-to-coast tour road and a giant LED-visor mask. You are down in the pit with the crowd.',
+  'driftwave.html': 'DriftWave Static: a vaporwave dreamscape with a marble temple, a mallsoft arcade and a late-night lo-fi nook.',
+  'vaporrooms.html': 'The VaporStudio rooms: a late-night lo-fi dorm, a vaporwave temple and a mallsoft plaza, inside the DriftWave Static area.',
+  'sofaboi.html': 'Sofa King Sad Boi: a rainy kingdom of couches. A giant sofa throne, a sea of couches and a dubstep bass pit.',
+  'tanky.html': 'Tanky Johnson: a cosmic western. A honky-tonk saloon, a tailgate bonfire with a lifted truck, and a neon-cactus desert under a giant moon.',
+  'shmorez.html': 'Shmorez: a cozy, surreal s’mores wonderland. A giant bonfire, roasting marshmallows, chocolate-bar walls, tents and drifting embers.',
+  'greenroom.html': 'The green room: the artist’s backstage lounge. Couches, a lit vanity mirror, a wardrobe rack, setlists, string lights and its own decks.',
+  'lofi.html': 'Surreal lo-fi: mismatched furniture, floating headphone clouds, spinning vinyl and kaleidoscope skies, with a playable beat pad.',
+  'abstract.html': 'Abstract psychedelic: swirling walls and floor that shift as you move, floating colour entities, and light you can paint onto the surfaces.',
+  'studio.html': '12matt3r’s glitch room: a dark glitch-art lab around a monument of stacked CRT televisions. Datamosh, installations and the web OS.',
+  'horrorcore.html': 'Horrorcore: a dim, flickering basement of dripping pipes and framed horrors. Tap the frames to hear them whisper, then crawl in for the hidden tapes.',
+  'utility.html': 'The control room: server racks, a wall of monitors and a patch panel of switches you can flip, plus its own decks.',
+  'gameroom.html': 'The game room: a reactive light-up dance floor that chimes when you tap the tiles, a claw machine, an arcade screen and its own decks.',
+  'rooftop.html': 'The rooftop chill zone: a rotating galaxy overhead, floating holographic art and a soundboard to layer your own ambient soundscape.',
 };
 const wrapText = (t, n) => { const out = []; let cur = ''; for (const w of t.split(' ')) { if ((cur + ' ' + w).trim().length > n) { out.push(cur); cur = w; } else cur = (cur + ' ' + w).trim(); } if (cur) out.push(cur); return out; };
 function themedDoor(x, z, yaw, w, h, color, label, url, sub = '', floor = 0, y = 0, size = 0.3) {
@@ -474,10 +487,7 @@ const TOWERS = [
     { name: 'RETRO', color: 0xb967ff, sub: 'flash · browser games · old internet', doors: [['FLASH GAMES', 'games/flashstorage-archive/index.html', 0xff8a2a], ['BROWSER GAMES', 'games/browsergames/hub.html', 0x00f3ff], ['WINDOWS 97', 'games/windows97/index.html', 0x5b8cff], ['CLASSIC SITE', 'classic/index.html', 0xe6c04a]] },
     { name: 'ARCADE ROW', color: 0xff2bd0, sub: 'the block, the track, the cabinets', doors: [['ARCADE + KARAOKE', 'arcade.html', 0xff2bd0], ['THE BLOCK', 'gamecity.html', 0x39ff14], ['THE RACE TRACK', 'race.html', 0xff8a2a], ['BULLET HELL', 'bullethell.html', 0xff2a4a]] },
     { name: 'STAGES', color: 0x8a5cff, sub: 'tv · decks · visuals · the lab', doors: [['DREAMOS TV', 'tv.html', 0xff8a2a], ['SAUCELAB DJ', 'dj.html', 0x00f3ff], ['VJ STAGE', 'vj.html', 0x8a5cff], ['THE LAB', 'lab.html', 0x39ff88]] },
-    { name: 'STUDIOS', color: 0xffcf9a, sub: 'shows, links, the board, the store', doors: [['THAT TIME AGAIN', 'studios/index.html', 0xffcf9a], ['LINKS · ALL PROJECTS', 'links.html', 0x39ff88], ['THE BOARD', 'blog.html', 0xff5ec7], ['MERCH STORE', 'store.html', 0x39ff14]] },
     { name: 'TOOLS + ARCHIVES', color: 0xc0c8d8, sub: 'build, read, investigate', doors: [['ROOM BUILDER', 'builder.html', 0xffffff], ['THE CODEX', 'codex.html', 0x99e0ff], ['CHANNEL 86 EVIDENCE', 'channel86-evidence/index.html', 0xcc1133], ['FEVER DREAM LIBRARY', 'library.html', 0xffb000]] },
-    { name: 'ROOF · THE EPKs', color: 0x4ad0c0, sub: 'the press kits, up on the roof', doors: [['RAVE CHARLES EPK', 'epk/ravecharles/index.html', 0xff2bd0], ['SHMOREZ EPK', 'epk/shmorez/index.html', 0xff8a2a], ['TANKY JOHNSON EPK', 'epk/tanky/index.html', 0xffd24a], ['DRIFTWAVE EPK', 'epk/driftwave/index.html', 0xa64bff]] },
-    { name: 'ROOF · MORE EPKs', color: 0x4ad0c0, sub: 'sofa king and the glitch room', doors: [['SOFA KING EPK', 'epk/sofaboi/index.html', 0x5b6bff], ['GLITCH ART EPK', 'epk/glitch/glitch-art-epk.html', 0x39ff14]] },
   ] },
 ];
 const FH = 8, TX = { x0: 24, x1: 44, z0: 24, z1: 34 }, TW = { x: 34, z: 29 };
@@ -574,8 +584,36 @@ function car(x, z, yaw, paint) {
 }
 const CONCRETE = std(0x3a3f4b, { roughness: 0.95 }), ASPHALT = std(0x0d1016, { roughness: 0.35, metalness: 0.4 }), PAINT = glow(0xc9cfdc), TURF = std(0x0b1612, { roughness: 1 }), RUST = std(0x5a3622, { roughness: 0.9, metalness: 0.3 });
 const INK = std(0x090c14, { roughness: 0.8 }), PLUM = std(0x6a2a78, { roughness: 0.4, metalness: 0.4 }), TEAL = std(0x1c6a70, { roughness: 0.4, metalness: 0.4 });
+const MUSEUM_FLOORS = [
+  ['G', 'THE 3D MUSEUM', 'museum.html', 'The walkable gallery of the whole roster.'],
+  ['1', 'RAVE CHARLES EPK', 'epk/ravecharles/index.html', 'Press kit: the masked headliner, about 400 shows.'], ['2', 'SHMOREZ EPK', 'epk/shmorez/index.html', 'Press kit: the s’mores fire.'],
+  ['3', 'TANKY JOHNSON EPK', 'epk/tanky/index.html', 'Press kit: outlaw of the void.'], ['4', 'DRIFTWAVE STATIC EPK', 'epk/driftwave/index.html', 'Press kit: slushwave and ambient.'],
+  ['5', 'SOFA KING EPK', 'epk/sofaboi/index.html', 'Press kit: Sofa King Sad Boi.'], ['6', 'GLITCH ART EPK', 'epk/glitch/glitch-art-epk.html', 'Press kit: the glitch art practice.'],
+  ['7', 'THAT TIME AGAIN STUDIOS', 'studios/index.html', 'The studio: shows, episodes and synthetic media.'], ['8', 'LINKS · ALL PROJECTS', 'links.html', 'Every project, one page.'],
+  ['9', 'THE BOARD', 'blog.html', 'News, posts and the guest book.'], ['10', 'MERCH STORE', 'store.html', 'Tees, caps and vinyl.'], ['11', 'B2BUDDY RECORDS', 'https://hungryshmorez.github.io/Media/music/', 'The music: the record label’s catalog.'],
+];
+function openMuseumLift() {
+  openPanel('MUSEUM ELEVATOR // EVERYTHING ABOUT THE ART', [], (t2, q, body) => {
+    for (const [fl, name, url, info] of MUSEUM_FLOORS.slice().reverse()) body.appendChild(panelRow(fl, name, 'floor ' + fl, info, () => { $('panel').classList.remove('on'); openWindow(name, /^https?:/.test(url) ? url : new URL(url, location.href).href); }));
+  });
+}
+function museum() {   // a hollow building behind the pillared entrance; the elevator at the back reaches every floor
+  box(M.stone, 17, 0.5, 24.4, 116.9, -0.25, -50.1); box(FST.marble, 16.6, 0.02, 24, 116.9, 0.012, -50.1);
+  box(M.wall, 0.8, 14, 6.3, 108.4, 7, -59.15); box(M.wall, 0.8, 14, 12.1, 108.4, 7, -43.95); box(M.wall, 0.8, 9, 6, 108.4, 9.5, -53);
+  box(M.wall, 16.8, 14, 0.8, 116.9, 7, -62.3); box(M.wall, 16.8, 14, 0.8, 116.9, 7, -37.9); box(M.wall, 0.8, 14, 24.4, 125.3, 7, -50.1); box(M.wall, 17.6, 0.6, 25, 116.9, 14.3, -50.1);
+  for (let i = 0; i < 5; i++) { const z = -58 + i * 4.6; box(M.stone, 1.2, 1, 1.2, 114, 0.5, z); sph(O.gold, 0.5, 0.5, 0.5, 114, 1.6, z); box(M.stone, 1.2, 1, 1.2, 119.5, 0.5, z); sph(i % 2 ? O.cyan : O.magenta, 0.5, 0.5, 0.5, 119.5, 1.6, z); museumSolid(114, z); museumSolid(119.5, z); }
+  group(124.8, 0, -50, 90, () => {
+    box(M.metal, 0.3, 3.8, 0.5, -1.6, 1.9, 0); box(M.metal, 0.3, 3.8, 0.5, 1.6, 1.9, 0); box(M.metal, 3.5, 0.4, 0.5, 0, 3.8, 0); box(M.glass, 2.8, 3.4, 0.1, 0, 1.7, 0.1);
+    box(glow(0xe6c04a), 0.07, 3.6, 0.07, -1.4, 1.8, -0.3); box(glow(0xe6c04a), 0.07, 3.6, 0.07, 1.4, 1.8, -0.3); box(glow(0xe6c04a), 2.8, 0.07, 0.07, 0, 3.6, -0.3);
+    text('MUSEUM ELEVATOR', 0, 5, -0.3, 0.4, '#ffd96a'); text('THE EPKs  ·  THE STUDIOS  ·  THE LINKS  ·  THE STORE  ·  THE MUSIC', 0, 4.4, -0.3, 0.16, '#ffffff');
+    hotspot(0, 1.8, -0.4, 3.4, 3.8, 1, () => openMuseumLift(), 'Museum elevator');
+  });
+  text('THE MUSEUM', 108.8, 12, -50, 1.2, '#ffd96a', 90); point(113, 8, -50, 0xffd9a0, 90, 30); point(121, 8, -50, 0xffd9a0, 90, 30);
+  rect(107, 109.2, -56, -50); rect(108.8, 124.4, -61.6, -38.6);
+}
+const museumSolid = (x, z) => solid(x - 0.7, x + 0.7, z - 0.7, z + 0.7);
 function street() {
-  box(TURF, 300, 1, 114, 30, -0.5, -95.1);
+  box(TURF, 300, 1, 140, 30, -0.5, -108);
   box(CONCRETE, 150, 0.12, 6.8, 33, 0.06, -41.6); box(CONCRETE, 150, 0.12, 4.2, 33, 0.06, -59.1);
   for (const z of [-45, -57]) box(M.stone, 150, 0.16, 0.3, 33, 0.08, z);
   box(ASPHALT, 150, 0.01, 11.7, 33, 0.005, -51);
@@ -603,15 +641,13 @@ function street() {
   for (const x of [58, 84, 98]) lamp(x, -44.4, -1, true); for (const x of [50, 74, 96]) lamp(x, -57.7, 1, false);
   car(60, -54.6, 90, PLUM); car(88, -47.4, -90, TEAL);
   group(54, 0, -44.3, 0, () => { cyl(M.metal, 0.06, 2.8, 0, 1.4, 0); box(INK, 3.6, 0.8, 0.08, 0, 2.65, 0); box(glow(0xffd96a), 3.6, 0.04, 0.1, 0, 3.06, 0); text('THE COMPLEX  →', 0, 2.65, -0.08, 0.3, '#ffd96a'); });
-  box(M.wall, 4.2, 16, 23.8, 110.1, 8, -50.1); box(M.metal, 1.4, 16.4, 24.4, 112.6, 8, -50.1);
+  museum();
   for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) box((r * 3 + c) % 4 === 0 ? glow(0xffcf9a) : INK, 0.05, 1.5, 2.3, 107.97, 7.6 + r * 2.6, -41 - c * 3.6);
   group(107.9, 0, -53, 90, () => {   // the pillared entrance, in the festival gateway's style
     for (const gx of [-5.2, 5.2]) { box(CONCRETE, 1.3, 9.6, 1.3, gx, 4.8, 0); box(M.cyan, 0.08, 9, 0.05, gx, 4.8, -0.68); box(M.metal, 1.5, 0.3, 1.5, gx, 9.75, 0); }
     box(CONCRETE, 11.7, 1.5, 1.5, 0, 9.4, 0); box(M.violet, 11.7, 0.07, 0.05, 0, 8.7, -0.78); text('THE MUSEUM', 0, 9.45, -0.8, 0.95, '#ffd96a'); box(INK, 8, 0.6, 0.3, 0, 10.6, -0.2); text('THE GALLERY OF WORKS  ·  WALK IN', 0, 10.6, -0.38, 0.24, '#ff7eb0');
-    box(M.metal, 0.3, 5, 0.5, -3.15, 2.5, 0); box(M.metal, 0.3, 5, 0.5, 3.15, 2.5, 0); box(M.metal, 6.6, 0.4, 0.5, 0, 5.2, 0); box(glow(0xe6c04a), 0.07, 5, 0.07, -3, 2.5, -0.3); box(glow(0xe6c04a), 0.07, 5, 0.07, 3, 2.5, -0.3); box(glow(0xe6c04a), 6, 0.07, 0.07, 0, 5, -0.3); quad(doorGlow(0xe6c04a), 6, 4.9, 0, 2.5, -0.22);
-    hotspot(0, 2.5, -0.6, 6.2, 5, 0.8, () => openWindow('THE MUSEUM', new URL('museum.html', location.href).href), 'The Museum');
+    box(M.metal, 0.3, 5, 0.5, -3.15, 2.5, 0); box(M.metal, 0.3, 5, 0.5, 3.15, 2.5, 0); box(M.metal, 6.6, 0.4, 0.5, 0, 5.2, 0); box(glow(0xe6c04a), 0.07, 5, 0.07, -3, 2.5, -0.3); box(glow(0xe6c04a), 0.07, 5, 0.07, 3, 2.5, -0.3); box(glow(0xe6c04a), 6, 0.07, 0.07, 0, 5, -0.3);
   });
-  doorTriggers.push({ floor: 0, x0: 105.4, x1: 107.2, z0: -56, z1: -50, armed: true, label: 'The Museum', run: () => openWindow('THE MUSEUM', new URL('museum.html', location.href).href) });
   text('B2BUDDY RECORDS', 107.9, 5.4, -41.5, 0.5, '#4de8ff', -90); box(glow(0x1b6a90), 0.05, 2.8, 3, 107.96, 1.9, -41.5);
   hotspot(107.5, 2, -41.5, 1.2, 4, 3.2, () => openWindow('B2BUDDY RECORDS // MUSIC', 'https://hungryshmorez.github.io/Media/music/'), 'B2Buddy Records');
   // ---- south sidewalk: THE MOVIE LOBBY is built in campus() ----
@@ -749,7 +785,7 @@ function destinations() {
     figure(0, 0, 0, 0, FST.chrome, FST.chrome, FST.chrome); box(FST.ink, 0.3, 0.07, 0.04, 0, 1.69, -0.14);
     for (let i = 0; i < 7; i++) { const y = -0.9 + i * 0.3, w = 2 * Math.sqrt(Math.max(0, 1.21 - y * y)); box(i < 3 ? O.magenta : i < 5 ? O.orange : O.gold, w, 0.2 - (i < 3 ? 0.06 * (3 - i) : 0), 0.04, 0, 1.7 + y, 0.5); }
   });
-  destination('sofa-king-sad-boi', 'Sofa King Sad Boi', 'Hooded figure on a couch under a personal rain cloud.', F(11, -6), 1, O.indigo, 0x6b6bff, () => {
+  destination('sofa-king-sad-boi', 'Sofa King Sad Boi', 'Hooded figure on a couch under a personal rain cloud.', [-56, -10], 1, O.indigo, 0x6b6bff, () => {
     box(FST.stand, 3.4, 1, 2.6, 0, 0.5, 0.4); box(O.indigo, 3.4, 0.04, 0.05, 0, 0.98, -0.91); sofa_(0, 1, 0.9);
     group(0.2, 1, 0.75, 0, () => { box(O.indigo, 0.45, 0.62, 0.3, 0, 0.95, 0); sph(O.indigo, 0.36, 0.4, 0.36, 0, 1.42, 0.02); sph(FST.ink, 0.24, 0.28, 0.22, 0, 1.4, -0.06); });
     for (let i = 0; i < 4; i++) sph(FST.cloud, 0.8, 0.55, 0.7, -0.6 + i * 0.4, 4.1 + (i % 2) * 0.18, 0.7); for (let i = 0; i < 12; i++) box(O.indigo, 0.02, 0.38, 0.02, -0.7 + (i % 6) * 0.28, 2.6 + (i % 3) * 0.35, 0.5 + Math.floor(i / 6) * 0.4);
@@ -803,7 +839,9 @@ function festProps() {
   const car_ = dyn(tx, 0.35, tz, 0, () => { box(FST.red, 1.9, 0.42, 4.4, 0, 0.45, 0); box(M.glass, 1.5, 0.36, 1.7, 0, 0.82, 0.3); box(FST.red, 1.86, 0.2, 1.2, 0, 0.55, -1.7, 8); box(FST.ink, 1.8, 0.05, 0.35, 0, 0.95, 2); for (const x of [-0.95, 0.95]) for (const z of [-1.35, 1.35]) cyl(FST.ink, 0.32, 0.25, x, 0.32, z, 0, 0, 90); }); spinners.push({ g: car_, v: 0.6 });
   facing(...F(-13, -13), 0, -4, () => { box(M.wall, 2.2, 1.1, 0.8, 0, 0.55, 0.5); cyl(M.metal, 0.05, 2.6, 0, 1.9, 0.8); text('PROPS', 0, 1.3, 0.08, 0.2, '#ffd966'); });
   facing(...F(-22, -20), 0, -4, () => { box(FST.dump, 2.6, 1.5, 1.5, 0, 0.75, 0); box(FST.ink, 2.65, 0.08, 1.4, 0, 1.55, 0.1); cyl(M.metal, 0.08, 4, -3, 2, 1); box(O.warm, 0.4, 0.12, 0.5, -3, 4, 0.8); });
-  facing(...F(-15, -20), 0, -4, () => { box(M.metal, 3, 3.2, 0.5, 0, 1.6, 0.4); box(M.wall, 1.3, 2.3, 0.06, 0, 1.2, 0.13); cyl(M.brass, 0.25, 0.03, 0, 1.25, 0.08, 90); text('BACKSTAGE  /  STAFF ONLY', 0, 2.75, 0.12, 0.14, '#ff6666'); });
+  box(FST.fence, 16.4, 4.4, 0.5, 23.2, 2.2, -20); for (let i = 0; i < 9; i++) box(M.metal, 0.12, 5, 0.6, 15.4 + i * 2, 2.5, -20.1);
+  box(INK, 14, 2.2, 0.3, 23.2, 5.9, -20.4); text('BACKSTAGE', 23.2, 6.4, -20.65, 1.1, '#ff6666', 180); text('STAFF ONLY  ·  NO ENTRY', 23.2, 5.2, -20.65, 0.4, '#ffffff', 180); box(O.red, 14, 0.12, 0.2, 23.2, 4.8, -20.55);
+  fsolid(15, 31.6, -20.7, -19.4);
   fsolid(-1.6 + -25 - 0, 1.6 - 25, 0, 0);
 }
 // 260 instanced festival-goers, thinning toward the back; clearings keep the props free
@@ -829,7 +867,7 @@ function festival() {
   rect(-31.4, 31.4, -38.4 + FZ, 32.4 + FZ); rect(13, 23, -62.2, -60.4);   // the grounds + the gateway
 }
 // ---- THE MIDWAY: a striped big top reached through the arcade tent's tunnel ----
-const MID = { x: -56, z: -104 };
+const MID = { x: -56, z: -134 };
 const MIDWAY_CABS = [
   ['FLASH GAMES', 0xff0055, [-10.5, -14.5], 'games/flashstorage-archive/index.html'], ['WAKE UP', 0xb967ff, [-3.5, -15], 'https://wakeupwork.on.websim.com'], ['GAMES', 0x00f3ff, [3.5, -15], null], ['STORIES', 0x39ff14, [10.5, -14.5], 'https://leonida-360-vice-city-crime-simulator--sofakingsadboi.on.websim.com'],
   ['DODGE HELL', 0xff0055, [-15, -5], 'bullethell.html'], ['MINECRAFT', 0x39ff14, [-15, 3], 'games/minecraft/index.html'], ['FLASHSTORAGE', 0xff8a1e, [-15, 11], 'games/flashstorage-archive/index.html'], ['MINI GAMES', 0xffd24a, [15, -5], 'games/browsergames/hub.html'],
@@ -858,6 +896,9 @@ function midway() {
     for (const hb of [F(-6, 9), F(5, 10)]) cyl(FST.hay, 0.6, 1.2, hb[0], 0.6, hb[1], 0, 0, 90);
   });
   circles.push({ cx: MID.x, cz: MID.z, r: 20.5 });
+  box(CONCRETE, 3.4, 0.1, 33, -34.9, 0.05, -119.5); box(O.magenta, 0.08, 0.04, 33, -36.6, 0.11, -119.5); box(O.magenta, 0.08, 0.04, 33, -33.2, 0.11, -119.5);
+  rect(-36.6, -33.2, MID.z - 1.7, -102.3);   // the walkway from the tent's tunnel down to the midway
+  text('THE MIDWAY  ↓', -34.9, 3, -108, 0.3, '#ff4d8c', 90);
 }
 const circles = [];
 
@@ -895,7 +936,6 @@ function complexShell() {
   for (const x of [-3.55, 3.55]) box(O.cyan, 0.08, 6.3, 0.06, ...S(x, 20.46, 3.15)); box(O.cyan, 7.2, 0.08, 0.06, ...S(0, 20.46, 6.3));
   box(INK, 13, 2.6, 0.1, ...S(0, 20.5, 8.7)); text('12MATT3R', ...S(0, 20.58, 8.7), 1.9, '#00f2ff', 180);
   text('THE COMPLEX', ...S(0, 20.58, 11.55), 0.95, '#ffd966', 180); text('WAREHOUSE OF ROOMS   ·   NOW OPEN', ...S(0, 20.58, 10.55), 0.28, '#ffd966', 180);
-  box(INK, 3.6, 1.35, 0.1, ...S(-9, 20.5, 6.4)); text('OPEN', ...S(-9, 20.58, 6.4), 0.85, '#ff3380', 180); text('SOFA KING SAD BOI', ...S(-9.2, 20.56, 3), 0.62, '#ff2a8f', 180); text('12m', ...S(6.6, 20.56, 2.8), 1.1, '#38ff14', 180);
   point(...S(0, 23.5, 8.5), 0x00e5ff, 40, 14);
   box(INK, 0.1, 3.2, 17, ...S(-31.65, 12, 9.5)); text('THE COMPLEX', ...S(-31.72, 12, 9.9), 2.2, '#ffd966', faceYaw(1, 0)); text('12MATT3R   ·   WAREHOUSE OF ROOMS', ...S(-31.72, 12, 8.45), 0.42, '#00f2ff', faceYaw(1, 0));
 }
@@ -1458,7 +1498,7 @@ function warpFor(url) {
 }
 const MIDWAY_GAMES = /^games\/|^(arcade|gamecity|race|bullethell|gameroom)\.html$|^classic\//;
 function useDoor(url, label, sub) {
-  if (MIDWAY_GAMES.test(url) && url !== 'arcade.html') { ride.on = false; teleport(-33, -104, 0, face(-1, 0)); say(`${label.toLowerCase()} — every game lives in the midway`); return; }
+  if (MIDWAY_GAMES.test(url) && url !== 'arcade.html') { ride.on = false; teleport(-33, -134, 0, face(-1, 0)); say(`${label.toLowerCase()} — every game lives in the midway`); return; }
   const w = warpFor(url);
   if (w) { ride.on = false; teleport(w[0], w[1], 0, w[2]); say(`→ ${label.toLowerCase()}`); return; }
   const full = /^https?:/.test(url) ? url : new URL(url, location.href).href;
@@ -1469,11 +1509,47 @@ function useDoor(url, label, sub) {
   });
 }
 
+// ---- the first festival's features, brought over: ground litter, the trash hunt, and the dealer ----
+let fx = null;
+const DRUGS = [
+  { id: 'trip', name: 'TRIP', dur: 30, note: 'the signature: the whole world goes rainbow.' }, { id: 'crt', name: 'CRT', dur: 25, note: 'tube glow, over-bright and crunchy.' }, { id: 'vhs', name: 'VHS', dur: 25, note: 'smeared colour, bad tracking.' },
+  { id: 'ascii', name: 'ASCII', dur: 25, note: 'everything in hard black and white.' }, { id: 'gameboy', name: 'GAMEBOY', dur: 25, note: 'four shades of green.' }, { id: 'wireframe', name: 'WIREFRAME', dur: 25, note: 'inverted, outlined, cold.' },
+  { id: 'everything', name: 'EVERYTHING', dur: 60, note: 'all of it, one after another.' },
+];
+const DRUG_FILTER = { crt: 'contrast(1.25) saturate(1.4) brightness(1.1)', vhs: 'saturate(1.7) hue-rotate(-14deg) blur(0.7px) contrast(1.1)', ascii: 'grayscale(1) contrast(2.2)', gameboy: 'grayscale(1) sepia(1) hue-rotate(45deg) saturate(2.6) contrast(1.3)', wireframe: 'invert(1) grayscale(1) contrast(2.4)' };
+let drug = null, drugT = 0;
+function festExtras() {
+  const g = new THREE.Group(); g.rotation.y = Math.PI; g.position.z = -FZ; scene.add(g);   // festival-local (x, z) → world (−x, FZ + z)
+  buildLitter(g, { count: 520, area: [54, 56], center: [0, -2], avoid: [[0, -26, 12], [-13, -13, 2]] });
+  const hud = document.createElement('div'); hud.style.cssText = 'position:fixed;left:16px;bottom:130px;z-index:8;font:12px ui-monospace,monospace;letter-spacing:.1em;color:#9af7d0;background:rgba(0,0,0,.55);border:1px solid rgba(154,247,208,.4);border-radius:8px;padding:6px 10px;display:none'; document.body.appendChild(hud);
+  const upd = (st) => { hud.style.display = 'block'; hud.textContent = `TRASH ${st.dumped}/${st.total}${st.held ? ` · carrying ${st.held}` : ''}`; };
+  const trash = buildTrash(g, { dumpsterPos: [-22, -12], store: '12m.trash', onPickup: (l, st) => { say(`picked up ${l}`); upd(st); }, onDeposit: (n, st) => { say(n === 1 ? 'tossed it in the dumpster' : `dumped ${n} pieces`); upd(st); },
+    onComplete: (st) => { upd(st); say('THE GROUNDS ARE CLEAN — a thank-you is downloading'); const a = document.createElement('a'); a.href = import.meta.env.BASE_URL + 'secret/cleanup-reward.txt'; a.download = '12matt3r-secret-drop.txt'; a.click(); } });
+  const dealer = buildDealer(g, { pos: [-13, -13], stageZ: -24, onToggle: () => { if (!$('panel').classList.contains('on')) openDealer(); } });
+  fx = { trash, dealer, lp: new THREE.Vector3() };
+}
+function openDealer() {
+  openPanel('THE DEALER // what you havin’?', [], (t2, q, body) => {
+    for (const d of DRUGS) body.appendChild(panelRow('💊', d.name, `${d.dur}s`, d.note, () => { $('panel').classList.remove('on'); drug = d; drugT = d.dur; say(`${d.name} — ${d.dur}s. Enjoy.`); }));
+    if (drug) body.appendChild(panelRow('✖', 'COME DOWN', '', 'end the trip now.', () => { $('panel').classList.remove('on'); drug = null; drugT = 0; canvas.style.filter = ''; say('back to earth'); }));
+  });
+}
+function festExtrasTick(t, p, dt) {
+  if (!fx) return;
+  fx.lp.set(-player.x, 0, 94 + player.z);   // player in festival-local space
+  const near = player.floor === 0 && player.z < -60 && player.z > -130 && Math.abs(player.x) < 40;
+  fx.trash.update(dt, t, p, near ? fx.lp : null); fx.dealer.update(dt, t, p, near ? fx.lp : null, !!drug);
+  if (drug) {
+    drugT -= dt; const id = drug.id === 'everything' ? ['trip', 'crt', 'vhs', 'ascii', 'gameboy', 'wireframe'][Math.floor(t / 5) % 6] : drug.id;
+    canvas.style.filter = id === 'trip' ? `hue-rotate(${(t * 70) % 360}deg) saturate(2.4) contrast(1.15)` : DRUG_FILTER[id];
+    if (drugT <= 0) { drug = null; canvas.style.filter = ''; say('you come down'); }
+  }
+}
 // ---- assemble ----
 mkScreen('main', null, 0x0f2b6a, 0x7a22d8); mkScreen('vip', null, 0x6a2a10, 0x3a1088);
 arenaShell(); arena(); vip(); lobby(); gallery();
 group(-14, 0, 43, 0, arcade);
-cinemaLobby(); TOWERS.forEach(buildTower); street(); festival(); midway(); complex(); campus();
+cinemaLobby(); TOWERS.forEach(buildTower); street(); festival(); midway(); complex(); campus(); festExtras();
 group(15, 0, 59, 0, mainCinema);
 group(37, 0, 46, 0, privateCinema);
 // walkable rects for the wings (world Unity coords)
@@ -1564,6 +1640,7 @@ let down = null, dragged = false;
 const looked = () => document.pointerLockElement === canvas;
 function clickAt(nx, ny, walk) {
   ndc.x = nx; ndc.y = ny; ray.setFromCamera(ndc, camera);
+  if (fx && (fx.trash.tryClick(ray) || fx.dealer.tryClick(ray))) return true;
   const hit = ray.intersectObjects(hits.map((h) => h.mesh), false)[0];
   if (hit) { hits.find((h) => h.mesh === hit.object).run(); return true; }
   if (walk) { const g = new THREE.Plane(new THREE.Vector3(0, 1, 0), -player.h); const p = ray.ray.intersectPlane(g, new THREE.Vector3()); if (p) player.target = { x: p.x, z: -p.z }; }
@@ -1668,7 +1745,7 @@ function renderPassport() {
 // ---- map: 14 destinations, WALK sets a beacon, GO jumps there ----
 const DEST = [
   ['ARRIVAL LOUNGE', 0, -33, 0, face(0, 1)], ['CONCERT ARENA', 0, -14, 0, face(0, 1)], ['VIP DECK', 0, -20.5, 4, face(0, 1)], ['NEON ARCADE', -14, 38, 0, face(0, 1)], ['CINEMA SOCIETY', 15, 40, 0, face(0, 1)],
-  ['PRIVATE CINEMA', 33, 41, 0, face(1, 0)], ['THE STREET', 0, -44, 0, face(0, -1)], ['THE FESTIVAL', 0, -70, 0, face(0, -1)], ['THE MIDWAY', -33, -104, 0, face(-1, 0)],
+  ['PRIVATE CINEMA', 33, 41, 0, face(1, 0)], ['THE STREET', 0, -44, 0, face(0, -1)], ['THE FESTIVAL', 0, -70, 0, face(0, -1)], ['THE MIDWAY', -33, -134, 0, face(-1, 0)],
   ['THE COMPLEX', 66, -59, 0, face(0, -1)], ['THE MOVIE THEATER', ...cw(-15.5, 15.2), 0, face(-1, 0)], ['FEVER DREAM LIBRARY', ...cw(-25.4, -16), 0, face(0, 1)], ['THE ROOMS TOWER', 32, 29, 0, face(1, 0)], ['THE ARCHIVE TOWER', -32, 29, 0, face(-1, 0)],
 ];
 function renderMap() {
@@ -1778,7 +1855,7 @@ function frame() {
   ledA.uniforms.k.value = ledB.uniforms.k.value = 0.9 + 0.35 * p;
   for (const m of pulseMats) m.opacity = 0.05 + 0.06 * p;
   for (const l of lights) l.userData.base ??= l.intensity, l.intensity = l.userData.base * (0.85 + 0.3 * p);
-  crowd(t, p + crowdKick * 0.8); festTick(t, p, dt); cxTick(t, dt); campusTick(t, dt);
+  crowd(t, p + crowdKick * 0.8); festTick(t, p, dt); cxTick(t, dt); campusTick(t, dt); festExtrasTick(t, p, dt);
   // play the cinema screens only while you're in them
   for (const [id, s] of Object.entries(screens)) {
     const r = id === 'main' ? [3.4, 26.6, 46.4, 71.6] : [28.4, 45.6, 36.4, 55.6], inside = player.x > r[0] && player.x < r[1] && player.z > r[2] && player.z < r[3];
@@ -1800,4 +1877,4 @@ function frame() {
 teleport(0, -33, 0, face(0, 1)); moveUpdate(0.016); renderer.render(scene, camera);
 $('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); } };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
+if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { openMuseumLift, openDealer, fx: () => fx, openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
