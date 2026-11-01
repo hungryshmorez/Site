@@ -232,10 +232,19 @@ Unity campus builder), not reached through `lobby.html` / `library.html`:
 - **Tower doors** that match a place in this world warp there (festival, complex, lobby, merch tent, library, four complex
   wings, the two Chroma theaters); every other door shows a card with the page one click away in a window. Nothing navigates away.
 
-## 11. The swap (street runs east)
+## 11. Final layout (street runs east; everything in one scene)
 
-- The street now runs east past the old end to **THE MUSEUM** (x ≈ 108, pillared entrance, opens the museum page in a window; B2Buddy Records is a small door beside it).
-- **THE MOVIE THEATER** (lobby + five theaters: DreamOS TV, 9×16, 16×9, Chroma 2025, Enter the Void + the Fever Dream Library to its north) is the building at the street's **west** end. Door at (−43, −40.6).
-- **THE COMPLEX** is on the south sidewalk, door at x = 66. A red carpet starts in the road, goes in the door and down the entrance hall into the **Chroma Awards room** (east of the hall; paparazzi flash along the way). West of the hall is the **Computer Room** (terminals into every Chroma app). The old hidden room is now **THE STUDIO** (DJ tables, an NPC machine that opens Knock Knock).
-- Tower doors for games warp to the Midway.
-- Still to build: the complex's loop floor (both sides), the level-stack elevator with door descriptions, the single-screen arcade offshoot, the club arcade room's removal.
+Street (z ≈ −48) runs from the Movie Theater at the west end to the Museum at the east end; the Festival, Midway and the Complex hang off it.
+
+- **THE MOVIE THEATER** (west end, red carpet + paparazzi + "Now featuring the Chroma Awards" on the street, a second carpet and marquee inside): lobby with the game screen and arcade terminal (picker: Neon Pulse + every game, **F** fullscreens the screen you face), directory, food court, merch tent, Trippy Cam, vote booths, the Chroma auditorium (nested wing, steps are real terraces), Fever Dream Library to the north.
+- **Five theaters** (DreamOS TV, 9×16, 16×9, Chroma 2025, Enter the Void) are reached from the **movie-theater hallway** in the Underground club (world x −71…−3, z 34–46) → corridor → vestibule → lobby. The duplicate Chroma-only theater lives in the lobby wing. The old club arcade room is gone; its cabinet code was deleted.
+- **THE COMPLEX** (south sidewalk, door x = 66): entrance hall → entries lounge (Chroma red carpet), computer room (8 terminals), studio (DJ tables, NPC machine → Knock Knock), hub with the **level elevator** (tabs: THE LOOP / ARTIST WORLDS / TOOLS, each door with a description) and the **loop annex** (two 4-room loops, `LOOP_ROOMS`).
+- **THE MUSEUM** (x ≈ 108): pavilion + lobby; the lobby has a 3D-museum doorway and an **elevator whose floors are the museum rooms** (`MUSEUM_FLOORS`).
+- **THE FESTIVAL / THE MIDWAY**: festival grounds with the dealer, trash, litter, backstage gate and the Sofa King / Tanky Johnson destinations; every game door in the world warps to the Midway (the single arcade tent at its mouth). The sky has the Trippy Cam (`skyCam`).
+- **Towers** (Rooms, Archive) contain only places that have **no building elsewhere**: any door whose page already exists outside (`OUTSIDE_URL`, `MIDWAY_GAMES`) is removed; floors left empty are dropped.
+- **Navigation**: nothing leaves the page except the explicit Old-site links; the `#debug` hook exposes `window.__ug` for tests (`DEST`, `NODES`, `rects`, `okAt`, `doorTriggers`, ...).
+
+### Verified vs. not
+Verified by headless checks: every `DEST` entry and every ground-floor door trigger is walkable-reachable from spawn; no page errors on load. Not verified in a real GPU browser: five-theater video playback, VJ/DJ audio reactivity, visual polish of the corridor, backstage gate and museum lobby.
+### Known gaps
+Loop "rooms" are orbs that open windows rather than full 3D rooms; first-festival orbs / campfire / tailgate are not ported; Passport finale and the Unity moving-light model are not ported.

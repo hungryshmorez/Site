@@ -5,7 +5,6 @@ import { createReducedMotion } from './player/motion.js';
 import { textPlane } from './scene/signs.js';
 import { openWindow } from './ui/popup.js';
 import { openVote } from './ui/vote.js';
-import { LAB } from './data/catalog.js';
 import { TTA_WIDE, TTA_TALL } from './data/tta.js';
 import { LIBRARY } from './data/library.js';
 import { THEATERS, ARCADE } from './data/theaters.js';
@@ -19,7 +18,7 @@ import './player/globalplayer-boot.js';
 // THE UNDERGROUND — the B2Buddy entertainment complex, rebuilt for the web from the Unity project's
 // venue builder (Assets/B2BuddyUnderground). One walkable complex:
 //   main lobby → concert arena (two DJ stages, VIP balconies up the stairs) → gallery →
-//   neon arcade (every cabinet opens a real game) · cinema society (main + private screens).
+//   theater hallway (the Chroma Awards screens + arcade terminal) · cinema society (main + private screens).
 // The Unity project is authored in metres with z forward; this file keeps those coordinates and
 // mirrors z once at the end (see flush()), so every number below matches the Unity source.
 
@@ -320,32 +319,6 @@ function gallery() {
   rect(23.4, 25, 29.7, 33.3); rect(-25, -23.4, 29.7, 33.3);   // gallery → the two tower lobbies
   text('TOWER  →  THE ARCHIVE', -23.7, 5.9, 31.5, 0.3, '#39ff14', -90);
 }
-// ---- neon arcade (every cabinet opens a real game) ----
-const GAMES = LAB.Games.slice(0, 10);
-function cabinet(title, run) {
-  box(M.wall, 1.35, 0.9, 1.15, 0, 0.45, 0); box(M.metal, 1.35, 1.3, 0.7, 0, 1.45, 0.22); box(M.wall, 1.45, 0.42, 1, 0, 2.5, 0.12); box(M.violet, 1.42, 0.035, 0.045, 0, 2.73, -0.38);
-  box(M.metal, 1.5, 1.05, 0.12, 0, 1.85, -0.1); quad(ledB, 1.08, 0.83, 0, 1.85, -0.16);
-  text(title, 0, 2.51, -0.4, 0.11, '#ffffff'); box(M.wall, 1.42, 0.18, 0.7, 0, 1.22, -0.38);
-  for (const x of [-0.39, 0.39]) { cyl(M.metal, 0.035, 0.23, x, 1.45, -0.43); sph(M.violet, 0.12, 0.12, 0.12, x, 1.58, -0.43); for (let i = 0; i < 3; i++) cyl(M.cyan, 0.037, 0.035, x + 0.12 + i * 0.09, 1.33, -0.57); }
-  for (const x of [-0.66, 0.66]) box(M.cyan, 0.035, 2.1, 0.035, x, 1.15, -0.54);
-  text('PLAY  /  CLICK', 0, 0.7, -0.6, 0.08, '#10c4ff'); hotspot(0, 1.4, -0.3, 1.5, 2.8, 1.8, run, title);
-}
-function arcade() {
-  floorSlab(0, 0, 0, 22, 18);
-  box(M.wall, 0.4, 7, 18, -11, 3.5, 0); box(M.wall, 0.4, 7, 18, 11, 3.5, 0); box(M.wall, 22, 7, 0.4, 0, 3.5, 9); box(M.wall, 22, 0.35, 18, 0, 7, 0);
-  for (const x of [-8, 8]) box(M.wall, 6, 7, 0.4, x, 3.5, -9);
-  for (let i = 0; i < 5; i++) { const z = -6 + i * 3; box(M.metal, 20, 0.3, 0.3, 0, 6.7, z); box(i % 2 ? M.cyan : M.violet, 18, 0.04, 0.05, 0, 6.52, z); }
-  text('THE ARCADE', 0, 6.3, 8.7, 0.63, '#ffffff'); text('ONE BIG SCREEN  ·  PICK A GAME AT THE TERMINAL  ·  F = FULLSCREEN', 0, 5.6, 8.68, 0.16, '#10c4ff');
-  box(M.metal, 16.4, 7.2, 0.3, 0, 3.4, 8.7); quad(ledA, 16, 6.8, 0, 3.4, 8.5);
-  group(0, 0, -1, 0, () => {   // the selection terminal, facing the screen
-    box(M.wall, 3, 1, 0.9, 0, 0.5, 0); box(M.metal, 3.1, 0.06, 1, 0, 1.03, 0); box(M.metal, 1.8, 1.2, 0.14, 0, 1.75, 0.2); quad(ledB, 1.5, 0.95, 0, 1.75, 0.12); box(M.cyan, 3, 0.05, 0.05, 0, 0.9, -0.46);
-    text('GAME TERMINAL', 0, 2.75, 0.1, 0.2, '#10c4ff'); text('CLICK TO BROWSE EVERY GAME', 0, 2.45, 0.1, 0.1, '#ffffff');
-    hotspot(0, 1.4, 0, 3.2, 2.6, 1.4, () => openPicker('THE ARCADE', [{ name: 'MINI', items: [{ title: 'NEON PULSE', note: 'the rhythm minigame', run: openPulse }] }, ...(ARCADE.groups || [{ name: 'GAMES', items: ARCADE.items }])]), 'Game terminal');
-  });
-  solid(-15.6, -12.4, 41.8, 43.2);
-  sofa(-3.4, -3.6, 90, 3, M.velvet); sofa(3.4, -3.6, -90, 3, M.velvet); table(0, -3.6, 1.5, 1.5);
-  point(-4, 4, -2, VI, 40, 16); point(4, 4, 3, CY, 30, 15);
-}
 // ---- cinemas ----
 const screens = {};
 function cinemaLobby() {
@@ -363,7 +336,6 @@ function cinemaLobby() {
   point(15, 4, 40, AM, 40, 22);
   rect(3.4, 27.6, 34.4, 45.6); rect(7.2, 16.8, 33.4, 34.8); rect(4.2, 9.8, 45.4, 46.6); rect(27, 29, 38.4, 43.6);
 }
-const CHAIRS = [];
 function cinemaChair(x, y, z, mat) {
   group(x, y, z, 180, () => { box(M.wall, 1.45, 0.36, 1.5, 0, 0.18, 0); box(mat, 1.15, 0.27, 1.2, 0, 0.5, -0.1); box(mat, 1.19, 1.32, 0.3, 0, 1.04, 0.5, -8); box(mat, 0.83, 0.32, 0.18, 0, 1.6, 0.39); for (const s of [-0.67, 0.67]) box(mat, 0.23, 0.5, 1.48, s, 0.68, 0); });
 }
@@ -1247,7 +1219,6 @@ const CP = { x: -63, z: -65.4 };   // lobby origin, turned 90°: its street wall
 const cw = (lx, lz) => [CP.x + lz, CP.z - lx];   // lobby-local → world (Unity)
 const THX = [-17.6, -8.8, 0, 8.8, 17.6];
 const THEATER_TITLES = ['DREAMOS TV', 'NEW MOBILE THEATER  9x16', '16x9 THEATER', 'CHROMA AWARDS 2025', 'ENTER THE VOID'];
-const rgb = (r, g, b) => '#' + [r, g, b].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
 const CA = {
   carpet: std(0x2d1334, { roughness: 0.9 }), red: std(0x6b0510, { roughness: 0.8 }), wood: std(0x4d2b14, { roughness: 0.6 }), walnut: std(0x1c0f09, { roughness: 0.65 }), plaster: std(0x1f1822, { roughness: 0.7 }),
   cream: std(0xe6d6b3), gold: glow(0xf2b840), redG: glow(0xe60f26), warm: glow(0xffcc80), green: glow(0x33d91a), paneDark: std(0x1a1d28, { roughness: 0.2, metalness: 0.5 }),
@@ -1520,7 +1491,7 @@ function openPanel(title, tabs, draw, search = false) {
   top.style.display = tabs.length || search ? 'flex' : 'none'; $('panel').classList.add('on'); player.keys.clear(); redraw();
 }
 const ARCHIVE_PAGES = {
-  places: 'THE UNDERGROUND  /  the club: arrival lounge, DJ battle arena (CYAN vs VIOLET), VIP balconies, gallery, neon arcade, cinema lounge, main auditorium and private cinema.\n\nTHE STREET  /  out through the arrival lounge’s sliding doors.\nTHE FESTIVAL  /  through the ring gateway: the main stage and a 13-act lineup.\nTHE MIDWAY  /  a big-top arcade, through the festival’s striped tent.\nTHE COMPLEX  /  the rusty warehouse at the street’s west end: five wing chambers, hide & seek and a hidden room.\n\nTHE MOVIE LOBBY  /  on the street’s south side: five theaters, the arcade terminal, Trippy Cam, the merch tent, Chroma vote booths and the food court.\nFEVER DREAM LIBRARY  /  through the lobby’s east door. You are here.\nTHE ROOMS and THE ARCHIVE  /  the catalog towers at the gallery’s east and west ends.',
+  places: 'THE UNDERGROUND  /  the club: arrival lounge, DJ battle arena (CYAN vs VIOLET), VIP balconies, gallery, theater hallway, cinema lounge, main auditorium and private cinema.\n\nTHE STREET  /  out through the arrival lounge’s sliding doors.\nTHE FESTIVAL  /  through the ring gateway: the main stage and a 13-act lineup.\nTHE MIDWAY  /  a big-top arcade, through the festival’s striped tent.\nTHE COMPLEX  /  the rusty warehouse at the street’s west end: five wing chambers, hide & seek and a hidden room.\n\nTHE MOVIE LOBBY  /  on the street’s south side: five theaters, the arcade terminal, Trippy Cam, the merch tent, Chroma vote booths and the food court.\nFEVER DREAM LIBRARY  /  through the lobby’s east door. You are here.\nTHE ROOMS and THE ARCHIVE  /  the catalog towers at the gallery’s east and west ends.',
   towers: 'THE ROOMS  /  east end of the gallery, 15 floors, one door each\n  G  The Gallery (museum)\n  1-6  artist worlds: Rave Charles, Driftwave Static, VaporStudio Rooms, Sofa King Sad Boi, Tanky Johnson, Shmorez\n  7-14  the big loop: Green Room, Surreal Lo-Fi, Abstract Psychedelic, Glitch Room, Horrorcore, Control Room, Game Room, Rooftop\n\nTHE ARCHIVE  /  west end of the gallery, 11 floors, up to four doors each\n  G  The Festival   1-3  Games   4  Retro   5  Arcade Row   6  Stages\n  7  Studios   8  Tools + Archives   9-10  Roof: the EPKs\n\nEvery floor has an elevator on its far wall. Doors that match a place in this world take you there. The other doors show their card, with the page one click away in a window.',
   systems: 'WALK  /  WASD or arrows, Shift to hurry, drag to look. Touch: the pads. Click things to use them.\n\nDOORS  /  walk into a doorway or click it.\nELEVATORS  /  call one on any tower floor’s far wall and pick a floor.\nTHEATERS  /  each screen desk changes what is playing; the Chroma desks open an entry in a window.\nSHOW CLOCK  /  a simulated 120 BPM pulse drives the neon, LED walls and crowd everywhere. It is not audio analysis.\nVOTES  /  the booths open the real Chroma Awards vote page.\nTRIPPY CAM  /  four tinted frames of what you are looking at. Nothing is uploaded.',
   made: 'Built from the creator’s Unity world specs and supplied models. Every wall, seat, shelf, sign and screen here is procedural geometry, ported to Three.js for the browser.\n\nThe campus follows the creator’s world spec: the Movie Lobby’s theaters, terminal, booths and food court; the library’s long table, nooks and terminal; and the two towers’ floor lists.\n\nDifferences: the lobby’s street door sits at the west end of its street wall so it opens onto the street.',
@@ -1677,7 +1648,7 @@ function openCamMenu() {
 // ---- assemble ----
 mkScreen('main', null, 0x0f2b6a, 0x7a22d8); mkScreen('vip', null, 0x6a2a10, 0x3a1088);
 arenaShell(); arena(); vip(); lobby(); gallery();
-const OUTSIDE_URL = new Set(['museum.html', 'tv.html', 'dj.html', 'vj.html', 'lab.html', 'chroma.html', 'greenroom.html', 'lofi.html', 'utility.html', 'gameroom.html', 'rooftop.html', 'library.html', 'store.html', 'index.html', 'warehouse.html', 'lobby.html', 'abstract.html', 'horrorcore.html', 'arcade.html', 'screening.html?room=chroma25', 'screening.html?room=chroma']);
+const OUTSIDE_URL = new Set(['museum.html', 'tv.html', 'dj.html', 'vj.html', 'lab.html', 'chroma.html', 'greenroom.html', 'lofi.html', 'utility.html', 'gameroom.html', 'rooftop.html', 'library.html', 'store.html', 'index.html', 'warehouse.html', 'lobby.html', 'abstract.html', 'studio.html', 'horrorcore.html', 'arcade.html', 'screening.html?room=chroma25', 'screening.html?room=chroma']);
 const isOutside = (u) => OUTSIDE_URL.has(u) || MIDWAY_GAMES.test(u);   // a place that already has its own building outside: no second door to it in here
 for (const T of TOWERS) { T.floors.forEach((f) => { f.doors = f.doors.filter((d) => !isOutside(d[1])); }); T.floors = T.floors.filter((f, i) => i === 0 || f.doors.length); T.floors[0].name = 'LOBBY'; T.floors[0].sub = 'the elevator and nothing else'; }
 cinemaLobby(); TOWERS.forEach(buildTower); street(); festival(); midway(); complex(); campus(); festExtras();
@@ -1692,7 +1663,6 @@ flush();
 // screens' meshes: find the quads by their material and remember them for swapping
 scene.traverse((o) => { if (o.isMesh) for (const k of ['main', 'vip']) if (o.material === screens[k].mat) screens[k].mesh = o; });
 // show lights on the stage walls
-const ledMats = [ledA, ledB];
 
 // ---- festival animated bits: sweeping moving heads, laser fan, flames, spinners ----
 const sweeps = [];
@@ -1875,7 +1845,7 @@ function renderPassport() {
 }
 // ---- map: 14 destinations, WALK sets a beacon, GO jumps there ----
 const DEST = [
-  ['ARRIVAL LOUNGE', 0, -33, 0, face(0, 1)], ['CONCERT ARENA', 0, -14, 0, face(0, 1)], ['VIP DECK', 0, -20.5, 4, face(0, 1)], ['NEON ARCADE', -14, 38, 0, face(0, 1)], ['CINEMA SOCIETY', 15, 40, 0, face(0, 1)],
+  ['ARRIVAL LOUNGE', 0, -33, 0, face(0, 1)], ['CONCERT ARENA', 0, -14, 0, face(0, 1)], ['VIP DECK', 0, -20.5, 4, face(0, 1)], ['THEATER HALLWAY', -14, 40, 0, face(0, 1)], ['CINEMA SOCIETY', 15, 40, 0, face(0, 1)],
   ['PRIVATE CINEMA', 33, 41, 0, face(1, 0)], ['THE STREET', 0, -44, 0, face(0, -1)], ['THE FESTIVAL', 0, -70, 0, face(0, -1)], ['THE MIDWAY', -33, -134, 0, face(-1, 0)],
   ['THE COMPLEX', 66, -59, 0, face(0, -1)], ['THE MOVIE THEATER', ...cw(-15.5, 15.2), 0, face(-1, 0)], ['FEVER DREAM LIBRARY', ...cw(-25.4, -16), 0, face(0, 1)], ['THE ROOMS TOWER', 32, 29, 0, face(1, 0)], ['THE ARCHIVE TOWER', -32, 29, 0, face(-1, 0)],
 ];
@@ -1895,11 +1865,11 @@ function renderMap() {
 const NODES = {}, EDGES = [];
 const node = (k, x, z) => { NODES[k] = [x, z]; }, edge = (a, b) => EDGES.push([a, b]);
 node('balcony', 0, -20); node('vip', 7, -19); node('stair', 0, -6); node('aisle', 3.5, -6); node('entry', 3.5, -25); node('lounge', 0, -33); node('outside', 0, -43.4);
-node('vote', -14.1, -5.6); node('desk', 0, -5); node('gallery', 3.5, 26); node('mid', 0, 29); node('west', -14, 29); node('arcade', -14, 36.5); node('game', -21.2, 37.5);
+node('vote', -14.1, -5.6); node('desk', 0, -5); node('gallery', 3.5, 26); node('mid', 0, 29); node('west', -14, 29); node('hall', -14, 40); node('hallW', -21.2, 40);
 node('east', 12, 29); node('cinema', 12, 40); node('screen', 10.5, 44.3); node('privHall', 15, 40); node('priv', 31, 41); node('rooms', 22, 29); node('roomsIn', 31, 29); node('archive', -22, 29); node('archiveIn', -31, 29);
 node('crossing', 18, -44); node('gate', 18, -59); node('street', 0, -52); node('westEnd', -38, -43); node('eastRoad', 66, -52); node('complexDoor', 66, -59.5);
 node('lobbyDoor', ...cw(-17.4, 21)); node('lobbyIn', ...cw(-17.4, 14)); node('lobbyHall', ...cw(-8, 4)); node('libDoor', ...cw(-22, -16)); node('libIn', ...cw(-27, -16));
-[['balcony', 'vip'], ['balcony', 'stair'], ['stair', 'aisle'], ['aisle', 'entry'], ['entry', 'lounge'], ['lounge', 'outside'], ['stair', 'vote'], ['stair', 'desk'], ['aisle', 'gallery'], ['gallery', 'mid'], ['mid', 'west'], ['west', 'arcade'], ['arcade', 'game'],
+[['balcony', 'vip'], ['balcony', 'stair'], ['stair', 'aisle'], ['aisle', 'entry'], ['entry', 'lounge'], ['lounge', 'outside'], ['stair', 'vote'], ['stair', 'desk'], ['aisle', 'gallery'], ['gallery', 'mid'], ['mid', 'west'], ['west', 'hall'], ['hall', 'hallW'],
   ['mid', 'east'], ['east', 'cinema'], ['cinema', 'screen'], ['cinema', 'privHall'], ['privHall', 'priv'], ['east', 'rooms'], ['rooms', 'roomsIn'], ['west', 'archive'], ['archive', 'archiveIn'],
   ['outside', 'crossing'], ['crossing', 'gate'], ['outside', 'street'], ['street', 'westEnd'], ['westEnd', 'lobbyDoor'], ['lobbyDoor', 'lobbyIn'], ['lobbyIn', 'lobbyHall'], ['lobbyHall', 'libDoor'], ['libDoor', 'libIn'], ['crossing', 'eastRoad'], ['eastRoad', 'complexDoor']].forEach(([a, b]) => edge(a, b));
 function nearestNode(x, z) { let best = null, d = 1e9; for (const [k, [nx, nz]] of Object.entries(NODES)) { const dd = (nx - x) ** 2 + (nz - z) ** 2; if (dd < d) { d = dd; best = k; } } return best; }
@@ -2008,4 +1978,4 @@ function frame() {
 teleport(0, -33, 0, face(0, 1)); moveUpdate(0.016); renderer.render(scene, camera);
 $('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); } };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { openCamMenu, openMuseumLift, openDealer, fx: () => fx, openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
+if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { DEST, NODES, hits, openCamMenu, openMuseumLift, openDealer, fx: () => fx, openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
