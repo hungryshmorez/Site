@@ -132,7 +132,7 @@ function point(x, y, z, color, intensity, dist) { const p = wpos(x, y, z); const
 const rects = [];   // {x0,x1,z0,z1,u?}
 const rect = (x0, x1, z0, z1, u = false) => rects.push({ x0, x1, z0, z1, u });
 const solids = [];
-const solid = (x0, x1, z0, z1) => solids.push({ x0, x1, z0, z1 });
+const solid = (x0, x1, z0, z1, h = 0) => solids.push({ x0, x1, z0, z1, h });   // h > 0: a step or terrace, only blocks you while you are standing more than a stride below its top
 
 // ---- architecture helpers (ports of the Unity builder) ----
 const floorSlab = (cx, cy, cz, sx, sz) => { box(M.stone, sx, 0.5, sz, cx, cy - 0.25, cz); box(M.floor, sx, 0.01, sz, cx, cy + 0.005, cz); };
@@ -302,15 +302,15 @@ function lobby() {
 function gallery() {
   floorSlab(0, 0, 29, 48, 10);
   box(M.wall, 0.4, 7, 5.4, -24, 3.5, 26.7); box(M.wall, 0.4, 7, 0.5, -24, 3.5, 33.75); box(M.wall, 0.4, 3, 4, -24, 5.5, 31.5); box(M.wall, 48, 0.35, 10, 0, 7, 29);
-  // east end: wall with the Chroma Awards theater door, then the opening into the tower lobby
+  // east end: wall with the movie theater door, then the opening into the tower lobby
   box(M.wall, 0.4, 7, 5.4, 24, 3.5, 26.7); box(M.wall, 0.4, 7, 0.5, 24, 3.5, 33.75); box(M.wall, 0.4, 3, 4, 24, 5.5, 31.5);
   box(M.wall, 3, 7, 0.4, -22.5, 3.5, 34); box(M.wall, 12, 7, 0.4, -1, 3.5, 34); box(M.wall, 6, 7, 0.4, 21, 3.5, 34);
   portal(-14, 33.8, 10, 5.7, M.violet, '04   NEON ARCADE'); portal(12, 33.8, 10, 5.7, M.amber, '05   CINEMA SOCIETY');
   for (let i = 0; i < 12; i++) { const x = -22 + i * 4; box(M.metal, 0.16, 0.25, 8, x, 6.7, 29); box(i < 6 ? M.violet : M.amber, 0.04, 0.04, 7.2, x, 6.5, 29); }
   for (const x of [-19, 19]) { sofa(x, 27, 180, 3, M.velvet); table(x, 28.5, 1.2, 0.8); }
   text('←  ARCADE     /     CINEMAS  →', 0, 5.8, 33.72, 0.27, '#ffffff');
-  themedDoor(-24, 26.7, -90, 4.2, 5, 0xffd24a, 'CHROMA AWARDS 2025', 'screening.html?room=chroma25', 'last year · games + films');
-  themedDoor(24, 26.7, 90, 4.2, 5, 0xff2a4a, 'CHROMA AWARDS', 'screening.html?room=chroma', 'this year · the big one');
+  themedDoor(-24, 26.7, -90, 4.2, 5, 0xff4a5a, 'MOVIE THEATER', 'lobby.html', 'five theaters · the red carpet');
+  themedDoor(24, 26.7, 90, 4.2, 5, 0xff4a5a, 'MOVIE THEATER', 'lobby.html', 'five theaters · the red carpet');
   text('TOWER  →  THE ROOMS', 23.7, 5.9, 31.5, 0.3, '#ff2bd0', 90);
   rect(-23.5, 23.5, 24.3, 33.7); rect(-18.8, -9.2, 33.4, 34.8); rect(7.2, 16.8, 33.4, 34.8);
   rect(23.4, 25, 29.7, 33.3); rect(-25, -23.4, 29.7, 33.3);   // gallery → the two tower lobbies
@@ -1131,6 +1131,7 @@ function lobbyInterior() {
     box(INK, 1.4, 2.2, 0.06, x + (i < 2 ? 2.4 : -2.4), 2.3, -19.8); quad(CA.posters[[0, 1, 0, 1, 2][i] % 3], 1.3, 2.1, x + (i < 2 ? 2.4 : -2.4), 2.3, -19.72, 180);
   }
   // Chroma Awards: the red carpet, ropes, grand marquee, paparazzi
+  box(CA.red, 3.2, 0.012, 5.7, -17.4, 0.02, 28.15); box(CA.red, 3.2, 0.012, 5.2, -17.4, 0.14, 22.7); box(CA.red, 3.2, 0.012, 19, -17.4, 0.03, 10.5); box(CA.red, 20.6, 0.012, 3.2, -8.7, 0.03, 1);
   box(CA.red, 3.2, 0.012, 22.4, 0, 0.03, -8.6); for (const s of [-1, 1]) box(CA.gold, 0.06, 0.01, 22.4, s * 1.62, 0.034, -8.6);
   for (let i = 0; i < 7; i++) for (const s of [-1, 1]) {
     const z = -17.6 + i * 2.6; cyl(M.brass, 0.045, 1, s * 2.1, 0.5, z); sph(M.brass, 0.12, 0.12, 0.12, s * 2.1, 1.02, z); cyl(M.brass, 0.2, 0.04, s * 2.1, 0.02, z);
@@ -1352,11 +1353,14 @@ function campus() {
   rect(LB.x - 13.6, LB.x - 11.2, LB.z - 1.9, LB.z + 1.9); libRect(-10.6, 10.6, -11.6, 11.6);
 }
 function campusTick(t, dt) {
+  if (looked() && document.querySelector('.lt.on, .wp-ov.on')) document.exitPointerLock();
+  activeVideo = null;
   const inCx = player.floor === 0 && player.x < -43.4 && player.x > -95 && player.z > -80 && player.z < -17; if (inCx !== campusTick.cx) { campusTick.cx = inCx; $('backBtn').style.display = inCx ? '' : 'none'; }
   for (const f of flashes) { f.t -= dt; if (f.t < 0) { f.m.visible = true; f.t = 0.8 + Math.random() * 2.6; f.off = 0.07; } else if (f.m.visible) { f.off -= dt; if (f.off < 0) f.m.visible = false; } }
   for (const ts of tScreens) {
     if (!ts.list) continue;
     const x = LO.x + THX[ts.i], inside = player.floor === 0 && player.x > x - 4 && player.x < x + 4 && player.z > LO.z - 35 && player.z < LO.z - 20.2;
+    if (inside && ts.playing) activeVideo = ts.video;
     if (inside && !ts.playing && !ts.requested) { ts.requested = true; nextTheaterVideo(ts, 0); }
     if (!inside && ts.playing) { ts.video.pause(); ts.playing = false; ts.requested = false; ts.mesh.material = ts.mat; }
     if (inside && ts.playing && ts.video.paused && !ts.video.ended) ts.video.play().catch(() => { });
@@ -1395,6 +1399,7 @@ group(37, 0, 46, 0, privateCinema);
 // walkable rects for the wings (world Unity coords)
 rect(-24.8, -3.2, 34.2, 51.8);                 // arcade
 rect(3.4, 26.6, 46.4, 71.6);                   // main auditorium
+for (let r = 0; r < 7; r++) { const z0 = 48.875 + r * 2.25, hh = (7 - r) * 0.32; if (r === 0) { solid(6.4, 26.6, z0, z0 + 0.75, hh); solid(4, 26.6, z0 + 0.75, z0 + 2.25, hh); } else solid(4, 26.6, z0, z0 + 2.25, hh); }   // the terraces: climb them by the entry stair or from the screen end
 rect(28.4, 45.6, 36.4, 55.6);                  // private cinema
 flush();
 // screens' meshes: find the quads by their material and remember them for swapping
@@ -1441,7 +1446,7 @@ function heightAt(x, z, prev) {
 const inTowerRect = (x, z) => Math.abs(x) > 24.6 && Math.abs(x) < 40.8 && z > 24.6 && z < 33.4;
 const inCircle = (x, z) => circles.some((c) => (x - c.cx) ** 2 + (z - c.cz) ** 2 < c.r * c.r);
 const inRects = (x, z, upper) => player.floor > 0 ? inTowerRect(x, z) : inCircle(x, z) || rects.some((r) => (upper || !r.u) && (!r.gate || r.gate()) && x > r.x0 && x < r.x1 && z > r.z0 && z < r.z1);
-const blocked = (x, z) => player.floor === 0 && solids.some((b) => x > b.x0 - R && x < b.x1 + R && z > b.z0 - R && z < b.z1 + R);
+const blocked = (x, z) => player.floor === 0 && solids.some((b) => (!b.h || player.h < b.h - 0.6) && x > b.x0 - R && x < b.x1 + R && z > b.z0 - R && z < b.z1 + R);
 const okAt = (x, z, upper) => inRects(x, z, upper) && !blocked(x, z);
 function step(dx, dz) {
   const up = player.h > 2.5;
@@ -1476,30 +1481,46 @@ function teleport(x, z, h = 0, yaw = null) { player.floor = 0; player.x = x; pla
 // ---- input ----
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 let down = null, dragged = false;
-canvas.addEventListener('pointerdown', (e) => { userGesture = true; canvas.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY, id: e.pointerId }; dragged = false; canvas.classList.add('drag'); });
+const looked = () => document.pointerLockElement === canvas;
+function clickAt(nx, ny, walk) {
+  ndc.x = nx; ndc.y = ny; ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObjects(hits.map((h) => h.mesh), false)[0];
+  if (hit) { hits.find((h) => h.mesh === hit.object).run(); return true; }
+  if (walk) { const g = new THREE.Plane(new THREE.Vector3(0, 1, 0), -player.h); const p = ray.ray.intersectPlane(g, new THREE.Vector3()); if (p) player.target = { x: p.x, z: -p.z }; }
+  return false;
+}
+// mouse: click once to capture the pointer and look around freely; Esc lets go. Touch keeps drag-to-look and tap-to-walk.
+canvas.addEventListener('pointerdown', (e) => {
+  userGesture = true;
+  if (e.pointerType === 'mouse') { if (looked()) { clickAt(0, 0, false); return; } down = { x: e.clientX, y: e.clientY, id: e.pointerId, mouse: true }; dragged = false; return; }
+  canvas.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY, id: e.pointerId }; dragged = false; canvas.classList.add('drag');
+});
+document.addEventListener('mousemove', (e) => {
+  if (!looked()) return;
+  player.yaw -= e.movementX * 0.0022; player.pitch = THREE.MathUtils.clamp(player.pitch - e.movementY * 0.0022, -0.7, 0.6);
+});
 canvas.addEventListener('pointermove', (e) => {
-  if (!down || e.pointerId !== down.id) return;
+  if (!down || down.mouse || e.pointerId !== down.id) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y; if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
   player.yaw -= (e.movementX || dx * 0.2) * 0.0045; player.pitch = THREE.MathUtils.clamp(player.pitch - (e.movementY || dy * 0.2) * 0.0045, -0.7, 0.6);
   down.x = e.clientX; down.y = e.clientY;
 });
 canvas.addEventListener('pointerup', (e) => {
   canvas.classList.remove('drag');
-  if (down && !dragged) {
-    ndc.x = (e.clientX / innerWidth) * 2 - 1; ndc.y = -(e.clientY / innerHeight) * 2 + 1; ray.setFromCamera(ndc, camera);
-    const hit = ray.intersectObjects(hits.map((h) => h.mesh), false)[0];
-    if (hit) hits.find((h) => h.mesh === hit.object).run();
-    else {
-      const g = new THREE.Plane(new THREE.Vector3(0, 1, 0), -player.h); const p = ray.ray.intersectPlane(g, new THREE.Vector3());
-      if (p) player.target = { x: p.x, z: -p.z };
-    }
-  }
+  if (down && down.mouse) { if (!clickAt((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1, false) && canvas.requestPointerLock) canvas.requestPointerLock(); }
+  else if (down && !dragged) clickAt((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1, true);
   down = null;
 });
 canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
 const MOVE = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'];
 addEventListener('keydown', (e) => { userGesture = true; const k = e.key.toLowerCase(); if (MOVE.includes(k) && !document.querySelector('.wp-ov.on')) { player.keys.add(k); player.target = null; } });
 addEventListener('keyup', (e) => player.keys.delete(e.key.toLowerCase()));
+let activeVideo = null;   // the playing screen you are standing in front of; F sends it fullscreen (anything else: the whole page)
+addEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() !== 'f' || e.ctrlKey || e.metaKey || e.altKey || document.querySelector('.lt.on, .wp-ov.on')) return;
+  if (document.fullscreenElement) { document.exitFullscreen(); return; }
+  (activeVideo || document.documentElement).requestFullscreen?.().catch(() => { });
+});
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setPixelRatio(Math.min(devicePixelRatio || 1, isMobile ? 1.5 : 2)); renderer.setSize(innerWidth, innerHeight); });
 
 // ---- HUD ----
@@ -1680,6 +1701,7 @@ function frame() {
   // play the cinema screens only while you're in them
   for (const [id, s] of Object.entries(screens)) {
     const r = id === 'main' ? [3.4, 26.6, 46.4, 71.6] : [28.4, 45.6, 36.4, 55.6], inside = player.x > r[0] && player.x < r[1] && player.z > r[2] && player.z < r[3];
+    if (inside && s.playing) activeVideo = s.video;
     if (inside && !s.playing && !s.requested) { s.requested = true; nextVideo(id, 0); }
     if (!inside && s.playing) { s.video.pause(); s.playing = false; s.requested = false; if (s.mesh) s.mesh.material = s.mat; }
     if (inside && s.playing && s.video.paused && !s.video.ended) s.video.play().catch(() => { });
@@ -1697,4 +1719,4 @@ function frame() {
 teleport(0, -33, 0, face(0, 1)); moveUpdate(0.016); renderer.render(scene, camera);
 $('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); } };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
+if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
