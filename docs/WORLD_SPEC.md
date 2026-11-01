@@ -171,6 +171,14 @@ door behind the spawn and a forward door across the room, each with its own DJ b
 | Music | one global player (`globalplayer`), persistent across rooms | `player/` |
 | Assets | 5 supplied GLBs decimated to ≈2 MB total (webp textures) | `public/underground/` |
 
+
+### 5b. The explorer layer (from the Unity polish pass)
+An **access passport** of five stamps (DJ battle vote · VIP deck · NEON PULSE · main cinema · private cinema) with a live "next stop", a
+**14-destination map** (M) where WALK sets an on-screen beacon (a small route graph over the walked routes; shows the next landmark and
+distance, never moves you) and GO jumps there, the first arcade cabinet as the **NEON PULSE** timing mini-game, and a finale at the
+arena show desk once all five are stamped (winning DJ, score, bounded confetti, a synthesized cue; FX can be muted). Keys: P passport,
+M map, 1 / 2 vote, Space plays NEON PULSE, Esc closes panels. Progress is kept in `localStorage` (`ug:stamps`, `ug:finale`).
+
 ## 6. Data model — where to change things
 
 | To change… | Edit |
