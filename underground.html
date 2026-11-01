@@ -82,6 +82,7 @@
     .pass{top:62px;right:16px;text-align:right;font-size:11px;letter-spacing:.12em;color:#7ee8ff;pointer-events:none}
     .pass b{display:block;font-size:20px;color:#fff;text-shadow:0 0 12px #10c4ff}.pass .sub{display:block;font-size:9px;color:#8aa0b8;margin-top:2px}
     .pass .sc{display:block;margin-top:6px;color:#fff}.pass .sc i{font-style:normal;color:#10c4ff}.pass .sc u{text-decoration:none;color:#a326ff}
+    .hsbar{top:104px;left:50%;transform:translateX(-50%);display:none;font-size:14px;letter-spacing:.14em;color:#fff;background:rgba(80,0,10,.7);border:1px solid #ff2640;border-radius:24px;padding:6px 18px}.hsbar.on{display:block}
     .pbtns{top:152px;right:16px;display:flex;gap:6px}
     .beacon{top:104px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:10px;background:rgba(5,8,16,.7);border:1px solid rgba(16,196,255,.5);border-radius:24px;padding:6px 16px;font-size:12px;letter-spacing:.1em;color:#cfeeff}
     .beacon.on{display:flex}.beacon .arr{display:inline-block;font-size:20px;color:#10c4ff;transition:transform .12s}
@@ -119,6 +120,7 @@
   <div class="lt" id="lift" role="dialog" aria-modal="true" aria-label="Elevator"><div class="lt-w"><div class="lt-bar"><b id="liftTitle">ELEVATOR</b><button id="liftX" aria-label="Close">✕ close</button></div><div class="lt-list" id="liftList"></div></div></div>
   <div class="hud pass" id="passChip"><span>ACCESS PASSPORT</span><b id="passN">0 / 5</b><span class="sub" id="passSub"></span><span class="sc" id="lineupSc">LINEUP 0 / 13</span><span class="sc"><i>CYAN <span id="scoreA">00</span></i> / <u><span id="scoreB">00</span> VIOLET</u></span></div>
   <div class="hud pbtns"><button class="btn" id="mapBtn">MAP · M</button><button class="btn" id="passBtn">PASSPORT · P</button></div>
+  <div class="hud hsbar" id="hsBar">HIDE &amp; SEEK · <b id="hsTime">60</b> s</div>
   <div class="hud beacon" id="beacon"><span class="arr" id="bArrow">▲</span><span id="bText"></span></div>
   <div class="lt" id="map" role="dialog" aria-modal="true" aria-label="Venue map"><div class="lt-w"><div class="lt-bar"><b>VENUE MAP // 14 DESTINATIONS</b><button id="mapX">✕ close</button></div><div class="lt-list" id="mapBody"></div></div></div>
   <div class="lt" id="passport" role="dialog" aria-modal="true" aria-label="Access passport"><div class="lt-w"><div class="lt-bar"><b>ACCESS PASSPORT</b><button id="passX">✕ close</button></div><div class="lt-list" id="passBody"></div></div></div>
