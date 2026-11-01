@@ -639,7 +639,7 @@ function street() {
   // ---- lamps, signs, cars ----
   for (const x of [-30, -12, 12, 30]) lamp(x, -44.4, -1, Math.abs(x) < 20); for (const x of [-30, -6, 34]) lamp(x, -57.7, 1, false);
   group(8, 0, -44.3, 0, () => { cyl(M.metal, 0.06, 2.8, 0, 1.4, 0); box(INK, 3.6, 0.8, 0.08, 0, 2.65, 0); box(M.cyan, 3.6, 0.04, 0.1, 0, 3.06, 0); text('←  THE FESTIVAL', 0, 2.65, -0.08, 0.3, '#4de8ff'); });
-  car(-22, -54.6, 90, PLUM); car(31, -47.4, -90, TEAL); car(-34, -47.4, -90, TEAL);
+  car(-22, -54.6, 90, PLUM); car(31, -47.4, -90, TEAL); 
   // ---- west end: THE COMPLEX (the warehouse; see complex()) ----
   group(-8, 0, -44.3, 0, () => { cyl(M.metal, 0.06, 2.8, 0, 1.4, 0); box(INK, 3.6, 0.8, 0.08, 0, 2.65, 0); box(glow(0xffd96a), 3.6, 0.04, 0.1, 0, 3.06, 0); text('←  THE MOVIE THEATER', 0, 2.65, -0.08, 0.2, '#ffd96a'); });
   // ---- the street runs on east: the complex's door (x = 66), then THE MUSEUM at the far end ----
@@ -649,15 +649,18 @@ function street() {
   group(54, 0, -44.3, 0, () => { cyl(M.metal, 0.06, 2.8, 0, 1.4, 0); box(INK, 3.6, 0.8, 0.08, 0, 2.65, 0); box(glow(0xffd96a), 3.6, 0.04, 0.1, 0, 3.06, 0); text('THE COMPLEX  →', 0, 2.65, -0.08, 0.3, '#ffd96a'); });
   museum();
   for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) box((r * 3 + c) % 4 === 0 ? glow(0xffcf9a) : INK, 0.05, 1.5, 2.3, 107.97, 7.6 + r * 2.6, -41 - c * 3.6);
-  group(103.3, 0, -53, 90, () => {   // the marble pavilion (columns + roof) from the festival, now the museum's front
+  group(100.4, 0, -53, 90, () => {   // the marble pavilion (columns + roof) from the festival, now the museum's front, scaled up to carry some weight
     box(FST.marble, 6.4, 0.4, 4.6, 0, 0.2, 2.8); box(FST.marble, 5.6, 0.2, 0.5, 0, 0.1, 0.35);
     for (const x of [-2.6, -0.9, 0.9, 2.6]) for (const z of [0.9, 4.7]) cyl(FST.marble, 0.26, 4, x, 2.4, z);
     box(FST.marble, 6.4, 0.5, 4.6, 0, 4.65, 2.8); for (const sg of [-1, 1]) box(FST.marble, 3.6, 0.25, 4.8, sg * 1.62, 5.45, 2.8, 0, 0, sg * -22);
     box(O.gold, 6.2, 0.08, 0.03, 0, 4.65, 0.49); text('THE MUSEUM', 0, 4.66, 0.47, 0.5, '#ffd966'); point(0, 3.6, 2.8, 0xffcc73, 30, 9);
-  });
+  }, 1.6);
   text('B2BUDDY RECORDS', 107.9, 5.4, -41.5, 0.5, '#4de8ff', -90); box(glow(0x1b6a90), 0.05, 2.8, 3, 107.96, 1.9, -41.5);
   hotspot(107.5, 2, -41.5, 1.2, 4, 3.2, () => openWindow('B2BUDDY RECORDS // MUSIC', 'https://hungryshmorez.github.io/Media/music/'), 'B2Buddy Records');
   // ---- south sidewalk: THE MOVIE LOBBY is built in campus() ----
+  // ---- the red carpet: from the movie theater's door down the street to just before the club entrance ----
+  box(CA.red, 36, 0.012, 3.2, -24.5, 0.03, -48); for (const dz of [-1.6, 1.6]) box(CA.gold, 36, 0.012, 0.06, -24.5, 0.034, -48 + dz);
+  for (let i = 0; i < 10; i++) for (const dz of [-2.1, 2.1]) { const x = -42 + i * 4; cyl(M.brass, 0.045, 1, x, 0.5, -48 + dz); sph(M.brass, 0.12, 0.12, 0.12, x, 1.02, -48 + dz); cyl(M.brass, 0.2, 0.04, x, 0.02, -48 + dz); if (i < 9) rod(CA.redG, [x, 0.88, -48 + dz], [x + 4, 0.88, -48 + dz], 0.035); }
   // ---- the festival gateway: pillars, header, receding rings ----
   group(18, 0, -61, 180, () => {
     for (const gx of [-5.2, 5.2]) { box(M.wall, 1.3, 9.6, 1.3, gx, 4.8, 0); box(M.cyan, 0.08, 9, 0.05, gx, 4.8, -0.68); box(M.metal, 1.5, 0.3, 1.5, gx, 9.75, 0); }
