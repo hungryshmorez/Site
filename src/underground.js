@@ -452,6 +452,13 @@ const LEVEL_INFO = {
   'horrorcore.html': 'Horrorcore: a dim, flickering basement of dripping pipes and framed horrors. Tap the frames to hear them whisper, then crawl in for the hidden tapes.',
   'utility.html': 'The control room: server racks, a wall of monitors and a patch panel of switches you can flip, plus its own decks.',
   'gameroom.html': 'The game room: a reactive light-up dance floor that chimes when you tap the tiles, a claw machine, an arcade screen and its own decks.',
+  'games/knock-knock/index.html': 'Knock knock: a horror you play at the door.', 'games/lofi-room/index.html': 'A lo-fi 3D room to sit in and tinker with.', 'games/horror-house/index.html': 'Bridge Horror House: creep through a haunted home.', 'games/open-city/index.html': 'Open City: a sandbox city to roam.',
+  'games/turbo-kart-rush/index.html': 'Turbo Kart Rush: arcade kart racing.', 'games/drift-drive/index.html': 'Drift Drive: neon drifting.', 'games/parkour/index.html': 'Parkour: run, jump, climb.', 'games/seven-days/index.html': 'Seven Days: survive found footage.',
+  'games/minecraft/index.html': 'Voxelcraft: build and dig in blocks.', 'games/minecraft-classic/index.html': 'Minecraft Classic in the browser.', 'games/fractalarium/index.html': 'Fractalarium: fly through living fractals.', 'games/hydractrl/index.html': 'Hydractrl: live visuals you steer.',
+  'games/flashstorage-archive/index.html': 'The flash game archive.', 'games/browsergames/hub.html': 'A hub of browser games.', 'games/windows97/index.html': 'Windows 97, a whole fake desktop.', 'classic/index.html': 'The classic version of the site.',
+  'arcade.html': 'Arcade and karaoke in the complex.', 'gamecity.html': 'The block: a game city.', 'race.html': 'The race track.', 'bullethell.html': 'Bullet hell: dodge everything.',
+  'tv.html': 'DreamOS TV: channels to flip through.', 'dj.html': 'SauceLab DJ: the decks.', 'vj.html': 'VJ stage: visuals and clips.', 'lab.html': 'The lab: tools and games from the lab.',
+  'builder.html': 'Room builder: build your own room.', 'codex.html': 'The codex: how it all works.', 'channel86-evidence/index.html': 'Channel 86: the evidence board.', 'library.html': 'Fever Dream Library: every production document.',
   'rooftop.html': 'The rooftop chill zone: a rotating galaxy overhead, floating holographic art and a soundboard to layer your own ambient soundscape.',
 };
 const wrapText = (t, n) => { const out = []; let cur = ''; for (const w of t.split(' ')) { if ((cur + ' ' + w).trim().length > n) { out.push(cur); cur = w; } else cur = (cur + ' ' + w).trim(); } if (cur) out.push(cur); return out; };
@@ -944,7 +951,7 @@ function wireIco(rad, mat) {
 function complexShell() {
   box(CXM.slab, 63.2, 0.32, 51.6, ...S(0, -5.8, -0.14));
   box(CXM.rust, 28.2, 13, 0.8, ...S(-17.5, 20, 6.5)); box(CXM.rust, 28.2, 13, 0.8, ...S(17.5, 20, 6.5)); box(CXM.rust, 6.8, 6.8, 0.8, ...S(0, 20, 9.6)); box(CXM.rib, 63.6, 0.9, 1.2, ...S(0, 20, 13.45));
-  for (const x of [-31.3, 31.3]) box(CXM.rust, 0.6, 12.6, 51.6, ...S(x, -5.8, 6.3)); box(CXM.rust, 63.2, 12.6, 0.6, ...S(0, -31.3, 6.3)); box(CXM.slab, 63.2, 0.6, 51.6, ...S(0, -5.8, 12.9));
+  for (const x of [-31.3, 31.3]) box(CXM.rust, 0.6, 12.6, 51.6, ...S(x, -5.8, 6.3)); box(CXM.rust, 21.1, 12.6, 0.6, ...S(-21.05, -31.3, 6.3)); box(CXM.rust, 15, 12.6, 0.6, ...S(0, -31.3, 6.3)); box(CXM.rust, 21.1, 12.6, 0.6, ...S(21.05, -31.3, 6.3)); for (const x of [-9, 9]) box(CXM.rust, 3, 5.6, 0.6, ...S(x, -31.3, 9.8)); box(CXM.slab, 63.2, 0.6, 51.6, ...S(0, -5.8, 12.9));
   for (let x = -13; x <= 9.4; x += 0.8) { if (Math.abs(x) < 3.9) continue; box(CXM.rib, 0.14, 12.6, 0.1, ...S(x, 20.45, 6.4)); }
   for (const x of [-3.55, 3.55]) box(O.cyan, 0.08, 6.3, 0.06, ...S(x, 20.46, 3.15)); box(O.cyan, 7.2, 0.08, 0.06, ...S(0, 20.46, 6.3));
   box(INK, 13, 2.6, 0.1, ...S(0, 20.5, 8.7)); text('12MATT3R', ...S(0, 20.58, 8.7), 1.9, '#00f2ff', 180);
@@ -965,7 +972,8 @@ function hubShell() {
   flat(cxChecker, 30, 24, 0, 0.03, -9);
   cxWall(-15, 3, -4, 3, 7, CXM.concrete); cxWall(4, 3, 31, 3, 7, CXM.concrete); cxWall(-31, 7, -15, 7, 7, CXM.concrete); cxWall(-15, 7, -15, 3, 7, CXM.concrete);
   for (const x of [-15, 15]) { cxWall(x, -3, x, -14, 7, CXM.concrete); cxWall(x, -18, x, -21, 7, CXM.concrete); cxWall(x, 3, x, -3, 2.2, CXM.concrete, 0.6, 4.8); cxWall(x, -14, x, -18, 2.2, CXM.concrete, 0.6, 4.8); }
-  cxWall(-31, -21, -3, -21, 7, CXM.concrete); cxWall(3, -21, 31, -21, 7, CXM.concrete); cxWall(-4, 3, 4, 3, 1.6, CXM.concrete, 0.6, 5.4);
+  cxWall(-31, -21, -10.5, -21, 7, CXM.concrete); cxWall(-7.5, -21, -3, -21, 7, CXM.concrete); cxWall(3, -21, 7.5, -21, 7, CXM.concrete); cxWall(10.5, -21, 31, -21, 7, CXM.concrete);
+  for (const x of [-9, 9]) { cxWall(x - 1.5, -21, x + 1.5, -21, 2.2, CXM.concrete, 0.6, 4.8); cxWall(x - 1.5, -21, x - 1.5, -31.3, 7, CXM.concrete); cxWall(x + 1.5, -21, x + 1.5, -31.3, 7, CXM.concrete); box(sgnMat(x), 0.08, 4.6, 0.06, ...S(x - 1.5, -21.3, 2.3)); box(sgnMat(x), 0.08, 4.6, 0.06, ...S(x + 1.5, -21.3, 2.3)); text(x < 0 ? '◀  THE LOOP  ·  WEST' : 'THE LOOP  ·  EAST  ▶', ...S(x, -20.5, 6.1), 0.34, x < 0 ? '#66ff4d' : '#ff4dd9', faceYaw(0, 1)); } cxWall(-4, 3, 4, 3, 1.6, CXM.concrete, 0.6, 5.4);
   cxWall(-31, -7, -26, -7, 7, CXM.concrete); cxWall(-22, -7, -15, -7, 7, CXM.concrete);
   for (const z of [-5, -13]) { cxWall(15, z, 22, z, 7, CXM.concrete); cxWall(26, z, 31, z, 7, CXM.concrete); }
   for (const x of [-15, 15]) for (const z of [3, -3, -14, -18]) box(x < 0 ? O.green : O.magenta, 0.06, 4.8, 0.06, ...S(x > 0 ? x - 0.32 : x + 0.32, z, 2.4));
@@ -1066,6 +1074,45 @@ function paparazzo(lx, lz, tx, tz, y = 0) {
     m.position.set(f.x, f.y, -f.z); m.visible = false; scene.add(m); flashes.push({ m, t: Math.random() * 3 });
   });
 }
+const sgnMat = (x) => (x < 0 ? O.green : O.magenta);
+const LOOP_ROOMS = [   // [title, url, colour, which loop (−1 west / +1 east), slot 0..3 around the cycle]
+  ['THE GREEN ROOM', 'greenroom.html', 0x39ff88, -1], ['SURREAL LO-FI', 'lofi.html', 0xb967ff, -1], ['ABSTRACT PSYCHEDELIC', 'abstract.html', 0x00ffa8, -1], ['THE GLITCH ROOM', 'studio.html', 0x39ff14, -1],
+  ['HORRORCORE', 'horrorcore.html', 0xff2b2b, 1], ['CONTROL ROOM', 'utility.html', 0xffb020, 1], ['GAME ROOM', 'gameroom.html', 0xff66cc, 1], ['THE ROOFTOP', 'rooftop.html', 0x4ad0c0, 1],
+];
+// slot order around the cycle: 0 inner-near (where you come in), 1 outer-near, 2 outer-far, 3 inner-far
+const SLOT = [[8, -42.3], [23.5, -42.3], [23.5, -63.3], [8, -63.3]];
+function wallSegs(fixed, alongX, from, to, gaps, h = 7, mat = CXM.concrete) {   // a wall with doorway gaps, in spec coordinates
+  let c = from; const dir = to > from ? 1 : -1;
+  for (const [g0, g1] of gaps.slice().sort((a, b) => dir * (a[0] - b[0]))) { if (alongX) cxWall(c, fixed, g0, fixed, h, mat); else cxWall(fixed, c, fixed, g0, h, mat); c = g1; }
+  if (alongX) cxWall(c, fixed, to, fixed, h, mat); else cxWall(fixed, c, fixed, to, h, mat);
+}
+function loopAnnex() {   // behind the hub: two four-room loops, west and east; every room joins the next, so you can walk the loop round
+  box(CXM.slab, 63.2, 0.32, 42.8, ...S(0, -52.7, -0.14)); box(CXM.slab, 63.2, 0.6, 42.8, ...S(0, -52.7, 7.2));
+  for (const x of [-31.3, 31.3]) cxWall(x, -31.6, x, -74.1, 7, CXM.rust, 0.6); cxWall(-31.3, -74.1, 31.3, -74.1, 7, CXM.rust, 0.6); cxWall(0, -31.6, 0, -74.1, 7, CXM.concrete, 0.6);
+  for (const sg of [-1, 1]) {
+    wallSegs(sg * 16, false, -31.6, -74.1, [[-41, -45], [-61, -65]]);   // between inner and outer rooms
+    wallSegs(-53, true, sg * 0, sg * 31.3, [[sg * 7, sg * 11], [sg * 21, sg * 25]]);   // between near and far rooms
+    point(...S(sg * 15.5, -52.7, 5.5), sg < 0 ? 0x66ffb3 : 0xff66d9, 60, 40);
+  }
+  LOOP_ROOMS.forEach(([title, url, col, sg], i) => {
+    const [bx, bz] = SLOT[i % 4], x = sg * bx, z = bz, hex = '#' + col.toString(16).padStart(6, '0'), m = glow(col), info = LEVEL_INFO[url] || '';
+    box(m, 12.4, 0.03, 0.12, ...S(x, z - 9.4, 0.04)); box(m, 12.4, 0.03, 0.12, ...S(x, z + 9.4, 0.04)); box(m, 0.12, 0.03, 18.8, ...S(x - 6.2, z, 0.04)); box(m, 0.12, 0.03, 18.8, ...S(x + 6.2, z, 0.04));
+    box(m, 12.4, 0.1, 0.1, ...S(x, z - 9.6, 6.4)); box(m, 12.4, 0.1, 0.1, ...S(x, z + 9.6, 6.4));
+    cyl(CXM.slab, 1.1, 1, ...S(x, z, 0.5)); cyl(m, 1.1, 0.05, ...S(x, z, 1.02)); sph(m, 0.9, 0.9, 0.9, ...S(x, z, 2.2));
+    for (const [dz, dirz] of [[-1.7, -1], [1.7, 1]]) { cxText(title, x, z + dz * 0.0 + dirz * 1.5, 4, title.length > 14 ? 0.42 : 0.55, hex, 0, dirz); wrapText(info, 34).forEach((ln, k) => cxText(ln, x, z + dirz * 1.5, 3.2 - k * 0.3, 0.12, '#dfe9ff', 0, dirz)); }
+    cxText(`LOOP ${sg < 0 ? 'WEST' : 'EAST'}  ·  ROOM ${i % 4 + 1} OF 4  ·  CLICK THE ORB TO ENTER`, x, z + 1.5, 0.6, 0.11, '#ffffff', 0, 1); cxText(`LOOP ${sg < 0 ? 'WEST' : 'EAST'}  ·  ROOM ${i % 4 + 1} OF 4  ·  CLICK THE ORB TO ENTER`, x, z - 1.5, 0.6, 0.11, '#ffffff', 0, -1);
+    hotspot(...S(x, z, 1.8), 2.4, 3.6, 2.4, () => useDoor(url, title, info), title);
+    cxSolid(x - 1.2, x + 1.2, z - 1.2, z + 1.2);
+  });
+}
+function loopRects() {
+  for (const sg of [-1, 1]) {
+    const R = (a, b, c, d) => cxRect(sg * a, sg * b, c, d);
+    R(0.6, 15.5, -52.4, -31.9); R(16.5, 30.8, -52.4, -31.9); R(0.6, 15.5, -73.4, -53.6); R(16.5, 30.8, -73.4, -53.6);   // the four rooms
+    R(15.4, 16.6, -44.6, -41.4); R(15.4, 16.6, -64.6, -61.4); R(7.4, 10.6, -53.6, -52.4); R(21.4, 24.6, -53.6, -52.4);   // the doorways between them
+    R(7.6, 10.4, -32.4, -20.4);   // the corridor in from the hub
+  }
+}
 function openLevels() {
   const rooms = TOWERS[0].floors, arch = TOWERS[1].floors, row = (f, i) => ({ f, i });
   const tabs = [['loop', 'THE LOOP'], ['artists', 'ARTIST WORLDS'], ['archive', 'THE ARCHIVE']];
@@ -1079,14 +1126,14 @@ function openLevels() {
   }, true);
 }
 function levelElevator() {
-  const a = S(-9, -20.3), b = S(-9, -10);
+  const a = S(-19, -20.3), b = S(-19, -10);
   group(a[0], 0, a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => {
     box(M.metal, 0.3, 3.8, 0.5, -1.6, 1.9, 0); box(M.metal, 0.3, 3.8, 0.5, 1.6, 1.9, 0); box(M.metal, 3.5, 0.4, 0.5, 0, 3.8, 0); box(M.glass, 2.8, 3.4, 0.1, 0, 1.7, 0.1);
     box(O.cyan, 0.07, 3.6, 0.07, -1.4, 1.8, -0.3); box(O.cyan, 0.07, 3.6, 0.07, 1.4, 1.8, -0.3); box(O.cyan, 2.8, 0.07, 0.07, 0, 3.6, -0.3);
     text('LEVELS ELEVATOR', 0, 4.6, -0.3, 0.3, '#00f2ff'); text('EVERY ROOM OF THE LOOP, ONE STACK', 0, 4.15, -0.3, 0.13, '#ffffff');
     hotspot(0, 1.8, -0.4, 3.4, 3.8, 1, () => openLevels(), 'Levels elevator');
   });
-  cxSolid(-10.8, -7.2, -20.9, -20);
+  cxSolid(-20.8, -17.2, -20.9, -20);
 }
 function chromaRoom() {   // east of the entrance hall: the red carpet comes in off the street, down the hall and through the door
   box(CA.carpet, 25, 0.02, 16, ...S(18.3, 11.4, 0.02));
@@ -1136,7 +1183,7 @@ let exploredC = [false, false, false, false, false], secretOpen = false, secretT
 try { const sv = JSON.parse(localStorage.getItem('ug:explored') || 'null'); if (Array.isArray(sv) && sv.length === 5) exploredC = sv.map(Boolean); secretOpen = exploredC.every(Boolean); } catch (e) { /* ignore */ }
 const CHAMBERS = ['GLITCH ART', 'HORRORCORE', 'ARCADE + KARAOKE', 'ABSTRACT', 'FESTIVAL THEATER'], CHAMBER_RECTS = [[-30, -16, -6, 6], [-30, -16, -20, -8], [16, 30, -4, 2], [16, 30, -12, -6], [16, 30, -20, -14]];
 function complex() {
-  group(CX.x, 0, CX.z, 0, () => { complexShell(); entranceHall(); hubShell(); heart(); hubCover(); hideAndSeekProps(); wings(); hiddenRoom(); chromaRoom(); computerRoom(); levelElevator(); });
+  group(CX.x, 0, CX.z, 0, () => { complexShell(); entranceHall(); hubShell(); heart(); hubCover(); hideAndSeekProps(); wings(); hiddenRoom(); chromaRoom(); computerRoom(); levelElevator(); loopAnnex(); });
   slideDoor({ x: CX.x, z: CX.z + 19.2, yaw: 0, w: 6.8, h: 6.2, color: 0x00f2ff, pane: CXM.rust });
   // walkable: entrance hall, hub (with arches), the five wings, the studio (opens at 5/5), the Chroma Awards room, the computer room
   cxRect(-4.6, 4.6, 3.3, 19.4); cxRect(-2.6, 2.6, 19.2, 22.8); cxRect(-4, 4, 2.5, 3.6); cxRect(-14.6, 14.6, -20.6, 2.6);
@@ -1147,6 +1194,7 @@ function complex() {
   cxRect(4.8, 6.2, 11.6, 14.4); cxRect(5.8, 30.8, 3.8, 19.2); cxRect(-6.2, -4.8, 11.6, 14.4); cxRect(-30.8, -5.8, 7.8, 19.2);
   for (const [px, pz] of [[6, -4], [-10, -6], [11, -11.5], [-6.5, -17], [6.5, -18.5], [-11, -13.5], [10, -16.5]]) cxSolid(px - 1.5, px + 1.5, pz - 0.9, pz + 0.9);
   for (const [px, pz] of [[11, -9], [7.8, -2.6], [-7.8, -2.6], [-11, -9], [-7.8, -15.4], [0, -18], [7.8, -15.4]]) cxSolid(px - 0.5, px + 0.5, pz - 0.5, pz + 0.5);
+  loopRects();
   cxSolid(26, 31, 6, 17); cxSolid(10, 22, 5.4, 9.4); cxSolid(10, 22, 16.6, 19.2);
 }
 // ---- hide & seek round ----
