@@ -306,7 +306,7 @@ function gallery() {
   // east end: wall with the movie theater door, then the opening into the tower lobby
   box(M.wall, 0.4, 7, 5.4, 24, 3.5, 26.7); box(M.wall, 0.4, 7, 0.5, 24, 3.5, 33.75); box(M.wall, 0.4, 3, 4, 24, 5.5, 31.5);
   box(M.wall, 3, 7, 0.4, -22.5, 3.5, 34); box(M.wall, 12, 7, 0.4, -1, 3.5, 34); box(M.wall, 6, 7, 0.4, 21, 3.5, 34);
-  portal(-14, 33.8, 10, 5.7, M.violet, '04   NEON ARCADE'); portal(12, 33.8, 10, 5.7, M.amber, '05   CINEMA SOCIETY');
+  portal(-14, 33.8, 10, 5.7, M.violet, '04   THE ARCADE'); portal(12, 33.8, 10, 5.7, M.amber, '05   CINEMA SOCIETY');
   for (let i = 0; i < 12; i++) { const x = -22 + i * 4; box(M.metal, 0.16, 0.25, 8, x, 6.7, 29); box(i < 6 ? M.violet : M.amber, 0.04, 0.04, 7.2, x, 6.5, 29); }
   for (const x of [-19, 19]) { sofa(x, 27, 180, 3, M.velvet); table(x, 28.5, 1.2, 0.8); }
   text('←  ARCADE     /     CINEMAS  →', 0, 5.8, 33.72, 0.27, '#ffffff');
@@ -332,17 +332,14 @@ function arcade() {
   box(M.wall, 0.4, 7, 18, -11, 3.5, 0); box(M.wall, 0.4, 7, 18, 11, 3.5, 0); box(M.wall, 22, 7, 0.4, 0, 3.5, 9); box(M.wall, 22, 0.35, 18, 0, 7, 0);
   for (const x of [-8, 8]) box(M.wall, 6, 7, 0.4, x, 3.5, -9);
   for (let i = 0; i < 5; i++) { const z = -6 + i * 3; box(M.metal, 20, 0.3, 0.3, 0, 6.7, z); box(i % 2 ? M.cyan : M.violet, 18, 0.04, 0.05, 0, 6.52, z); }
-  text('NEON / PLAY', 0, 5.5, 8.7, 0.63, '#ffffff'); text('PICK A CABINET · IT PLAYS RIGHT HERE', 0, 4.65, 8.68, 0.18, '#10c4ff');
-  for (let side = 0; side < 2; side++) for (let i = 0; i < 5; i++) {
-    const g = GAMES[side * 5 + i] || GAMES[i], x = side ? 8.6 : -8.6, z = -5.5 + i * 2.6;
-    const pulse = side === 0 && i === 0;   // the first cabinet is NEON PULSE, the passport's arcade stamp
-    group(x, 0, z, side ? 90 : -90, () => cabinet(pulse ? 'NEON PULSE' : g.name.replace(/\s*\(.*$/, '').toUpperCase().slice(0, 18), pulse ? () => openPulse() : () => openWindow(`ARCADE // ${g.name}`, g.url)));
-    solid(-14 + x - 0.8, -14 + x + 0.8, 43 + z - 0.8, 43 + z + 0.8);
-  }
-  [['joust', 'JOUST / 01'], ['chrome', 'CHROME / 02'], ['toon', 'TOON / 03']].forEach(([k, label], i) => {
-    group(-3.8 + i * 3.8, 0, 4.9, 0, () => { cyl(M.metal, 1.1, 0.8, 0, 0.4, 0); cyl(i === 1 ? M.cyan : M.violet, 1.07, 0.035, 0, 0.81, 0); model(k, 0, 0.85, 0, 2.3); text(label, 0, 0.5, -1.12, 0.14, '#ffffff'); });
-    solid(-14 + -3.8 + i * 3.8 - 1.1, -14 - 3.8 + i * 3.8 + 1.1, 47.8, 50);
+  text('THE ARCADE', 0, 6.3, 8.7, 0.63, '#ffffff'); text('ONE BIG SCREEN  ·  PICK A GAME AT THE TERMINAL  ·  F = FULLSCREEN', 0, 5.6, 8.68, 0.16, '#10c4ff');
+  box(M.metal, 16.4, 7.2, 0.3, 0, 3.4, 8.7); quad(ledA, 16, 6.8, 0, 3.4, 8.5);
+  group(0, 0, -1, 0, () => {   // the selection terminal, facing the screen
+    box(M.wall, 3, 1, 0.9, 0, 0.5, 0); box(M.metal, 3.1, 0.06, 1, 0, 1.03, 0); box(M.metal, 1.8, 1.2, 0.14, 0, 1.75, 0.2); quad(ledB, 1.5, 0.95, 0, 1.75, 0.12); box(M.cyan, 3, 0.05, 0.05, 0, 0.9, -0.46);
+    text('GAME TERMINAL', 0, 2.75, 0.1, 0.2, '#10c4ff'); text('CLICK TO BROWSE EVERY GAME', 0, 2.45, 0.1, 0.1, '#ffffff');
+    hotspot(0, 1.4, 0, 3.2, 2.6, 1.4, () => openPicker('THE ARCADE', [{ name: 'MINI', items: [{ title: 'NEON PULSE', note: 'the rhythm minigame', run: openPulse }] }, ...(ARCADE.groups || [{ name: 'GAMES', items: ARCADE.items }])]), 'Game terminal');
   });
+  solid(-15.6, -12.4, 41.8, 43.2);
   sofa(-3.4, -3.6, 90, 3, M.velvet); sofa(3.4, -3.6, -90, 3, M.velvet); table(0, -3.6, 1.5, 1.5);
   point(-4, 4, -2, VI, 40, 16); point(4, 4, 3, CY, 30, 15);
 }
@@ -435,13 +432,21 @@ function doorGlow(color) {
 }
 const hexs = (c) => '#' + c.toString(16).padStart(6, '0');
 // (x, z) is on the wall; yaw turns the door so its text reads from inside; walk through or click to enter
+const LEVEL_INFO = {
+  'museum.html': 'The gallery of works, the ground floor.', 'ravecharles.html': 'About 400 shows by Rave Charles. Pick one and play it.', 'driftwave.html': 'Slushwave and ambient, drifting through a dream room.',
+  'vaporrooms.html': 'The VaporStudio rooms: a vapor gallery to wander.', 'sofaboi.html': 'Sofa King Sad Boi. Dubstep and weird bass, from the sofa.', 'tanky.html': 'Tanky Johnson, outlaw of the void.',
+  'shmorez.html': 'Shmorez, by the s’mores fire.', 'greenroom.html': 'The loop begins backstage in the green room.', 'lofi.html': 'A surreal lo-fi room, built around the beat.',
+  'abstract.html': 'Paint the void: abstract, psychedelic, spinning.', 'studio.html': 'The glitch room: 12matt3r’s own studio.', 'horrorcore.html': 'Horrorcore: down the crawlspace.',
+  'utility.html': 'The control room: utility, switches, tools.', 'gameroom.html': 'The game room: interactive, pick something up.', 'rooftop.html': 'The rooftop, the chill zone at the top of the loop.',
+};
+const wrapText = (t, n) => { const out = []; let cur = ''; for (const w of t.split(' ')) { if ((cur + ' ' + w).trim().length > n) { out.push(cur); cur = w; } else cur = (cur + ' ' + w).trim(); } if (cur) out.push(cur); return out; };
 function themedDoor(x, z, yaw, w, h, color, label, url, sub = '', floor = 0, y = 0, size = 0.3) {
   const mat = glow(color);
   group(x, y, z, yaw, () => {
     box(M.metal, 0.3, h, 0.5, -w / 2 - 0.15, h / 2, 0); box(M.metal, 0.3, h, 0.5, w / 2 + 0.15, h / 2, 0); box(M.metal, w + 0.6, 0.4, 0.5, 0, h + 0.2, 0);
     box(mat, 0.07, h - 0.1, 0.07, -w / 2, h / 2, -0.3); box(mat, 0.07, h - 0.1, 0.07, w / 2, h / 2, -0.3); box(mat, w, 0.07, 0.07, 0, h - 0.1, -0.3);
     quad(doorGlow(color), w, h - 0.1, 0, h / 2, -0.22);
-    text(label, 0, h + 1.0, -0.3, size, hexs(color)); if (sub) text(sub.toUpperCase(), 0, h + 0.55, -0.3, Math.min(0.14, size * 0.5), '#cfe6ff');
+    text(label, 0, h + 1.0, -0.3, size, hexs(color)); if (LEVEL_INFO[url]) wrapText(LEVEL_INFO[url], Math.max(24, Math.round(w * 6))).forEach((ln, i) => text(ln, 0, h + 0.55 - i * 0.26, -0.3, 0.1, '#cfe6ff')); else if (sub) text(sub.toUpperCase(), 0, h + 0.55, -0.3, Math.min(0.14, size * 0.5), '#cfe6ff');
     hotspot(0, h / 2, -0.5, w + 0.2, h, 0.8, () => useDoor(url, label, sub), label);
     // a walk-in zone just inside the doorway (in world Unity coords)
     const c = Math.cos(THREE.MathUtils.degToRad(yaw)), sn = Math.sin(THREE.MathUtils.degToRad(yaw)), wp = wpos(0, 0, -0.9);
@@ -1008,6 +1013,28 @@ function paparazzo(lx, lz, tx, tz, y = 0) {
     m.position.set(f.x, f.y, -f.z); m.visible = false; scene.add(m); flashes.push({ m, t: Math.random() * 3 });
   });
 }
+function openLevels() {
+  const rooms = TOWERS[0].floors, arch = TOWERS[1].floors, row = (f, i) => ({ f, i });
+  const tabs = [['loop', 'THE LOOP'], ['artists', 'ARTIST WORLDS'], ['archive', 'THE ARCHIVE']];
+  openPanel('LEVELS ELEVATOR // EVERY LEVEL, ONE STACK', tabs, (tab, q, body) => {
+    const list = tab === 'loop' ? rooms.slice(7).map(row).reverse() : tab === 'artists' ? rooms.slice(0, 7).map(row).reverse() : arch.map(row).reverse();
+    for (const { f, i } of list) for (const [label, url] of f.doors) {
+      const info = LEVEL_INFO[url] || f.sub || '';
+      if (q && !(label + ' ' + info).toLowerCase().includes(q)) continue;
+      body.appendChild(panelRow(String(i).padStart(2, '0'), label, f.name, info, () => { $('panel').classList.remove('on'); useDoor(url, label, info); }));
+    }
+  }, true);
+}
+function levelElevator() {
+  const a = S(-9, -20.3), b = S(-9, -10);
+  group(a[0], 0, a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => {
+    box(M.metal, 0.3, 3.8, 0.5, -1.6, 1.9, 0); box(M.metal, 0.3, 3.8, 0.5, 1.6, 1.9, 0); box(M.metal, 3.5, 0.4, 0.5, 0, 3.8, 0); box(M.glass, 2.8, 3.4, 0.1, 0, 1.7, 0.1);
+    box(O.cyan, 0.07, 3.6, 0.07, -1.4, 1.8, -0.3); box(O.cyan, 0.07, 3.6, 0.07, 1.4, 1.8, -0.3); box(O.cyan, 2.8, 0.07, 0.07, 0, 3.6, -0.3);
+    text('LEVELS ELEVATOR', 0, 4.6, -0.3, 0.3, '#00f2ff'); text('EVERY ROOM OF THE LOOP, ONE STACK', 0, 4.15, -0.3, 0.13, '#ffffff');
+    hotspot(0, 1.8, -0.4, 3.4, 3.8, 1, () => openLevels(), 'Levels elevator');
+  });
+  cxSolid(-10.8, -7.2, -20.9, -20);
+}
 function chromaRoom() {   // east of the entrance hall: the red carpet comes in off the street, down the hall and through the door
   box(CA.carpet, 25, 0.02, 16, ...S(18.3, 11.4, 0.02));
   box(CA.red, 3.2, 0.02, 6, ...S(0, 28.3, 0.02)); box(CA.red, 3.2, 0.02, 5, ...S(0, 22.8, 0.14)); box(CA.red, 3.2, 0.02, 20, ...S(0, 21.4, 0.04)); box(CA.red, 28, 0.02, 3.2, ...S(14, 13, 0.04));
@@ -1022,7 +1049,7 @@ function chromaRoom() {   // east of the entrance hall: the red carpet comes in 
   for (const z0 of [7.6, 18]) for (let r = 0; r < 2; r++) for (let c = 0; c < 6; c++) { const sx = 11.5 + c * 2, sz = z0 + (z0 < 10 ? -r : r) * 0.9, g2 = S(sx, sz), t2 = S(sx + 1, sz); group(g2[0], 0, g2[2], faceYaw(t2[0] - g2[0], t2[2] - g2[2]), () => { box(CA.red, 1, 0.5, 0.8, 0, 0.3, 0); box(CA.red, 1, 0.9, 0.2, 0, 0.8, 0.4); }); }
   { const k = S(8.2, 5.6); group(k[0], 0, k[2], 180, () => kiosk(0, 0, 0, 'Chroma entries', O.red, () => openPicker('CHROMA AWARDS', THEATERS.find((t) => t.id === 'chroma').groups))); }
   { const v = S(27, 18.4); group(v[0], 0, v[2], 180, () => { box(INK, 1.5, 2.4, 0.1, 0, 1.2, 0.3); box(CA.gold, 0.8, 0.55, 0.06, 0, 1.35, 0.2); text('VOTE', 0, 2.65, 0.2, 0.32, '#ffd966'); hotspot(0, 1.3, 0, 1.8, 2.6, 1.2, () => openVote(), 'Vote'); }); }
-  point(...S(18, 11, 6.5), 0xff4d52, 45, 24);
+  point(...S(18, 11, 6.5), 0xff4d52, 90, 26);
   for (const [px, pz] of [[-3.9, 18], [3.9, 16.5], [-3.9, 15], [3.9, 19]]) { const l = S(px, pz); paparazzo(l[0], l[2], 0, l[2]); }
   for (const dx of [-3, 3]) { const l = S(dx, 23.4); paparazzo(l[0], l[2], 0, l[2], 0.12); }
   for (const [px, pz] of [[24, 9.8], [24, 16.4]]) { const l = S(px, pz), t = S(px - 4, 13); paparazzo(l[0], l[2], t[0], t[2]); }
@@ -1050,13 +1077,13 @@ function computerRoom() {   // west of the entrance hall: a bank of terminals in
     });
     cxSolid(x - 1.1, x + 1.1, z - 0.6, z + 0.6);
   });
-  point(...S(-18, 13.5, 6.2), 0x66ffb3, 30, 22);
+  point(...S(-18, 13.5, 6.2), 0x66ffb3, 80, 24);
 }
 let exploredC = [false, false, false, false, false], secretOpen = false, secretT = 0;
 try { const sv = JSON.parse(localStorage.getItem('ug:explored') || 'null'); if (Array.isArray(sv) && sv.length === 5) exploredC = sv.map(Boolean); secretOpen = exploredC.every(Boolean); } catch (e) { /* ignore */ }
 const CHAMBERS = ['GLITCH ART', 'HORRORCORE', 'ARCADE + KARAOKE', 'ABSTRACT', 'FESTIVAL THEATER'], CHAMBER_RECTS = [[-30, -16, -6, 6], [-30, -16, -20, -8], [16, 30, -4, 2], [16, 30, -12, -6], [16, 30, -20, -14]];
 function complex() {
-  group(CX.x, 0, CX.z, 0, () => { complexShell(); entranceHall(); hubShell(); heart(); hubCover(); hideAndSeekProps(); wings(); hiddenRoom(); chromaRoom(); computerRoom(); });
+  group(CX.x, 0, CX.z, 0, () => { complexShell(); entranceHall(); hubShell(); heart(); hubCover(); hideAndSeekProps(); wings(); hiddenRoom(); chromaRoom(); computerRoom(); levelElevator(); });
   slideDoor({ x: CX.x, z: CX.z + 19.2, yaw: 0, w: 6.8, h: 6.2, color: 0x00f2ff, pane: CXM.rust });
   // walkable: entrance hall, hub (with arches), the five wings, the studio (opens at 5/5), the Chroma Awards room, the computer room
   cxRect(-4.6, 4.6, 3.3, 19.4); cxRect(-2.6, 2.6, 19.2, 22.8); cxRect(-4, 4, 2.5, 3.6); cxRect(-14.6, 14.6, -20.6, 2.6);
@@ -1773,4 +1800,4 @@ function frame() {
 teleport(0, -33, 0, face(0, 1)); moveUpdate(0.016); renderer.render(scene, camera);
 $('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); } };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
+if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
