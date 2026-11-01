@@ -1259,10 +1259,10 @@ function lobbyFacade() {
   
   box(INK, 0.1, 2.6, 16, 22.26, 8.4, 0); text('MOVIE THEATER', 22.33, 8.75, 0, 1.5, '#ffc759', -90); text('FIVE THEATERS  /  ENTRANCE ON THE STREET', 22.33, 7.65, 0, 0.36, '#73e6ff', -90);
   for (const fx of [-21.7, -13.1]) box(fx < -20 ? CA.redG : O.purple, 0.08, 11, 0.06, fx, 5.5, 20.32);
-  for (const sx of [-33, 8]) {   // NOW FEATURING, on the long front either side of the door
+  [[-33, 'THE CHROMA AWARDS', '#ff4d52', 'RED CARPET  ·  EVERY ENTRY  ·  ONE NIGHT'], [8, 'THAT TIME AGAIN STUDIOS', '#ffcf9a', 'AI-MADE SERIES  ·  EVERY EPISODE  ·  ON THE SCREENS']].forEach(([sx, title, col, sub]) => {   // NOW FEATURING, on the long front either side of the door
     box(INK, 15, 4.4, 0.12, sx, 8.4, 20.7); box(CA.redG, 15, 0.1, 0.06, sx, 10.55, 20.78); box(CA.gold, 15, 0.1, 0.06, sx, 6.25, 20.78);
-    text('NOW FEATURING', sx, 9.5, 20.8, 0.5, '#ffd966', 180); text('THE CHROMA AWARDS', sx, 8, 20.8, 0.85, '#ff4d52', 180); text('RED CARPET  ·  EVERY ENTRY  ·  ONE NIGHT', sx, 6.9, 20.8, 0.2, '#ffffff', 180);
-  }
+    text('NOW FEATURING', sx, 9.5, 20.8, 0.5, '#ffd966', 180); text(title, sx, 8, 20.8, title.length > 18 ? 0.6 : 0.85, col, 180); text(sub, sx, 6.9, 20.8, 0.18, '#ffffff', 180);
+  });
   slideDoor({ x: -17.4, z: 20, yaw: 0, w: 6.8, h: 6.2, color: 0x00f2ff, pane: CXM.rust });
 }
 function lobbyInterior() {
