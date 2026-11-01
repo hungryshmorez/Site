@@ -6,7 +6,9 @@ import { textPlane } from './scene/signs.js';
 import { openWindow } from './ui/popup.js';
 import { openVote } from './ui/vote.js';
 import { LAB } from './data/catalog.js';
-import { TTA_WIDE } from './data/tta.js';
+import { TTA_WIDE, TTA_TALL } from './data/tta.js';
+import { LIBRARY } from './data/library.js';
+import { THEATERS } from './data/theaters.js';
 import './player/globalplayer-boot.js';
 
 // THE UNDERGROUND — the B2Buddy entertainment complex, rebuilt for the web from the Unity project's
@@ -439,11 +441,11 @@ function themedDoor(x, z, yaw, w, h, color, label, url, sub = '', floor = 0, y =
     box(mat, 0.07, h - 0.1, 0.07, -w / 2, h / 2, -0.3); box(mat, 0.07, h - 0.1, 0.07, w / 2, h / 2, -0.3); box(mat, w, 0.07, 0.07, 0, h - 0.1, -0.3);
     quad(doorGlow(color), w, h - 0.1, 0, h / 2, -0.22);
     text(label, 0, h + 1.0, -0.3, size, hexs(color)); if (sub) text(sub.toUpperCase(), 0, h + 0.55, -0.3, Math.min(0.14, size * 0.5), '#cfe6ff');
-    hotspot(0, h / 2, -0.5, w + 0.2, h, 0.8, () => goTo(url, `entering ${label.toLowerCase()}…`), label);
+    hotspot(0, h / 2, -0.5, w + 0.2, h, 0.8, () => useDoor(url, label, sub), label);
     // a walk-in zone just inside the doorway (in world Unity coords)
     const c = Math.cos(THREE.MathUtils.degToRad(yaw)), sn = Math.sin(THREE.MathUtils.degToRad(yaw)), wp = wpos(0, 0, -0.9);
     const hx = Math.abs(c) > 0.5 ? w / 2 : 0.9, hz = Math.abs(c) > 0.5 ? 0.9 : w / 2;
-    doorTriggers.push({ floor, x0: wp.x - hx, x1: wp.x + hx, z0: wp.z - hz, z1: wp.z + hz, armed: true, url, label });
+    doorTriggers.push({ floor, x0: wp.x - hx, x1: wp.x + hx, z0: wp.z - hz, z1: wp.z + hz, armed: true, run: () => useDoor(url, label, sub), label });
   });
 }
 
@@ -597,11 +599,7 @@ function street() {
   box(glow(0x1b6a90), 0.05, 2.8, 6, 41.96, 1.9, -50); box(M.cyan, 0.1, 0.15, 6.4, 41.93, 3.4, -50);
   hotspot(41.5, 2, -50, 1.2, 4, 6.4, () => openWindow('B2BUDDY RECORDS // MUSIC', 'https://hungryshmorez.github.io/Media/music/'), 'B2Buddy Records');
   doorTriggers.push({ floor: 0, x0: 40.2, x1: 41.5, z0: -53, z1: -47, armed: true, url: null, label: 'B2Buddy Records', run: () => openWindow('B2BUDDY RECORDS // MUSIC', 'https://hungryshmorez.github.io/Media/music/') });
-  // ---- south sidewalk: THE MOVIE LOBBY (between the festival and the records shop) ----
-  box(M.wall, 22, 11, 0.8, 54.6, 5.5, -62.3); box(M.metal, 22.6, 0.5, 1.4, 54.6, 11.3, -62.0); box(M.amber, 22, 0.06, 0.06, 54.6, 10.4, -61.8);
-  text('THE MOVIE LOBBY', 54.6, 8.6, -61.7, 1.1, '#ff5a6a', 180); text('5 THEATERS  ·  ARCADE  ·  FOOD COURT  ·  FEVER DREAM LIBRARY', 54.6, 7.2, -61.7, 0.26, '#ffcf9a', 180);
-  box(M.amber, 11, 0.3, 2.6, 38, 5.2, -60.4); text('CINEMA', 38, 5.2, -59.0, 0.3, '#ffcf9a', 180);
-  slideDoor({ x: 38, z: -61.9, yaw: 180, w: 4.4, h: 4.2, url: 'lobby.html', label: 'THE MOVIE LOBBY', color: 0xff4a5a, sign: 'sliding doors · walk in' });
+  // ---- south sidewalk: THE MOVIE LOBBY is built in campus() ----
   // ---- the festival gateway: pillars, header, receding rings ----
   group(18, 0, -61, 180, () => {
     for (const gx of [-5.2, 5.2]) { box(M.wall, 1.3, 9.6, 1.3, gx, 4.8, 0); box(M.cyan, 0.08, 9, 0.05, gx, 4.8, -0.68); box(M.metal, 1.5, 0.3, 1.5, gx, 9.75, 0); }
@@ -868,7 +866,7 @@ const faceYaw = (dx, dz) => (Math.atan2(-dx, -dz) * 180) / Math.PI;
 const cxSpin = [], cxSearch = [], cxFlicker = [];
 let cxHeart = null, cxHeartRing = null, cxGlitch = null, cxPanel = null, cxRings = [], cxChargeMats = [];
 function cxText(str, x, z, y, size, col, dirx, dirz) { text(str, ...S(x, z, y), size, col, dirx === undefined ? 180 : faceYaw(dirx, dirz)); }
-function wireIco(r, rad, mat) {
+function wireIco(rad, mat) {
   const f = (1 + Math.sqrt(5)) / 2, v = [];
   for (const a of [-1, 1]) for (const b of [-f, f]) { v.push([0, a, b], [a, b, 0], [b, 0, a]); }
   const sc = rad / Math.hypot(0, 1, f);
@@ -1047,11 +1045,351 @@ for (let i = 0; i < 2; i++) {
   hs.seekers.push({ m: g, x: 0, z: 0, h: 0, hgt: i === 0 ? 3.4 : 2.9, target: 0, notice: 0, chase: false });
 }
 
+// =====================================================================================
+//  THE MOVIE LOBBY · THE FIVE THEATERS · THE FEVER DREAM LIBRARY  (Unity "campus", all Unity metres)
+//  Lobby origin world [54.6, −82.3] (unrotated: street wall at local z=+20, theater row at z=−20, theaters behind it).
+//  Library origin world [89, −98.3], turned −90° so its door faces the lobby's east wall.
+// =====================================================================================
+const LO = { x: 54.6, z: -82.3 }, LB = { x: 89, z: -98.3 };
+const THX = [-17.6, -8.8, 0, 8.8, 17.6];
+const THEATER_TITLES = ['CHROMA AWARDS 2025', 'NEW MOBILE THEATER  9x16', 'CHROMA AWARDS', '16x9 THEATER', 'ENTER THE VOID'];
+const rgb = (r, g, b) => '#' + [r, g, b].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
+const CA = {
+  carpet: std(0x2d1334, { roughness: 0.9 }), red: std(0x6b0510, { roughness: 0.8 }), wood: std(0x4d2b14, { roughness: 0.6 }), walnut: std(0x1c0f09, { roughness: 0.65 }), plaster: std(0x1f1822, { roughness: 0.7 }),
+  cream: std(0xe6d6b3), gold: glow(0xf2b840), redG: glow(0xe60f26), warm: glow(0xffcc80), green: glow(0x33d91a), paneDark: std(0x1a1d28, { roughness: 0.2, metalness: 0.5 }),
+  books: [0x59080f, 0x0f3319, 0x0d1440, 0x734d14, 0x380f33, 0x0a383d].map((c) => std(c, { roughness: 0.7 })),
+  posters: [ledMat(0xffb333, 0xe6142e), ledMat(0x10c4ff, 0xa326ff), ledMat(0xff1ac2, 0x33ff66)], fresco: ledMat(0xe6732a, 0x8c339a), term: ledMat(0xff8c1f, 0x993f0d),
+};
+const lines = (str, x, y, z, size, col, yaw = 0) => str.split('\n').forEach((s, i) => text(s, x, y - i * size * 2.5, z, size, col, yaw));
+// straight wall with optional gaps: gap = [centre along the run, width, lintel bottom]
+function runWall(ax, az, bx, bz, h, mat, gaps = [], th = 0.4) {
+  const dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len, yaw = (Math.atan2(dx, dz) * 180) / Math.PI;
+  const seg = (f, t, y0, y1) => { if (t - f < 0.01 || y1 - y0 < 0.01) return; const m = (f + t) / 2; box(mat, th, y1 - y0, t - f, ax + ux * m, (y0 + y1) / 2, az + uz * m, 0, yaw, 0); };
+  let s = -th / 2;
+  for (const [c, w, top] of [...gaps].sort((a, b) => a[0] - b[0])) { seg(s, c - w / 2, 0, h); seg(c - w / 2, c + w / 2, top, h); s = c + w / 2; }
+  seg(s, len + th / 2, 0, h);
+}
+const lobbyRect = (x0, x1, z0, z1) => rect(LO.x + x0, LO.x + x1, LO.z + z0, LO.z + z1);
+const lobbySolid = (x0, x1, z0, z1) => solid(LO.x + x0, LO.x + x1, LO.z + z0, LO.z + z1);
+const libW = (lx, lz) => [LB.x - lz, LB.z + lx];   // library-local → world (Unity)
+const libRect = (lx0, lx1, lz0, lz1) => { const a = libW(lx0, lz0), b = libW(lx1, lz1); rect(Math.min(a[0], b[0]), Math.max(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[1], b[1])); };
+const libSolid = (lx0, lx1, lz0, lz1) => { const a = libW(lx0, lz0), b = libW(lx1, lz1); solid(Math.min(a[0], b[0]), Math.max(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[1], b[1])); };
+const lobbyPos = (x, z) => [LO.x + x, LO.z + z];
+
+// ---- shell: floor, the theater row wall with five doors, street wall with the entrance, roofs ----
+function lobbyShell() {
+  floorSlab(0, 0, -7.7, 44, 55.4);
+  runWall(-22, -20, 22, -20, 11, CA.plaster, THX.map((x, i) => [x + 22, i === 2 ? 4 : 2.6, i === 2 ? 4.4 : 3.6]));
+  runWall(-22, 20, 22, 20, 11, M.wall, [[4.6, 4.4, 4.4]]);
+  runWall(-22, 20, -22, -35.4, 11, M.wall); runWall(22, 20, 22, -35.4, 11, M.wall, [[36, 3.4, 4]]);
+  for (let i = 1; i < 5; i++) runWall(-22 + i * 8.8, -20, -22 + i * 8.8, -35.4, 8, CA.plaster);
+  runWall(-22, -35.4, 22, -35.4, 8, M.wall);
+  box(M.wall, 44.4, 0.3, 40.4, 0, 11.15, 0); box(M.wall, 44.4, 0.3, 15.8, 0, 8.15, -27.7);
+  for (const z of [-17.62, -14.38]) box(M.brass, 1.1, 4, 0.16, 22.3, 2, z);
+  box(CA.wood, 1.1, 0.01, 3.4, 22.3, 0.005, -16);
+}
+// ---- the street face: marquee canopy, sign, blade sign, sliding glass doors ----
+function lobbyFacade() {
+  box(CONCRETE, 9.4, 0.12, 1.1, -17.3, 0.06, 20.75);
+  box(M.metal, 7.6, 0.45, 3.8, -17.4, 4.9, 22.1); box(INK, 7.6, 1.25, 0.12, -17.4, 5.3, 24);
+  text('NOW SHOWING', -17.4, 5.6, 24.08, 0.3, '#ffd973', 180); text('CHROMA AWARDS  /  ENTER THE VOID  /  9x16', -17.4, 5.1, 24.08, 0.22, '#ffffff', 180);
+  for (let i = 0; i < 15; i++) { const bx = -21.1 + i * 0.53; sph(CA.gold, 0.11, 0.11, 0.11, bx, 5.98, 24.06); sph(CA.gold, 0.11, 0.11, 0.11, bx, 4.62, 24.06); }
+  for (let i = 0; i < 5; i++) for (let j = 0; j < 2; j++) box(O.warm, 0.36, 0.03, 0.36, -19.8 + i * 1.2, 4.66, 21.2 + j * 1.5);
+  for (const bx of [-20.9, -13.9]) rod(M.brass, [bx, 5.1, 23.9], [bx, 9.2, 20.25], 0.06);
+  box(INK, 9.2, 3.2, 0.1, -17.3, 8.3, 20.26); text('MOVIE LOBBY', -17.3, 8.65, 20.33, 0.95, '#ffc759', 180); text('12MATT3R   /   FIVE THEATERS   /   LIBRARY', -17.3, 7.65, 20.33, 0.24, '#73e6ff', 180);
+  for (const y of [6.72, 9.88]) box(CA.gold, 9.2, 0.07, 0.05, -17.3, y, 20.33);
+  group(-12.9, 7.2, 21.1, 0, () => {
+    box(INK, 0.3, 5.2, 1.6, 0, 0, 0);
+    for (const sx of [-0.17, 0.17]) { box(CA.redG, 0.05, 5.2, 0.05, sx, 0, -0.78); box(CA.redG, 0.05, 5.2, 0.05, sx, 0, 0.78); 'CINEMA'.split('').forEach((c, i) => text(c, sx * 1.15, 2 - i * 0.8, 0, 0.6, '#ff4d59', sx < 0 ? 90 : -90)); }
+  });
+  for (const dx of [-2.32, 2.32]) box(O.gold, 0.08, 4.4, 0.06, -17.4 + dx, 2.2, 20.26); box(O.gold, 4.7, 0.08, 0.06, -17.4, 4.42, 20.26);
+  box(INK, 0.1, 2.6, 16, -22.26, 8.4, 0); text('MOVIE LOBBY', -22.33, 8.75, 0, 1.5, '#ffc759', -90 + 180); text('FIVE THEATERS  /  ENTRANCE ON THE STREET', -22.33, 7.65, 0, 0.36, '#73e6ff', -90 + 180);
+  for (const fx of [-21.7, -13.1]) box(fx < -20 ? CA.redG : O.purple, 0.08, 11, 0.06, fx, 5.5, 20.32);
+  slideDoor({ x: -17.4, z: 20, yaw: 0, w: 4.4, h: 4.3, color: 0xf2b840 });
+}
+function lobbyInterior() {
+  box(CA.carpet, 43.2, 0.01, 39.2, 0, 0.015, 0); box(CA.plaster, 43.2, 0.01, 4.4, 0, 0.022, -17.6);
+  for (let i = 0; i < 9; i++) box(i % 2 === 0 ? CA.gold : O.purple, 0.06, 0.006, 24, -18 + i * 4.5, 0.025, 6);
+  for (let i = 0; i < 10; i++) box(CA.plaster, 0.35, 0.7, 40, -19.8 + i * 4.4, 10.6, 0);
+  for (let i = 0; i < 5; i++) box(CA.plaster, 44, 0.7, 0.35, 0, 10.6, -16 + i * 8);
+  for (const [px, pz] of [[-11, 4], [11, 4], [0, -8]]) group(px, 8.4, pz, 0, () => {
+    add(CA.warm, new THREE.TorusGeometry(2.2, 0.09, 8, 48), place(0, 0, 0, 90)); add(M.brass, new THREE.TorusGeometry(2.2, 0.09, 8, 48), place(0, 0.45, 0, 90));
+    for (let i = 0; i < 12; i++) { const a = (i * Math.PI) / 6; sph(O.warm, 0.14, 0.32, 0.14, Math.cos(a) * 2.2, -0.35, Math.sin(a) * 2.2); }
+    rod(M.brass, [0, 0.45, 0], [0, 2.2, 0], 0.03);
+  });
+  point(-11, 7.4, 4, 0xffb873, 55, 26); point(11, 7.4, 4, 0xffb873, 55, 26);
+  for (const [px, pz] of [[-11, -7], [11, -7], [-11, 10], [11, 10]]) { cyl(FST.marble, 0.55, 11, px, 5.5, pz); for (const y of [0.3, 10.2]) cyl(M.brass, 0.66, 0.18, px, y, pz); cyl(CA.gold, 0.58, 0.05, px, 3, pz); lobbySolid(px - 0.7, px + 0.7, pz - 0.7, pz + 0.7); }
+  // the theater row: neon frames, marquees, posters
+  const tn = [O.gold, O.cyan, O.red, O.purple, O.magenta], tc = ['#ffd159', '#4de6ff', '#ff4d59', '#c78cff', '#ff40bf'];
+  for (let i = 0; i < 5; i++) {
+    const x = THX[i], w = i === 2 ? 4 : 2.6, h = i === 2 ? 4.4 : 3.6;
+    for (const s of [-1, 1]) box(tn[i], 0.08, h, 0.06, x + s * (w / 2 + 0.06), h / 2, -19.78);
+    box(tn[i], w + 0.2, 0.08, 0.06, x, h + 0.05, -19.78);
+    if (i === 2) continue;
+    box(INK, w + 2.4, 1.2, 0.12, x, h + 1.05, -19.76);
+    text(THEATER_TITLES[i], x, h + 1.15, -19.68, i === 1 ? 0.24 : 0.3, tc[i], 180); text(`SCREEN ${i + 1}   /   NOW SHOWING`, x, h + 0.7, -19.68, 0.13, '#bfc7d9', 180);
+    box(INK, 1.4, 2.2, 0.06, x + (i < 2 ? 2.4 : -2.4), 2.3, -19.8); quad(CA.posters[[0, 1, 0, 1, 2][i] % 3], 1.3, 2.1, x + (i < 2 ? 2.4 : -2.4), 2.3, -19.72, 180);
+  }
+  // Chroma Awards: the red carpet, ropes, grand marquee, paparazzi
+  box(CA.red, 3.2, 0.012, 22.4, 0, 0.03, -8.6); for (const s of [-1, 1]) box(CA.gold, 0.06, 0.01, 22.4, s * 1.62, 0.034, -8.6);
+  for (let i = 0; i < 7; i++) for (const s of [-1, 1]) {
+    const z = -17.6 + i * 2.6; cyl(M.brass, 0.045, 1, s * 2.1, 0.5, z); sph(M.brass, 0.12, 0.12, 0.12, s * 2.1, 1.02, z); cyl(M.brass, 0.2, 0.04, s * 2.1, 0.02, z);
+    if (i < 6) rod(CA.redG, [s * 2.1, 0.88, z], [s * 2.1, 0.88, z + 2.6], 0.035);
+  }
+  group(0, 6.1, -19.5, 0, () => {
+    box(INK, 8.4, 2.2, 0.7, 0, 0, -0.35); text('CHROMA AWARDS', 0, 0.25, 0.02, 0.8, '#ffd966', 180); text('THE RED CARPET IS OPEN', 0, -0.55, 0.02, 0.22, '#ffffff', 180);
+    for (let i = 0; i < 22; i++) { const bx = -4 + i * (8 / 21); sph(CA.gold, 0.12, 0.12, 0.12, bx, 1.02, 0.02); sph(CA.gold, 0.12, 0.12, 0.12, bx, -1.02, 0.02); }
+  });
+  point(0, 4.5, -15, 0xff4d52, 36, 14);
+  const coats = [std(0x0f0f12), std(0x2e2419)];
+  [[-3.4, -15.2], [3.4, -13.4], [-3.4, -9.4], [3.4, -6.8], [-3.2, -4.2]].forEach(([px, pz], i) => {
+    facing(px, pz, 0, pz - 1.4, () => {
+      figure(0, 0, 0, 0, coats[i % 2], INK, FST.skin, 0.98);
+      box(INK, 0.24, 0.16, 0.14, 0.05, 1.55, -0.3); cyl(M.metal, 0.05, 0.12, 0.05, 1.55, -0.42, 90, 0, 0);
+      const f = wpos(0.05, 1.7, -0.33), m = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.1, 0.06), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }));
+      m.position.set(f.x, f.y, -f.z); m.visible = false; scene.add(m); flashes.push({ m, t: Math.random() * 3 });
+    });
+  });
+  // the directory pylon
+  group(0, 0, 11, 0, () => {
+    box(INK, 1.6, 3.2, 0.4, 0, 1.6, 0); for (const s of [-1, 1]) box(CA.gold, 0.05, 3.2, 0.44, s * 0.82, 1.6, 0);
+    text('THE MOVIE LOBBY', 0, 2.9, -0.22, 0.2, '#ffd166'); lines('^  THE STREET\n>  FOOD COURT\n>  FEVER DREAM LIBRARY\n<  ARCADE TERMINAL\n<  TRIPPY CAM\nv  THEATERS 1-5', 0, 2.3, -0.22, 0.1, '#ffffff');
+    lines('^  THEATERS 1-5\n<  FOOD COURT\n<  FEVER DREAM LIBRARY\n>  ARCADE TERMINAL\n>  TRIPPY CAM\nv  THE STREET', 0, 2.3, 0.22, 0.1, '#ffffff', 180);
+  });
+  lobbySolid(-0.9, 0.9, 10.7, 11.3);
+  text('THE UNDERGROUND  /  THE STREET  /  THE FESTIVAL', -17.4, 5.1, 19.74, 0.22, '#73e6ff'); text('EXIT', -17.4, 4.72, 19.74, 0.16, '#ff4d4d');
+  // the library door on the east wall
+  for (const z of [-17.8, -14.2]) box(O.orange, 0.06, 4, 0.08, 21.76, 2, z); box(O.orange, 0.06, 0.08, 3.7, 21.76, 4.05, -16);
+  text('FEVER DREAM LIBRARY', 21.72, 5.1, -16, 0.36, '#ffad59', 90); text('PRODUCTION DOCUMENTS  /  ARCHIVE TERMINAL', 21.72, 4.6, -16, 0.14, '#ffffff', 90);
+  // west wall: arcade terminal · Trippy Cam · vote booths
+  facing(-20.6, 4, 0, 4, () => {
+    box(M.wall, 2.6, 1, 0.9, 0, 0.5, 0); box(CA.wood, 2.7, 0.05, 1, 0, 1.02, -0.05); box(M.metal, 1.5, 1.1, 0.5, 0, 1.75, 0.18); quad(CA.term, 1.25, 0.85, 0, 1.75, -0.08); box(INK, 0.9, 0.04, 0.3, 0, 1.07, -0.25);
+    box(INK, 2.8, 0.6, 0.08, 0, 3.1, 0.3); text('ARCADE TERMINAL', 0, 3.12, 0.24, 0.26, '#66ff59'); text('NEON PULSE ON THE BIG SCREEN', 0, 2.65, 0.24, 0.12, '#ffffff');
+    hotspot(0, 1.4, -0.2, 2.8, 2.6, 1.6, () => { openPulse(); }, 'Arcade terminal · NEON PULSE');
+  });
+  facing(-20.85, -5, 0, -5, () => {
+    const pl = std(0x40143f, { roughness: 0.5 });
+    box(pl, 2.4, 2.8, 0.12, 0, 1.4, 0.55); for (const s of [-1, 1]) box(pl, 0.1, 2.8, 1.4, s * 1.15, 1.4, -0.1);
+    box(pl, 2.4, 0.12, 1.4, 0, 2.86, -0.1); box(CA.redG, 0.9, 2.4, 0.06, -0.6, 1.5, -0.75); box(M.velvet, 1.8, 0.5, 0.5, 0, 0.25, 0.25); box(INK, 0.5, 0.5, 0.04, 0.5, 1.6, 0.48); box(INK, 2.2, 0.6, 0.1, 0, 3.3, -0.1);
+    text('TRIPPY CAM', 0, 3.32, -0.18, 0.28, '#ff4de6'); for (const s of [-1, 1]) box(O.magenta, 0.05, 2.8, 0.05, s * 1.2, 1.4, -0.8);
+    hotspot(0, 1.4, -0.4, 2.4, 2.8, 1.4, () => { snapReq = true; }, 'Trippy Cam · take a photo');
+  });
+  [[-20.5, -13, 0, -13], [-20.5, 12, 0, 12], [12, 18.5, 12, 0], [20.5, 17.5, 20.5, 0]].forEach(([vx, vz, tx, tz]) => facing(vx, vz, tx, tz, () => {
+    box(INK, 1.5, 2.4, 0.1, 0, 1.2, 0.3); for (const s of [-1, 1]) box(INK, 0.06, 2.4, 0.7, s * 0.72, 1.2, -0.05);
+    box(CA.gold, 0.8, 0.55, 0.06, 0, 1.35, 0.2); box(M.brass, 1.2, 0.05, 0.5, 0, 0.95, 0); text('VOTE', 0, 2.65, 0.2, 0.32, '#ffd966'); text('CHROMA AWARDS', 0, 2.32, 0.2, 0.11, '#ffffff');
+    hotspot(0, 1.3, -0.1, 1.6, 2.6, 1.2, () => openVote(), 'Chroma Awards vote');
+  }));
+  // the merch tent beside the street door
+  facing(-11.2, 17.6, -11.2, 0, () => {
+    const stripe = std(0xc4202a, { roughness: 0.9 });
+    for (const sx of [-1.9, 1.9]) for (const sz of [-1.2, 1.2]) cyl(M.metal, 0.05, 2.8, sx, 1.4, sz);
+    box(stripe, 4.2, 0.12, 2.8, 0, 2.95, 0); box(stripe, 4.2, 0.4, 0.04, 0, 2.7, -1.4); box(CA.wood, 3.4, 0.9, 0.9, 0, 0.45, -0.4);
+    for (let i = 0; i < 5; i++) box(i % 2 === 0 ? FST.tee : INK, 0.5, 0.08, 0.4, -1.3 + i * 0.65, 0.95, -0.45);
+    box(M.metal, 3.4, 0.06, 0.06, 0, 1.8, 1.1); for (let i = 0; i < 6; i++) box(i % 3 === 0 ? O.cyan : i % 3 === 1 ? INK : FST.tee, 0.48, 0.7, 0.05, -1.4 + i * 0.56, 1.35, 1.1);
+    for (let i = 0; i < 3; i++) cyl(INK, 0.15, 0.01, 1.1 + i * 0.01, 1.15 + i * 0.02, -0.5, 80, 0, 0);
+    text('MERCH', 0, 2.72, -1.44, 0.22, '#66ff4d'); hotspot(0, 1.3, -0.4, 4.2, 2.6, 2.2, () => openWindow('MERCH STORE', new URL('store.html', location.href).href), 'Merch tent · the store');
+  });
+  // the food court: four stalls on the east wall, eight tables
+  const stalls = ['NEON NOODLES', 'PIXEL PIZZA', 'TACO TERMINAL', 'BOBA BEAT'], menu = ['Steaming bowls under cyan neon. One is waiting for you, on the house tonight.', 'A slice with a pixel-perfect crust. Order up!', 'Three tacos and a bass drop.', 'Taro boba with glowing pearls. Shake it to the beat.'];
+  const sn = [O.cyan, O.orange, O.green, O.magenta], sc = ['#00f2ff', '#ff9959', '#66ff4d', '#ff4dd9'];
+  stalls.forEach((nm, i) => {
+    const z = -9 + i * 6;
+    facing(20.3, z, 0, z, () => {
+      box(M.wall, 5, 4, 0.2, 0, 2, 1.3); box(CA.wood, 4.6, 1.1, 0.8, 0, 0.55, -0.2); box(FST.marble, 4.7, 0.06, 0.9, 0, 1.12, -0.2); box(sn[i], 4.5, 0.05, 0.04, 0, 0.95, -0.62);
+      box(INK, 5, 0.15, 1.9, 0, 3.4, -0.2); box(INK, 3.6, 1.2, 0.04, 0, 2.35, 1.18); text(nm, 0, 3.7, -1.18, 0.34, sc[i]); box(INK, 4.6, 0.6, 0.08, 0, 3.72, -1.1); text('MENU  /  OPEN LATE', 0, 2.6, 1.14, 0.14, sc[i], 180);
+      figure(0, 0, 0.6, 180, FST.tee, INK, FST.skin, 0.95);
+      hotspot(0, 1.3, -0.3, 4.8, 2.6, 1.8, () => say(`${nm} — ${menu[i]}`), nm);
+    });
+  });
+  for (let i = 0; i < 8; i++) {
+    const tx = i < 4 ? 13.5 : 17, tz = -8 + (i % 4) * 6;
+    cyl(M.metal, 0.06, 0.76, tx, 0.38, tz); cyl(FST.marble, 0.55, 0.04, tx, 0.76, tz);
+    for (let k = 0; k < 4; k++) { const a = (k * Math.PI) / 2 + 0.4; cyl(i % 2 === 0 ? O.orange : O.cyan, 0.2, 0.48, tx + Math.cos(a) * 0.95, 0.24, tz + Math.sin(a) * 0.95); }
+    lobbySolid(tx - 0.6, tx + 0.6, tz - 0.6, tz + 0.6);
+  }
+  text('FOOD COURT', 21.7, 6.3, 0, 0.7, '#ffb359', 90);
+}
+// ---- one theater behind the row wall ----
+const tScreens = [];
+function theater(i) {
+  const x = THX[i], lc = ['#ffbf59', '#4dd9ff', '#ff4d52', '#b380ff', '#ff40cc'], side = [O.gold, O.cyan, O.red, O.purple, O.magenta];
+  box(CA.carpet, 8.3, 0.01, 14.9, x, 0.015, -27.7); box(CA.plaster, 8.4, 0.12, 15, x, 7.9, -27.7);
+  for (const s of [-1, 1]) { for (let k = 0; k < 4; k++) box(M.velvet, 0.12, 3.6, 2.6, x + s * 4.12, 3.4, -23.4 - k * 3.2); box(side[i], 0.05, 0.06, 14.8, x + s * 4.14, 5.6, -27.7); }
+  const sz = i === 1 ? [3.2, 5.7] : i === 2 ? [8, 4.5] : [7.2, 4.05], sy = i === 1 ? 4 : 4.4;
+  box(M.metal, sz[0] + 0.3, sz[1] + 0.3, 0.2, x, sy, -35.2);
+  const mat = ledMat(...[[0x7a4a10, 0xe6a020], [0x0a6a9a, 0xe620c0], [0x7a0a1a, 0xe68020], [0x0a6a9a, 0x7a22d8], [0x6a0a7a, 0x20e6a0]][i]);
+  const g = dyn(x, sy, -35.05, 0, () => quad(mat, sz[0], sz[1], 0, 0, 0, 180));
+  const video = document.createElement('video'); video.playsInline = true; video.crossOrigin = 'anonymous'; video.loop = false; video.muted = true; video.preload = 'none';
+  const ts = { i, mat, mesh: g.children[0], video, real: null, list: i === 1 ? TTA_TALL : i === 3 ? TTA_WIDE : null, n: 0, playing: false, requested: false };
+  if (ts.list) { const tex = new THREE.VideoTexture(video); tex.colorSpace = THREE.SRGBColorSpace; ts.real = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }); video.addEventListener('ended', () => nextTheaterVideo(ts, 1)); }
+  tScreens.push(ts);
+  if (i === 2) { for (const s of [-1, 1]) box(CA.redG, 0.5, 7.6, 0.3, x + s * 4, 3.9, -34.8); box(M.brass, 8.4, 0.3, 0.3, x, 7.05, -34.85); }
+  if (i === 1) for (const s of [-1, 1]) box(O.cyan, 0.08, 5.7, 0.06, x + s * 2.05, 4, -34.95);
+  if (i === 4) for (let k = 0; k < 6; k++) box(k % 2 === 0 ? O.magenta : O.green, 0.05, 0.05, 10, x + (k % 2 === 0 ? -1 : 1) * 4.12, 1 + k * 1.1, -30);
+  const seatMat = [M.seat, M.velvet, std(0x8a0c18, { roughness: 0.9 }), M.velvet, std(0x6a1a66, { roughness: 0.9 })][i];
+  for (let r = 0; r < 3; r++) for (const sx of [-3.1, -1.6, 1.6, 3.1]) group(x + sx, 0, -24.6 - r * 2.5, 0, () => {
+    box(M.wall, 1.2, 0.44, 0.9, 0, 0.22, 0); box(seatMat, 1, 0.16, 0.85, 0, 0.5, -0.05); box(seatMat, 1.05, 1.05, 0.2, 0, 0.95, 0.4); for (const ax of [-0.57, 0.57]) box(M.wall, 0.1, 0.4, 0.85, ax, 0.66, 0);
+  });
+  for (let k = 0; k < 6; k++) for (const s of [-1, 1]) box(O.warm, 0.12, 0.02, 0.3, x + s * 0.8, 0.03, -22.4 - k * 2.2);
+  text(THEATER_TITLES[i], x, 7.35, -34.9, 0.3, lc[i], 180);
+  kiosk(x + 3.2, -21.9, 180, ts.list ? 'Next video' : i === 4 ? 'Play the playlist' : 'Pick an entry', side[i], () => theaterDesk(i, ts));
+  lobbyRect(x - 4, x + 4, -35, -20.2); lobbySolid(x + 2.5, x + 3.9, -22.5, -21.3);
+  for (let r = 0; r < 3; r++) for (const sx of [-3.1, -1.6, 1.6, 3.1]) lobbySolid(x + sx - 0.55, x + sx + 0.55, -24.6 - r * 2.5 - 0.4, -24.6 - r * 2.5 + 0.5);
+  const w = (i === 2 ? 4 : 2.6) / 2 - 0.3; lobbyRect(x - w, x + w, -20.9, -19);
+}
+function nextTheaterVideo(ts, step = 1) {
+  if (!ts.list) return;
+  ts.n = (ts.n + step + ts.list.length) % ts.list.length; const v = ts.list[ts.n];
+  ts.video.src = v.src; ts.video.muted = !userGesture;
+  ts.video.play().then(() => { ts.mesh.material = ts.real; ts.playing = true; say(`▶ ${v.title}`); }).catch(() => { });
+}
+function theaterDesk(i, ts) {
+  if (ts.list) { nextTheaterVideo(ts, 1); return; }
+  const room = THEATERS[i];
+  if (i === 4) { openWindow('ENTER THE VOID', embedOf(room.items[0])); return; }
+  const groups = room.groups || [{ name: 'ENTRIES', items: room.items }];
+  openPanel(room.name, groups.map((g2, k) => [String(k), g2.name]), (tab, q, body) => {
+    for (const it of groups[+tab].items) {
+      if (q && !(it.title + ' ' + (it.note || '')).toLowerCase().includes(q)) continue;
+      body.appendChild(panelRow(it.yt || it.pl ? '▶' : '◆', it.title, it.note || '', '', () => { openWindow(it.title, embedOf(it)); }));
+    }
+  }, true);
+}
+const embedOf = (it) => (it.yt ? `https://www.youtube.com/embed/${encodeURIComponent(it.yt)}?autoplay=1&rel=0` : it.pl ? `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(it.pl)}&autoplay=1&rel=0` : new URL(it.url, location.href).href);
+// ---- the Fever Dream Library ----
+function library() {
+  box(M.stone, 22.4, 0.5, 24.4, 0, -0.25, 0); box(CA.wood, 22, 0.012, 24, 0, 0.006, 0); box(CA.red, 7, 0.01, 13, 0, 0.02, -3.2);
+  runWall(-11, 12, 11, 12, 6.5, CA.walnut, [[11, 4, 3.4]]); runWall(11, 12, 11, -12, 6.5, CA.walnut); runWall(11, -12, -11, -12, 6.5, CA.walnut); runWall(-11, -12, -11, 12, 6.5, CA.walnut);
+  box(CA.walnut, 22.4, 0.3, 24.4, 0, 6.65, 0); for (let i = 0; i < 6; i++) box(CA.wood, 22, 0.4, 0.35, 0, 6.3, -10 + i * 4);
+  let a = 4; const rnd = () => (a = (a * 16807) % 2147483647) / 2147483647;
+  const shelf = (px, pz, yaw, width) => group(px, 0, pz, yaw, () => {
+    box(CA.wood, width, 4.8, 0.15, 0, 2.4, 0.2); for (const s of [-1, 1]) box(CA.wood, 0.1, 4.8, 0.5, (s * width) / 2, 2.4, 0);
+    for (let k = 0; k < 6; k++) {
+      const y = 0.12 + k * 0.8; box(CA.wood, width, 0.05, 0.5, 0, y, 0); if (k === 5) continue;
+      let x0 = -width / 2 + 0.08;
+      while (x0 < width / 2 - 0.3) { let bw = 0.3 + rnd() * 0.7; if (x0 + bw > width / 2 - 0.08) bw = width / 2 - 0.08 - x0; const bh = 0.45 + rnd() * 0.2; box(CA.books[(rnd() * 6) | 0], bw - 0.02, bh, 0.32, x0 + bw / 2, y + 0.025 + bh / 2, -0.02); x0 += bw + (rnd() < 0.2 ? 0.25 : 0.01); }
+    }
+  });
+  for (let i = 0; i < 4; i++) { const z = -9.5 + i * 5; shelf(-10.55, z, -90, 4.6); if (i !== 2) shelf(10.55, z, 90, 4.6); libSolid(-10.8, -10.3, z - 2.3, z + 2.3); if (i !== 2) libSolid(10.3, 10.8, z - 2.3, z + 2.3); }
+  for (const x of [-7, 7]) { shelf(x, -11.55, 180, 5.6); libSolid(x - 2.8, x + 2.8, -11.8, -11.3); }
+  quad(CA.fresco, 5.4, 4.6, 0, 3.4, -11.75, 180); box(M.brass, 0.08, 4.6, 0.04, 0, 3.4, -11.7); box(M.brass, 5.4, 0.08, 0.04, 0, 4, -11.7);
+  text('FEVER DREAM LIBRARY', 0, 6, -11.7, 0.42, '#ffb866', 180); text('FEVER DREAM LIBRARY', 0, 5.2, 11.75, 0.4, '#ffb866'); text('THE MOVIE LOBBY', 0, 4.55, 11.75, 0.16, '#ffffff');
+  box(CA.wood, 2.4, 0.08, 9, 0, 0.82, -3.2); for (const x of [-1, 1]) for (const z of [-7.3, -3.2, 0.9]) box(CA.walnut, 0.14, 0.8, 0.14, x, 0.4, z); libSolid(-1.3, 1.3, -7.8, 1.4);
+  for (let i = 0; i < 3; i++) group(0, 0.86, -6.4 + i * 3.2, 0, () => { box(M.brass, 0.3, 0.06, 0.2, 0, 0.03, 0); rod(M.brass, [0, 0.05, 0], [0, 0.38, 0], 0.02); box(CA.green, 0.45, 0.1, 0.18, 0, 0.42, 0); });
+  for (let i = 0; i < 4; i++) for (const s of [-1, 1]) facing(s * 1.75, -6.6 + i * 2.3, 0, -6.6 + i * 2.3, () => { box(CA.wood, 0.55, 0.08, 0.55, 0, 0.46, 0); box(CA.wood, 0.55, 0.9, 0.06, 0, 0.95, 0.25); for (const lx of [-0.22, 0.22]) for (const lz of [-0.22, 0.22]) box(CA.walnut, 0.05, 0.44, 0.05, lx, 0.22, lz); });
+  LIBRARY.docs.forEach((d, i) => {
+    const z = -7.4 + i * 0.84, x = i % 2 === 0 ? -0.6 : 0.6;
+    group(x, 0.86, z, i % 2 === 0 ? 8 : -8, () => {
+      box(CA.books[i % 6], 0.5, 0.06, 0.36, 0, 0.03, 0); box(CA.cream, 0.46, 0.02, 0.33, 0, 0.065, 0); box(CA.gold, 0.03, 0.005, 0.08, 0.1, 0.07, -0.17);
+      hotspot(0, 0.1, 0, 0.7, 0.4, 0.55, () => openWindow(d.title, new URL(d.url, location.href).href), d.short);
+    });
+  });
+  for (const s of [-1, 1]) group(s * 7.2, 0, 7.2, 0, () => {
+    box(CA.red, 3.6, 0.01, 3, 0, 0.02, 0);
+    for (const aa of [-1, 1]) facing(aa * 0.9, 0, aa * 0.9, -0.6, () => { box(M.seat, 0.95, 0.6, 0.9, 0, 0.3, 0); box(M.seat, 0.95, 0.9, 0.2, 0, 0.9, 0.38); for (const ax of [-0.45, 0.45]) box(M.seat, 0.15, 0.35, 0.9, ax, 0.65, 0); });
+    cyl(CA.wood, 0.35, 0.6, 0, 0.3, -0.8); rod(M.brass, [s * 1.6, 0, 0.8], [s * 1.6, 1.7, 0.8], 0.03); sph(O.warm, 0.4, 0.4, 0.4, s * 1.6, 1.8, 0.8);
+  });
+  libSolid(-9, -5.4, 5.6, 8.8); libSolid(5.4, 9, 5.6, 8.8);
+  facing(10.35, 1.6, 0, 1.6, () => {
+    box(CA.walnut, 2.2, 1.1, 0.7, 0, 0.55, 0); box(M.brass, 2.3, 0.05, 0.8, 0, 1.12, -0.05); box(CA.walnut, 2, 1.4, 0.3, 0, 2.1, 0.15); quad(CA.term, 1.7, 1.1, 0, 2.1, -0.02);
+    text('ARCHIVE TERMINAL', 0, 3.15, 0.05, 0.22, '#ff9e33'); text('PLACES  /  TOWERS  /  SYSTEMS  /  HOW IT WAS MADE', 0, 2.9, 0.05, 0.09, '#ffffff');
+    hotspot(0, 1.6, -0.2, 2.4, 2.8, 1.2, () => openArchive(), 'Archive Terminal');
+  });
+  libSolid(9.5, 11.2, 0.5, 2.7);
+  for (let i = 0; i < 3; i++) group(0, 5.3, -8 + i * 7, 0, () => { rod(M.brass, [0, 0, 0], [0, 1.2, 0], 0.02); sph(O.warm, 0.55, 0.55, 0.55, 0, 0, 0); for (const s of [-1, 1]) sph(O.warm, 0.22, 0.22, 0.22, s * 0.6, -0.1, 0); });
+  point(0, 4.8, -2, 0xffad66, 48, 20);
+}
+// ---- the Archive Terminal and a generic info panel ----
+function panelRow(icon, title, meta, desc, run) {
+  const b = document.createElement('button'); b.className = 'lt-row';
+  b.innerHTML = '<span class="ic"></span><span style="flex:1"><span class="t"></span><span class="m"></span><span class="d"></span></span>';
+  b.querySelector('.ic').textContent = icon; b.querySelector('.t').textContent = title; b.querySelector('.m').textContent = meta ? ' · ' + meta : ''; b.querySelector('.d').textContent = desc; b.onclick = run; return b;
+}
+function openPanel(title, tabs, draw, search = false) {
+  $('panelT').textContent = title; const top = $('panelTop'), body = $('panelBody'); top.replaceChildren();
+  let cur = tabs.length ? tabs[0][0] : '', q = '';
+  const redraw = () => { body.replaceChildren(); draw(cur, q.toLowerCase(), body); top.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.id === cur)); };
+  for (const [id, label] of tabs) { const b = document.createElement('button'); b.textContent = label; b.dataset.id = id; b.onclick = () => { cur = id; redraw(); }; top.appendChild(b); }
+  if (search) { const inp = document.createElement('input'); inp.type = 'search'; inp.placeholder = 'search…'; inp.setAttribute('aria-label', 'Search'); inp.oninput = () => { q = inp.value; redraw(); }; top.appendChild(inp); }
+  top.style.display = tabs.length || search ? 'flex' : 'none'; $('panel').classList.add('on'); player.keys.clear(); redraw();
+}
+const ARCHIVE_PAGES = {
+  places: 'THE UNDERGROUND  /  the club: arrival lounge, DJ battle arena (CYAN vs VIOLET), VIP balconies, gallery, neon arcade, cinema lounge, main auditorium and private cinema.\n\nTHE STREET  /  out through the arrival lounge’s sliding doors.\nTHE FESTIVAL  /  through the ring gateway: the main stage and a 13-act lineup.\nTHE MIDWAY  /  a big-top arcade, through the festival’s striped tent.\nTHE COMPLEX  /  the rusty warehouse at the street’s west end: five wing chambers, hide & seek and a hidden room.\n\nTHE MOVIE LOBBY  /  on the street’s south side: five theaters, the arcade terminal, Trippy Cam, the merch tent, Chroma vote booths and the food court.\nFEVER DREAM LIBRARY  /  through the lobby’s east door. You are here.\nTHE ROOMS and THE ARCHIVE  /  the catalog towers at the gallery’s east and west ends.',
+  towers: 'THE ROOMS  /  east end of the gallery, 15 floors, one door each\n  G  The Gallery (museum)\n  1-6  artist worlds: Rave Charles, Driftwave Static, VaporStudio Rooms, Sofa King Sad Boi, Tanky Johnson, Shmorez\n  7-14  the big loop: Green Room, Surreal Lo-Fi, Abstract Psychedelic, Glitch Room, Horrorcore, Control Room, Game Room, Rooftop\n\nTHE ARCHIVE  /  west end of the gallery, 11 floors, up to four doors each\n  G  The Festival   1-3  Games   4  Retro   5  Arcade Row   6  Stages\n  7  Studios   8  Tools + Archives   9-10  Roof: the EPKs\n\nEvery floor has an elevator on its far wall. Doors that match a place in this world take you there. The other doors show their card, with the page one click away in a window.',
+  systems: 'WALK  /  WASD or arrows, Shift to hurry, drag to look. Touch: the pads. Click things to use them.\n\nDOORS  /  walk into a doorway or click it.\nELEVATORS  /  call one on any tower floor’s far wall and pick a floor.\nTHEATERS  /  each screen desk changes what is playing; the Chroma desks open an entry in a window.\nSHOW CLOCK  /  a simulated 120 BPM pulse drives the neon, LED walls and crowd everywhere. It is not audio analysis.\nVOTES  /  the booths open the real Chroma Awards vote page.\nTRIPPY CAM  /  four tinted frames of what you are looking at. Nothing is uploaded.',
+  made: 'Built from the creator’s Unity world specs and supplied models. Every wall, seat, shelf, sign and screen here is procedural geometry, ported to Three.js for the browser.\n\nThe campus follows the creator’s world spec: the Movie Lobby’s theaters, terminal, booths and food court; the library’s long table, nooks and terminal; and the two towers’ floor lists.\n\nDifferences: the lobby’s street door sits at the west end of its street wall so it opens onto the street.',
+};
+function openArchive() {
+  const tabs = [['all', 'ALL'], ...LIBRARY.tabs.filter((t2) => t2[0] !== 'all'), ['places', 'PLACES'], ['towers', 'TOWERS'], ['systems', 'SYSTEMS'], ['made', 'HOW IT WAS MADE']];
+  openPanel('ARCHIVE TERMINAL // FEVER DREAM LIBRARY', tabs, (tab, q, body) => {
+    if (ARCHIVE_PAGES[tab]) { const p = document.createElement('div'); p.className = 'lt-intro'; p.style.whiteSpace = 'pre-wrap'; p.textContent = ARCHIVE_PAGES[tab]; body.appendChild(p); return; }
+    for (const d of LIBRARY.docs) {
+      if (tab !== 'all' && d.kind !== tab) continue;
+      if (q && !(d.title + ' ' + d.desc + ' ' + d.short).toLowerCase().includes(q)) continue;
+      body.appendChild(panelRow('▤', d.title, d.pages ? `${d.pages} pp · ${d.size}` : d.size, d.desc, () => openWindow(d.title, new URL(d.url, location.href).href)));
+    }
+  }, true);
+}
+// ---- Trippy Cam: four tinted frames of the current view ----
+let snapReq = false;
+function snapDone() {
+  snapReq = false; const src = renderer.domElement, w = 480, h = Math.round((480 * src.height) / src.width), tiles = [];
+  for (const f of ['none', 'hue-rotate(90deg) saturate(2)', 'hue-rotate(200deg) saturate(2.4) contrast(1.2)', 'invert(1) hue-rotate(160deg)']) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); g.filter = f; g.drawImage(src, 0, 0, w, h); tiles.push(c.toDataURL('image/jpeg', 0.85));
+  }
+  openPanel('TRIPPY CAM', [], (t2, q, body) => {
+    const grid = document.createElement('div'); grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;padding:8px';
+    tiles.forEach((u, k) => { const a = document.createElement('a'); a.href = u; a.download = `trippy-cam-${k + 1}.jpg`; const im = document.createElement('img'); im.src = u; im.alt = `Trippy Cam frame ${k + 1}`; im.style.cssText = 'width:100%;border:1px solid #ffb000;border-radius:6px'; a.appendChild(im); grid.appendChild(a); });
+    body.appendChild(grid); const n = document.createElement('div'); n.className = 'lt-intro'; n.textContent = 'Tap a frame to save it. Nothing leaves this device.'; body.appendChild(n);
+  });
+}
+const flashes = [];
+function campus() {
+  group(LO.x, 0, LO.z, 0, () => { lobbyShell(); lobbyFacade(); lobbyInterior(); for (let i = 0; i < 5; i++) theater(i); });
+  group(LB.x, 0, LB.z, -90, library);
+  // walkable: the entrance apron, the lobby floor, the library passage and the library
+  lobbyRect(-19.6, -15.2, 18.5, 22.6); lobbyRect(-21.6, 21.6, -19.6, 19.6); lobbyRect(21, 23.2, -17.6, -14.4);
+  rect(LB.x - 13.6, LB.x - 11.2, LB.z - 1.9, LB.z + 1.9); libRect(-10.6, 10.6, -11.6, 11.6);
+}
+function campusTick(t, dt) {
+  const inCx = player.floor === 0 && player.x < -43.4 && player.x > -95 && player.z > -80 && player.z < -17; if (inCx !== campusTick.cx) { campusTick.cx = inCx; $('backBtn').style.display = inCx ? '' : 'none'; }
+  for (const f of flashes) { f.t -= dt; if (f.t < 0) { f.m.visible = true; f.t = 0.8 + Math.random() * 2.6; f.off = 0.07; } else if (f.m.visible) { f.off -= dt; if (f.off < 0) f.m.visible = false; } }
+  for (const ts of tScreens) {
+    if (!ts.list) continue;
+    const x = LO.x + THX[ts.i], inside = player.floor === 0 && player.x > x - 4 && player.x < x + 4 && player.z > LO.z - 35 && player.z < LO.z - 20.2;
+    if (inside && !ts.playing && !ts.requested) { ts.requested = true; nextTheaterVideo(ts, 0); }
+    if (!inside && ts.playing) { ts.video.pause(); ts.playing = false; ts.requested = false; ts.mesh.material = ts.mat; }
+    if (inside && ts.playing && ts.video.paused && !ts.video.ended) ts.video.play().catch(() => { });
+  }
+}
+
+// ---- doors that lead to a place in this world warp there; the rest show a card with the page one click away in a window ----
+function warpFor(url) {
+  const cx = (sx, sz) => [CXO.x + sz, CXO.z + sx];
+  const W = {
+    'index.html': [18, -76, face(-1, -1)], 'warehouse.html': [...cx(0, 17), face(-1, 0)],
+    'lobby.html': [LO.x - 15.5, LO.z + 15.2, face(0, -1)], 'store.html': [LO.x - 12, LO.z + 14.2, face(0, 1)], 'library.html': [LB.x - 9, LB.z, face(1, 0)],
+    'studio.html': [...cx(-18, 0), face(0, -1)], 'horrorcore.html': [...cx(-18, -14), face(0, -1)], 'abstract.html': [...cx(19, -9), face(0, 1)], 'arcade.html': [...cx(19, -1), face(0, 1)],
+    'screening.html?room=chroma25': [LO.x + THX[0], LO.z - 22.6, face(0, -1)], 'screening.html?room=chroma': [LO.x + THX[2], LO.z - 22.6, face(0, -1)],
+  };
+  return W[url] || null;
+}
+function useDoor(url, label, sub) {
+  const w = warpFor(url);
+  if (w) { ride.on = false; teleport(w[0], w[1], 0, w[2]); say(`→ ${label.toLowerCase()}`); return; }
+  const full = /^https?:/.test(url) ? url : new URL(url, location.href).href;
+  openPanel(label, [], (t2, q, body) => {
+    const p = document.createElement('div'); p.className = 'lt-intro'; p.textContent = sub ? sub.toUpperCase() : 'A PAGE OF THE 12MATT3R SITE'; body.appendChild(p);
+    const n = document.createElement('div'); n.className = 'lt-intro'; n.textContent = 'This door has no room of its own in the Underground yet. It opens in a window, so you stay right here.'; body.appendChild(n);
+    const b = document.createElement('button'); b.className = 'btn'; b.textContent = 'OPEN IN A WINDOW'; b.style.margin = '6px 4px'; b.onclick = () => { $('panel').classList.remove('on'); openWindow(label, full); }; body.appendChild(b);
+  });
+}
+
 // ---- assemble ----
 mkScreen('main', null, 0x0f2b6a, 0x7a22d8); mkScreen('vip', null, 0x6a2a10, 0x3a1088);
 arenaShell(); arena(); vip(); lobby(); gallery();
 group(-14, 0, 43, 0, arcade);
-cinemaLobby(); TOWERS.forEach(buildTower); street(); festival(); midway(); complex();
+cinemaLobby(); TOWERS.forEach(buildTower); street(); festival(); midway(); complex(); campus();
 group(15, 0, 59, 0, mainCinema);
 group(37, 0, 46, 0, privateCinema);
 // walkable rects for the wings (world Unity coords)
@@ -1175,7 +1513,7 @@ const spots = [
 for (const [label, x, z, h, yaw, hot] of spots) { const b = document.createElement('button'); b.className = `btn${hot ? ' hot' : ''}`; b.textContent = label; b.onclick = () => teleport(x, z, h, yaw); $('goRow').appendChild(b); }
 $('liftX').onclick = () => $('lift').classList.remove('on');
 $('lift').addEventListener('pointerdown', (e) => { if (e.target === $('lift')) $('lift').classList.remove('on'); });
-$('backBtn').onclick = () => goTo('lobby.html', 'back to the festival lobby…');
+$('backBtn').onclick = () => { teleport(-38.5, -48, 0, face(1, 0)); say('back on the street'); };
 
 // =====================================================================================
 //  THE EXPLORER LAYER (from the Unity "polish pass"): access passport, map + beacon, finale
@@ -1230,7 +1568,7 @@ function renderPassport() {
 const DEST = [
   ['ARRIVAL LOUNGE', 0, -33, 0, face(0, 1)], ['CONCERT ARENA', 0, -14, 0, face(0, 1)], ['VIP DECK', 0, -20.5, 4, face(0, 1)], ['NEON ARCADE', -14, 38, 0, face(0, 1)], ['CINEMA SOCIETY', 15, 40, 0, face(0, 1)],
   ['PRIVATE CINEMA', 33, 41, 0, face(1, 0)], ['THE STREET', 0, -44, 0, face(0, -1)], ['THE FESTIVAL', 0, -70, 0, face(0, -1)], ['THE MIDWAY', -33, -104, 0, face(-1, 0)],
-  ['THE COMPLEX', -48, -48, 0, face(-1, 0)], ['THE MOVIE LOBBY', 38, -60.4, 0, face(0, -1), 'lobby.html'], ['FEVER DREAM LIBRARY', -39.6, 29, 8 * 8, face(1, 0), 'library.html'], ['THE ROOMS TOWER', 32, 29, 0, face(1, 0)], ['THE ARCHIVE TOWER', -32, 29, 0, face(-1, 0)],
+  ['THE COMPLEX', -48, -48, 0, face(-1, 0)], ['THE MOVIE LOBBY', 39.1, -67.1, 0, face(0, -1)], ['FEVER DREAM LIBRARY', 80, -98.3, 0, face(1, 0)], ['THE ROOMS TOWER', 32, 29, 0, face(1, 0)], ['THE ARCHIVE TOWER', -32, 29, 0, face(-1, 0)],
 ];
 function renderMap() {
   const el = $('mapBody'); el.replaceChildren();
@@ -1250,10 +1588,10 @@ const node = (k, x, z) => { NODES[k] = [x, z]; }, edge = (a, b) => EDGES.push([a
 node('balcony', 0, -20); node('vip', 7, -19); node('stair', 0, -6); node('aisle', 3.5, -6); node('entry', 3.5, -25); node('lounge', 0, -33); node('outside', 0, -43.4);
 node('vote', -14.1, -5.6); node('desk', 0, -5); node('gallery', 3.5, 26); node('mid', 0, 29); node('west', -14, 29); node('arcade', -14, 36.5); node('game', -21.2, 37.5);
 node('east', 12, 29); node('cinema', 12, 40); node('screen', 10.5, 44.3); node('privHall', 15, 40); node('priv', 31, 41); node('rooms', 22, 29); node('roomsIn', 31, 29); node('archive', -22, 29); node('archiveIn', -31, 29);
-node('crossing', 18, -44); node('gate', 18, -59); node('street', 0, -52); node('complexTurn', -36, -48); node('complexDoor', -41, -48); node('cinemaStreet', 30, -53); node('lobbyDoor', 38, -60);
+node('crossing', 18, -44); node('gate', 18, -59); node('street', 0, -52); node('complexTurn', -36, -48); node('complexDoor', -41, -48); node('cinemaStreet', 30, -53); node('lobbyDoor', 37.2, -60); node('lobbyIn', 37.2, -67); node('lobbyHall', 48, -73); node('lobbyEast', 72, -80); node('lobbyLow', 72, -98.3); node('libDoor', 76.3, -98.3); node('libIn', 82, -98.3);
 [['balcony', 'vip'], ['balcony', 'stair'], ['stair', 'aisle'], ['aisle', 'entry'], ['entry', 'lounge'], ['lounge', 'outside'], ['stair', 'vote'], ['stair', 'desk'], ['aisle', 'gallery'], ['gallery', 'mid'], ['mid', 'west'], ['west', 'arcade'], ['arcade', 'game'],
   ['mid', 'east'], ['east', 'cinema'], ['cinema', 'screen'], ['cinema', 'privHall'], ['privHall', 'priv'], ['east', 'rooms'], ['rooms', 'roomsIn'], ['west', 'archive'], ['archive', 'archiveIn'],
-  ['outside', 'crossing'], ['crossing', 'gate'], ['outside', 'street'], ['street', 'complexTurn'], ['complexTurn', 'complexDoor'], ['crossing', 'cinemaStreet'], ['cinemaStreet', 'lobbyDoor']].forEach(([a, b]) => edge(a, b));
+  ['outside', 'crossing'], ['crossing', 'gate'], ['outside', 'street'], ['street', 'complexTurn'], ['complexTurn', 'complexDoor'], ['crossing', 'cinemaStreet'], ['cinemaStreet', 'lobbyDoor'], ['lobbyDoor', 'lobbyIn'], ['lobbyIn', 'lobbyHall'], ['lobbyHall', 'lobbyEast'], ['lobbyEast', 'lobbyLow'], ['lobbyLow', 'libDoor'], ['libDoor', 'libIn']].forEach(([a, b]) => edge(a, b));
 function nearestNode(x, z) { let best = null, d = 1e9; for (const [k, [nx, nz]] of Object.entries(NODES)) { const dd = (nx - x) ** 2 + (nz - z) ** 2; if (dd < d) { d = dd; best = k; } } return best; }
 function route(x, z, gx, gz) {
   const start = nearestNode(x, z), end = nearestNode(gx, gz), dist = {}, prev = {}, todo = new Set(Object.keys(NODES));
@@ -1307,7 +1645,7 @@ function confetti() {
   let t = 0; const tick = () => { g.clearRect(0, 0, c.width, c.height); t++; for (const p of ps) { p.x += p.vx; p.y += p.vy; g.fillStyle = p.c; g.fillRect(p.x, p.y, p.r, p.r * 1.6); } if (t < 280 && $('finale').classList.contains('on')) requestAnimationFrame(tick); else g.clearRect(0, 0, c.width, c.height); };
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) tick();
 }
-for (const [id, close] of [['map', 'mapX'], ['passport', 'passX'], ['pulse', 'pulseX'], ['finale', 'finaleX']]) { $(close).onclick = () => { $(id).classList.remove('on'); pulse = id === 'pulse' ? null : pulse; }; $(id).addEventListener('pointerdown', (e) => { if (e.target === $(id)) { $(id).classList.remove('on'); if (id === 'pulse') pulse = null; } }); }
+for (const [id, close] of [['map', 'mapX'], ['passport', 'passX'], ['pulse', 'pulseX'], ['finale', 'finaleX'], ['panel', 'panelX']]) { $(close).onclick = () => { $(id).classList.remove('on'); pulse = id === 'pulse' ? null : pulse; }; $(id).addEventListener('pointerdown', (e) => { if (e.target === $(id)) { $(id).classList.remove('on'); if (id === 'pulse') pulse = null; } }); }
 $('mapBtn').onclick = () => { renderMap(); $('map').classList.add('on'); player.keys.clear(); };
 $('passBtn').onclick = () => { renderPassport(); $('passport').classList.add('on'); player.keys.clear(); };
 $('pulseCv').addEventListener('pointerdown', pulseHit);
@@ -1338,7 +1676,7 @@ function frame() {
   ledA.uniforms.k.value = ledB.uniforms.k.value = 0.9 + 0.35 * p;
   for (const m of pulseMats) m.opacity = 0.05 + 0.06 * p;
   for (const l of lights) l.userData.base ??= l.intensity, l.intensity = l.userData.base * (0.85 + 0.3 * p);
-  crowd(t, p + crowdKick * 0.8); festTick(t, p, dt); cxTick(t, dt);
+  crowd(t, p + crowdKick * 0.8); festTick(t, p, dt); cxTick(t, dt); campusTick(t, dt);
   // play the cinema screens only while you're in them
   for (const [id, s] of Object.entries(screens)) {
     const r = id === 'main' ? [3.4, 26.6, 46.4, 71.6] : [28.4, 45.6, 36.4, 55.6], inside = player.x > r[0] && player.x < r[1] && player.z > r[2] && player.z < r[3];
@@ -1354,8 +1692,9 @@ function frame() {
   for (const d of doorTriggers) { const inside = !ride.on && d.floor === player.floor && player.x > d.x0 && player.x < d.x1 && player.z > d.z0 && player.z < d.z1; if (inside && d.armed) { d.armed = false; if (d.run) d.run(); else goTo(d.url, `entering ${d.label.toLowerCase()}…`); } else if (!inside) d.armed = true; }
   towerLights.forEach((l, k) => { const T = TOWERS[k], on = towerAt(player.x) === T && player.x * T.sx > 20, f = on ? player.floor : 0; l.position.set(T.sx * 34, fy(f) + 5, -29); l.color.setHex(T.floors[f].color); });
   renderer.render(scene, camera);
+  if (snapReq) snapDone();
 }
 teleport(0, -33, 0, face(0, 1)); moveUpdate(0.016); renderer.render(scene, camera);
 $('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); } };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
+if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };

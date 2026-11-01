@@ -214,3 +214,20 @@ monospace signage. Reduced-motion is respected (`rm-dock`); the club pulse is bo
 6. **Mobile pass** on the club (lights, 128k-poly-class art already reduced) and touch controls for the elevator list.
 7. **Passport / finale** from the Unity project ("unlock the finale") was not ported.
 8. **Moving-light model** from the Unity project is replaced by simple fixtures.
+
+## 10. One world, no hand-offs (campus built in `underground.html`)
+
+The Movie Lobby, its five theaters and the Fever Dream Library are now built **inside the Underground scene** (ported from the
+Unity campus builder), not reached through `lobby.html` / `library.html`:
+
+- **Movie Lobby** — street face with the marquee canopy, blade sign and sliding glass doors at world (37.2, −62.3); inside: plum
+  carpet, coffered ceiling, three chandeliers, marble columns, directory pylon, Chroma red carpet with ropes, grand marquee and
+  paparazzi flashes, arcade terminal (opens NEON PULSE), Trippy Cam (four tinted frames), four vote booths (open the vote page in
+  the in-site window), merch tent, a four-stall food court with eight tables.
+- **Five theaters** behind the theater-row wall (x offsets −17.6 … 17.6). 9×16 and 16×9 rooms play their clips while you stand in
+  them; the Chroma 2025 / Chroma rooms have a desk that lists every video and game and opens it in a window; ENTER THE VOID opens
+  its playlist.
+- **Fever Dream Library** through the lobby's east door: shelves, window, a long table with one book per production document
+  (click to open the PDF in a window), reading nooks, and the Archive Terminal (tabs, search, places/towers/systems pages).
+- **Tower doors** that match a place in this world warp there (festival, complex, lobby, merch tent, library, four complex
+  wings, the two Chroma theaters); every other door shows a card with the page one click away in a window. Nothing navigates away.
