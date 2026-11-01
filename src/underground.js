@@ -13,6 +13,7 @@ import { ALL_ENTRIES, CHROMA_VIDEOS } from './data/chroma.js';
 import { buildTrash } from './scene/trash.js';
 import { buildDealer } from './scene/dealer.js';
 import { buildLitter } from './scene/litter.js';
+import { createTrippyCam } from './scene/trippycam.js';
 import './player/globalplayer-boot.js';
 
 // THE UNDERGROUND — the B2Buddy entertainment complex, rebuilt for the web from the Unity project's
@@ -280,6 +281,7 @@ function vip() {
     const zf = z + (z < 0 ? 3 : -3);
     box(M.metal, 31, 0.5, 0.2, 0, 3.75, zf); box(z < 0 ? M.cyan : M.violet, 31, 0.045, 0.07, 0, 3.99, z + (z < 0 ? 3.03 : -3.03));
     for (const x of [-8.2, 8.2]) group(x, 4, z, z > 0 ? 180 : 0, vipBooth);
+    group(0, 4, z, 0, () => kiosk(0, 0, z < 0 ? 180 : 0, 'Sky cam', M.cyan, () => openCamMenu()));   // the skybox camera
     for (const x of [-11.5, -4.5, 4.5, 11.5]) { box(M.glass, 6.6, 1.25, 0.055, x, 4.68, zf); rod(M.brass, [x - 3.3, 5.33, zf], [x + 3.3, 5.33, zf], 0.035); }
     rect(-15.3, 15.3, z < 0 ? -23.7 : 18.3, z < 0 ? -18.3 : 23.7, true);
   }
@@ -1309,7 +1311,7 @@ function lobbyInterior() {
     box(pl, 2.4, 2.8, 0.12, 0, 1.4, 0.55); for (const s of [-1, 1]) box(pl, 0.1, 2.8, 1.4, s * 1.15, 1.4, -0.1);
     box(pl, 2.4, 0.12, 1.4, 0, 2.86, -0.1); box(CA.redG, 0.9, 2.4, 0.06, -0.6, 1.5, -0.75); box(M.velvet, 1.8, 0.5, 0.5, 0, 0.25, 0.25); box(INK, 0.5, 0.5, 0.04, 0.5, 1.6, 0.48); box(INK, 2.2, 0.6, 0.1, 0, 3.3, -0.1);
     text('TRIPPY CAM', 0, 3.32, -0.18, 0.28, '#ff4de6'); for (const s of [-1, 1]) box(O.magenta, 0.05, 2.8, 0.05, s * 1.2, 1.4, -0.8);
-    hotspot(0, 1.4, -0.4, 2.4, 2.8, 1.4, () => { snapReq = true; }, 'Trippy Cam · take a photo');
+    hotspot(0, 1.4, -0.4, 2.4, 2.8, 1.4, () => openCamMenu(), 'Trippy Cam');
   });
   [[-20.5, -9, 0, -9], [-20.5, 12, 0, 12], [12, 18.5, 12, 0], [20.5, 17.5, 20.5, 0]].forEach(([vx, vz, tx, tz]) => facing(vx, vz, tx, tz, () => {
     box(INK, 1.5, 2.4, 0.1, 0, 1.2, 0.3); for (const s of [-1, 1]) box(INK, 0.06, 2.4, 0.7, s * 0.72, 1.2, -0.05);
@@ -1563,6 +1565,16 @@ function festExtrasTick(t, p, dt) {
     canvas.style.filter = id === 'trip' ? `hue-rotate(${(t * 70) % 360}deg) saturate(2.4) contrast(1.15)` : DRUG_FILTER[id];
     if (drugT <= 0) { drug = null; canvas.style.filter = ''; say('you come down'); }
   }
+}
+// ---- the sky cam: your own webcam wrapped across the night sky (asks for camera access; nothing is uploaded) ----
+const skyCam = createTrippyCam(scene, { onState: (on, err) => say(on ? '📷 SKY CAM on — that is you, up there' : err ? 'sky cam needs camera access (denied or unavailable)' : 'sky cam off') });
+function openCamMenu() {
+  openPanel('TRIPPY CAM // THE SKY CAM', [], (t2, q, body) => {
+    const close = () => $('panel').classList.remove('on');
+    body.appendChild(panelRow('📷', skyCam.isActive() ? 'TURN THE SKY CAM OFF' : 'PUT YOURSELF IN THE SKY', 'webcam', 'Wraps your camera across the whole night sky. It stays on this device.', () => { close(); skyCam.toggle(); }));
+    if (skyCam.isActive()) body.appendChild(panelRow('🎲', 'REMIX THE LOOK', '', 'Tint, spin and blend: a new look every click.', () => { close(); skyCam.randomizeEffect(); }));
+    body.appendChild(panelRow('🖼', 'TAKE FOUR PHOTOS', '', 'Four tinted frames of what you are looking at.', () => { close(); snapReq = true; }));
+  });
 }
 // ---- assemble ----
 mkScreen('main', null, 0x0f2b6a, 0x7a22d8); mkScreen('vip', null, 0x6a2a10, 0x3a1088);
@@ -1874,7 +1886,7 @@ function frame() {
   ledA.uniforms.k.value = ledB.uniforms.k.value = 0.9 + 0.35 * p;
   for (const m of pulseMats) m.opacity = 0.05 + 0.06 * p;
   for (const l of lights) l.userData.base ??= l.intensity, l.intensity = l.userData.base * (0.85 + 0.3 * p);
-  crowd(t, p + crowdKick * 0.8); festTick(t, p, dt); cxTick(t, dt); campusTick(t, dt); festExtrasTick(t, p, dt);
+  crowd(t, p + crowdKick * 0.8); festTick(t, p, dt); cxTick(t, dt); campusTick(t, dt); festExtrasTick(t, p, dt); skyCam.update(dt);
   // play the cinema screens only while you're in them
   for (const [id, s] of Object.entries(screens)) {
     const r = id === 'main' ? [3.4, 26.6, 46.4, 71.6] : [28.4, 45.6, 36.4, 55.6], inside = player.x > r[0] && player.x < r[1] && player.z > r[2] && player.z < r[3];
@@ -1896,4 +1908,4 @@ function frame() {
 teleport(0, -33, 0, face(0, 1)); moveUpdate(0.016); renderer.render(scene, camera);
 $('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); } };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { openMuseumLift, openDealer, fx: () => fx, openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
+if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { openCamMenu, openMuseumLift, openDealer, fx: () => fx, openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
