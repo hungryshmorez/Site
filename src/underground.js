@@ -661,6 +661,7 @@ function street() {
   // ---- the red carpet: from the movie theater's door down the street to just before the club entrance ----
   box(CA.red, 36, 0.012, 3.2, -24.5, 0.03, -48); for (const dz of [-1.6, 1.6]) box(CA.gold, 36, 0.012, 0.06, -24.5, 0.034, -48 + dz);
   for (let i = 0; i < 10; i++) for (const dz of [-2.1, 2.1]) { const x = -42 + i * 4; cyl(M.brass, 0.045, 1, x, 0.5, -48 + dz); sph(M.brass, 0.12, 0.12, 0.12, x, 1.02, -48 + dz); cyl(M.brass, 0.2, 0.04, x, 0.02, -48 + dz); if (i < 9) rod(CA.redG, [x, 0.88, -48 + dz], [x + 4, 0.88, -48 + dz], 0.035); }
+  for (const x of [-39, -34, -29, -24, -19, -14, -9]) { paparazzo(x, -51.9, x, -48); if (x !== -39) paparazzo(x - 2, -44.3, x - 2, -48, 0.12); }   // the paparazzi along the carpet
   // ---- the festival gateway: pillars, header, receding rings ----
   group(18, 0, -61, 180, () => {
     for (const gx of [-5.2, 5.2]) { box(M.wall, 1.3, 9.6, 1.3, gx, 4.8, 0); box(M.cyan, 0.08, 9, 0.05, gx, 4.8, -0.68); box(M.metal, 1.5, 0.3, 1.5, gx, 9.75, 0); }
@@ -1258,6 +1259,10 @@ function lobbyFacade() {
   
   box(INK, 0.1, 2.6, 16, 22.26, 8.4, 0); text('MOVIE THEATER', 22.33, 8.75, 0, 1.5, '#ffc759', -90); text('FIVE THEATERS  /  ENTRANCE ON THE STREET', 22.33, 7.65, 0, 0.36, '#73e6ff', -90);
   for (const fx of [-21.7, -13.1]) box(fx < -20 ? CA.redG : O.purple, 0.08, 11, 0.06, fx, 5.5, 20.32);
+  for (const sx of [-33, 8]) {   // NOW FEATURING, on the long front either side of the door
+    box(INK, 15, 4.4, 0.12, sx, 8.4, 20.7); box(CA.redG, 15, 0.1, 0.06, sx, 10.55, 20.78); box(CA.gold, 15, 0.1, 0.06, sx, 6.25, 20.78);
+    text('NOW FEATURING', sx, 9.5, 20.8, 0.5, '#ffd966', 180); text('THE CHROMA AWARDS', sx, 8, 20.8, 0.85, '#ff4d52', 180); text('RED CARPET  ·  EVERY ENTRY  ·  ONE NIGHT', sx, 6.9, 20.8, 0.2, '#ffffff', 180);
+  }
   slideDoor({ x: -17.4, z: 20, yaw: 0, w: 6.8, h: 6.2, color: 0x00f2ff, pane: CXM.rust });
 }
 function lobbyInterior() {
