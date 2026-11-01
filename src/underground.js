@@ -527,13 +527,13 @@ function rideTo(i, sx = towerAt(player.x).sx) {
 // ---- SLIDING GLASS DOORS (animated; optionally a door into one of the site's pages) ----
 const sliders = [];
 const glassPane = new THREE.MeshStandardMaterial({ color: 0x35506a, roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.38 });
-function slideDoor({ x, z, yaw = 0, w = 5.2, h = 4.4, url = null, label = '', color = CY, sign = '' }) {
+function slideDoor({ x, z, yaw = 0, w = 5.2, h = 4.4, url = null, label = '', color = CY, sign = '', pane = glassPane }) {
   const p = wpos(x, 0, z), phi = yawOf() + THREE.MathUtils.degToRad(yaw), half = w / 2, panels = [];
   const g = new THREE.Group(); g.position.set(p.x, 0, -p.z); g.rotation.y = -phi; scene.add(g);
   const rim = new THREE.MeshBasicMaterial({ color, toneMapped: false });
   for (const s of [-1, 1]) {
     const pg = new THREE.Group(); pg.position.x = s * half / 2; g.add(pg);
-    pg.add(new THREE.Mesh(new THREE.BoxGeometry(half - 0.05, h - 0.1, 0.06), glassPane));
+    pg.add(new THREE.Mesh(new THREE.BoxGeometry(half - 0.05, h - 0.1, pane === glassPane ? 0.06 : 0.3), pane));
     pg.children[0].position.y = h / 2;
     const stile = new THREE.Mesh(new THREE.BoxGeometry(0.05, h - 0.1, 0.08), rim); stile.position.set(-s * (half / 2 - 0.05), h / 2, -0.03); pg.add(stile);
     panels.push({ g: pg, x0: s * half / 2, dir: s });
@@ -588,11 +588,7 @@ function street() {
   for (const x of [-30, -12, 12, 30]) lamp(x, -44.4, -1, Math.abs(x) < 20); for (const x of [-30, -6, 34]) lamp(x, -57.7, 1, false);
   group(8, 0, -44.3, 0, () => { cyl(M.metal, 0.06, 2.8, 0, 1.4, 0); box(INK, 3.6, 0.8, 0.08, 0, 2.65, 0); box(M.cyan, 3.6, 0.04, 0.1, 0, 3.06, 0); text('←  THE FESTIVAL', 0, 2.65, -0.08, 0.3, '#4de8ff'); });
   car(-22, -54.6, 90, PLUM); car(31, -47.4, -90, TEAL); car(-34, -47.4, -90, TEAL);
-  // ---- west end: THE COMPLEX (the warehouse) ----
-  box(RUST, 6, 12, 24, -45, 6, -50); for (let i = 0; i < 24; i++) box(M.metal, 0.12, 11.6, 0.2, -41.95, 6, -61.5 + i * 1.0);
-  text('THE COMPLEX', -41.8, 9.3, -50, 1.0, '#ffd96a', 90); text('12MATT3R  ·  A WAREHOUSE OF ROOMS  ·  OPEN', -41.8, 7.9, -50, 0.26, '#ff9e40', 90);
-  box(glow(0xffd96a), 0.06, 0.12, 13, -41.9, 8.3, -50);
-  slideDoor({ x: -42, z: -51, yaw: 90, w: 4.4, h: 4.2, url: 'warehouse.html', label: 'THE COMPLEX', color: 0xffd96a, sign: 'sliding door · walk in' });
+  // ---- west end: THE COMPLEX (the warehouse; see complex()) ----
   group(-8, 0, -44.3, 0, () => { cyl(M.metal, 0.06, 2.8, 0, 1.4, 0); box(INK, 3.6, 0.8, 0.08, 0, 2.65, 0); box(glow(0xffd96a), 3.6, 0.04, 0.1, 0, 3.06, 0); text('←  THE COMPLEX', 0, 2.65, -0.08, 0.3, '#ffd96a'); });
   // ---- east end: B2BUDDY RECORDS ----
   box(M.wall, 4.2, 16, 23.8, 44.1, 8, -50.1);
@@ -852,11 +848,210 @@ function midway() {
 }
 const circles = [];
 
+// =====================================================================================
+//  THE COMPLEX — the rusty neon warehouse at the street's west end (spec metres; spec [x, z] → world [−62.2 + z, −48 + x])
+// =====================================================================================
+const CXM = { rust: std(0x331f14, { roughness: 0.6, metalness: 0.45 }), rib: std(0x1c0f0a, { roughness: 0.55, metalness: 0.5 }), concrete: std(0x13141a, { roughness: 0.7, metalness: 0.1 }), slab: std(0x07070a, { roughness: 0.5, metalness: 0.2 }),
+  crate: std(0x38240f, { roughness: 0.9 }), panel: std(0x47050a, { roughness: 0.5, metalness: 0.3 }), cab: std(0x1a1429, { roughness: 0.5, metalness: 0.3 }), mint: glow(0x00ffaa), blue: glow(0x3373ff), heart: glow(0x8c80ff) };
+const cxChecker = new THREE.ShaderMaterial({ vertexShader: 'varying vec2 v; void main(){ v=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+  fragmentShader: 'varying vec2 v; void main(){ vec2 c=floor(v*vec2(25.,24.)/2.5); float k=mod(c.x+c.y,2.); vec3 col=mix(vec3(.025,.025,.04),vec3(.33,.34,.39)*.55,k); col+=vec3(.3,.32,.6)*.15*smoothstep(.95,1.,max(abs(fract(v.x*10.)-.5),abs(fract(v.y*9.6)-.5))*2.); gl_FragColor=vec4(col,1.); }' });
+const plasmaMat = ledMat(0xff0099, 0x4d4dff), crtMat = ledMat(0x3380ff, 0xccdfff), holoMat = ledMat(0x00ffb3, 0xff33e6), cabMats = [ledMat(0xff2bd1, 0x4d0d80), ledMat(0x00f2ff, 0x4d0d80), ledMat(0xffdb33, 0x4d0d80)];
+const CXO = { x: -62.2, z: -48 };
+const S = (x, z, y = 0) => [-x, y, z];
+const cxWorld = (x, z, y = 0) => new THREE.Vector3(CXO.x + z, y, -(CXO.z + x));   // spec → three-space
+const cxRect = (x0, x1, z0, z1, gate = null) => { const a = CXO.x + z0, b = CXO.x + z1, c = CXO.z + x0, d = CXO.z + x1; rects.push({ x0: Math.min(a, b), x1: Math.max(a, b), z0: Math.min(c, d), z1: Math.max(c, d), u: false, gate }); };
+function cxWall(x0, z0, x1, z1, h, mat, thick = 0.6, y0 = 0) {
+  const a = S(x0, z0), b = S(x1, z1), dx = b[0] - a[0], dz = b[2] - a[2], len = Math.hypot(dx, dz);
+  box(mat, thick, h, len + thick, (a[0] + b[0]) / 2, y0 + h / 2, (a[2] + b[2]) / 2, 0, (Math.atan2(dx, dz) * 180) / Math.PI, 0);
+}
+const faceYaw = (dx, dz) => (Math.atan2(-dx, -dz) * 180) / Math.PI;
+const cxSpin = [], cxSearch = [], cxFlicker = [];
+let cxHeart = null, cxHeartRing = null, cxGlitch = null, cxPanel = null, cxRings = [], cxChargeMats = [];
+function cxText(str, x, z, y, size, col, dirx, dirz) { text(str, ...S(x, z, y), size, col, dirx === undefined ? 180 : faceYaw(dirx, dirz)); }
+function wireIco(r, rad, mat) {
+  const f = (1 + Math.sqrt(5)) / 2, v = [];
+  for (const a of [-1, 1]) for (const b of [-f, f]) { v.push([0, a, b], [a, b, 0], [b, 0, a]); }
+  const sc = rad / Math.hypot(0, 1, f);
+  for (let i = 0; i < v.length; i++) for (let j = i + 1; j < v.length; j++) { const d = Math.hypot(v[i][0] - v[j][0], v[i][1] - v[j][1], v[i][2] - v[j][2]); if (Math.abs(d - 2) < 0.01) rod(mat, v[i].map((c) => c * sc), v[j].map((c) => c * sc), 0.035); }
+}
+function complexShell() {
+  box(CXM.slab, 63.2, 0.32, 51.6, ...S(0, -5.8, -0.14));
+  box(CXM.rust, 28.2, 13, 0.8, ...S(-17.5, 20, 6.5)); box(CXM.rust, 28.2, 13, 0.8, ...S(17.5, 20, 6.5)); box(CXM.rust, 6.8, 6.8, 0.8, ...S(0, 20, 9.6)); box(CXM.rib, 63.6, 0.9, 1.2, ...S(0, 20, 13.45));
+  for (const x of [-31.3, 31.3]) box(CXM.rust, 0.6, 12.6, 51.6, ...S(x, -5.8, 6.3)); box(CXM.rust, 63.2, 12.6, 0.6, ...S(0, -31.3, 6.3)); box(CXM.slab, 63.2, 0.6, 51.6, ...S(0, -5.8, 12.9));
+  for (let x = -13; x <= 9.4; x += 0.8) { if (Math.abs(x) < 3.9) continue; box(CXM.rib, 0.14, 12.6, 0.1, ...S(x, 20.45, 6.4)); }
+  for (const x of [-3.55, 3.55]) box(O.cyan, 0.08, 6.3, 0.06, ...S(x, 20.46, 3.15)); box(O.cyan, 7.2, 0.08, 0.06, ...S(0, 20.46, 6.3));
+  box(INK, 13, 2.6, 0.1, ...S(0, 20.5, 8.7)); text('12MATT3R', ...S(0, 20.58, 8.7), 1.9, '#00f2ff', 180);
+  text('THE COMPLEX', ...S(0, 20.58, 11.55), 0.95, '#ffd966', 180); text('WAREHOUSE OF ROOMS   ·   NOW OPEN', ...S(0, 20.58, 10.55), 0.28, '#ffd966', 180);
+  box(INK, 3.6, 1.35, 0.1, ...S(-9, 20.5, 6.4)); text('OPEN', ...S(-9, 20.58, 6.4), 0.85, '#ff3380', 180); text('SOFA KING SAD BOI', ...S(-9.2, 20.56, 3), 0.62, '#ff2a8f', 180); text('12m', ...S(6.6, 20.56, 2.8), 1.1, '#38ff14', 180);
+  point(...S(0, 23.5, 8.5), 0x00e5ff, 40, 14);
+  box(INK, 0.1, 3.2, 17, ...S(-31.65, 12, 9.5)); text('THE COMPLEX', ...S(-31.72, 12, 9.9), 2.2, '#ffd966', faceYaw(1, 0)); text('12MATT3R   ·   WAREHOUSE OF ROOMS', ...S(-31.72, 12, 8.45), 0.42, '#00f2ff', faceYaw(1, 0));
+}
+function entranceHall() {
+  for (const x of [-5.4, 5.4]) cxWall(x, 3, x, 19.6, 8, CXM.concrete, 0.4);
+  box(CXM.slab, 11.6, 0.4, 16.6, ...S(0, 11.3, 8.2)); box(INK, 3.6, 0.01, 16.6, ...S(0, 11.3, 0.025)); for (const x of [-1.85, 1.85]) box(O.cyan, 0.05, 0.01, 16.6, ...S(x, 11.3, 0.03));
+  for (const sx of [-1, 1]) for (const z of [9, 13, 17]) { const a = S(sx * 4.95, z, 4.2), b = S(0, z, 4.2); group(a[0], a[1], a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => { box(M.metal, 3.5, 2.2, 0.1, 0, 0, 0.05); quad(plasmaMat, 3.4, 2.1, 0, 0, 0); }); }
+  for (const z of [8.5, 11.4, 14.3, 17.2]) { box(M.white, 0.5, 0.1, 0.5, ...S(0, z, 7.95)); const bm = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 1.3, 7.6, 10, 1, true), hazeMat(0x99adff, 0.1)); const bp = cxWorld(0, z, 7.95 - 3.8); bm.position.copy(bp); scene.add(bm); }
+  point(...S(0, 10, 6.6), 0xbfccff, 30, 12); point(...S(0, 16.5, 6.6), 0xbfccff, 30, 12);
+  for (let i = 0; i < 6; i++) { const [ax, ay, az] = S(0, 7.5 + i * 2.3, 0.045); rod(O.cyan, [ax - 0.6, ay, az + 0.35], [ax, ay, az - 0.35], 0.08); rod(O.cyan, [ax + 0.6, ay, az + 0.35], [ax, ay, az - 0.35], 0.08); }
+  text('EXIT TO THE STREET', ...S(0, 19.3, 7), 0.32, '#99b3ff', 0); text('THE CENTRAL HUB', ...S(0, 3.34, 6.2), 0.34, '#00f2ff', 180);
+}
+function hubShell() {
+  flat(cxChecker, 30, 24, 0, 0.03, -9);
+  cxWall(-15, 3, -4, 3, 7, CXM.concrete); cxWall(4, 3, 31, 3, 7, CXM.concrete); cxWall(-31, 7, -15, 7, 7, CXM.concrete); cxWall(-15, 7, -15, 3, 7, CXM.concrete);
+  for (const x of [-15, 15]) { cxWall(x, -3, x, -14, 7, CXM.concrete); cxWall(x, -18, x, -21, 7, CXM.concrete); cxWall(x, 3, x, -3, 2.2, CXM.concrete, 0.6, 4.8); cxWall(x, -14, x, -18, 2.2, CXM.concrete, 0.6, 4.8); }
+  cxWall(-31, -21, -3, -21, 7, CXM.concrete); cxWall(3, -21, 31, -21, 7, CXM.concrete); cxWall(-4, 3, 4, 3, 1.6, CXM.concrete, 0.6, 5.4);
+  cxWall(-31, -7, -26, -7, 7, CXM.concrete); cxWall(-22, -7, -15, -7, 7, CXM.concrete);
+  for (const z of [-5, -13]) { cxWall(15, z, 22, z, 7, CXM.concrete); cxWall(26, z, 31, z, 7, CXM.concrete); }
+  for (const x of [-15, 15]) for (const z of [3, -3, -14, -18]) box(x < 0 ? O.green : O.magenta, 0.06, 4.8, 0.06, ...S(x > 0 ? x - 0.32 : x + 0.32, z, 2.4));
+  text('←  WEST WING', ...S(-14.66, 0, 5.9), 0.42, '#66ff4d', faceYaw(-1, 0)); text('EAST WING  →', ...S(14.66, 0, 5.9), 0.42, '#ff4dd9', faceYaw(1, 0));
+  for (let i = 0; i < 7; i++) box(M.metal, 62.4, 0.4, 0.4, ...S(0, -25 + i * 5, 11.4));
+  for (const [px, pz] of [[-8, -8], [8, -14]]) { box(M.metal, 0.7, 0.3, 0.7, ...S(px, pz, 11.1)); point(...S(px, pz, 9.8), 0xbfc4ff, 45, 24); }
+}
+function hubCover() {
+  for (const [px, pz] of [[-8, -3], [9, -14]]) { const a = S(px, pz), b = S(0, -9); group(a[0], 0, a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => { box(CXM.slab, 4, 3, 0.6, 0, 1.6, 0); for (let r = 0; r < 2; r++) for (let c = 0; c < 2; c++) quad(crtMat, 1.6, 1.18, -0.9 + c * 1.8, 1 + r * 1.32, -0.32); box(CXM.blue, 3.9, 0.05, 0.05, 0, 3.12, -0.25); }); }
+  for (const [px, pz] of [[-9, -15], [10, -3]]) { const a = S(px, pz), b = S(0, -9); group(a[0], 0, a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => { for (let i = -1; i <= 1; i++) { box(CXM.concrete, 0.8, 4.5, 0.8, i * 0.9, 2.25, 0); box(CXM.blue, 0.08, 4.3, 0.03, i * 0.9, 2.25, -0.41); } }); }
+  [[0, -6, 5, 0], [-3, -18, 5, 0.5], [4, -9, 4, 1.2]].forEach(([x, z, w, r]) => { const [px, , pz] = S(x, z); group(px, 0, pz, (-r * 180) / Math.PI, () => { box(CXM.concrete, w, 1.3, 0.4, 0, 0.65, 0); box(O.magenta, w, 0.04, 0.42, 0, 1.32, 0); }); });
+  box(CXM.concrete, 0.4, 2.4, 4.5, ...S(-3.2, -9, 1.2)); box(CXM.concrete, 4.5, 2.4, 0.4, ...S(3.2, -15, 1.2));
+  for (const [px, pz] of [[-14, -10], [14, -8]]) { const a = S(px, pz), b = S(0, pz); group(a[0], 0, a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => { cyl(M.metal, 0.09, 6, 0, 3, 0.45); box(M.metal, 2.5, 5.1, 0.1, 0, 3.4, 0.05); quad(holoMat, 2.4, 5, 0, 3.4, 0); }); }
+  { const a = S(-6.6, -11.5), b = S(0, -12); group(a[0], 0, a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => sofa(0, 0, 0, 2.6, M.velvet)); }
+  [[6, -4], [-10, -6], [11, -11.5], [-6.5, -17], [6.5, -18.5], [-11, -13.5], [10, -16.5]].forEach(([x, z], i) => { const [px, , pz] = S(x, z); group(px, 0, pz, 0, () => { box(CXM.crate, 1.4, 2.3, 1.4, 0, 1.15, 0); box(CXM.crate, 1.1, 1, 1.1, i % 2 === 0 ? 1.3 : -1.3, 0.5, 0); box(M.metal, 1.44, 0.08, 1.44, 0, 1.9, 0); }); });
+  [[11, -9], [7.8, -2.6], [-7.8, -2.6], [-11, -9], [-7.8, -15.4], [0, -18], [7.8, -15.4]].forEach(([x, z]) => { cyl(CXM.concrete, 0.48, 5, ...S(x, z, 2.5)); cyl(CXM.blue, 0.5, 0.14, ...S(x, z, 4.4)); cyl(CXM.blue, 0.52, 0.06, ...S(x, z, 0.1)); });
+  [[-9, -9, -0.6], [9, -15, 2.5]].forEach(([x, z, yaw]) => {
+    rod(M.metal, S(x, z, 6.8), S(x, z, 11.4), 0.05);
+    const g = dyn(...S(x, z, 6.4), 0, () => { sph(M.metal, 0.8, 0.8, 0.8, 0, 0, 0); box(O.warm, 0.5, 0.5, 0.04, 0, -0.3, 0.38, 38); }); g.userData.base = yaw;
+    const bm = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 4.6, 14, 10, 1, true), hazeMat(0xffd18c, 0.09)); bm.position.set(0, -6.2, 0); bm.rotation.x = 0.7; g.add(bm); cxSearch.push(g);
+  });
+}
+function heart() {
+  const hg = dyn(...S(0, -12, 4.6), 0, () => { sph(CXM.heart, 3, 3, 3, 0, 0, 0); wireIco(1.9, O.cyan); }); cxHeart = hg;
+  const rg = dyn(...S(0, -12, 4.6), 0, () => add(O.cyan, new THREE.TorusGeometry(2.6, 0.06, 8, 48), place(0, 0, 0, 0, 0, 0))); rg.rotation.x = 1.22; rg.rotation.z = 0.35; cxHeartRing = rg;
+  add(O.indigo, new THREE.RingGeometry(0.95, 1.35, 40), new THREE.Matrix4().compose(new THREE.Vector3(...S(0, -12, 0.05)), new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)), new THREE.Vector3(1, 1, 1)));
+  text('THE HEART', ...S(0, -12, 7.9), 0.55, '#00f2ff', 180); point(...S(0, -12, 4.6), 0x6b6bff, 55, 15);
+  hotspot(...S(0, -12, 1.8), 3, 3.6, 3, () => say('THE HEART — a levitating fractal orb. It pulses with the show and hums when you stand beneath it.'), 'The Heart');
+}
+function hideAndSeekProps() {
+  const a = S(-8, 0), b = S(-2, -8);
+  group(a[0], 0, a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => {
+    box(FST.cream, 2.6, 1, 0.9, 0, 0.5, 0); box(M.metal, 2.85, 0.12, 1.1, 0, 1.06, 0); for (let i = 0; i < 5; i++) box(i % 2 === 0 ? O.magenta : FST.cream, 0.57, 0.08, 1.3, -1.14 + i * 0.57, 2.3, 0.1); for (const x of [-1.32, 1.32]) cyl(M.metal, 0.05, 2.3, x, 1.15, 0.45);
+    text('HIDE & SEEK', 0, 2.72, -0.35, 0.36, '#ff2640'); text('wanna play?', 0, 0.55, -0.47, 0.2, '#ffe633'); figure(0, 0, 0.85, 0, O.purple, INK, FST.marsh, 0.95); text('?', 0, 2.1, 0.85, 0.75, '#4dff33');
+    hotspot(0, 1.4, -0.4, 3, 3, 2, () => startHide(), 'Hide & Seek');
+  });
+  [[-11, -3.4], [11, -3.4], [-11, -18.4], [11, -18.4], [0, -19.2]].forEach(([x, z]) => {
+    const m = new THREE.MeshBasicMaterial({ color: 0x38ff14, toneMapped: false, transparent: true, opacity: 0.85, side: THREE.DoubleSide }), r = new THREE.Mesh(new THREE.RingGeometry(1.2, 1.7, 40), m); r.rotation.x = -Math.PI / 2; const w = cxWorld(x, z, 0.04); r.position.copy(w); scene.add(r);
+    text('HIDE', ...S(x, z, 0.06), 0.32, '#66ff4d', 180); cxRings.push({ x, z, mesh: r, m, charge: 1 });
+  });
+}
+function chamber(label, col, disc, cx, cz, vx, vz) {
+  text(label, ...S(cx, cz, 6.6), 0.6, col, faceYaw(vx, vz));
+  const m = new THREE.MeshBasicMaterial({ color: disc, toneMapped: false, transparent: true, opacity: 0.22, side: THREE.DoubleSide }), d = new THREE.Mesh(new THREE.CircleGeometry(3.6, 40), m); d.rotation.x = -Math.PI / 2; d.position.copy(cxWorld(cx, cz, 0.05)); scene.add(d);
+}
+function wings() {
+  // Glitch Art
+  chamber('GLITCH ART', '#66ff4d', 0x38ff14, -23, 0, -1, 0);
+  for (const z of [-3, 3]) { const a = S(-30.4, z), b = S(-23, z); group(a[0], 0, a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => { box(CXM.slab, 1, 0.9, 0.5, 0, 0.45, 0); box(M.wall, 1.4, 1.4, 0.4, 0, 1.6, 0); quad(ledA, 1.1, 1.1, 0, 1.6, -0.21); }); }
+  let a = 12; const rnd = () => (a = (a * 16807) % 2147483647) / 2147483647, bars = [O.green, O.magenta, O.cyan];
+  for (let i = 0; i < 14; i++) box(bars[i % 3], 0.04, 0.12 + rnd() * 0.2, 0.4 + rnd() * 1.8, ...S(-30.96, -6 + rnd() * 12, 1 + rnd() * 5));
+  for (let i = 0; i < 10; i++) box(bars[(i + 1) % 3], 0.4 + rnd() * 1.6, 0.12 + rnd() * 0.2, 0.04, ...S(-29 + rnd() * 12, 6.68, 1 + rnd() * 5));
+  cxGlitch = dyn(...S(-23, -3, 2), 0, () => wireIco(1.1, O.cyan)); point(...S(-23, 0, 4), 0x4dff40, 30, 13);
+  // Horrorcore
+  chamber('HORRORCORE', '#ff1f33', 0xd91233, -23, -14, -1, 0);
+  for (const x of [-30, -16]) { rod(CXM.rib, S(x, -20.4, 5.6), S(x, -7.6, 5.6), 0.18); for (let i = 0; i < 3; i++) rod(M.metal, S(x, -18 + i * 4, 5.6), S(x, -18 + i * 4, 7), 0.04); }
+  for (let i = 0; i < 6; i++) { const x = -28 + i * 2.2, z = -11.5 - (i % 3) * 2.4, len = 1.6 + (i % 3) * 0.7; rod(M.metal, S(x, z, 7), S(x, z, 7 - len), 0.025); rod(M.brass, S(x, z, 7 - len), S(x + 0.12, z, 7 - len - 0.3), 0.03); }
+  cyl(INK, 0.4, 0.02, ...S(-23, -14, 0.03)); sph(O.warm, 0.22, 0.22, 0.22, ...S(-20, -10, 5.2)); rod(INK, S(-20, -10, 5.3), S(-20, -10, 7), 0.01);
+  const hl = point(...S(-23, -14, 0.4), 0xff0d14, 45, 12); cxFlicker.push(hl); cxFlicker.push(point(...S(-20, -10, 5), 0xffbf80, 20, 9));
+  // Arcade + karaoke (magenta)
+  chamber('ARCADE + KARAOKE', '#ff4dd9', 0xff2bd1, 23, -1, 1, 0);
+  const ax = [17, 20.6, 24.2, 27.8], az = [1.6, -3.6, 1.6, -3.6], trim = [O.magenta, O.cyan, O.gold];
+  for (let i = 0; i < 4; i++) { const p = S(ax[i], az[i]), t = S(ax[i], -1); group(p[0], 0, p[2], faceYaw(t[0] - p[0], t[2] - p[2]), () => { box(CXM.cab, 1.2, 2.2, 0.9, 0, 1.1, 0); quad(cabMats[i % 3], 0.9, 1, 0, 1.45, -0.47); box(trim[i % 3], 1.2, 0.22, 0.1, 0, 2.08, -0.42); box(trim[i % 3], 1.1, 0.1, 0.3, 0, 0.92, -0.52); }); }
+  cyl(FST.deck, 1.2, 0.2, ...S(23, -1, 0.1)); rod(FST.chrome, S(23, -1, 0.2), S(23, -1, 1.55), 0.02); sph(FST.chrome, 0.1, 0.1, 0.14, ...S(23, -1.08, 1.62));
+  text('KARAOKE NIGHT   /   MIC CHECK', ...S(18.5, -4.66, 3.4), 0.3, '#ffd94d', faceYaw(0, 1)); point(...S(23, -1, 3.5), 0x00e5ff, 30, 11);
+  // Abstract (mint)
+  chamber('ABSTRACT', '#4dffbf', 0x00ffa8, 23, -9, 1, 0);
+  [1.2, 1.7, 2.2].forEach((r, i) => { const g = dyn(...S(23, -9, 2.6), 0, () => add(CXM.mint, new THREE.TorusGeometry(r, 0.06, 6, 48), place(0, 0, 0, 0, 0, 0))); g.rotation.x = (i * 55 * Math.PI) / 180; g.rotation.z = (i * 40 * Math.PI) / 180; cxSpin.push({ g, v: 0.5 + i * 0.3 }); });
+  point(...S(23, -9, 4), 0x00ffa8, 35, 11); text('ROOM BUILDER   /   COMING SOON', ...S(18.5, -12.66, 3.4), 0.28, '#80ffd9', faceYaw(0, 1));
+  // Festival theater (gold)
+  chamber('FESTIVAL  ·  THEATER', '#ffd966', 0xffd24a, 23, -17, 1, 0);
+  box(FST.deck, 10, 0.6, 3, ...S(23, -19.5, 0.3)); box(O.gold, 10, 0.04, 0.05, ...S(23, -18, 0.58));
+  { const p = S(23, -20.6, 3.2), t = S(23, -10, 3.2); group(p[0], p[1], p[2], faceYaw(t[0] - p[0], t[2] - p[2]), () => { box(M.metal, 8.3, 3.7, 0.1, 0, 0, 0.1); quad(ledA, 8, 3.4, 0, 0, 0); }); }
+  for (const x of [19, 27]) { box(M.metal, 0.45, 0.25, 0.45, ...S(x, -18, 6.7)); const bm = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 2.8, 6.2, 10, 1, true), hazeMat(0xffc74d, 0.1)); bm.position.copy(cxWorld(x, -18, 3.5)); scene.add(bm); }
+  for (const x of [19.5, 27.5]) { const p = S(x, -16.5), t = S(x, -20); group(p[0], 0, p[2], faceYaw(t[0] - p[0], t[2] - p[2]), () => { box(M.velvet, 2, 0.12, 0.55, 0, 0.45, 0); box(M.wall, 1.8, 0.4, 0.4, 0, 0.2, 0); }); }
+  point(...S(23, -17, 5), 0xffcc66, 35, 12);
+}
+function hiddenRoom() {
+  cxWall(-6, -21, -6, -31, 7, CXM.concrete); cxWall(6, -21, 6, -31, 7, CXM.concrete); box(CXM.slab, 12.6, 0.4, 9.6, ...S(0, -26.2, 7.2));
+  cxPanel = dyn(...S(0, -21), 0, () => { box(CXM.panel, 6.2, 7, 0.7, 0, 3.5, 0); text('*  ?  *', 0, 4.4, 0.38, 0.7, '#ffd966', 180); box(O.gold, 6.2, 0.06, 0.03, 0, 6.9, 0.36); });
+  for (const x of [-1.2, 1.2]) box(O.gold, 0.2, 3.2, 0.2, ...S(x, -30.85, 1.6)); box(O.gold, 2.6, 0.2, 0.2, ...S(0, -30.85, 3.3)); box(M.brass, 2.2, 3.2, 0.1, ...S(0, -30.9, 1.6)); text('THE HIDDEN ROOM', ...S(0, -30.75, 4.3), 0.5, '#ffd966', 180);
+  cyl(FST.marble, 0.6, 1.1, ...S(0, -26, 0.55));
+  const v = dyn(...S(0, -26, 1.25), 0, () => { cyl(O.gold, 0.45, 0.02, 0, 0, 0); cyl(O.red, 0.15, 0.01, 0, 0.012, 0); }); v.rotation.x = 0.24; cxSpin.push({ g: v, v: 1.2, axis: 'y' });
+  for (const x of [-5.6, 5.6]) box(O.gold, 0.06, 3, 0.06, ...S(x, -26, 3.5)); point(...S(0, -26, 5), 0xffcc66, 40, 11);
+  hotspot(...S(0, -26, 1.3), 2, 2, 2, () => { if (secretOpen) say('THE HIDDEN ROOM — you found it: THE COMPLEX’s golden record. A future room module plugs in behind the gold door.'); }, 'Golden record');
+}
+let exploredC = [false, false, false, false, false], secretOpen = false, secretT = 0;
+try { const sv = JSON.parse(localStorage.getItem('ug:explored') || 'null'); if (Array.isArray(sv) && sv.length === 5) exploredC = sv.map(Boolean); secretOpen = exploredC.every(Boolean); } catch (e) { /* ignore */ }
+const CHAMBERS = ['GLITCH ART', 'HORRORCORE', 'ARCADE + KARAOKE', 'ABSTRACT', 'FESTIVAL THEATER'], CHAMBER_RECTS = [[-30, -16, -6, 6], [-30, -16, -20, -8], [16, 30, -4, 2], [16, 30, -12, -6], [16, 30, -20, -14]];
+function complex() {
+  group(CXO.x, 0, CXO.z, 90, () => { complexShell(); entranceHall(); hubShell(); heart(); hubCover(); hideAndSeekProps(); wings(); hiddenRoom(); });
+  slideDoor({ x: CXO.x + 19.2, z: CXO.z, yaw: 90, w: 6.8, h: 6.2, color: 0x00f2ff, pane: CXM.rust });
+  // walkable: entrance hall, hub (with arches), the five wings, the hidden room (opens at 5/5)
+  cxRect(-4.6, 4.6, 3.3, 19.4); cxRect(-2.6, 2.6, 19.2, 20.8); cxRect(-4, 4, 2.5, 3.6); cxRect(-14.6, 14.6, -20.6, 2.6);
+  cxRect(-15.4, -14.6, -3, 3); cxRect(14.6, 15.4, -3, 3); cxRect(14.6, 15.4, -18, -14);
+  cxRect(-30.6, -15.4, -6.6, 6.6); cxRect(-30.6, -15.4, -20.6, -7.4); cxRect(-26, -22, -7.4, -6.6);
+  cxRect(15.4, 30.6, -4.6, 2.6); cxRect(15.4, 30.6, -12.6, -5.4); cxRect(22, 26, -5.4, -4.6); cxRect(15.4, 30.6, -20.6, -13.4); cxRect(22, 26, -13.4, -12.6);
+  cxRect(-5.5, 5.5, -30.6, -20.4, () => secretOpen);
+  for (const [px, pz] of [[6, -4], [-10, -6], [11, -11.5], [-6.5, -17], [6.5, -18.5], [-11, -13.5], [10, -16.5]]) { const a = CXO.x + pz, b = CXO.z + px; solid(a - 0.9, a + 0.9, b - 1.5, b + 1.5); }
+  for (const [px, pz] of [[11, -9], [7.8, -2.6], [-7.8, -2.6], [-11, -9], [-7.8, -15.4], [0, -18], [7.8, -15.4]]) { const a = CXO.x + pz, b = CXO.z + px; solid(a - 0.5, a + 0.5, b - 0.5, b + 0.5); }
+}
+// ---- hide & seek round ----
+const hs = { on: false, t: 0, head: 0, wins: 0, seekers: [] };
+const WP = [[-12, -3], [12, -6], [8, -19], [-8, -19], [0, -12], [-12, -14], [12, -16], [0, -3], [-6, -10], [6, -12]];
+function playerSpec() { return { x: player.z - CXO.z, z: player.x - CXO.x }; }
+const inHub = (s) => Math.abs(s.x) < 15.4 && s.z < 3.2 && s.z > -21;
+function startHide() {
+  const s = playerSpec(); if (!inHub(s)) { say('HIDE & SEEK — step into the central hub first.'); return; }
+  hs.on = true; hs.t = 60; hs.head = 3; hs.seekers.forEach((k, i) => { k.x = i === 0 ? 0 : 0; k.z = i === 0 ? -18 : -10; k.h = Math.PI; k.target = (i * 5 + 3) % WP.length; k.notice = 0; k.chase = false; k.m.visible = true; });
+  rings0(); $('hsBar').classList.add('on'); say('HIDE & SEEK — survive 60 s. Stand in a green ring to hide (8 s) — leaving the hub forfeits.');
+}
+function rings0() { for (const r of cxRings) r.charge = 1; }
+function endHide(win, msg) { hs.on = false; $('hsBar').classList.remove('on'); hs.seekers.forEach((k) => { k.m.visible = false; }); if (win) { hs.wins++; cue(true); } say(msg); if (!win && msg.startsWith('CAUGHT')) { player.x = CXO.x + 1.8; player.z = CXO.z; player.floor = 0; player.h = 0; player.yaw = face(-1, 0); } }
+function hideTick(dt) {
+  const s = playerSpec();
+  for (const r of cxRings) { const inside = Math.hypot(s.x - r.x, s.z - r.z) < 1.7; r.hiding = hs.on && inside && r.charge > 0; if (r.hiding) r.charge = Math.max(0, r.charge - dt / 8); else r.charge = Math.min(1, r.charge + dt / 6); r.m.color.setRGB(1 - r.charge * 0.8, 0.2 + r.charge * 0.8, 0.05); r.m.opacity = 0.35 + r.charge * 0.5; }
+  if (!hs.on) return;
+  if (!inHub(s)) { endHide(false, 'FORFEIT — you left the hub.'); return; }
+  hs.t -= dt; hs.head -= dt; $('hsTime').textContent = Math.ceil(hs.t); if (hs.t <= 0) { endHide(true, 'YOU SURVIVED — 60 s. The seekers lose interest.'); return; }
+  const hidden = cxRings.some((r) => r.hiding), late = hs.t < 15;
+  for (const k of hs.seekers) {
+    let gx, gz, spd;
+    const dx = s.x - k.x, dz = s.z - k.z, d = Math.hypot(dx, dz), ang = Math.abs(((Math.atan2(dx, dz) - k.h + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+    const sees = hs.head <= 0 && !hidden && d < 16 && ang < 0.6 + 0.0;
+    if (hs.head > 0) { gx = k.x; gz = k.z; spd = 0; } else if (sees) { k.notice += dt; if (k.notice >= 0.5) k.chase = true; } else if (!sees) { k.notice = Math.max(0, k.notice - dt); if (hidden || d > 20) k.chase = false; }
+    if (k.chase && !hidden) { gx = s.x; gz = s.z; spd = 5.6 * (late ? 1.25 : 1); } else if (hs.head <= 0) { [gx, gz] = WP[k.target]; spd = sees ? 0 : 3; if (Math.hypot(gx - k.x, gz - k.z) < 0.6) k.target = (k.target + 1 + Math.floor(Math.random() * (WP.length - 1))) % WP.length; }
+    if (spd) { const ddx = gx - k.x, ddz = gz - k.z, dd = Math.hypot(ddx, ddz) || 1; k.x += (ddx / dd) * spd * dt; k.z += (ddz / dd) * spd * dt; k.h = Math.atan2(ddx, ddz); }
+    if (d < 1.4 && hs.head <= 0 && !hidden) { endHide(false, 'CAUGHT — a seeker found you. Back to the hub entrance.'); return; }
+  }
+}
+function cxTick(t, dt) {
+  if (!cxHeart) return;
+  cxHeart.position.y = 4.6 + Math.sin(t * 1.4) * 0.15; cxHeart.rotation.y += dt * 0.4; cxHeartRing.rotation.y += dt * 0.9; if (cxGlitch) cxGlitch.rotation.y += dt * 1.1 + Math.sin(t * 9) * 0.05;
+  for (const s of cxSpin) s.g.rotation[s.axis || 'z'] += s.v * dt;
+  cxSearch.forEach((g, i) => { g.rotation.y = Math.sin(t * 0.6 + i * 2) * 1.1; });
+  for (const l of cxFlicker) l.intensity = (l.userData.cb ??= l.intensity) * (0.55 + 0.45 * Math.abs(Math.sin(t * 17 + l.position.x)) * (Math.random() > 0.93 ? 0.2 : 1));
+  const s = playerSpec(); CHAMBER_RECTS.forEach(([x0, x1, z0, z1], i) => { if (!exploredC[i] && s.x > x0 && s.x < x1 && s.z > z0 && s.z < z1) { exploredC[i] = true; try { localStorage.setItem('ug:explored', JSON.stringify(exploredC)); } catch (e) { /* ignore */ } cue(false); say(`CHAMBER ${exploredC.filter(Boolean).length}/5 — ${CHAMBERS[i]} EXPLORED`); if (exploredC.every(Boolean)) { secretOpen = true; say('THE HEART shudders — a red panel rises behind it. THE HIDDEN ROOM is open.'); } } });
+  secretT += ((secretOpen ? 1 : 0) - secretT) * Math.min(1, dt * 0.8); if (cxPanel) cxPanel.position.y = secretT * 5.2;
+  hs.seekers.forEach((k) => { if (!k.m.visible) return; const w = cxWorld(k.x, k.z, k.hgt + Math.sin(t * 2 + k.hgt) * 0.12); k.m.position.copy(w); k.m.rotation.y = Math.atan2(Math.cos(k.h), -Math.sin(k.h)); });
+  hideTick(dt);
+}
+for (let i = 0; i < 2; i++) {
+  const g = new THREE.Group(), body = new THREE.Mesh(new THREE.SphereGeometry(0.55, 14, 10), std(0x20252f, { roughness: 0.4, metalness: 0.5 })), eye = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), glow(0xd91233)), ring = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.05, 6, 32), glow(0xd91233));
+  eye.position.z = 0.42; eye.scale.set(1, 1, 0.7); ring.rotation.x = Math.PI / 2; const cone = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 4.2, 10, 10, 1, true), hazeMat(0xff0d1f, 0.09)); cone.rotation.x = Math.PI / 2 + 0.2; cone.position.z = 5.2; g.add(body, eye, ring, cone); g.visible = false; scene.add(g);
+  hs.seekers.push({ m: g, x: 0, z: 0, h: 0, hgt: i === 0 ? 3.4 : 2.9, target: 0, notice: 0, chase: false });
+}
+
 // ---- assemble ----
 mkScreen('main', null, 0x0f2b6a, 0x7a22d8); mkScreen('vip', null, 0x6a2a10, 0x3a1088);
 arenaShell(); arena(); vip(); lobby(); gallery();
 group(-14, 0, 43, 0, arcade);
-cinemaLobby(); TOWERS.forEach(buildTower); street(); festival(); midway();
+cinemaLobby(); TOWERS.forEach(buildTower); street(); festival(); midway(); complex();
 group(15, 0, 59, 0, mainCinema);
 group(37, 0, 46, 0, privateCinema);
 // walkable rects for the wings (world Unity coords)
@@ -907,7 +1102,7 @@ function heightAt(x, z, prev) {
 }
 const inTowerRect = (x, z) => Math.abs(x) > 24.6 && Math.abs(x) < 40.8 && z > 24.6 && z < 33.4;
 const inCircle = (x, z) => circles.some((c) => (x - c.cx) ** 2 + (z - c.cz) ** 2 < c.r * c.r);
-const inRects = (x, z, upper) => player.floor > 0 ? inTowerRect(x, z) : inCircle(x, z) || rects.some((r) => (upper || !r.u) && x > r.x0 && x < r.x1 && z > r.z0 && z < r.z1);
+const inRects = (x, z, upper) => player.floor > 0 ? inTowerRect(x, z) : inCircle(x, z) || rects.some((r) => (upper || !r.u) && (!r.gate || r.gate()) && x > r.x0 && x < r.x1 && z > r.z0 && z < r.z1);
 const blocked = (x, z) => player.floor === 0 && solids.some((b) => x > b.x0 - R && x < b.x1 + R && z > b.z0 - R && z < b.z1 + R);
 const okAt = (x, z, upper) => inRects(x, z, upper) && !blocked(x, z);
 function step(dx, dz) {
@@ -1035,7 +1230,7 @@ function renderPassport() {
 const DEST = [
   ['ARRIVAL LOUNGE', 0, -33, 0, face(0, 1)], ['CONCERT ARENA', 0, -14, 0, face(0, 1)], ['VIP DECK', 0, -20.5, 4, face(0, 1)], ['NEON ARCADE', -14, 38, 0, face(0, 1)], ['CINEMA SOCIETY', 15, 40, 0, face(0, 1)],
   ['PRIVATE CINEMA', 33, 41, 0, face(1, 0)], ['THE STREET', 0, -44, 0, face(0, -1)], ['THE FESTIVAL', 0, -70, 0, face(0, -1)], ['THE MIDWAY', -33, -104, 0, face(-1, 0)],
-  ['THE COMPLEX', -40.5, -51, 0, face(-1, 0), 'warehouse.html'], ['THE MOVIE LOBBY', 38, -60.4, 0, face(0, -1), 'lobby.html'], ['FEVER DREAM LIBRARY', -39.6, 29, 8 * 8, face(1, 0), 'library.html'], ['THE ROOMS TOWER', 32, 29, 0, face(1, 0)], ['THE ARCHIVE TOWER', -32, 29, 0, face(-1, 0)],
+  ['THE COMPLEX', -48, -48, 0, face(-1, 0)], ['THE MOVIE LOBBY', 38, -60.4, 0, face(0, -1), 'lobby.html'], ['FEVER DREAM LIBRARY', -39.6, 29, 8 * 8, face(1, 0), 'library.html'], ['THE ROOMS TOWER', 32, 29, 0, face(1, 0)], ['THE ARCHIVE TOWER', -32, 29, 0, face(-1, 0)],
 ];
 function renderMap() {
   const el = $('mapBody'); el.replaceChildren();
@@ -1055,7 +1250,7 @@ const node = (k, x, z) => { NODES[k] = [x, z]; }, edge = (a, b) => EDGES.push([a
 node('balcony', 0, -20); node('vip', 7, -19); node('stair', 0, -6); node('aisle', 3.5, -6); node('entry', 3.5, -25); node('lounge', 0, -33); node('outside', 0, -43.4);
 node('vote', -14.1, -5.6); node('desk', 0, -5); node('gallery', 3.5, 26); node('mid', 0, 29); node('west', -14, 29); node('arcade', -14, 36.5); node('game', -21.2, 37.5);
 node('east', 12, 29); node('cinema', 12, 40); node('screen', 10.5, 44.3); node('privHall', 15, 40); node('priv', 31, 41); node('rooms', 22, 29); node('roomsIn', 31, 29); node('archive', -22, 29); node('archiveIn', -31, 29);
-node('crossing', 18, -44); node('gate', 18, -59); node('street', 0, -52); node('complexTurn', -38, -52); node('complexDoor', -40.5, -51); node('cinemaStreet', 30, -53); node('lobbyDoor', 38, -60);
+node('crossing', 18, -44); node('gate', 18, -59); node('street', 0, -52); node('complexTurn', -36, -48); node('complexDoor', -41, -48); node('cinemaStreet', 30, -53); node('lobbyDoor', 38, -60);
 [['balcony', 'vip'], ['balcony', 'stair'], ['stair', 'aisle'], ['aisle', 'entry'], ['entry', 'lounge'], ['lounge', 'outside'], ['stair', 'vote'], ['stair', 'desk'], ['aisle', 'gallery'], ['gallery', 'mid'], ['mid', 'west'], ['west', 'arcade'], ['arcade', 'game'],
   ['mid', 'east'], ['east', 'cinema'], ['cinema', 'screen'], ['cinema', 'privHall'], ['privHall', 'priv'], ['east', 'rooms'], ['rooms', 'roomsIn'], ['west', 'archive'], ['archive', 'archiveIn'],
   ['outside', 'crossing'], ['crossing', 'gate'], ['outside', 'street'], ['street', 'complexTurn'], ['complexTurn', 'complexDoor'], ['crossing', 'cinemaStreet'], ['cinemaStreet', 'lobbyDoor']].forEach(([a, b]) => edge(a, b));
@@ -1143,7 +1338,7 @@ function frame() {
   ledA.uniforms.k.value = ledB.uniforms.k.value = 0.9 + 0.35 * p;
   for (const m of pulseMats) m.opacity = 0.05 + 0.06 * p;
   for (const l of lights) l.userData.base ??= l.intensity, l.intensity = l.userData.base * (0.85 + 0.3 * p);
-  crowd(t, p + crowdKick * 0.8); festTick(t, p, dt);
+  crowd(t, p + crowdKick * 0.8); festTick(t, p, dt); cxTick(t, dt);
   // play the cinema screens only while you're in them
   for (const [id, s] of Object.entries(screens)) {
     const r = id === 'main' ? [3.4, 26.6, 46.4, 71.6] : [28.4, 45.6, 36.4, 55.6], inside = player.x > r[0] && player.x < r[1] && player.z > r[2] && player.z < r[3];
@@ -1163,4 +1358,4 @@ function frame() {
 teleport(0, -33, 0, face(0, 1)); moveUpdate(0.016); renderer.render(scene, camera);
 $('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); } };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS };
+if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
