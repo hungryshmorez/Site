@@ -246,9 +246,9 @@ function arena() {
   for (let i = 0; i < 8; i++) { const a = (i * Math.PI) / 4, top = [Math.cos(a) * 7.4, 10.55, Math.sin(a) * 7.4], bot = [Math.cos(a + 0.3) * 8, 0.05, Math.sin(a + 0.3) * 8]; beam(top, bot, i % 2 ? VI : CY); fixture(new THREE.Vector3(...top), new THREE.Vector3(...bot)); }
   truss([-14, 10, -11], [14, 10, -11]); truss([-14, 10, 11], [14, 10, 11]);
   point(-15, 6, -2, CY, 70, 30); point(15, 6, 2, VI, 70, 30); point(0, 9, 0, 0x6a7cff, 40, 34);
-  kiosk(-14.1, -5.6, 90, 'Support DJ Cyan', M.cyan, () => openVote());
-  kiosk(14.1, -5.6, -90, 'Support DJ Violet', M.violet, () => openVote());
-  kiosk(0, -5, 0, 'Show desk', M.amber, () => toggleMusic());
+  kiosk(-14.1, -5.6, 90, 'Support DJ Cyan', M.cyan, () => vote(0));
+  kiosk(14.1, -5.6, -90, 'Support DJ Violet', M.violet, () => vote(1));
+  kiosk(0, -5, 0, 'Show desk', M.amber, () => showDesk());
 }
 // ---- VIP balconies ----
 function vipBooth() {
@@ -321,7 +321,8 @@ function arcade() {
   text('NEON / PLAY', 0, 5.5, 8.7, 0.63, '#ffffff'); text('PICK A CABINET · IT PLAYS RIGHT HERE', 0, 4.65, 8.68, 0.18, '#10c4ff');
   for (let side = 0; side < 2; side++) for (let i = 0; i < 5; i++) {
     const g = GAMES[side * 5 + i] || GAMES[i], x = side ? 8.6 : -8.6, z = -5.5 + i * 2.6;
-    group(x, 0, z, side ? 90 : -90, () => cabinet(g.name.replace(/\s*\(.*$/, '').toUpperCase().slice(0, 18), () => openWindow(`ARCADE // ${g.name}`, g.url)));
+    const pulse = side === 0 && i === 0;   // the first cabinet is NEON PULSE, the passport's arcade stamp
+    group(x, 0, z, side ? 90 : -90, () => cabinet(pulse ? 'NEON PULSE' : g.name.replace(/\s*\(.*$/, '').toUpperCase().slice(0, 18), pulse ? () => openPulse() : () => openWindow(`ARCADE // ${g.name}`, g.url)));
     solid(-14 + x - 0.8, -14 + x + 0.8, 43 + z - 0.8, 43 + z + 0.8);
   }
   [['joust', 'JOUST / 01'], ['chrome', 'CHROME / 02'], ['toon', 'TOON / 03']].forEach(([k, label], i) => {
@@ -367,7 +368,7 @@ function mainCinema() {
   for (let i = 0; i < 10; i++) { const z = -11 + i * 2.5; for (const x of [-11.7, 11.7]) { box(M.velvet, 0.26, 5.5, 1.55, x, 4, z); box(i % 3 ? M.metal : M.amber, 0.04, 4.8, 0.045, x + (x < 0 ? 0.15 : -0.15), 4, z - 0.81); } }
   for (let i = 0; i < 5; i++) { box(M.metal, 22, 0.35, 0.7, 0, 7.7, -9 + i * 4.5); box(M.amber, 19, 0.04, 0.06, 0, 7.47, -9 + i * 4.5); }
   point(0, 5.8, 2, 0x4c63b8, 45, 26);
-  kiosk(-4.5, -14.2, 0, 'Main screen desk', M.amber, () => nextVideo('main'));
+  kiosk(-4.5, -14.2, 0, 'Main screen desk', M.amber, () => { nextVideo('main'); stamp(3, 'MAIN CINEMA'); });
 }
 function privateCinema() {
   floorSlab(0, 0, 0, 18, 20);
@@ -378,7 +379,7 @@ function privateCinema() {
   sofa(0, -7.8, 180, 5, M.seat); table(0, -5.6, 2.1, 1.3);
   for (let i = 0; i < 8; i++) for (const x of [-8.7, 8.7]) { box(M.velvet, 0.25, 5.5, 0.9, x, 3.5, -8 + i * 2.3); box(M.amber, 0.04, 4.8, 0.045, x + (x < 0 ? 0.16 : -0.16), 3.4, -8 + i * 2.3); }
   point(0, 5, 0, AM, 40, 22);
-  kiosk(-6.4, -6, -30, 'Private screen desk', M.amber, () => nextVideo('vip'));
+  kiosk(-6.4, -6, -30, 'Private screen desk', M.amber, () => { nextVideo('vip'); stamp(4, 'PRIVATE CINEMA'); });
 }
 
 // ---- screens: test card until a video plays (only while you're in the room) ----
@@ -717,6 +718,151 @@ for (const [label, x, z, h, yaw, hot] of spots) { const b = document.createEleme
 $('liftX').onclick = () => $('lift').classList.remove('on');
 $('lift').addEventListener('pointerdown', (e) => { if (e.target === $('lift')) $('lift').classList.remove('on'); });
 $('backBtn').onclick = () => goTo('lobby.html', 'back to the festival lobby…');
+
+// =====================================================================================
+//  THE EXPLORER LAYER (from the Unity "polish pass"): access passport, map + beacon, finale
+// =====================================================================================
+const STAMPS = [['DJ BATTLE', 'Vote for a DJ at a kiosk in the arena (or press 1 / 2).'], ['VIP DECK', 'Walk up the stairs onto a VIP balcony.'], ['NEON PULSE', 'Win NEON PULSE: the first cabinet in the arcade.'], ['MAIN CINEMA', 'Use the main screen desk in the Cinema Society.'], ['PRIVATE CINEMA', 'Use the private screen desk in the private cinema.']];
+let stamps = [false, false, false, false, false], score = [0, 0], fxOn = true, finaleDone = false;
+try { const sv = JSON.parse(localStorage.getItem('ug:stamps') || 'null'); if (Array.isArray(sv) && sv.length === 5) stamps = sv.map(Boolean); finaleDone = localStorage.getItem('ug:finale') === '1'; } catch (e) { /* storage unavailable */ }
+const stampCount = () => stamps.filter(Boolean).length;
+let actx = null;
+function cue(big) {
+  if (!fxOn) return;
+  try {
+    actx ||= new (window.AudioContext || window.webkitAudioContext)();
+    const notes = big ? [523.25, 659.25, 783.99, 1046.5, 1318.5] : [880, 1318.5], t0 = actx.currentTime + 0.02;
+    notes.forEach((f, i) => { const o = actx.createOscillator(), g = actx.createGain(); o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t0 + i * 0.11); g.gain.exponentialRampToValueAtTime(0.12, t0 + i * 0.11 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + i * 0.11 + 0.38); o.connect(g).connect(actx.destination); o.start(t0 + i * 0.11); o.stop(t0 + i * 0.11 + 0.4); });
+  } catch (e) { /* audio blocked */ }
+}
+function updatePassport() {
+  const n = stampCount(); $('passN').textContent = `${n} / 5`; $('passSub').textContent = finaleDone ? 'ALL ACCESS GRANTED' : n === 5 ? 'GO TO THE SHOW DESK · LAUNCH THE FINALE' : 'EXPLORE · INTERACT · UNLOCK THE FINALE';
+  $('scoreA').textContent = String(score[0]).padStart(2, '0'); $('scoreB').textContent = String(score[1]).padStart(2, '0');
+  try { localStorage.setItem('ug:stamps', JSON.stringify(stamps)); } catch (e) { /* ignore */ }
+  if ($('passport').classList.contains('on')) renderPassport();
+}
+function stamp(i, label) {
+  if (stamps[i]) return; stamps[i] = true; cue(false); updatePassport();
+  say(`ACCESS STAMP ${stampCount()}/5 — ${label} DISCOVERED`);
+}
+function vote(dj) {
+  score[dj] += 3; updatePassport(); stamp(0, 'DJ BATTLE'); say(`${dj ? 'VIOLET' : 'CYAN'} SELECTED — the crowd roars (+3)`);
+  crowdKick = 1;
+}
+let crowdKick = 0;
+function showDesk() {
+  if (stampCount() === 5) launchFinale(); else { toggleMusic(); say(`SHOW DESK — ${stampCount()}/5 stamps. Collect them all to unlock the finale.`); }
+}
+function nextStop() {
+  const i = stamps.findIndex((x) => !x); if (i < 0) return finaleDone ? 'All access granted — replay the finale at the show desk.' : 'Return to the arena show desk and launch the finale.';
+  return STAMPS[i][1];
+}
+function renderPassport() {
+  const el = $('passBody'); el.replaceChildren();
+  const next = document.createElement('div'); next.className = 'lt-intro'; next.textContent = `NEXT STOP — ${nextStop()}`; el.appendChild(next);
+  STAMPS.forEach(([n, how], i) => { const r = document.createElement('div'); r.className = 'lt-row'; r.style.cursor = 'default'; r.innerHTML = `<span class="ic">${stamps[i] ? '✔' : '○'}</span><span><span class="t"></span><span class="d"></span></span>`; r.querySelector('.t').textContent = `0${i + 1}  ${n}`; r.querySelector('.d').textContent = stamps[i] ? 'Stamped.' : how; el.appendChild(r); });
+  const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;padding:12px 4px';
+  const mk = (label, fn) => { const b = document.createElement('button'); b.className = 'btn'; b.textContent = label; b.onclick = fn; row.appendChild(b); return b; };
+  mk(`FX: ${fxOn ? 'ON' : 'OFF'}`, () => { fxOn = !fxOn; renderPassport(); });
+  mk('RESTART TOUR', () => { stamps = [false, false, false, false, false]; score = [0, 0]; finaleDone = false; try { localStorage.removeItem('ug:finale'); } catch (e) { /* ignore */ } updatePassport(); say('tour restarted'); });
+  if (stampCount() === 5) mk('LAUNCH FINALE', () => { $('passport').classList.remove('on'); launchFinale(); });
+  el.appendChild(row);
+}
+// ---- map: 14 destinations, WALK sets a beacon, GO jumps there ----
+const DEST = [
+  ['ARRIVAL LOUNGE', 0, -33, 0, face(0, 1)], ['CONCERT ARENA', 0, -14, 0, face(0, 1)], ['VIP DECK', 0, -20.5, 4, face(0, 1)], ['NEON ARCADE', -14, 38, 0, face(0, 1)], ['CINEMA SOCIETY', 15, 40, 0, face(0, 1)],
+  ['PRIVATE CINEMA', 33, 41, 0, face(1, 0)], ['THE STREET', 0, -44, 0, face(0, -1)], ['THE FESTIVAL', 18, -58.5, 0, face(0, -1), 'index.html'], ['THE MIDWAY', 18, -58.5, 0, face(0, -1), 'arcade.html'],
+  ['THE COMPLEX', -40.5, -51, 0, face(-1, 0), 'warehouse.html'], ['THE MOVIE LOBBY', 38, -60.4, 0, face(0, -1), 'lobby.html'], ['FEVER DREAM LIBRARY', -39.6, 29, 8 * 8, face(1, 0), 'library.html'], ['THE ROOMS TOWER', 32, 29, 0, face(1, 0)], ['THE ARCHIVE TOWER', -32, 29, 0, face(-1, 0)],
+];
+function renderMap() {
+  const el = $('mapBody'); el.replaceChildren();
+  DEST.forEach(([name, x, z, h, yaw, url], i) => {
+    const r = document.createElement('div'); r.className = 'lt-row'; r.style.cursor = 'default';
+    r.innerHTML = `<span class="ic">${String(i + 1).padStart(2, '0')}</span><span style="flex:1"><span class="t"></span><span class="d"></span></span><span class="acts"></span>`;
+    r.querySelector('.t').textContent = name; r.querySelector('.d').textContent = url ? `opens ${url}` : (h > 0 ? 'upstairs' : '');
+    const acts = r.querySelector('.acts');
+    const walk = document.createElement('button'); walk.className = 'btn'; walk.textContent = 'WALK'; walk.onclick = () => { setBeacon(i); $('map').classList.remove('on'); };
+    const go = document.createElement('button'); go.className = 'btn'; go.textContent = 'GO'; go.onclick = () => { $('map').classList.remove('on'); if (url) goTo(url, `going to ${name.toLowerCase()}…`); else teleport(x, z, h, yaw); };
+    acts.append(walk, go); r.querySelector('.acts').style.cssText = 'display:flex;gap:6px'; el.appendChild(r);
+  });
+}
+// ---- beacon: a small route graph over the walked routes; shows the next landmark + distance, never moves you ----
+const NODES = {}, EDGES = [];
+const node = (k, x, z) => { NODES[k] = [x, z]; }, edge = (a, b) => EDGES.push([a, b]);
+node('balcony', 0, -20); node('vip', 7, -19); node('stair', 0, -6); node('aisle', 3.5, -6); node('entry', 3.5, -25); node('lounge', 0, -33); node('outside', 0, -43.4);
+node('vote', -14.1, -5.6); node('desk', 0, -5); node('gallery', 3.5, 26); node('mid', 0, 29); node('west', -14, 29); node('arcade', -14, 36.5); node('game', -21.2, 37.5);
+node('east', 12, 29); node('cinema', 12, 40); node('screen', 10.5, 44.3); node('privHall', 15, 40); node('priv', 31, 41); node('rooms', 22, 29); node('roomsIn', 31, 29); node('archive', -22, 29); node('archiveIn', -31, 29);
+node('crossing', 18, -44); node('gate', 18, -59); node('street', 0, -52); node('complexTurn', -38, -52); node('complexDoor', -40.5, -51); node('cinemaStreet', 30, -53); node('lobbyDoor', 38, -60);
+[['balcony', 'vip'], ['balcony', 'stair'], ['stair', 'aisle'], ['aisle', 'entry'], ['entry', 'lounge'], ['lounge', 'outside'], ['stair', 'vote'], ['stair', 'desk'], ['aisle', 'gallery'], ['gallery', 'mid'], ['mid', 'west'], ['west', 'arcade'], ['arcade', 'game'],
+  ['mid', 'east'], ['east', 'cinema'], ['cinema', 'screen'], ['cinema', 'privHall'], ['privHall', 'priv'], ['east', 'rooms'], ['rooms', 'roomsIn'], ['west', 'archive'], ['archive', 'archiveIn'],
+  ['outside', 'crossing'], ['crossing', 'gate'], ['outside', 'street'], ['street', 'complexTurn'], ['complexTurn', 'complexDoor'], ['crossing', 'cinemaStreet'], ['cinemaStreet', 'lobbyDoor']].forEach(([a, b]) => edge(a, b));
+function nearestNode(x, z) { let best = null, d = 1e9; for (const [k, [nx, nz]] of Object.entries(NODES)) { const dd = (nx - x) ** 2 + (nz - z) ** 2; if (dd < d) { d = dd; best = k; } } return best; }
+function route(x, z, gx, gz) {
+  const start = nearestNode(x, z), end = nearestNode(gx, gz), dist = {}, prev = {}, todo = new Set(Object.keys(NODES));
+  for (const k of todo) dist[k] = Infinity; dist[start] = 0;
+  while (todo.size) { let u = null; for (const k of todo) if (u === null || dist[k] < dist[u]) u = k; if (dist[u] === Infinity || u === end) break; todo.delete(u); for (const [a, b] of EDGES) { const v = a === u ? b : b === u ? a : null; if (!v) continue; const dd = dist[u] + Math.hypot(NODES[u][0] - NODES[v][0], NODES[u][1] - NODES[v][1]); if (dd < dist[v]) { dist[v] = dd; prev[v] = u; } } }
+  const out = []; for (let n = end; n; n = prev[n]) { out.push(NODES[n]); if (n === start) break; } out.reverse(); out.push([gx, gz]);
+  while (out.length > 1 && Math.hypot(out[0][0] - x, out[0][1] - z) < 2) out.shift();
+  return out;
+}
+let beacon = null;
+function setBeacon(i) { beacon = i; say(`WALK — beacon set to ${DEST[i][0]}`); }
+function updateBeacon() {
+  const el = $('beacon');
+  if (beacon === null) { el.classList.remove('on'); return; }
+  const [name, gx, gz, , , url] = DEST[beacon]; let tx = gx, tz = gz;
+  if (player.floor > 0 || ride.on) { el.classList.add('on'); $('bText').textContent = `${name} — take the elevator`; $('bArrow').style.transform = 'rotate(0deg)'; return; }
+  const r = route(player.x, player.z, gx, gz); [tx, tz] = r[0] || [gx, gz];
+  const dxT = tx - player.x, dzT = tz - player.z, fx = -Math.sin(player.yaw), fz = Math.cos(player.yaw), dot = fx * dxT + fz * dzT, cross = fx * dzT - fz * dxT;
+  const deg = (Math.atan2(-cross, dot) * 180) / Math.PI, total = Math.hypot(gx - player.x, gz - player.z);
+  if (total < 3) { beacon = null; el.classList.remove('on'); say(`arrived — ${name}`); return; }
+  el.classList.add('on'); $('bArrow').style.transform = `rotate(${deg}deg)`; $('bText').textContent = `${name} · ${Math.round(total)} m`;
+}
+// ---- NEON PULSE: tap/space when the ring meets the target; 3 hits in 5 tries unlocks the arcade stamp ----
+let pulse = null;
+function openPulse() {
+  const el = $('pulse'); el.classList.add('on'); player.keys.clear(); pulse = { t: 0, hits: 0, tries: 0, last: 0, done: false };
+  $('pulseMsg').textContent = 'Hit SPACE (or tap) as the ring meets the target.'; pulseDraw();
+}
+function pulseDraw() {
+  if (!pulse) return; const c = $('pulseCv'), g = c.getContext('2d'), w = c.width, h = c.height; g.clearRect(0, 0, w, h);
+  const ph = (pulse.t % 1.6) / 1.6, r = 140 * (1 - ph) + 28, ok = Math.abs(r - 60) < 14;
+  g.strokeStyle = '#a326ff'; g.lineWidth = 5; g.beginPath(); g.arc(w / 2, h / 2, 60, 0, 7); g.stroke();
+  g.strokeStyle = ok ? '#39ff14' : '#10c4ff'; g.lineWidth = 7; g.beginPath(); g.arc(w / 2, h / 2, r, 0, 7); g.stroke();
+  g.fillStyle = '#fff'; g.font = '16px monospace'; g.textAlign = 'center'; g.fillText(`HITS ${pulse.hits}/3   ·   TRIES ${pulse.tries}/5`, w / 2, h - 14);
+}
+function pulseHit() {
+  if (!pulse || pulse.done) return; const ph = (pulse.t % 1.6) / 1.6, r = 140 * (1 - ph) + 28; pulse.tries++;
+  if (Math.abs(r - 60) < 14) { pulse.hits++; cue(false); $('pulseMsg').textContent = 'HIT!'; } else $('pulseMsg').textContent = 'miss';
+  if (pulse.hits >= 3) { pulse.done = true; $('pulseMsg').textContent = 'PULSE MASTER — 3 hits. Arcade stamp unlocked.'; stamp(2, 'NEON PULSE'); setTimeout(() => $('pulse').classList.remove('on'), 1600); }
+  else if (pulse.tries >= 5) { pulse.done = true; $('pulseMsg').textContent = 'out of tries — walk up and play again'; setTimeout(() => $('pulse').classList.remove('on'), 1500); }
+}
+// ---- finale: winning DJ, score, bounded neon confetti, a synthesized cue ----
+function launchFinale() {
+  finaleDone = true; try { localStorage.setItem('ug:finale', '1'); } catch (e) { /* ignore */ } updatePassport();
+  const win = score[0] >= score[1] ? 0 : 1; $('finaleBody').textContent = `${win ? 'DJ VIOLET' : 'DJ CYAN'} WINS THE NIGHT  ·  ${score[0]} – ${score[1]}`;
+  $('finale').classList.add('on'); cue(true); confetti();
+}
+function confetti() {
+  const c = $('confetti'), g = c.getContext('2d'); c.width = innerWidth; c.height = innerHeight;
+  const cols = ['#10c4ff', '#a326ff', '#ff8829', '#39ff14', '#ff2bd0'], ps = Array.from({ length: 140 }, () => ({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * 0.5, vx: (Math.random() - 0.5) * 2, vy: 2 + Math.random() * 3, r: 3 + Math.random() * 4, c: cols[(Math.random() * cols.length) | 0] }));
+  let t = 0; const tick = () => { g.clearRect(0, 0, c.width, c.height); t++; for (const p of ps) { p.x += p.vx; p.y += p.vy; g.fillStyle = p.c; g.fillRect(p.x, p.y, p.r, p.r * 1.6); } if (t < 280 && $('finale').classList.contains('on')) requestAnimationFrame(tick); else g.clearRect(0, 0, c.width, c.height); };
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) tick();
+}
+for (const [id, close] of [['map', 'mapX'], ['passport', 'passX'], ['pulse', 'pulseX'], ['finale', 'finaleX']]) { $(close).onclick = () => { $(id).classList.remove('on'); pulse = id === 'pulse' ? null : pulse; }; $(id).addEventListener('pointerdown', (e) => { if (e.target === $(id)) { $(id).classList.remove('on'); if (id === 'pulse') pulse = null; } }); }
+$('mapBtn').onclick = () => { renderMap(); $('map').classList.add('on'); player.keys.clear(); };
+$('passBtn').onclick = () => { renderPassport(); $('passport').classList.add('on'); player.keys.clear(); };
+$('pulseCv').addEventListener('pointerdown', pulseHit);
+addEventListener('keydown', (e) => {
+  const k = e.key.toLowerCase(), open = document.querySelector('.lt.on, .wp-ov.on');
+  if (k === 'escape') { document.querySelectorAll('.lt.on').forEach((n) => n.classList.remove('on')); pulse = null; return; }
+  if (pulse && k === ' ') { e.preventDefault(); pulseHit(); return; }
+  if (open) return;
+  if (k === 'm') $('mapBtn').click(); else if (k === 'p') $('passBtn').click(); else if (k === '1') vote(0); else if (k === '2') vote(1);
+});
+updatePassport();
+setTimeout(() => { if (stampCount() === 0) say('WELCOME BELOW — collect five access stamps. Open the MAP (M) to begin.'); }, 1200);
+
 let music = false;
 function toggleMusic() { const b = document.querySelector('.gp-play'); if (b) b.click(); music = !music; say(music ? '♪ show on' : '♪ show paused'); }
 
@@ -734,7 +880,7 @@ function frame() {
   ledA.uniforms.k.value = ledB.uniforms.k.value = 0.9 + 0.35 * p;
   for (const m of pulseMats) m.opacity = 0.05 + 0.06 * p;
   for (const l of lights) l.userData.base ??= l.intensity, l.intensity = l.userData.base * (0.85 + 0.3 * p);
-  crowd(t, p);
+  crowd(t, p + crowdKick * 0.8);
   // play the cinema screens only while you're in them
   for (const [id, s] of Object.entries(screens)) {
     const r = id === 'main' ? [3.4, 26.6, 46.4, 71.6] : [28.4, 45.6, 36.4, 55.6], inside = player.x > r[0] && player.x < r[1] && player.z > r[2] && player.z < r[3];
@@ -743,6 +889,9 @@ function frame() {
     if (inside && s.playing && s.video.paused && !s.video.ended) s.video.play().catch(() => { });
   }
   moveUpdate(dt);
+  if (!stamps[1] && player.h > 3 && Math.abs(player.x) > 4 && Math.abs(player.z) > 16 && Math.abs(player.z) < 24) stamp(1, 'VIP DECK');
+  if (pulse && !pulse.done) { pulse.t += dt; pulseDraw(); }
+  updateBeacon(); crowdKick = Math.max(0, crowdKick - dt);
   for (const sl of sliders) { const near = Math.hypot(player.x - sl.cx, player.z - sl.cz) < 6.5 && player.floor === 0; sl.open += ((near ? 1 : 0) - sl.open) * Math.min(1, dt * 5); for (const pn of sl.panels) pn.g.position.x = pn.x0 + pn.dir * sl.open * sl.half * 0.46; }
   for (const d of doorTriggers) { const inside = !ride.on && d.floor === player.floor && player.x > d.x0 && player.x < d.x1 && player.z > d.z0 && player.z < d.z1; if (inside && d.armed) { d.armed = false; if (d.run) d.run(); else goTo(d.url, `entering ${d.label.toLowerCase()}…`); } else if (!inside) d.armed = true; }
   towerLights.forEach((l, k) => { const T = TOWERS[k], on = towerAt(player.x) === T && player.x * T.sx > 20, f = on ? player.floor : 0; l.position.set(T.sx * 34, fy(f) + 5, -29); l.color.setHex(T.floors[f].color); });
