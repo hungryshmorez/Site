@@ -231,3 +231,11 @@ Unity campus builder), not reached through `lobby.html` / `library.html`:
   (click to open the PDF in a window), reading nooks, and the Archive Terminal (tabs, search, places/towers/systems pages).
 - **Tower doors** that match a place in this world warp there (festival, complex, lobby, merch tent, library, four complex
   wings, the two Chroma theaters); every other door shows a card with the page one click away in a window. Nothing navigates away.
+
+## 11. The swap (street runs east)
+
+- The street now runs east past the old end to **THE MUSEUM** (x ≈ 108, pillared entrance, opens the museum page in a window; B2Buddy Records is a small door beside it).
+- **THE MOVIE THEATER** (lobby + five theaters: DreamOS TV, 9×16, 16×9, Chroma 2025, Enter the Void + the Fever Dream Library to its north) is the building at the street's **west** end. Door at (−43, −40.6).
+- **THE COMPLEX** is on the south sidewalk, door at x = 66. A red carpet starts in the road, goes in the door and down the entrance hall into the **Chroma Awards room** (east of the hall; paparazzi flash along the way). West of the hall is the **Computer Room** (terminals into every Chroma app). The old hidden room is now **THE STUDIO** (DJ tables, an NPC machine that opens Knock Knock).
+- Tower doors for games warp to the Midway.
+- Still to build: the complex's loop floor (both sides), the level-stack elevator with door descriptions, the single-screen arcade offshoot, the club arcade room's removal.
