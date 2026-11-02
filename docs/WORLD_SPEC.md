@@ -242,6 +242,7 @@ Street (z ≈ −48) runs from the complex at the west cap to the Museum at the 
 - **THE MUSEUM** (x ≈ 76–94, east end of the street): pavilion + lobby; the lobby has a 3D-museum doorway and an **elevator whose floors are the museum rooms** (`MUSEUM_FLOORS`).
 - **THE FESTIVAL / THE MIDWAY**: festival grounds with the dealer, trash, litter, backstage gate and the Sofa King / Tanky Johnson destinations; every game door in the world warps to the Midway. The sky has the Trippy Cam (`skyCam`).
 - **Towers** (Rooms, Archive) contain only places that have **no building elsewhere**: doors whose page already exists outside (`OUTSIDE_URL`, `MIDWAY_GAMES`) are removed; floors left empty are dropped.
+- **Liminal realm gates**: 15 free-standing gates, one per realm of the Liminal Space Explorer (`public/liminal/`, a copy of the game; `?realm=N` starts in realm N). Six in the arena (Basement, Dead Mall, Stairwell, Ball Pit, Playground, Bliss), five in a row on the festival lawn (Suburbia, The Edge, Sky Road, The Moon, The Field) and four down the complex's entrance hall (Backrooms, Hotel Atrium, Poolrooms, Hallway). Walk in or click a gate and the realm opens in a window.
 - **Navigation**: nothing leaves the page except the explicit Old-site links; the `#debug` hook exposes `window.__ug` for tests.
 
 ### Verified vs. not
