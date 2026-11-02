@@ -4,6 +4,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { createReducedMotion } from './player/motion.js';
 import { textPlane } from './scene/signs.js';
 import { openWindow } from './ui/popup.js';
+import { Realms } from './realms/realms.js';
 import { openVote } from './ui/vote.js';
 import { TTA_WIDE, TTA_TALL } from './data/tta.js';
 import { LIBRARY } from './data/library.js';
@@ -1672,9 +1673,30 @@ const REALMS = {
   13: ['THE FIELD', 'tall grass and nothing else', 0xa6ff5a],
   14: ['PLAYGROUND', 'swings and slides after everyone has gone home', 0xffb02e],
 };
+// ---- walking through a gate: the realm is already built in this scene (see src/realms/realms.js) ----
+const realms = new Realms({ scene, renderer, camera, isMobile });
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
+let realmBack = null;
+function enterRealm(idx, gate) {
+  if (realms.active) return;
+  realmBack = { x: gate.x + gate.toward[0] * 3.2, z: gate.z + gate.toward[1] * 3.2, yaw: player.yaw, pitch: player.pitch };
+  player.keys.clear(); player.target = null;
+  const { yaw } = realms.enter(idx);
+  player.yaw = yaw; player.pitch = 0;
+  document.body.classList.add('inrealm'); $('realmBack').style.display = ''; if (isMobile) $('realmPad').style.display = 'flex'; $('warp').classList.add('go'); setTimeout(() => $('warp').classList.remove('go'), 450);
+  say(`${REALMS[idx][0]} — ${REALMS[idx][1]}`);
+}
+realms.onExit = () => {
+  if (!realmBack) return;
+  teleport(realmBack.x, realmBack.z, 0, realmBack.yaw); player.pitch = realmBack.pitch; realmBack = null;
+  document.body.classList.remove('inrealm'); $('realmBack').style.display = 'none'; $('realmPad').style.display = 'none'; padFwd = 0; say('back in the Underground');
+};
+$('realmBack').onclick = () => realms.exit();
+addEventListener('keydown', (e) => { if (!realms.active) return; if (e.code === 'Space') { e.preventDefault(); realms.jump(); } else if (e.key.toLowerCase() === 'q') realms.exit(); });
+
 function realmGate(x, z, toward, idx) {
-  const [name, sub, hex] = REALMS[idx], yaw = (Math.atan2(toward[0], -toward[1]) * 180) / Math.PI, neon = glow(hex), url = new URL(`liminal/index.html?realm=${idx}`, location.href).href;
-  const open = () => openWindow(`LIMINAL // ${name}`, url);
+  const [name, sub, hex] = REALMS[idx], yaw = (Math.atan2(toward[0], -toward[1]) * 180) / Math.PI, neon = glow(hex), gateAt = { x, z, toward };
+  const open = () => enterRealm(idx, gateAt);
   group(x, 0, z, yaw, () => {
     box(M.metal, 0.45, 5.2, 0.7, -1.9, 2.6, 0); box(M.metal, 0.45, 5.2, 0.7, 1.9, 2.6, 0); box(M.wall, 4.25, 0.5, 0.7, 0, 5.2, 0);
     box(neon, 0.07, 4.8, 0.07, -1.62, 2.5, -0.38); box(neon, 0.07, 4.8, 0.07, 1.62, 2.5, -0.38); box(neon, 3.2, 0.07, 0.07, 0, 4.92, -0.38);
@@ -1786,6 +1808,7 @@ const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 let down = null, dragged = false;
 const looked = () => document.pointerLockElement === canvas;
 function clickAt(nx, ny, walk) {
+  if (realms.active) return false;
   ndc.x = nx; ndc.y = ny; ray.setFromCamera(ndc, camera);
   if (fx && (fx.trash.tryClick(ray) || fx.dealer.tryClick(ray))) return true;
   const hit = ray.intersectObjects(hits.map((h) => h.mesh), false)[0];
@@ -1996,6 +2019,11 @@ function frame() {
   if (document.hidden) return;
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   uTime.value = t;
+  if (realms.active) {
+    const k = player.keys;
+    realms.tick(dt, t, { fwd: (k.has('w') || k.has('arrowup') ? 1 : 0) - (k.has('s') || k.has('arrowdown') ? 1 : 0) + padFwd, str: (k.has('d') || k.has('arrowright') ? 1 : 0) - (k.has('a') || k.has('arrowleft') ? 1 : 0), sprint: k.has('shift') }, player.yaw, player.pitch);
+    renderer.render(scene, camera); return;
+  }
   const beat = (t * 2) % 1, p = Math.pow(1 - beat, 3);   // 120 BPM, bounded pulse (no strobe)
   const k = 0.82 + 0.28 * p;
   for (const key of ['cyan', 'violet', 'amber']) M[key].color.copy(BASE[key]).multiplyScalar(k);
@@ -2022,6 +2050,8 @@ function frame() {
   if (snapReq) snapDone();
 }
 teleport(0, -33, 0, face(0, 1)); moveUpdate(0.016); renderer.render(scene, camera);
-$('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); } };
+let padFwd = 0;
+const pad = $('realmPad'); if (pad) { const on = (v) => (e) => { e.preventDefault(); padFwd = v; }; pad.querySelector('.walk').addEventListener('pointerdown', on(1)); for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) pad.querySelector('.walk').addEventListener(ev, on(0)); pad.querySelector('.jump').addEventListener('pointerdown', (e) => { e.preventDefault(); realms.jump(); }); }
+$('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); realms.prebuild([...Array(15).keys()]); } };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { DEST, NODES, hits, openCamMenu, openMuseumLift, openDealer, fx: () => fx, openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
+if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { realms, enterRealm, DEST, NODES, hits, openCamMenu, openMuseumLift, openDealer, fx: () => fx, openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
