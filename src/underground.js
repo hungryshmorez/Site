@@ -1651,7 +1651,7 @@ function zoneFlush(name) { const n = scene.children.length; flush(); for (const 
 // where each chunk is drawn from: [x0, x1, z0, z1] in Unity world coordinates (generous, so nothing pops in at a doorway)
 const ZONE_SEE = { club: [-85, 65, -75, 80], street: [-130, 135, -100, -5], festival: [-70, 70, -165, -35], midway: [-120, 10, -190, -90], complex: [-165, -10, -115, 20], cinema: [0, 140, -155, -30] };
 // which chunk a loose object (a light, a sign, a crowd) belongs to, by where it stands
-const ZONE_OWN = [['complex', -130, -42, -80, -15], ['cinema', 10, 125, -125, -62], ['midway', -90, -20, -165, -100], ['festival', -40, 40, -135, -60], ['street', -50, 130, -62, -37], ['club', -90, 65, -39, 80]];
+const ZONE_OWN = [['complex', -130, -42, -80, -15], ['cinema', 10, 125, -125, -62], ['midway', -80, -33, -158, -110], ['festival', -40, 40, -135, -60], ['street', -50, 130, -62, -37], ['club', -90, 65, -39, 80]];
 const zoneNow = {};
 function classifyLoose() {
   const box = new THREE.Box3(), c = new THREE.Vector3(), sz = new THREE.Vector3(), tagged = new Set(Object.values(zoneItems).flat());
