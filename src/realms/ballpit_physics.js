@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import * as CANNON from 'https://esm.sh/cannon-es@0.20.0';
+import * as CANNON from 'cannon-es';
 
 export function createBallPhysics(mesh, { radius, floor, bounds, ceiling, solids = [], playerRadius = 1.6, playerHeight = 7.8 }) {
     const { minX, maxX, minZ, maxZ } = bounds;
