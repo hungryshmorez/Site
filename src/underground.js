@@ -1651,7 +1651,53 @@ arenaShell(); arena(); vip(); lobby(); gallery();
 const OUTSIDE_URL = new Set(['museum.html', 'tv.html', 'dj.html', 'vj.html', 'lab.html', 'chroma.html', 'greenroom.html', 'lofi.html', 'utility.html', 'gameroom.html', 'rooftop.html', 'library.html', 'store.html', 'index.html', 'warehouse.html', 'lobby.html', 'abstract.html', 'studio.html', 'horrorcore.html', 'arcade.html', 'screening.html?room=chroma25', 'screening.html?room=chroma']);
 const isOutside = (u) => OUTSIDE_URL.has(u) || MIDWAY_GAMES.test(u);   // a place that already has its own building outside: no second door to it in here
 for (const T of TOWERS) { T.floors.forEach((f) => { f.doors = f.doors.filter((d) => !isOutside(d[1])); }); T.floors = T.floors.filter((f, i) => i === 0 || f.doors.length); T.floors[0].name = 'LOBBY'; T.floors[0].sub = 'the elevator and nothing else'; }
-cinemaLobby(); TOWERS.forEach(buildTower); street(); festival(); midway(); complex(); campus(); festExtras();
+// =====================================================================================
+//  THE LIMINAL REALMS: a free-standing gate to each of the 15 realms of the Liminal Space Explorer,
+//  placed around the arena, the festival and the complex. Walk in (or click) and the realm opens in a window.
+// =====================================================================================
+const REALMS = {
+  0: ['BLISS', 'a green hill under a blue sky, and a house that is never quite right', 0x6bff8a],
+  1: ['THE BACKROOMS', 'yellow carpet, humming lights, and rooms that do not end', 0xffe14a],
+  2: ['HOTEL ATRIUM', 'a grand empty lobby, polished and silent', 0xffb36b],
+  3: ['POOLROOMS', 'tiled halls, still blue water and echoes', 0x4de8ff],
+  4: ['BALL PIT', 'a plastic ocean to wade through', 0xff4d8c],
+  5: ['SUBURBIA', 'a quiet cul-de-sac, day or night', 0x9ad0ff],
+  6: ['THE EDGE', 'a small town that stops at a painted horizon', 0xffd1a0],
+  7: ['THE HALLWAY', 'one long corridor with too many doors', 0xd9c7a0],
+  8: ['SKY ROAD', 'a road floating above the clouds', 0xff9bd2],
+  9: ['DEAD MALL', 'closed stores, a dry fountain, the lights still on', 0xb980ff],
+  10: ['THE STAIRWELL', 'flights going up and down, forever', 0x8fffd0],
+  11: ['THE BASEMENT', 'wood paneling, a couch and the hum of a dryer', 0xff8a4d],
+  12: ['THE MOON', 'grey dust, a black sky and one small footprint', 0xdde6ff],
+  13: ['THE FIELD', 'tall grass and nothing else', 0xa6ff5a],
+  14: ['PLAYGROUND', 'swings and slides after everyone has gone home', 0xffb02e],
+};
+function realmGate(x, z, toward, idx) {
+  const [name, sub, hex] = REALMS[idx], yaw = (Math.atan2(toward[0], -toward[1]) * 180) / Math.PI, neon = glow(hex), url = new URL(`liminal/index.html?realm=${idx}`, location.href).href;
+  const open = () => openWindow(`LIMINAL // ${name}`, url);
+  group(x, 0, z, yaw, () => {
+    box(M.metal, 0.45, 5.2, 0.7, -1.9, 2.6, 0); box(M.metal, 0.45, 5.2, 0.7, 1.9, 2.6, 0); box(M.wall, 4.25, 0.5, 0.7, 0, 5.2, 0);
+    box(neon, 0.07, 4.8, 0.07, -1.62, 2.5, -0.38); box(neon, 0.07, 4.8, 0.07, 1.62, 2.5, -0.38); box(neon, 3.2, 0.07, 0.07, 0, 4.92, -0.38);
+    quad(doorGlow(hex), 3.2, 4.8, 0, 2.5, 0.02, 0);
+    text(name, 0, 5.9, -0.42, 0.34, '#ffffff'); text('LIMINAL REALM', 0, 5.4, -0.42, 0.14, '#' + hex.toString(16).padStart(6, '0'));
+    hotspot(0, 2.5, -0.3, 3.4, 5, 1.2, open, name);
+    point(0, 3, -1.2, hex, 14, 8);
+    cyl(neon, 2.3, 0.03, 0, 0.03, -0.9); cyl(M.metal, 2.0, 0.04, 0, 0.05, -0.9);   // a glowing pad to step on
+    const bm = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 16, 16, 1, true), hazeMat(hex, 0.1)), bp = wpos(0, 8, -0.2); bm.position.set(bp.x, bp.y, -bp.z); scene.add(bm);   // a light beam so it can be seen from across a room
+  });
+  const along = Math.abs(Math.sin((yaw * Math.PI) / 180)) > 0.5;   // gate faces ±x → it is thin in x
+  doorTriggers.push({ floor: 0, x0: x - (along ? 0.7 : 1.5), x1: x + (along ? 0.7 : 1.5), z0: z - (along ? 1.5 : 0.7), z1: z + (along ? 1.5 : 0.7), armed: true, label: name, run: open });
+}
+function realmGates() {
+  // the arena: the indoor realms, along the north and south walls (the viewer is inside the room)
+  [[-17, -22.1, 11], [-12, -22.1, 9], [12, -22.1, 10], [17, -22.1, 4], [-16, 22.1, 14], [16, 22.1, 0]].forEach(([x, z, i]) => realmGate(x, z, [0, z < 0 ? 1 : -1], i));
+  // the festival: the outdoor realms, in a row across the lawn facing the gateway
+  [[-24, 5], [-12, 6], [0, 8], [12, 12], [22, 13]].forEach(([x, i]) => realmGate(x, -100, [0, 1], i));
+  // the complex: the four interior realms down both sides of the entrance hall
+  [[-3.9, 7, 1, [0, 1]], [-3.9, 16.8, 2, [0, 1]], [3.9, 7, 3, [0, -1]], [3.9, 16.8, 7, [0, -1]]].forEach(([sx, sz, i, to]) => { const [wx, wz] = cxFwd(sx, sz); realmGate(wx, wz, to, i); });
+}
+
+cinemaLobby(); TOWERS.forEach(buildTower); street(); festival(); midway(); complex(); campus(); festExtras(); realmGates();
 group(15, 0, 59, 0, mainCinema);
 group(37, 0, 46, 0, privateCinema);
 // walkable rects for the wings (world Unity coords)
