@@ -1557,7 +1557,6 @@ function theaterWing() {   // the club's movie theater hallway: off the gallery'
 }
 function campus() {
   group(LO.x, 0, LO.z, 0, () => { lobbyShell(); lobbyFacade(); lobbyInterior(); chromaAuditorium(); group(34.4, 0, -16, -90, library); });
-  theaterWing();
   // walkable: the entrance apron, the lobby floor, the library passage and the library
   lobbyRect(-19.6, -15.2, 18.5, 22.6); lobbyRect(-21.6, 21.6, -19.6, 19.6); lobbyRect(21, 23.4, -17.6, -14.4); libRect(-10.6, 10.6, -11.6, 11.6);
 }
@@ -1646,6 +1645,46 @@ function openCamMenu() {
     body.appendChild(panelRow('🖼', 'TAKE FOUR PHOTOS', '', 'Four tinted frames of what you are looking at.', () => { close(); snapReq = true; }));
   });
 }
+// ---- zones: the world is built as separate chunks (each merged on its own) and only the ones near you are drawn ----
+const zoneItems = { club: [], street: [], festival: [], midway: [], complex: [], cinema: [] };
+function zoneFlush(name) { const n = scene.children.length; flush(); for (const c of scene.children.slice(n)) zoneItems[name].push(c); }
+// where each chunk is drawn from: [x0, x1, z0, z1] in Unity world coordinates (generous, so nothing pops in at a doorway)
+const ZONE_SEE = { club: [-85, 65, -75, 80], street: [-130, 135, -100, -5], festival: [-70, 70, -165, -35], midway: [-120, 10, -190, -90], complex: [-165, -10, -115, 20], cinema: [0, 140, -155, -30] };
+// which chunk a loose object (a light, a sign, a crowd) belongs to, by where it stands
+const ZONE_OWN = [['complex', -130, -42, -80, -15], ['cinema', 10, 125, -125, -62], ['midway', -80, -33, -158, -110], ['festival', -40, 40, -135, -60], ['street', -50, 130, -62, -37], ['club', -90, 65, -39, 80]];
+const zoneNow = {};
+function classifyLoose() {
+  const box = new THREE.Box3(), c = new THREE.Vector3(), sz = new THREE.Vector3(), tagged = new Set(Object.values(zoneItems).flat());
+  for (const o of scene.children) {
+    if (tagged.has(o) || o.isPoints) continue;
+    box.setFromObject(o); if (box.isEmpty() && !o.isLight) continue;
+    if (o.isLight) c.copy(o.position); else { box.getCenter(c); box.getSize(sz); if (sz.x > 120 || sz.z > 120) continue; }
+    const ux = c.x, uz = -c.z, z = ZONE_OWN.find(([, x0, x1, z0, z1]) => ux >= x0 && ux <= x1 && uz >= z0 && uz <= z1);
+    if (z) zoneItems[z[0]].push(o);
+  }
+}
+// compile the shaders for each mix of nearby chunks ahead of time (a few seconds apart), so walking from one area to the next never stalls
+function warmZones() {
+  const spots = [[0, -30], [0, -50], [0, -90], [-60, -48], [55, -70], [-100, -134], [90, -50], [0, 0]];
+  const next = () => {
+    const sp = spots.shift(); if (!sp) return;
+    if (!realms.active && !document.hidden) {
+      const keep = { x: player.x, z: player.z }; player.x = sp[0]; player.z = sp[1]; updateZones(true);
+      try { renderer.compile(scene, camera); } catch (e) { /* compiling ahead is only an optimisation */ }
+      player.x = keep.x; player.z = keep.z; updateZones(true);
+    }
+    setTimeout(next, 1800);
+  };
+  setTimeout(next, 4000);
+}
+function updateZones(force) {
+  if (realms.active) return;
+  for (const [name, [x0, x1, z0, z1]] of Object.entries(ZONE_SEE)) {
+    const on = player.x > x0 && player.x < x1 && player.z > z0 && player.z < z1;
+    if (!force && zoneNow[name] === on) continue;
+    zoneNow[name] = on; for (const o of zoneItems[name]) o.visible = on;
+  }
+}
 // ---- assemble ----
 mkScreen('main', null, 0x0f2b6a, 0x7a22d8); mkScreen('vip', null, 0x6a2a10, 0x3a1088);
 arenaShell(); arena(); vip(); lobby(); gallery();
@@ -1688,7 +1727,7 @@ function enterRealm(idx, gate) {
 }
 realms.onExit = () => {
   if (!realmBack) return;
-  teleport(realmBack.x, realmBack.z, 0, realmBack.yaw); player.pitch = realmBack.pitch; realmBack = null;
+  teleport(realmBack.x, realmBack.z, 0, realmBack.yaw); player.pitch = realmBack.pitch; realmBack = null; updateZones(true);
   document.body.classList.remove('inrealm'); $('realmBack').style.display = 'none'; $('realmPad').style.display = 'none'; padFwd = 0; say('back in the Underground');
 };
 $('realmBack').onclick = () => realms.exit();
@@ -1710,18 +1749,24 @@ function realmGate(x, z, toward, idx) {
   const along = Math.abs(Math.sin((yaw * Math.PI) / 180)) > 0.5;   // gate faces ±x → it is thin in x
   doorTriggers.push({ floor: 0, x0: x - (along ? 0.7 : 1.5), x1: x + (along ? 0.7 : 1.5), z0: z - (along ? 1.5 : 0.7), z1: z + (along ? 1.5 : 0.7), armed: true, label: name, run: open });
 }
-function realmGates() {
+function realmGates(area) {
   // the arena: the indoor realms, along the north and south walls (the viewer is inside the room)
-  [[-17, -22.1, 11], [-12, -22.1, 9], [12, -22.1, 10], [17, -22.1, 4], [-16, 22.1, 14], [16, 22.1, 0]].forEach(([x, z, i]) => realmGate(x, z, [0, z < 0 ? 1 : -1], i));
+  if (area === 'club') [[-17, -22.1, 11], [-12, -22.1, 9], [12, -22.1, 10], [17, -22.1, 4], [-16, 22.1, 14], [16, 22.1, 0]].forEach(([x, z, i]) => realmGate(x, z, [0, z < 0 ? 1 : -1], i));
   // the festival: the outdoor realms, in a row across the lawn facing the gateway
-  [[-24, 5], [-12, 6], [0, 8], [12, 12], [22, 13]].forEach(([x, i]) => realmGate(x, -100, [0, 1], i));
+  if (area === 'festival') [[-24, 5], [-12, 6], [0, 8], [12, 12], [22, 13]].forEach(([x, i]) => realmGate(x, -100, [0, 1], i));
   // the complex: the four interior realms down both sides of the entrance hall
-  [[-3.9, 7, 1, [0, 1]], [-3.9, 16.8, 2, [0, 1]], [3.9, 7, 3, [0, -1]], [3.9, 16.8, 7, [0, -1]]].forEach(([sx, sz, i, to]) => { const [wx, wz] = cxFwd(sx, sz); realmGate(wx, wz, to, i); });
+  if (area === 'complex') [[-3.9, 7, 1, [0, 1]], [-3.9, 16.8, 2, [0, 1]], [3.9, 7, 3, [0, -1]], [3.9, 16.8, 7, [0, -1]]].forEach(([sx, sz, i, to]) => { const [wx, wz] = cxFwd(sx, sz); realmGate(wx, wz, to, i); });
 }
 
-cinemaLobby(); TOWERS.forEach(buildTower); street(); festival(); midway(); complex(); campus(); festExtras(); realmGates();
+cinemaLobby(); TOWERS.forEach(buildTower); theaterWing(); realmGates('club');
 group(15, 0, 59, 0, mainCinema);
 group(37, 0, 46, 0, privateCinema);
+zoneFlush('club');
+street(); zoneFlush('street');
+festival(); festExtras(); realmGates('festival'); zoneFlush('festival');
+midway(); zoneFlush('midway');
+complex(); realmGates('complex'); zoneFlush('complex');
+campus(); zoneFlush('cinema');
 // walkable rects for the wings (world Unity coords)
 rect(-19, -9, 33, 35);                         // the gallery's doorway into the movie theater hallway
 rect(3.4, 26.6, 46.4, 71.6);                   // main auditorium
@@ -2039,7 +2084,7 @@ function frame() {
     if (!inside && s.playing) { s.video.pause(); s.playing = false; s.requested = false; if (s.mesh) s.mesh.material = s.mat; }
     if (inside && s.playing && s.video.paused && !s.video.ended) s.video.play().catch(() => { });
   }
-  moveUpdate(dt);
+  updateZones(); moveUpdate(dt);
   if (!stamps[1] && player.h > 3 && Math.abs(player.x) > 4 && Math.abs(player.z) > 16 && Math.abs(player.z) < 24) stamp(1, 'VIP DECK');
   if (pulse && !pulse.done) { pulse.t += dt; pulseDraw(); }
   updateBeacon(); crowdKick = Math.max(0, crowdKick - dt);
@@ -2049,9 +2094,9 @@ function frame() {
   renderer.render(scene, camera);
   if (snapReq) snapDone();
 }
-teleport(0, -33, 0, face(0, 1)); moveUpdate(0.016); renderer.render(scene, camera);
+teleport(0, -33, 0, face(0, 1)); classifyLoose(); updateZones(true); moveUpdate(0.016); renderer.render(scene, camera);
 let padFwd = 0;
 const pad = $('realmPad'); if (pad) { const on = (v) => (e) => { e.preventDefault(); padFwd = v; }; pad.querySelector('.walk').addEventListener('pointerdown', on(1)); for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) pad.querySelector('.walk').addEventListener(ev, on(0)); pad.querySelector('.jump').addEventListener('pointerdown', (e) => { e.preventDefault(); realms.jump(); }); }
-$('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); realms.prebuild([...Array(15).keys()]); } };
+$('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); warmZones(); realms.prebuild([...Array(15).keys()]); } };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { realms, enterRealm, DEST, NODES, hits, openCamMenu, openMuseumLift, openDealer, fx: () => fx, openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
+if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { zoneItems, zoneNow, updateZones, renderer, realms, enterRealm, DEST, NODES, hits, openCamMenu, openMuseumLift, openDealer, fx: () => fx, openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
