@@ -294,14 +294,15 @@ function vip() {
 // ---- lobby / gallery ----
 function lobby() {
   floorSlab(0, 0, -31, 22, 14);
-  box(M.wall, 0.4, 7, 14, -11, 3.5, -31); box(M.wall, 0.4, 7, 14, 11, 3.5, -31); box(M.wall, 8.4, 7, 0.4, -6.8, 3.5, -38); box(M.wall, 8.4, 7, 0.4, 6.8, 3.5, -38); box(M.wall, 5.2, 2.6, 0.4, 0, 5.7, -38); box(M.wall, 22, 0.3, 14, 0, 7, -31);
+  box(M.wall, 0.4, 7, 9.3, -11, 3.5, -33.35); box(M.wall, 0.4, 7, 1.3, -11, 3.5, -24.65); box(M.wall, 0.4, 2.8, 3.4, -11, 5.6, -27); box(M.wall, 0.4, 7, 14, 11, 3.5, -31);
+  box(O.gold, 0.06, 0.06, 3.4, -10.78, 4.2, -27); text('THE MOVIE THEATER HALLWAY', -10.7, 5.3, -27, 0.2, '#ffd966', 90); text('FIVE THEATERS  ·  CHROMA AWARDS', -10.7, 4.85, -27, 0.1, '#ffffff', 90); box(M.wall, 8.4, 7, 0.4, -6.8, 3.5, -38); box(M.wall, 8.4, 7, 0.4, 6.8, 3.5, -38); box(M.wall, 5.2, 2.6, 0.4, 0, 5.7, -38); box(M.wall, 22, 0.3, 14, 0, 7, -31);
   text('THE UNDERGROUND', 0, 6.15, -37.65, 0.64, '#ffffff', 180); text('B 2 B U D D Y    /    MEMBERS ENTRANCE', 0, 5.45, -37.6, 0.23, '#ff8829', 180); text('OUT TO THE STREET  /  THE FESTIVAL', 0, 4.75, -37.75, 0.2, '#73e6ff', 180);
   slideDoor({ x: 0, z: -38, yaw: 0, w: 5.2, h: 4.4, color: CY });
   for (const x of [-8, 8]) { sofa(x, -32, x < 0 ? 90 : -90, 4, M.velvet); table(x * 0.78, -32, 1.3, 1.1); box(M.amber, 0.06, 2.5, 0.08, x, 4.8, -36.4); }
   for (let i = 0; i < 5; i++) { box(M.metal, 18, 0.3, 0.35, 0, 6.65, -36 + i * 2.4); box(M.amber, 14, 0.045, 0.06, 0, 6.47, -36 + i * 2.4); }
   text('02   CONCERT ARENA  ↑', 0, 5.9, -24.4, 0.35, '#ffffff'); box(M.stone, 3.7, 1.3, 1.1, 5.9, 0.65, -27.5); text('CONCIERGE', 5.9, 1, -28.1, 0.2, '#ff8829');
   solid(4, 7.8, -28.1, -26.9); point(0, 4, -32, AM, 40, 22);
-  rect(-10.5, 10.5, -37.5, -23.6);
+  rect(-10.5, 10.5, -37.5, -23.6); rect(-11.4, -10, -28.4, -25.6);
   rect(-2.6, 2.6, -38.8, -37.4); rect(-41.5, 75.4, -60.8, -38.6);   // the front doors and the street outside
 }
 function gallery() {
@@ -619,14 +620,14 @@ function street() {
   // ---- lamps, signs, cars ----
   for (const x of [-30, -12, 12, 30]) lamp(x, -44.4, -1, Math.abs(x) < 20); for (const x of [-30, -6, 34]) lamp(x, -57.7, 1, false);
   group(8, 0, -44.3, 0, () => { cyl(M.metal, 0.06, 2.8, 0, 1.4, 0); box(INK, 3.6, 0.8, 0.08, 0, 2.65, 0); box(M.cyan, 3.6, 0.04, 0.1, 0, 3.06, 0); text('←  THE FESTIVAL', 0, 2.65, -0.08, 0.3, '#4de8ff'); });
-  car(-22, -54.6, 90, PLUM); car(31, -47.4, -90, TEAL); 
+  car(-22, -54.6, 90, PLUM); car(-34, -47.4, -90, TEAL); 
   // ---- west end: THE COMPLEX (the warehouse; see complex()) ----
-  group(-8, 0, -44.3, 0, () => { cyl(M.metal, 0.06, 2.8, 0, 1.4, 0); box(INK, 3.6, 0.8, 0.08, 0, 2.65, 0); box(glow(0xffd96a), 3.6, 0.04, 0.1, 0, 3.06, 0); text('←  THE MOVIE THEATER', 0, 2.65, -0.08, 0.2, '#ffd96a'); });
-  // ---- the street runs on east: the complex's door (x = 66), then THE MUSEUM at the far end ----
+  group(-8, 0, -44.3, 0, () => { cyl(M.metal, 0.06, 2.8, 0, 1.4, 0); box(INK, 3.6, 0.8, 0.08, 0, 2.65, 0); box(glow(0xffd96a), 3.6, 0.04, 0.1, 0, 3.06, 0); text('←  THE COMPLEX', 0, 2.65, -0.08, 0.3, '#ffd96a'); });
+  // ---- the street runs on east: the movie theater's door (x = 37), then THE MUSEUM at the far end ----
   box(M.wall, 51.4, 14, 0.8, 67.7, 7, -38.6); box(M.metal, 51.4, 0.5, 1.2, 67.7, 14.25, -38.7);
   for (const x of [58]) lamp(x, -44.4, -1, true); for (const x of [50]) lamp(x, -57.7, 1, false);
   car(60, -54.6, 90, PLUM);
-  group(54, 0, -44.3, 0, () => { cyl(M.metal, 0.06, 2.8, 0, 1.4, 0); box(INK, 3.6, 0.8, 0.08, 0, 2.65, 0); box(glow(0xffd96a), 3.6, 0.04, 0.1, 0, 3.06, 0); text('THE COMPLEX  →', 0, 2.65, -0.08, 0.3, '#ffd96a'); });
+  group(54, 0, -44.3, 0, () => { cyl(M.metal, 0.06, 2.8, 0, 1.4, 0); box(INK, 3.6, 0.8, 0.08, 0, 2.65, 0); box(glow(0xffd96a), 3.6, 0.04, 0.1, 0, 3.06, 0); text('THE MOVIE THEATER  →', 0, 2.65, -0.08, 0.2, '#ffd96a'); });
   group(MX, 0, 0, 0, () => {
   museum();
   for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) box((r * 3 + c) % 4 === 0 ? glow(0xffcf9a) : INK, 0.05, 1.5, 2.3, 107.97, 7.6 + r * 2.6, -41 - c * 3.6);
@@ -640,10 +641,11 @@ function street() {
   hotspot(107.5, 2, -41.5, 1.2, 4, 3.2, () => openWindow('B2BUDDY RECORDS // MUSIC', 'https://hungryshmorez.github.io/Media/music/'), 'B2Buddy Records');
   });
   // ---- south sidewalk: THE MOVIE LOBBY is built in campus() ----
-  // ---- the red carpet: from the movie theater's door down the street to just before the club entrance ----
-  box(CA.red, 36, 0.012, 3.2, -24.5, 0.03, -48); for (const dz of [-1.6, 1.6]) box(CA.gold, 36, 0.012, 0.06, -24.5, 0.034, -48 + dz);
-  for (let i = 0; i < 10; i++) for (const dz of [-2.1, 2.1]) { const x = -42 + i * 4; cyl(M.brass, 0.045, 1, x, 0.5, -48 + dz); sph(M.brass, 0.12, 0.12, 0.12, x, 1.02, -48 + dz); cyl(M.brass, 0.2, 0.04, x, 0.02, -48 + dz); if (i < 9) rod(CA.redG, [x, 0.88, -48 + dz], [x + 4, 0.88, -48 + dz], 0.035); }
-  for (const x of [-39, -34, -29, -24, -19, -14, -9]) { paparazzo(x, -51.9, x, -48); if (x !== -39) paparazzo(x - 2, -44.3, x - 2, -48, 0.12); }   // the paparazzi along the carpet
+  // ---- the red carpet: from the movie theater's door across the street and down it to just before the club entrance ----
+  box(CA.red, 31, 0.012, 3.2, 23.5, 0.03, -48); for (const dz of [-1.6, 1.6]) box(CA.gold, 31, 0.012, 0.06, 23.5, 0.034, -48 + dz);
+  box(CA.red, 3.2, 0.012, 14.4, 37.2, 0.03, -55.2); for (const dx of [-1.6, 1.6]) box(CA.gold, 0.06, 0.012, 14.4, 37.2 + dx, 0.034, -55.2);
+  for (let i = 0; i < 8; i++) for (const dz of [-2.1, 2.1]) { const x = 9 + i * 4; cyl(M.brass, 0.045, 1, x, 0.5, -48 + dz); sph(M.brass, 0.12, 0.12, 0.12, x, 1.02, -48 + dz); cyl(M.brass, 0.2, 0.04, x, 0.02, -48 + dz); if (i < 7) rod(CA.redG, [x, 0.88, -48 + dz], [x + 4, 0.88, -48 + dz], 0.035); }
+  for (const x of [12, 17, 22, 27, 32]) { paparazzo(x, -51.9, x, -48); if (x !== 12) paparazzo(x - 2, -44.3, x - 2, -48, 0.12); }   // the paparazzi along the carpet
   // ---- the festival gateway: pillars, header, receding rings ----
   group(18, 0, -61, 180, () => {
     for (const gx of [-5.2, 5.2]) { box(M.wall, 1.3, 9.6, 1.3, gx, 4.8, 0); box(M.cyan, 0.08, 9, 0.05, gx, 4.8, -0.68); box(M.metal, 1.5, 0.3, 1.5, gx, 9.75, 0); }
@@ -903,10 +905,11 @@ const CXM = { rust: std(0x331f14, { roughness: 0.6, metalness: 0.45 }), rib: std
 const cxChecker = new THREE.ShaderMaterial({ vertexShader: 'varying vec2 v; void main(){ v=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
   fragmentShader: 'varying vec2 v; void main(){ vec2 c=floor(v*vec2(25.,24.)/2.5); float k=mod(c.x+c.y,2.); vec3 col=mix(vec3(.025,.025,.04),vec3(.33,.34,.39)*.55,k); col+=vec3(.3,.32,.6)*.15*smoothstep(.95,1.,max(abs(fract(v.x*10.)-.5),abs(fract(v.y*9.6)-.5))*2.); gl_FragColor=vec4(col,1.); }' });
 const plasmaMat = ledMat(0xff0099, 0x4d4dff), crtMat = ledMat(0x3380ff, 0xccdfff), holoMat = ledMat(0x00ffb3, 0xff33e6), cabMats = [ledMat(0xff2bd1, 0x4d0d80), ledMat(0x00f2ff, 0x4d0d80), ledMat(0xffdb33, 0x4d0d80)];
-const CX = { x: 66, z: -82.3 };   // spec (x, z) → world (CX.x − x, CX.z + z); the entrance (spec z = 20) is the south sidewalk wall at z = −62.3
+const CXO = { x: -62.2, z: -48 };   // spec (x, z) → world [CXO.x + z, CXO.z + x]; the entrance (spec z = 20) is the west cap of the street at x = −42.2
+const cxFwd = (x, z) => [CXO.x + z, CXO.z + x];
 const S = (x, z, y = 0) => [-x, y, z];
-const cxWorld = (x, z, y = 0) => new THREE.Vector3(CX.x - x, y, -(CX.z + z));   // spec → three-space
-const cxRect = (x0, x1, z0, z1, gate = null) => { const a = CX.x - x0, b = CX.x - x1, c = CX.z + z0, d = CX.z + z1; rects.push({ x0: Math.min(a, b), x1: Math.max(a, b), z0: Math.min(c, d), z1: Math.max(c, d), u: false, gate }); };
+const cxWorld = (x, z, y = 0) => { const [wx, wz] = cxFwd(x, z); return new THREE.Vector3(wx, y, -wz); };   // spec → three-space
+const cxRect = (x0, x1, z0, z1, gate = null) => { const a = CXO.x + z0, b = CXO.x + z1, c = CXO.z + x0, d = CXO.z + x1; rects.push({ x0: Math.min(a, b), x1: Math.max(a, b), z0: Math.min(c, d), z1: Math.max(c, d), u: false, gate }); };
 function cxWall(x0, z0, x1, z1, h, mat, thick = 0.6, y0 = 0) {
   const a = S(x0, z0), b = S(x1, z1), dx = b[0] - a[0], dz = b[2] - a[2], len = Math.hypot(dx, dz);
   box(mat, thick, h, len + thick, (a[0] + b[0]) / 2, y0 + h / 2, (a[2] + b[2]) / 2, 0, (Math.atan2(dx, dz) * 180) / Math.PI, 0);
@@ -1149,8 +1152,8 @@ let exploredC = [false, false, false, false, false], secretOpen = false, secretT
 try { const sv = JSON.parse(localStorage.getItem('ug:explored') || 'null'); if (Array.isArray(sv) && sv.length === 5) exploredC = sv.map(Boolean); secretOpen = exploredC.every(Boolean); } catch (e) { /* ignore */ }
 const CHAMBERS = ['GLITCH ART', 'HORRORCORE', 'ARCADE + KARAOKE', 'ABSTRACT', 'FESTIVAL THEATER'], CHAMBER_RECTS = [[-30, -16, -6, 6], [-30, -16, -20, -8], [16, 30, -4, 2], [16, 30, -12, -6], [16, 30, -20, -14]];
 function complex() {
-  group(CX.x, 0, CX.z, 0, () => { complexShell(); entranceHall(); hubShell(); heart(); hubCover(); hideAndSeekProps(); wings(); hiddenRoom(); chromaRoom(); computerRoom(); levelElevator(); loopAnnex(); });
-  slideDoor({ x: CX.x, z: CX.z + 19.2, yaw: 0, w: 6.8, h: 6.2, color: 0x00f2ff, pane: CXM.rust });
+  group(CXO.x, 0, CXO.z, 90, () => { complexShell(); entranceHall(); hubShell(); heart(); hubCover(); hideAndSeekProps(); wings(); hiddenRoom(); chromaRoom(); computerRoom(); levelElevator(); loopAnnex(); });
+  slideDoor({ x: CXO.x + 19.2, z: CXO.z, yaw: 90, w: 6.8, h: 6.2, color: 0x00f2ff, pane: CXM.rust });
   // walkable: entrance hall, hub (with arches), the five wings, the studio (opens at 5/5), the Chroma Awards room, the computer room
   cxRect(-4.6, 4.6, 3.3, 19.4); cxRect(-2.6, 2.6, 19.2, 22.8); cxRect(-4, 4, 2.5, 3.6); cxRect(-14.6, 14.6, -20.6, 2.6);
   cxRect(-15.4, -14.6, -3, 3); cxRect(14.6, 15.4, -3, 3); cxRect(14.6, 15.4, -18, -14);
@@ -1166,8 +1169,8 @@ function complex() {
 // ---- hide & seek round ----
 const hs = { on: false, t: 0, head: 0, wins: 0, seekers: [] };
 const WP = [[-12, -3], [12, -6], [8, -19], [-8, -19], [0, -12], [-12, -14], [12, -16], [0, -3], [-6, -10], [6, -12]];
-function playerSpec() { return { x: CX.x - player.x, z: player.z - CX.z }; }
-const cxSolid = (x0, x1, z0, z1) => solid(CX.x - x1, CX.x - x0, CX.z + z0, CX.z + z1);
+function playerSpec() { return { x: player.z - CXO.z, z: player.x - CXO.x }; }
+const cxSolid = (x0, x1, z0, z1) => solid(CXO.x + z0, CXO.x + z1, CXO.z + x0, CXO.z + x1);
 const inHub = (s) => Math.abs(s.x) < 15.4 && s.z < 3.2 && s.z > -21;
 function startHide() {
   const s = playerSpec(); if (!inHub(s)) { say('HIDE & SEEK — step into the central hub first.'); return; }
@@ -1175,7 +1178,7 @@ function startHide() {
   rings0(); $('hsBar').classList.add('on'); say('HIDE & SEEK — survive 60 s. Stand in a green ring to hide (8 s) — leaving the hub forfeits.');
 }
 function rings0() { for (const r of cxRings) r.charge = 1; }
-function endHide(win, msg) { hs.on = false; $('hsBar').classList.remove('on'); hs.seekers.forEach((k) => { k.m.visible = false; }); if (win) { hs.wins++; cue(true); } say(msg); if (!win && msg.startsWith('CAUGHT')) { player.x = CX.x; player.z = CX.z + 1.8; player.floor = 0; player.h = 0; player.yaw = face(0, -1); } }
+function endHide(win, msg) { hs.on = false; $('hsBar').classList.remove('on'); hs.seekers.forEach((k) => { k.m.visible = false; }); if (win) { hs.wins++; cue(true); } say(msg); if (!win && msg.startsWith('CAUGHT')) { player.x = CXO.x + 1.8; player.z = CXO.z; player.floor = 0; player.h = 0; player.yaw = face(-1, 0); } }
 function hideTick(dt) {
   const s = playerSpec();
   for (const r of cxRings) { const inside = Math.hypot(s.x - r.x, s.z - r.z) < 1.7; r.hiding = hs.on && inside && r.charge > 0; if (r.hiding) r.charge = Math.max(0, r.charge - dt / 8); else r.charge = Math.min(1, r.charge + dt / 6); r.m.color.setRGB(1 - r.charge * 0.8, 0.2 + r.charge * 0.8, 0.05); r.m.opacity = 0.35 + r.charge * 0.5; }
@@ -1215,8 +1218,8 @@ for (let i = 0; i < 2; i++) {
 //  Lobby origin world [54.6, −82.3] (unrotated: street wall at local z=+20, theater row at z=−20, theaters behind it).
 //  Library origin world [89, −98.3], turned −90° so its door faces the lobby's east wall.
 // =====================================================================================
-const CP = { x: -63, z: -65.4 };   // lobby origin, turned 90°: its street wall is the west cap of the street (x = −43)
-const cw = (lx, lz) => [CP.x + lz, CP.z - lx];   // lobby-local → world (Unity)
+const LO = { x: 54.6, z: -82.3 };   // lobby origin: its street wall (local z = 20) is the south sidewalk wall at z = −62.3
+const cw = (lx, lz) => [LO.x + lx, LO.z + lz];   // lobby-local → world (Unity)
 const THX = [-17.6, -8.8, 0, 8.8, 17.6];
 const THEATER_TITLES = ['DREAMOS TV', 'NEW MOBILE THEATER  9x16', '16x9 THEATER', 'CHROMA AWARDS 2025', 'ENTER THE VOID'];
 const CA = {
@@ -1234,14 +1237,14 @@ function runWall(ax, az, bx, bz, h, mat, gaps = [], th = 0.4) {
   for (const [c, w, top] of [...gaps].sort((a, b) => a[0] - b[0])) { seg(s, c - w / 2, 0, h); seg(c - w / 2, c + w / 2, top, h); s = c + w / 2; }
   seg(s, len + th / 2, 0, h);
 }
-const campusXf = { fwd: cw, inv: (wx, wz) => [CP.z - wz, wx - CP.x] };
+const campusXf = { fwd: cw, inv: (wx, wz) => [wx - LO.x, wz - LO.z] };
 const HALL = { x: -48, z: 26 };   // the club's movie theater hallway: the five theaters, turned to open south off a hallway
 const hallXf = { fwd: (lx, lz) => [HALL.x - lx, HALL.z - lz], inv: (wx, wz) => [HALL.x - wx, HALL.z - wz] };
 let curXf = campusXf;
 const box2 = (fn, x0, x1, z0, z1, ...r) => { const a = curXf.fwd(x0, z0), b = curXf.fwd(x1, z1); fn(Math.min(a[0], b[0]), Math.max(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[1], b[1]), ...r); };
 const lobbyRect = (x0, x1, z0, z1) => box2(rect, x0, x1, z0, z1);
 const lobbySolid = (x0, x1, z0, z1, h) => box2(solid, x0, x1, z0, z1, h);
-const libL = (lx, lz) => [-34.4 + lz, -16 - lx];   // library-local → lobby-local (library sits off the lobby's west wall, turned 90°)
+const libL = (lx, lz) => [34.4 - lz, -16 + lx];   // library-local → lobby-local (library sits off the lobby's east wall, turned −90°)
 const libBox = (fn, lx0, lx1, lz0, lz1) => { const a = libL(lx0, lz0), b = libL(lx1, lz1); fn(Math.min(a[0], b[0]), Math.max(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[1], b[1])); };
 const libRect = (...a) => libBox(lobbyRect, ...a), libSolid = (...a) => libBox(lobbySolid, ...a);
 
@@ -1249,16 +1252,16 @@ const libRect = (...a) => libBox(lobbyRect, ...a), libSolid = (...a) => libBox(l
 function lobbyShell() {
   floorSlab(0, 0, -7.7, 44, 55.4);
   runWall(-22, -20, 22, -20, 11, CA.plaster, [[22, 20, 7]]);   // one wide opening into the Chroma Awards auditorium
-  runWall(22, 20, -46.4, 20, 13, CXM.rust, [[39.4, 6.8, 6.2]], 0.8);   // the old warehouse front, as long as the lobby and the library together
-  runWall(-46.4, 20, -46.4, -36, 13, CXM.rust, [[10, 3.4, 6]], 0.8);   // the gap where the corridor from the club comes in runWall(-46.4, -36, 22.6, -36, 13, CXM.rust, [], 0.8); runWall(22.6, 20, 22.6, -36, 13, CXM.rust, [], 0.8);
-  box(CXM.slab, 70, 0.6, 57, -12.2, 13.4, -7.7); box(CXM.rib, 69.6, 0.9, 1.2, -12.2, 13.45, 20.2);
-  for (let x = -45.6; x <= 21.6; x += 0.8) { if (Math.abs(x + 17.4) < 4.6) continue; box(CXM.rib, 0.14, 12.6, 0.1, x, 6.4, 20.5); }
+  runWall(22, 20, -22, 20, 13, CXM.rust, [[39.4, 6.8, 6.2]], 0.8);   // the old warehouse front, with the sliding doors
+  box(CXM.slab, 45, 0.6, 57, 0, 13.4, -7.7); box(CXM.rib, 44.4, 0.9, 1.2, 0, 13.45, 20.2);
+  for (let x = -21.6; x <= 21.6; x += 0.8) { if (Math.abs(x + 17.4) < 4.6) continue; box(CXM.rib, 0.14, 12.6, 0.1, x, 6.4, 20.5); }
   for (const dx of [-3.55, 3.55]) box(O.cyan, 0.08, 6.3, 0.06, -17.4 + dx, 3.15, 20.55); box(O.cyan, 7.2, 0.08, 0.06, -17.4, 6.3, 20.55);
-  runWall(-22, 20, -22, -35.4, 11, M.wall, [[36, 4, 3.4], [10, 3.6, 4.4]]);   // the library door, and the door from the foyer the hallway comes into runWall(22, 20, 22, -35.4, 11, M.wall);
+  runWall(-22, 20, -22, -35.4, 11, M.wall);
+  runWall(22, 20, 22, -35.4, 11, M.wall, [[36, 4, 3.4]]);   // the library door
   runWall(-22, -35.4, 22, -35.4, 8, M.wall);
   box(M.wall, 44.4, 0.3, 40.4, 0, 11.15, 0); box(M.wall, 44.4, 0.3, 15.8, 0, 8.15, -27.7);
-  for (const z of [-17.62, -14.38]) box(M.brass, 1.1, 4, 0.16, -22.3, 2, z);
-  box(CA.wood, 1.1, 0.01, 3.4, -22.3, 0.005, -16);
+  for (const z of [-17.62, -14.38]) box(M.brass, 1.1, 4, 0.16, 22.3, 2, z);
+  box(CA.wood, 1.1, 0.01, 3.4, 22.3, 0.005, -16);
 }
 // ---- the street face: marquee canopy, sign, blade sign, sliding glass doors ----
 function lobbyFacade() {
@@ -1277,7 +1280,7 @@ function lobbyFacade() {
   
   box(INK, 0.1, 2.6, 16, 22.26, 8.4, 0); text('MOVIE THEATER', 22.33, 8.75, 0, 1.5, '#ffc759', -90); text('THE CHROMA AWARDS THEATER', 22.33, 7.65, 0, 0.36, '#73e6ff', -90);
   for (const fx of [-21.7, -13.1]) box(fx < -20 ? CA.redG : O.purple, 0.08, 11, 0.06, fx, 5.5, 20.32);
-  [[-33, 'THE CHROMA AWARDS', '#ff4d52', 'RED CARPET  ·  EVERY ENTRY  ·  ONE NIGHT'], [8, 'THAT TIME AGAIN STUDIOS', '#ffcf9a', 'AI-MADE SERIES  ·  EVERY EPISODE  ·  ON THE SCREENS']].forEach(([sx, title, col, sub]) => {   // NOW FEATURING, on the long front either side of the door
+  [[-5, 'THE CHROMA AWARDS', '#ff4d52', 'RED CARPET  ·  EVERY ENTRY  ·  ONE NIGHT'], [14, 'THAT TIME AGAIN STUDIOS', '#ffcf9a', 'AI-MADE SERIES  ·  EVERY EPISODE  ·  ON THE SCREENS']].forEach(([sx, title, col, sub]) => {   // NOW FEATURING, on the long front either side of the door
     box(INK, 15, 4.4, 0.12, sx, 8.4, 20.7); box(CA.redG, 15, 0.1, 0.06, sx, 10.55, 20.78); box(CA.gold, 15, 0.1, 0.06, sx, 6.25, 20.78);
     text('NOW FEATURING', sx, 9.5, 20.8, 0.5, '#ffd966', 180); text(title, sx, 8, 20.8, title.length > 18 ? 0.6 : 0.85, col, 180); text(sub, sx, 6.9, 20.8, 0.18, '#ffffff', 180);
   });
@@ -1378,12 +1381,6 @@ function chromaAuditorium() {   // the main auditorium of the movie theater, for
   for (let k = 0; k < 7; k++) for (const s of [-1, 1]) box(O.warm, 0.12, 0.02, 0.3, s * 0.9, 0.03, -22.4 - k * 1.9);
   kiosk(12.5, -22, 180, 'Chroma entries', O.red, () => openPicker('CHROMA AWARDS', THEATERS.find((t) => t.id === 'chroma').groups));
   lobbyRect(-21.2, 21.2, -35, -19.4);
-}
-function vestibule() {   // the foyer the corridor from the club comes into, between the north wall and the lobby
-  box(CA.carpet, 24, 0.012, 24.4, -34.4, 0.015, 7.8); floorSlab(-34.4, 0, 7.8, 24.4, 24.8);
-  text('THE MOVIE THEATER', -34.4, 7, 19.6, 0.7, '#ffd966', 180); text('FOYER  ·  THE UNDERGROUND IS BACK THE WAY YOU CAME', -34.4, 6.1, 19.6, 0.2, '#ffffff', 180);
-  text('THE UNDERGROUND  ↓', -46, 5.2, 10, 0.4, '#4de6ff', 90); box(O.cyan, 0.08, 4.6, 3.6, -46, 2.4, 10); text('CHROMA AWARDS THEATER  →', -22.6, 5.8, 10, 0.3, '#ffd966', -90);
-  lobbyRect(-45.6, -22.6, -4.6, 19.6); lobbyRect(-23.6, -20.8, 8.2, 11.8);
 }
 function theater(i) {
   const x = THX[i], lc = ['#ffbf59', '#4dd9ff', '#ff4d52', '#b380ff', '#ff40cc'], side = [O.gold, O.cyan, O.red, O.purple, O.magenta];
@@ -1491,7 +1488,7 @@ function openPanel(title, tabs, draw, search = false) {
   top.style.display = tabs.length || search ? 'flex' : 'none'; $('panel').classList.add('on'); player.keys.clear(); redraw();
 }
 const ARCHIVE_PAGES = {
-  places: 'THE UNDERGROUND  /  the club: arrival lounge, DJ battle arena (CYAN vs VIOLET), VIP balconies, gallery, theater hallway, cinema lounge, main auditorium and private cinema.\n\nTHE STREET  /  out through the arrival lounge’s sliding doors.\nTHE FESTIVAL  /  through the ring gateway: the main stage and a 13-act lineup.\nTHE MIDWAY  /  a big-top arcade, through the festival’s striped tent.\nTHE COMPLEX  /  the rusty warehouse at the street’s west end: five wing chambers, hide & seek and a hidden room.\n\nTHE MOVIE LOBBY  /  on the street’s south side: five theaters, the arcade terminal, Trippy Cam, the merch tent, Chroma vote booths and the food court.\nFEVER DREAM LIBRARY  /  through the lobby’s east door. You are here.\nTHE ROOMS and THE ARCHIVE  /  the catalog towers at the gallery’s east and west ends.',
+  places: 'THE UNDERGROUND  /  the club: arrival lounge, DJ battle arena (CYAN vs VIOLET), VIP balconies, gallery, theater hallway, cinema lounge, main auditorium and private cinema.\n\nTHE STREET  /  out through the arrival lounge’s sliding doors.\nTHE FESTIVAL  /  through the ring gateway: the main stage and a 13-act lineup.\nTHE MIDWAY  /  a big-top arcade, through the festival’s striped tent.\nTHE COMPLEX  /  the rusty warehouse at the street’s west end: five wing chambers, hide & seek and a hidden room.\n\nTHE MOVIE THEATER  /  on the street’s south side, down the red carpet: the Chroma Awards auditorium, the game screen and arcade terminal, Trippy Cam, the merch tent, Chroma vote booths and the food court. Its five theaters are in the movie theater hallway inside the club.\nFEVER DREAM LIBRARY  /  through the lobby’s east door. You are here.\nTHE ROOMS and THE ARCHIVE  /  the catalog towers at the gallery’s east and west ends.',
   towers: 'THE ROOMS  /  east end of the gallery, 15 floors, one door each\n  G  The Gallery (museum)\n  1-6  artist worlds: Rave Charles, Driftwave Static, VaporStudio Rooms, Sofa King Sad Boi, Tanky Johnson, Shmorez\n  7-14  the big loop: Green Room, Surreal Lo-Fi, Abstract Psychedelic, Glitch Room, Horrorcore, Control Room, Game Room, Rooftop\n\nTHE ARCHIVE  /  west end of the gallery, 11 floors, up to four doors each\n  G  The Festival   1-3  Games   4  Retro   5  Arcade Row   6  Stages\n  7  Studios   8  Tools + Archives   9-10  Roof: the EPKs\n\nEvery floor has an elevator on its far wall. Doors that match a place in this world take you there. The other doors show their card, with the page one click away in a window.',
   systems: 'WALK  /  WASD or arrows, Shift to hurry, drag to look. Touch: the pads. Click things to use them.\n\nDOORS  /  walk into a doorway or click it.\nELEVATORS  /  call one on any tower floor’s far wall and pick a floor.\nTHEATERS  /  each screen desk changes what is playing; the Chroma desks open an entry in a window.\nSHOW CLOCK  /  a simulated 120 BPM pulse drives the neon, LED walls and crowd everywhere. It is not audio analysis.\nVOTES  /  the booths open the real Chroma Awards vote page.\nTRIPPY CAM  /  four tinted frames of what you are looking at. Nothing is uploaded.',
   made: 'Built from the creator’s Unity world specs and supplied models. Every wall, seat, shelf, sign and screen here is procedural geometry, ported to Three.js for the browser.\n\nThe campus follows the creator’s world spec: the Movie Lobby’s theaters, terminal, booths and food court; the library’s long table, nooks and terminal; and the two towers’ floor lists.\n\nDifferences: the lobby’s street door sits at the west end of its street wall so it opens onto the street.',
@@ -1544,26 +1541,29 @@ function theaterWing() {   // the club's movie theater hallway: off the gallery'
   box(M.wall, 16.9, 7, 0.4, -62.95, 3.5, 34.2); box(M.wall, 7.5, 7, 0.4, -47.75, 3.5, 34.2); box(M.wall, 3, 3, 0.4, -53, 5.5, 34.2); box(M.wall, 0.4, 7, 11.6, -3, 3.5, 40); box(M.wall, 0.4, 7, 11.6, -71.4, 3.5, 40); box(M.wall, 68.8, 0.3, 11.6, -37.2, 7, 40);
   box(O.cyan, 66, 0.05, 0.06, -37.2, 6.6, 34.5); box(O.violet, 66, 0.05, 0.06, -37.2, 6.6, 45.5); box(CA.gold, 66, 0.04, 0.06, -37.2, 0.3, 34.5);
   text('THE MOVIE THEATER HALLWAY', -30, 5.6, 34.45, 0.45, '#ffd166', 180); text('FIVE THEATERS  ·  DREAMOS TV  ·  9x16  ·  16x9  ·  CHROMA 2025  ·  THE VOID', -30, 4.9, 34.45, 0.16, '#ffffff', 180);
-  text('THE MOVIE THEATER  ↑', -53, 4.6, 34.45, 0.32, '#ffd966', 180); text('CHROMA AWARDS  ·  THE GAME SCREEN  ·  THE LIBRARY', -53, 4.1, 34.45, 0.12, '#ffffff', 180);
+  text('THE MOVIE THEATER  ↑', -53, 4.6, 34.45, 0.32, '#ffd966', 180); text('THROUGH THE CLUB LOBBY · OUT TO THE STREET · THE RED CARPET', -53, 4.1, 34.45, 0.12, '#ffffff', 180);
   point(-37, 5, 40, 0xffc98a, 50, 30); point(-60, 5, 40, 0xffc98a, 50, 30);
   rect(-71, -3.8, 34.7, 45.4);
-  // the corridor: straight north to the movie theater's foyer
-  box(M.floor, 3.2, 0.02, 54.6, -53, 0.01, 7.4); box(CA.red, 1.4, 0.012, 54.4, -53, 0.03, 7.4); box(M.wall, 0.4, 5, 54.6, -54.7, 2.5, 7.4); box(M.wall, 0.4, 5, 54.6, -51.3, 2.5, 7.4); box(M.wall, 3.4, 0.3, 54.6, -53, 5, 7.4);
+  // the corridor: north along the west side, then east into the club lobby; the street and the movie theater are out the front doors
+  box(M.floor, 3.2, 0.02, 63, -53, 0.01, 3.1); box(CA.red, 1.4, 0.012, 62.8, -53, 0.03, 3.1); box(M.wall, 0.4, 5, 63.4, -54.7, 2.5, 2.9); box(M.wall, 0.4, 5, 59.9, -51.3, 2.5, 4.65); box(M.wall, 3.4, 0.3, 63, -53, 5, 3.1);
+  box(M.floor, 44, 0.02, 3.4, -32.6, 0.01, -27); box(CA.red, 42.4, 0.012, 1.4, -32.4, 0.03, -27); box(M.wall, 43.9, 5, 0.4, -32.75, 2.5, -28.8); box(M.wall, 40.2, 5, 0.4, -31.2, 2.5, -25.2); box(M.wall, 44, 0.3, 3.8, -32.6, 5, -27);
   for (let i = 0; i < 9; i++) { box(O.cyan, 0.05, 0.05, 1.4, -54.45, 4.5, 30 - i * 6); box(O.cyan, 0.05, 0.05, 1.4, -51.55, 4.5, 30 - i * 6); }
-  point(-53, 4, 20, 0xaee6ff, 25, 18); point(-53, 4, 0, 0xaee6ff, 25, 18);
-  rect(-54.4, -51.6, -19.8, 34.6);
+  for (let i = 0; i < 6; i++) { box(O.cyan, 1.4, 0.05, 0.05, -48 + i * 6, 4.5, -28.55); box(O.cyan, 1.4, 0.05, 0.05, -48 + i * 6, 4.5, -25.45); }
+  point(-53, 4, 20, 0xaee6ff, 25, 18); point(-53, 4, 0, 0xaee6ff, 25, 18); point(-45, 4, -27, 0xaee6ff, 25, 18); point(-25, 4, -27, 0xaee6ff, 25, 18);
+  text('THE STREET  ·  THE MOVIE THEATER  →', -32, 4.3, -28.55, 0.28, '#ffd966', 0); text('OUT THE FRONT DOORS · THE RED CARPET', -32, 3.85, -28.55, 0.12, '#ffffff', 0);
+  rect(-54.4, -51.6, -28.4, 34.6); rect(-54.4, -10.2, -28.4, -25.6);
   curXf = hallXf; group(HALL.x, 0, HALL.z, 180, theaterBlock); curXf = campusXf;
 }
 function campus() {
-  group(CP.x, 0, CP.z, 90, () => { lobbyShell(); lobbyFacade(); lobbyInterior(); chromaAuditorium(); vestibule(); group(-34.4, 0, -16, 90, library); });
+  group(LO.x, 0, LO.z, 0, () => { lobbyShell(); lobbyFacade(); lobbyInterior(); chromaAuditorium(); group(34.4, 0, -16, -90, library); });
   theaterWing();
   // walkable: the entrance apron, the lobby floor, the library passage and the library
-  lobbyRect(-19.6, -15.2, 18.5, 22.6); lobbyRect(-21.6, 21.6, -19.6, 19.6); lobbyRect(-23.4, -21, -17.6, -14.4); libRect(-10.6, 10.6, -11.6, 11.6);
+  lobbyRect(-19.6, -15.2, 18.5, 22.6); lobbyRect(-21.6, 21.6, -19.6, 19.6); lobbyRect(21, 23.4, -17.6, -14.4); libRect(-10.6, 10.6, -11.6, 11.6);
 }
 function campusTick(t, dt) {
   if (looked() && document.querySelector('.lt.on, .wp-ov.on')) document.exitPointerLock();
   activeVideo = null;
-  const inCx = player.floor === 0 && player.x > 34 && player.x < 98 && player.z < -62 && player.z > -114; if (inCx !== campusTick.cx) { campusTick.cx = inCx; $('backBtn').style.display = inCx ? '' : 'none'; }
+  const inCx = player.floor === 0 && player.x < -43.4 && player.x > -130 && player.z > -80 && player.z < -29.5; if (inCx !== campusTick.cx) { campusTick.cx = inCx; $('backBtn').style.display = inCx ? '' : 'none'; }
   for (const f of flashes) { f.t -= dt; if (f.t < 0) { f.m.visible = true; f.t = 0.8 + Math.random() * 2.6; f.off = 0.07; } else if (f.m.visible) { f.off -= dt; if (f.off < 0) f.m.visible = false; } }
   for (const ts of tScreens) {
     if (!ts.list) continue;
@@ -1577,12 +1577,12 @@ function campusTick(t, dt) {
 
 // ---- doors that lead to a place in this world warp there; the rest show a card with the page one click away in a window ----
 function warpFor(url) {
-  const cx = (sx, sz) => [CX.x - sx, CX.z + sz];
+  const cx = (sx, sz) => cxFwd(sx, sz);
   const W = {
-    'index.html': [18, -76, face(-1, -1)], 'warehouse.html': [...cx(0, 17), face(0, -1)],
-    'lobby.html': [...cw(-15.5, 15.2), face(-1, 0)], 'store.html': [...cw(-12, 14.2), face(1, 0)], 'library.html': [...cw(-25.4, -16), face(0, 1)],
-    'studio.html': [...cx(-18, 0), face(1, 0)], 'horrorcore.html': [...cx(-18, -14), face(1, 0)], 'abstract.html': [...cx(19, -9), face(-1, 0)], 'arcade.html': [...cx(19, -1), face(-1, 0)],
-    'screening.html?room=chroma25': [...cw(THX[3], -22.6), face(-1, 0)], 'screening.html?room=chroma': [...cx(14, 13), face(-1, 0)],
+    'index.html': [18, -76, face(-1, -1)], 'warehouse.html': [...cx(0, 17), face(-1, 0)],
+    'lobby.html': [...cw(-15.5, 15.2), face(0, -1)], 'store.html': [...cw(-12, 14.2), face(0, 1)], 'library.html': [...cw(25.4, -16), face(1, 0)],
+    'studio.html': [...cx(-18, 0), face(0, -1)], 'horrorcore.html': [...cx(-18, -14), face(0, -1)], 'abstract.html': [...cx(19, -9), face(0, 1)], 'arcade.html': [...cx(19, -1), face(0, 1)],
+    'screening.html?room=chroma25': [...cw(THX[3], -22.6), face(0, -1)], 'screening.html?room=chroma': [...cx(14, 13), face(0, 1)],
   };
   return W[url] || null;
 }
@@ -1847,7 +1847,7 @@ function renderPassport() {
 const DEST = [
   ['ARRIVAL LOUNGE', 0, -33, 0, face(0, 1)], ['CONCERT ARENA', 0, -14, 0, face(0, 1)], ['VIP DECK', 0, -20.5, 4, face(0, 1)], ['THEATER HALLWAY', -14, 40, 0, face(0, 1)], ['CINEMA SOCIETY', 15, 40, 0, face(0, 1)],
   ['PRIVATE CINEMA', 33, 41, 0, face(1, 0)], ['THE STREET', 0, -44, 0, face(0, -1)], ['THE FESTIVAL', 0, -70, 0, face(0, -1)], ['THE MIDWAY', -33, -134, 0, face(-1, 0)],
-  ['THE COMPLEX', 66, -59, 0, face(0, -1)], ['THE MOVIE THEATER', ...cw(-15.5, 15.2), 0, face(-1, 0)], ['FEVER DREAM LIBRARY', ...cw(-25.4, -16), 0, face(0, 1)], ['THE ROOMS TOWER', 32, 29, 0, face(1, 0)], ['THE ARCHIVE TOWER', -32, 29, 0, face(-1, 0)],
+  ['THE COMPLEX', -48, -48, 0, face(-1, 0)], ['THE MOVIE THEATER', ...cw(-17.4, 15.2), 0, face(0, -1)], ['FEVER DREAM LIBRARY', ...cw(25.4, -16), 0, face(1, 0)], ['THE ROOMS TOWER', 32, 29, 0, face(1, 0)], ['THE ARCHIVE TOWER', -32, 29, 0, face(-1, 0)],
 ];
 function renderMap() {
   const el = $('mapBody'); el.replaceChildren();
@@ -1867,11 +1867,11 @@ const node = (k, x, z) => { NODES[k] = [x, z]; }, edge = (a, b) => EDGES.push([a
 node('balcony', 0, -20); node('vip', 7, -19); node('stair', 0, -6); node('aisle', 3.5, -6); node('entry', 3.5, -25); node('lounge', 0, -33); node('outside', 0, -43.4);
 node('vote', -14.1, -5.6); node('desk', 0, -5); node('gallery', 3.5, 26); node('mid', 0, 29); node('west', -14, 29); node('hall', -14, 40); node('hallW', -21.2, 40);
 node('east', 12, 29); node('cinema', 12, 40); node('screen', 10.5, 44.3); node('privHall', 15, 40); node('priv', 31, 41); node('rooms', 22, 29); node('roomsIn', 31, 29); node('archive', -22, 29); node('archiveIn', -31, 29);
-node('crossing', 18, -44); node('gate', 18, -59); node('street', 0, -52); node('westEnd', -38, -43); node('eastRoad', 66, -52); node('complexDoor', 66, -59.5);
-node('lobbyDoor', ...cw(-17.4, 21)); node('lobbyIn', ...cw(-17.4, 14)); node('lobbyHall', ...cw(-8, 4)); node('libDoor', ...cw(-22, -16)); node('libIn', ...cw(-27, -16));
+node('crossing', 18, -44); node('gate', 18, -59); node('street', 0, -52); node('westEnd', -38, -48); node('complexDoor', -46, -48); node('cinemaStreet', 30, -53);
+node('lobbyDoor', ...cw(-17.4, 21)); node('lobbyIn', ...cw(-17.4, 14)); node('lobbyHall', ...cw(-8, 4)); node('libDoor', ...cw(21, -16)); node('libIn', ...cw(27, -16));
 [['balcony', 'vip'], ['balcony', 'stair'], ['stair', 'aisle'], ['aisle', 'entry'], ['entry', 'lounge'], ['lounge', 'outside'], ['stair', 'vote'], ['stair', 'desk'], ['aisle', 'gallery'], ['gallery', 'mid'], ['mid', 'west'], ['west', 'hall'], ['hall', 'hallW'],
   ['mid', 'east'], ['east', 'cinema'], ['cinema', 'screen'], ['cinema', 'privHall'], ['privHall', 'priv'], ['east', 'rooms'], ['rooms', 'roomsIn'], ['west', 'archive'], ['archive', 'archiveIn'],
-  ['outside', 'crossing'], ['crossing', 'gate'], ['outside', 'street'], ['street', 'westEnd'], ['westEnd', 'lobbyDoor'], ['lobbyDoor', 'lobbyIn'], ['lobbyIn', 'lobbyHall'], ['lobbyHall', 'libDoor'], ['libDoor', 'libIn'], ['crossing', 'eastRoad'], ['eastRoad', 'complexDoor']].forEach(([a, b]) => edge(a, b));
+  ['outside', 'crossing'], ['crossing', 'gate'], ['outside', 'street'], ['street', 'westEnd'], ['westEnd', 'complexDoor'], ['crossing', 'cinemaStreet'], ['cinemaStreet', 'lobbyDoor'], ['lobbyDoor', 'lobbyIn'], ['lobbyIn', 'lobbyHall'], ['lobbyHall', 'libDoor'], ['libDoor', 'libIn']].forEach(([a, b]) => edge(a, b));
 function nearestNode(x, z) { let best = null, d = 1e9; for (const [k, [nx, nz]] of Object.entries(NODES)) { const dd = (nx - x) ** 2 + (nz - z) ** 2; if (dd < d) { d = dd; best = k; } } return best; }
 function route(x, z, gx, gz) {
   const start = nearestNode(x, z), end = nearestNode(gx, gz), dist = {}, prev = {}, todo = new Set(Object.keys(NODES));
