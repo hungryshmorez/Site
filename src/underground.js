@@ -9,6 +9,7 @@ import { openVote } from './ui/vote.js';
 import { TTA_WIDE, TTA_TALL } from './data/tta.js';
 import { LIBRARY } from './data/library.js';
 import { THEATERS, ARCADE } from './data/theaters.js';
+import { ARCADE_GAMES, APPS_SITES } from './data/apps.js';
 import { ALL_ENTRIES, CHROMA_VIDEOS } from './data/chroma.js';
 import { buildTrash } from './scene/trash.js';
 import { buildDealer } from './scene/dealer.js';
@@ -1138,9 +1139,11 @@ function computerRoom() {   // west of the entrance hall: a bank of terminals in
     ['THE LAB', 0x39ff88, () => openWindow('THE LAB', new URL('lab.html', location.href).href)],
     ['THE ARCADE', 0xff2bd0, () => openPicker('THE ARCADE', ARCADE.groups || [{ name: 'GAMES', items: ARCADE.items }])],
     ['PASSPORT', 0x4ad0c0, () => { $('passBtn').click(); }],
+    ['12M ARCADE', 0x39ff14, () => openPicker('12MATT3R ARCADE', [{ name: 'GAMES', items: ARCADE_GAMES }])],
+    ['APPS & SITES', 0x7aa8ff, () => openPicker('APPS & SITES', [{ name: 'APPS', items: APPS_SITES }])],
   ];
   T.forEach(([label, hex, run], i) => {
-    const row = i < 4 ? 0 : 1, x = -27 + (i % 4) * 5, z = row ? 8.6 : 18.4, a = S(x, z), b = S(x, 13.5);
+    const row = i < 5 ? 0 : 1, x = -27 + (i % 5) * 5, z = row ? 8.6 : 18.4, a = S(x, z), b = S(x, 13.5);
     group(a[0], 0, a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => {
       box(CXM.slab, 2, 0.9, 0.8, 0, 0.45, 0); box(M.metal, 1.6, 1.1, 0.12, 0, 1.6, 0.25); quad(ledMat(hex, 0x101830), 1.4, 0.9, 0, 1.6, 0.18); box(glow(hex), 1.7, 0.05, 0.04, 0, 0.95, -0.38);
       text(label, 0, 2.55, 0.1, 0.17, hexs(hex), 0); hotspot(0, 1.3, 0, 2, 2.4, 1.2, run, label);

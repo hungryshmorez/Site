@@ -1,4 +1,5 @@
 import { CHROMA_VIDEOS, ALL_ENTRIES } from './chroma.js';
+import { ARCADE_GAMES } from './apps.js';
 import { VIDEOS } from './videos.js';
 import { TTA_TALL, TTA_WIDE } from './tta.js';
 import { LAB } from './catalog.js';
@@ -60,6 +61,7 @@ export const ARCADE = {
   id: 'arcade', name: 'THE ARCADE', sub: 'pick a game on the DreamOS terminal', page: 'screening.html?room=arcade',
   aspect: 16 / 9, accent: '#39ff14', terminal: true,
   ...grouped([
+    { name: '12MATT3R ARCADE', items: ARCADE_GAMES },
     { name: 'CHROMA AWARDS', items: ALL_ENTRIES.map((e) => arcadeGame(e.title, e.url, `Chroma ${e.year}`)).filter(Boolean) },
     { name: 'GAMES', items: LAB['Games'].map((g) => arcadeGame(g.name, g.url)).filter(Boolean) },
     { name: 'WAKE UP', items: LAB['Wake Up Series'].map((g) => arcadeGame(g.name, g.url)).filter(Boolean) },
