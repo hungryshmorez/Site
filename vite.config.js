@@ -14,6 +14,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        festival: resolve(__dirname, 'festival.html'),
         codex: resolve(__dirname, 'codex.html'),
         driftwave: resolve(__dirname, 'driftwave.html'),
         sofaboi: resolve(__dirname, 'sofaboi.html'),

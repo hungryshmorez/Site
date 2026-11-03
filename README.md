@@ -1,5 +1,7 @@
 # 12matt3r // The Festival
 
+> **The main page is the Underground** (`index.html`, same as `underground.html`). The festival described below is `festival.html`, and is also reachable from inside the Underground through the street's gateway.
+
 A walkable 3D EDM-festival portfolio experience. You spawn on a bench at the
 edge of the crowd, staring at the main stage. Walk through the crowd and reach
 an artist to open their world — each destination is a **person at the festival**,
