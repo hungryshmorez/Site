@@ -1587,9 +1587,9 @@ function theaterBlock() {   // the five theaters themselves, in group-local lobb
 }
 function theaterWing() {   // the club's movie theater hallway: off the gallery's second doorway, the five theaters to the south, a corridor north to the movie theater
   floorSlab(-37.2, 0, 40, 68.4, 11.6); box(CA.carpet, 67.6, 0.01, 10.8, -37.2, 0.015, 40);
-  box(M.wall, 16.9, 7, 0.4, -62.95, 3.5, 34.2); box(M.wall, 7.5, 7, 0.4, -47.75, 3.5, 34.2); box(M.wall, 3, 3, 0.4, -53, 5.5, 34.2); box(M.wall, 0.4, 7, 11.6, -3, 3.5, 40); box(M.wall, 0.4, 7, 11.6, -71.4, 3.5, 40); box(M.wall, 68.8, 0.3, 11.6, -37.2, 7, 40);
+  box(M.wall, 16.9, 7, 0.4, -62.95, 3.5, 34.2); box(M.wall, 7.5, 7, 0.4, -47.75, 3.5, 34.2); box(M.wall, 3, 3, 0.4, -53, 5.5, 34.2); box(M.wall, 0.4, 7, 11.6, -3, 3.5, 40); box(M.wall, 0.4, 7, 3.3, -71.4, 3.5, 35.85); box(M.wall, 0.4, 7, 3.3, -71.4, 3.5, 44.15); box(M.wall, 0.4, 3, 5, -71.4, 5.5, 40); box(M.wall, 68.8, 0.3, 11.6, -37.2, 7, 40);
   box(O.cyan, 66, 0.05, 0.06, -37.2, 6.6, 34.5); box(O.violet, 66, 0.05, 0.06, -37.2, 6.6, 45.5); box(CA.gold, 66, 0.04, 0.06, -37.2, 0.3, 34.5);
-  text('THE MOVIE THEATER HALLWAY', -30, 5.6, 34.45, 0.45, '#ffd166', 180); text('FIVE THEATERS  ·  DREAMOS TV  ·  9x16  ·  16x9  ·  CHROMA 2025  ·  THE VOID', -30, 4.9, 34.45, 0.16, '#ffffff', 180);
+  text('THE DOME  ←', -66.5, 4.6, 45.45, 0.3, '#9ad0ff', 0); text('THE MOVIE THEATER HALLWAY', -30, 5.6, 34.45, 0.45, '#ffd166', 180); text('FIVE THEATERS  ·  DREAMOS TV  ·  9x16  ·  16x9  ·  CHROMA 2025  ·  THE VOID', -30, 4.9, 34.45, 0.16, '#ffffff', 180);
   text('THE MOVIE THEATER  ↑', -53, 4.6, 34.45, 0.32, '#ffd966', 180); text('THROUGH THE CLUB LOBBY · OUT TO THE STREET · THE RED CARPET', -53, 4.1, 34.45, 0.12, '#ffffff', 180);
   point(-37, 5, 40, 0xffc98a, 50, 30); point(-60, 5, 40, 0xffc98a, 50, 30);
   rect(-71, -3.8, 34.7, 45.4);
@@ -1697,9 +1697,9 @@ function openCamMenu() {
 const zoneItems = { club: [], street: [], festival: [], midway: [], complex: [], cinema: [] };
 function zoneFlush(name) { const n = scene.children.length; flush(); for (const c of scene.children.slice(n)) zoneItems[name].push(c); }
 // where each chunk is drawn from: [x0, x1, z0, z1] in Unity world coordinates (generous, so nothing pops in at a doorway)
-const ZONE_SEE = { club: [-85, 65, -75, 80], street: [-130, 135, -100, -5], festival: [-70, 70, -165, -35], midway: [-120, 10, -190, -90], complex: [-165, -10, -115, 20], cinema: [0, 140, -155, -30] };
+const ZONE_SEE = { club: [-115, 65, -75, 80], street: [-130, 135, -100, -5], festival: [-70, 70, -165, -35], midway: [-120, 10, -190, -90], complex: [-165, -10, -115, 20], cinema: [0, 140, -155, -30] };
 // which chunk a loose object (a light, a sign, a crowd) belongs to, by where it stands
-const ZONE_OWN = [['complex', -130, -42, -80, -15], ['cinema', 10, 125, -125, -62], ['midway', -80, -33, -158, -110], ['festival', -40, 40, -135, -60], ['street', -50, 130, -62, -37], ['club', -90, 65, -39, 80]];
+const ZONE_OWN = [['complex', -130, -42, -80, -15], ['cinema', 10, 125, -125, -62], ['midway', -80, -33, -158, -110], ['festival', -40, 40, -135, -60], ['street', -50, 130, -62, -37], ['club', -115, 65, -39, 80]];
 const zoneNow = {};
 function classifyLoose() {
   const box = new THREE.Box3(), c = new THREE.Vector3(), sz = new THREE.Vector3(), tagged = new Set(Object.values(zoneItems).flat());
@@ -1805,7 +1805,51 @@ function realmGates(area) {
   if (area === 'complex') [[-12.6, -20, 1, [1, 0]], [12.6, -20, 2, [1, 0]], [-30.4, 9, 3, [0, 1]], [-30.4, 18, 7, [0, 1]]].forEach(([sx, sz, i, to]) => { const [wx, wz] = cxFwd(sx, sz); realmGate(wx, wz, to, i); });
 }
 
-cinemaLobby(); TOWERS.forEach(buildTower); theaterWing(); realmGates('club');
+// =====================================================================================
+//  THE DOME: at the west end of the theater hallway. A planetarium that plays random movies over your head.
+//  Lie on the cushion (click it or press L) to look straight up; any move key gets you up.
+// =====================================================================================
+const DOME = { x: -86, z: 40, R: 13, base: 3 };
+let domeTs = null;
+function lieDown() {
+  if (player.lying || realms.active || Math.hypot(player.x - DOME.x, player.z - DOME.z) > DOME.R) return;
+  player.lying = true; player.target = null; player.keys.clear(); player.pitch = 1.1; $('standBtn').style.display = ''; say('lying down: look up · any move key to stand');
+}
+function standUp() { if (!player.lying) return; player.lying = false; player.pitch = 0; $('standBtn').style.display = 'none'; }
+function domeRoom() {
+  const { x, z, R, base } = DOME;
+  cyl(CA.carpet, R, 0.12, x, 0.06, z); cyl(glow(0x4d6bff), R - 0.3, 0.02, x, 0.13, z); cyl(CA.carpet, R - 0.5, 0.03, x, 0.14, z);
+  for (let i = 0; i < 36; i++) {   // the drum wall, open towards the hallway
+    const a = (i * Math.PI) / 18; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.2) continue;
+    const px = x + Math.cos(a) * R, pz = z + Math.sin(a) * R, ry = -(a * 180) / Math.PI - 90;
+    box(M.wall, 2.5, base, 0.4, px, base / 2, pz, 0, ry, 0); box(M.cyan, 2.5, 0.05, 0.08, px, base + 0.02, pz, 0, ry, 0);
+  }
+  for (const dz of [-2.6, 2.6]) { box(M.metal, 0.3, base + 0.4, 0.3, x + R, (base + 0.4) / 2, z + dz); }
+  box(glow(0x4d6bff), 0.1, 0.1, 5.2, x + R, base + 0.3, z);
+  text('THE DOME', x + R - 0.3, 4.4, z, 0.5, '#9ad0ff', 90); text('RANDOM MOVIES  ·  LIE DOWN AND LOOK UP', x + R - 0.3, 3.8, z, 0.16, '#ffffff', 90);
+  // cushions to lie on, round the middle
+  for (let i = 0; i < 9; i++) { const a = (i * Math.PI * 2) / 9, rr = i === 0 ? 0 : 3.4; cyl(i % 2 ? M.velvet : M.seat, 1.15, 0.32, x + Math.cos(a) * rr, 0.3, z + Math.sin(a) * rr); }
+  hotspot(x, 0.6, z, 14, 1.6, 14, lieDown, 'Lie down and look up');
+  text('LIE DOWN  ·  L', x, 0.9, z + 3.9, 0.22, '#9ad0ff', 180);
+  kiosk(x + R - 3.2, z + 3.4, (Math.atan2(-3.2, 3.4) * 180) / Math.PI, 'Dome desk', O.cyan, () => screenDesk(domeTs, () => nextTheaterVideo(domeTs, 1), 'THE DOME', [{ title: 'LIE DOWN', note: 'look up at it', run: lieDown }]));
+  circles.push({ cx: x, cz: z, r: R - 0.7 }); rect(-74.6, -70.8, 37.6, 42.4);
+  point(x, 2.5, z, 0x6b7bff, 35, 18);
+  // the dome itself: a hemisphere with the video wrapped over it (centre of the picture straight overhead)
+  const geo = new THREE.SphereGeometry(R, 56, 28, 0, Math.PI * 2, 0, Math.PI / 2), pos = geo.attributes.position, uv = geo.attributes.uv, asp = 9 / 16;
+  for (let i = 0; i < pos.count; i++) { const r = Math.acos(Math.min(1, pos.getY(i) / R)) / (Math.PI / 2), ph = Math.atan2(pos.getZ(i), pos.getX(i)); uv.setXY(i, 0.5 + 0.5 * asp * r * Math.cos(ph), 0.5 + 0.5 * r * Math.sin(ph)); }
+  const idle = new THREE.MeshBasicMaterial({ color: 0x080a1c, side: THREE.BackSide, toneMapped: false }), mesh = new THREE.Mesh(geo, idle);
+  mesh.position.set(x, base, -z); scene.add(mesh);
+  const st = new Float32Array(420 * 3); for (let i = 0; i < 420; i++) { const th = Math.random() * Math.PI * 2, ph = Math.acos(Math.random() * 0.97 + 0.03) , rr = R * 0.985; st.set([Math.cos(th) * Math.sin(ph) * rr, Math.cos(ph) * rr, Math.sin(th) * Math.sin(ph) * rr], i * 3); }
+  const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(st, 3)); const stars = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xbfd2ff, size: 0.09, toneMapped: false })); stars.position.copy(mesh.position); scene.add(stars);
+  const video = document.createElement('video'); video.playsInline = true; video.crossOrigin = 'anonymous'; video.loop = false; video.muted = true; video.preload = 'none';
+  const tex = new THREE.VideoTexture(video); tex.colorSpace = THREE.SRGBColorSpace;
+  domeTs = { i: -2, mat: idle, mesh, video, real: new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, toneMapped: false }), inRoom: (px, pz) => Math.hypot(px - x, pz - z) < R + 1.5, list: WIDE_MIX(), n: 0, playing: false, requested: false };
+  video.addEventListener('ended', () => nextTheaterVideo(domeTs, 1)); tScreens.push(domeTs);
+}
+addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'l' && !e.ctrlKey && !e.metaKey && !document.querySelector('.lt.on, .wp-ov.on') && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '')) { if (player.lying) standUp(); else lieDown(); } });
+$('standBtn').onclick = standUp;
+
+cinemaLobby(); TOWERS.forEach(buildTower); theaterWing(); domeRoom(); realmGates('club');
 group(15, 0, 59, 0, mainCinema);
 group(37, 0, 46, 0, privateCinema);
 zoneFlush('club');
@@ -1847,7 +1891,7 @@ function festTick(t, p, dt) {
 
 // ---- player ----
 const face = (dx, dz) => Math.atan2(-dx, dz);   // yaw that looks along (dx, dz) in Unity coords
-const player = { pos: new THREE.Vector3(0, 1.65, 0), x: 0, z: -33, h: 0, yaw: 0, pitch: -0.04, keys: new Set(), target: null, floor: 0 };
+const player = { pos: new THREE.Vector3(0, 1.65, 0), x: 0, z: -33, h: 0, yaw: 0, pitch: -0.04, keys: new Set(), target: null, floor: 0, lying: false };
 const R = 0.4;
 function heightAt(x, z, prev) {
   if (player.floor > 0) return fy(player.floor);
@@ -1880,6 +1924,9 @@ function moveUpdate(dt) {
     player.h = ride.from + (ride.to - ride.from) * q;
     if (e >= 1) { ride.on = false; player.floor = ride.target; player.h = ride.to; player.x = 39.6 * ride.sx; player.z = 29; player.yaw = face(-ride.sx, 0); player.target = null; say(`floor ${ride.target} — ${(ride.sx < 0 ? TOWERS[1] : TOWERS[0]).floors[ride.target].name}`); }
     camera.position.set(player.x, 1.65 + player.h, -player.z); camera.lookAt(camera.position.x - Math.sin(player.yaw), camera.position.y + Math.sin(player.pitch) * 0.2, camera.position.z - Math.cos(player.yaw)); return;
+  }
+  if (player.lying) {   // on your back under the dome: no walking, look straight up; any move key gets you up
+    if (fwd || str) standUp(); else { camera.position.set(player.x, 0.5 + player.h, -player.z); camera.lookAt(camera.position.x - Math.sin(player.yaw) * Math.cos(player.pitch), camera.position.y + Math.sin(player.pitch), camera.position.z - Math.cos(player.yaw) * Math.cos(player.pitch)); return; }
   }
   // view yaw is in three space; Unity z = -three z, so heading in Unity coords is (−sin, +cos)·…
   const s = Math.sin(player.yaw), c = Math.cos(player.yaw);
@@ -1916,12 +1963,12 @@ canvas.addEventListener('pointerdown', (e) => {
 });
 document.addEventListener('mousemove', (e) => {
   if (!looked()) return;
-  player.yaw -= e.movementX * 0.0022; player.pitch = THREE.MathUtils.clamp(player.pitch - e.movementY * 0.0022, -0.7, 0.6);
+  player.yaw -= e.movementX * 0.0022; player.pitch = THREE.MathUtils.clamp(player.pitch - e.movementY * 0.0022, player.lying ? -0.1 : -0.7, player.lying ? 1.5 : 0.6);
 });
 canvas.addEventListener('pointermove', (e) => {
   if (!down || down.mouse || e.pointerId !== down.id) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y; if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragged = true;
-  player.yaw -= (e.movementX || dx * 0.2) * 0.0045; player.pitch = THREE.MathUtils.clamp(player.pitch - (e.movementY || dy * 0.2) * 0.0045, -0.7, 0.6);
+  player.yaw -= (e.movementX || dx * 0.2) * 0.0045; player.pitch = THREE.MathUtils.clamp(player.pitch - (e.movementY || dy * 0.2) * 0.0045, player.lying ? -0.1 : -0.7, player.lying ? 1.5 : 0.6);
   down.x = e.clientX; down.y = e.clientY;
 });
 canvas.addEventListener('pointerup', (e) => {
@@ -2006,7 +2053,7 @@ function renderPassport() {
 }
 // ---- map: 14 destinations, WALK sets a beacon, GO jumps there ----
 const DEST = [
-  ['ARRIVAL LOUNGE', 0, -33, 0, face(0, 1)], ['CONCERT ARENA', 0, -14, 0, face(0, 1)], ['VIP DECK', 0, -20.5, 4, face(0, 1)], ['THEATER HALLWAY', -14, 40, 0, face(0, 1)], ['CINEMA SOCIETY', 15, 40, 0, face(0, 1)],
+  ['ARRIVAL LOUNGE', 0, -33, 0, face(0, 1)], ['CONCERT ARENA', 0, -14, 0, face(0, 1)], ['VIP DECK', 0, -20.5, 4, face(0, 1)], ['THEATER HALLWAY', -14, 40, 0, face(0, 1)], ['THE DOME', -76, 40, 0, face(-1, 0)], ['CINEMA SOCIETY', 15, 40, 0, face(0, 1)],
   ['PRIVATE CINEMA', 33, 41, 0, face(1, 0)], ['THE STREET', 0, -44, 0, face(0, -1)], ['THE FESTIVAL', 0, -70, 0, face(0, -1)], ['THE MIDWAY', -33, -134, 0, face(-1, 0)],
   ['THE COMPLEX', -48, -48, 0, face(-1, 0)], ['THE MOVIE THEATER', ...cw(-17.4, 15.2), 0, face(0, -1)], ['FEVER DREAM LIBRARY', ...cw(25.4, -16), 0, face(1, 0)], ['THE ROOMS TOWER', 32, 29, 0, face(1, 0)], ['THE ARCHIVE TOWER', -32, 29, 0, face(-1, 0)],
 ];
@@ -2146,4 +2193,4 @@ let padFwd = 0;
 const pad = $('realmPad'); if (pad) { const on = (v) => (e) => { e.preventDefault(); padFwd = v; }; pad.querySelector('.walk').addEventListener('pointerdown', on(1)); for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) pad.querySelector('.walk').addEventListener(ev, on(0)); pad.querySelector('.jump').addEventListener('pointerdown', (e) => { e.preventDefault(); realms.jump(); }); }
 $('enterBtn').onclick = () => { userGesture = true; $('start').classList.add('gone'); if (!running) { running = true; clock.start(); frame(); warmZones(); realms.prebuild([...Array(15).keys()]); } };
 document.addEventListener('visibilitychange', () => { if (!document.hidden) clock.getDelta(); });
-if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { zoneItems, zoneNow, updateZones, renderer, realms, enterRealm, DEST, NODES, hits, openCamMenu, openMuseumLift, openDealer, fx: () => fx, openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };
+if (import.meta.env.DEV || location.hash === '#debug') window.__ug = { get domeTs() { return domeTs; }, lieDown, standUp, zoneItems, zoneNow, updateZones, renderer, realms, enterRealm, DEST, NODES, hits, openCamMenu, openMuseumLift, openDealer, fx: () => fx, openLevels, rects, solids, circles, heightAt, okAt, warpFor, useDoor, openArchive, openPanel, theaterDesk, tScreens, player, scene, teleport, camera, rideTo, openLift, doorTriggers, TOWERS, startHide, hs, exploredC };

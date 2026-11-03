@@ -224,6 +224,7 @@ Unity campus builder), not reached through `lobby.html` / `library.html`:
   carpet, coffered ceiling, three chandeliers, marble columns, directory pylon, Chroma red carpet with ropes, grand marquee and
   paparazzi flashes, arcade terminal (opens NEON PULSE), Trippy Cam (four tinted frames), four vote booths (open the vote page in
   the in-site window), merch tent, a four-stall food court with eight tables.
+- **THE DOME** at the west end of the theater hallway: a planetarium that plays random itsthat.site videos wrapped over a hemisphere. Click the cushion or press **L** to lie down and look straight up; any move key (or the button) stands you up. Its desk takes a video-file link to play on the dome; YouTube links open in a window, since YouTube can't be painted onto a surface.
 - **Five theaters** behind the theater-row wall (x offsets −17.6 … 17.6). 9×16 and 16×9 rooms play their clips while you stand in
   them; the Chroma 2025 / Chroma rooms have a desk that lists every video and game and opens it in a window; ENTER THE VOID opens
   its playlist.
