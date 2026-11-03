@@ -43,10 +43,11 @@ let started = false; // idempotent guard — one global player per page
  * @param {boolean} [opts.autoResume=true] resume the saved track on load
  * @param {boolean} [opts.randomFirst=false] on a first-ever visit (no saved
  *        state), start on a random track (festival radio behaviour)
+ * @param {boolean} [opts.shuffle=false] every visit starts on a random track, and ▶ / track end jump to a random one
  * @returns {{getAudioEl, resume, toggle, next, prev, setMuted, isPlaying, current}}
  */
 export function initGlobalPlayer(opts = {}) {
-  const { transport = true, autoResume = true, randomFirst = false } = opts;
+  const { transport = true, autoResume = true, randomFirst = false, shuffle = false } = opts;
   if (started) return window.__gp; // already mounted (e.g. boot script + main.js)
   started = true;
 
@@ -74,7 +75,10 @@ export function initGlobalPlayer(opts = {}) {
   const titleOf = (i) => (TRACKS[i] && TRACKS[i].title) || 'Static Drift';
 
   // Decide the opening track.
-  if (saved && saved.src) {
+  if (shuffle && TRACKS.length) {
+    index = Math.floor(Math.random() * TRACKS.length);
+    if (TRACKS[index]) audio.src = TRACKS[index].src;
+  } else if (saved && saved.src) {
     const known = indexOfSrc(saved.src);
     index = known >= 0 ? known : (Number.isInteger(saved.index) ? saved.index : 0);
     audio.src = saved.src;                  // exact URL survives even if the list changed
@@ -127,8 +131,10 @@ export function initGlobalPlayer(opts = {}) {
   }
   function pause() { audio.pause(); paint(); save(); }
   function toggle() { (audio.paused ? resume : pause)(); }
-  function next() { load(index + 1, { play: true }); }
-  function prev() { load(index - 1, { play: true }); }
+  const trail = [];
+  const randomOther = () => { if (TRACKS.length < 2) return 0; let j; do { j = Math.floor(Math.random() * TRACKS.length); } while (j === index); return j; };
+  function next() { if (shuffle) { trail.push(index); if (trail.length > 50) trail.shift(); load(randomOther(), { play: true }); } else load(index + 1, { play: true }); }
+  function prev() { if (shuffle && trail.length) load(trail.pop(), { play: true }); else load(index - 1, { play: true }); }
   function setVolume(v) { volume = Math.min(1, Math.max(0, +v || 0)); audio.volume = volume; save(true); }
   function setMuted(v) { muted = !!v; audio.muted = muted; if (ui && ui.muteBtn) ui.muteBtn.textContent = muted ? '🔇' : '🔊'; save(); }
 
@@ -172,7 +178,9 @@ export function initGlobalPlayer(opts = {}) {
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(true); });
 
   // Seek to where we left off (bridging the reload gap) once metadata is in.
-  if (saved && saved.src && autoResume) {
+  if (shuffle && autoResume) {
+    resume();                                  // a fresh random track each visit; plays as soon as the browser allows
+  } else if (saved && saved.src && autoResume) {
     const seek = () => {
       const gap = saved.playing ? Math.max(0, (Date.now() - (saved.updatedAt || Date.now())) / 1000) : 0;
       let target = (saved.position || 0) + gap;

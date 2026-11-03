@@ -15,7 +15,8 @@ import { buildTrash } from './scene/trash.js';
 import { buildDealer } from './scene/dealer.js';
 import { buildLitter } from './scene/litter.js';
 import { createTrippyCam } from './scene/trippycam.js';
-import './player/globalplayer-boot.js';
+import { initGlobalPlayer } from './player/globalplayer.js';
+initGlobalPlayer({ transport: true, autoResume: true, shuffle: true });   // a random track every time you walk in, and ▶ picks another at random
 
 // THE UNDERGROUND — the B2Buddy entertainment complex, rebuilt for the web from the Unity project's
 // venue builder (Assets/B2BuddyUnderground). One walkable complex:
@@ -357,7 +358,7 @@ function mainCinema() {
   for (let i = 0; i < 10; i++) { const z = -11 + i * 2.5; for (const x of [-11.7, 11.7]) { box(M.velvet, 0.26, 5.5, 1.55, x, 4, z); box(i % 3 ? M.metal : M.amber, 0.04, 4.8, 0.045, x + (x < 0 ? 0.15 : -0.15), 4, z - 0.81); } }
   for (let i = 0; i < 5; i++) { box(M.metal, 22, 0.35, 0.7, 0, 7.7, -9 + i * 4.5); box(M.amber, 19, 0.04, 0.06, 0, 7.47, -9 + i * 4.5); }
   point(0, 5.8, 2, 0x4c63b8, 45, 26);
-  kiosk(-4.5, -14.2, 0, 'Main screen desk', M.amber, () => { nextVideo('main'); stamp(3, 'MAIN CINEMA'); });
+  kiosk(-4.5, -14.2, 0, 'Main screen desk', M.amber, () => { screenDesk(screens.main, () => nextVideo('main'), 'MAIN SCREEN'); stamp(3, 'MAIN CINEMA'); });
 }
 function privateCinema() {
   floorSlab(0, 0, 0, 18, 20);
@@ -368,7 +369,7 @@ function privateCinema() {
   sofa(0, -7.8, 180, 5, M.seat); table(0, -5.6, 2.1, 1.3);
   for (let i = 0; i < 8; i++) for (const x of [-8.7, 8.7]) { box(M.velvet, 0.25, 5.5, 0.9, x, 3.5, -8 + i * 2.3); box(M.amber, 0.04, 4.8, 0.045, x + (x < 0 ? 0.16 : -0.16), 3.4, -8 + i * 2.3); }
   point(0, 5, 0, AM, 40, 22);
-  kiosk(-6.4, -6, -30, 'Private screen desk', M.amber, () => { nextVideo('vip'); stamp(4, 'PRIVATE CINEMA'); });
+  kiosk(-6.4, -6, -30, 'Private screen desk', M.amber, () => { screenDesk(screens.vip, () => nextVideo('vip'), 'PRIVATE SCREEN'); stamp(4, 'PRIVATE CINEMA'); });
 }
 
 // ---- screens: test card until a video plays (only while you're in the room) ----
@@ -1325,7 +1326,7 @@ function lobbyInterior() {
     hotspot(0, 1.4, -0.2, 2.8, 2.6, 1.6, () => openPicker('THE ARCADE', [{ name: 'MINI', items: [{ title: 'NEON PULSE', note: 'the rhythm minigame', run: openPulse }] }, ...(ARCADE.groups || [{ name: 'GAMES', items: ARCADE.items }])]), 'Arcade terminal · pick a game');
   });
   facing(-20.6, 4, 0, 4, () => {   // the big game screen behind the terminal
-    box(M.metal, 12.4, 6.4, 0.3, 0, 5, 1.25); quad(ledA, 12, 6, 0, 5, 1.08); text('THE GAME SCREEN', 0, 8.65, 0.8, 0.5, '#66ff59'); text('PICK ANY GAME AT THE TERMINAL BELOW', 0, 8.1, 0.8, 0.18, '#ffffff');
+    box(M.metal, 12.4, 6.4, 0.3, 0, 5, 1.25); { const ts = videoScreen(12, 6, 0, 5, 1.08, 0, (px, pz) => { const [lx, lz] = campusXf.inv(px, pz); return Math.abs(lx) < 21.5 && lz > -18.5 && lz < 19.5; }, WIDE_MIX(), 0x0a6a9a, 0x7a22d8); kiosk(2.2, -0.2, 0, 'Screen desk', O.green, () => screenDesk(ts, () => nextTheaterVideo(ts, 1), 'GAME SCREEN')); } text('THE GAME SCREEN', 0, 8.65, 0.8, 0.5, '#66ff59'); text('PICK ANY GAME AT THE TERMINAL BELOW', 0, 8.1, 0.8, 0.18, '#ffffff');
   });
   facing(-20.85, -5, 0, -5, () => {
     const pl = std(0x40143f, { roughness: 0.5 });
@@ -1371,9 +1372,11 @@ function lobbyInterior() {
 }
 // ---- one theater behind the row wall ----
 const tScreens = [];
+const THEATER_FEEDS = [shuffled(TTA_WIDE), TTA_TALL.length ? shuffled(TTA_TALL) : shuffled(TTA_WIDE), shuffled(TTA_WIDE), shuffled(TTA_WIDE), shuffled(TTA_WIDE)];
+const WIDE_MIX = () => shuffled(TTA_WIDE);
 function chromaAuditorium() {   // the main auditorium of the movie theater, for the Chroma Awards (a copy of the club's cinema society)
   box(CA.carpet, 43.2, 0.01, 15.4, 0, 0.015, -27.7);
-  box(M.metal, 22.3, 7.3, 0.3, 0, 4.2, -35.2); quad(ledMat(0x7a0a1a, 0xe6a020), 22, 7, 0, 4.2, -35.05, 180);
+  box(M.metal, 22.3, 7.3, 0.3, 0, 4.2, -35.2); { const ts = videoScreen(22, 7, 0, 4.2, -35.05, 180, (px, pz) => { const [lx, lz] = campusXf.inv(px, pz); return Math.abs(lx) < 22 && lz > -35.4 && lz < -19; }, WIDE_MIX()); kiosk(-12.5, -22, 180, 'Screen desk', O.red, () => screenDesk(ts, () => nextTheaterVideo(ts, 1), 'CHROMA AWARDS SCREEN')); }
   for (const s of [-1, 1]) box(CA.redG, 0.6, 7.6, 0.3, s * 11.6, 3.9, -34.8); box(M.brass, 24, 0.3, 0.3, 0, 7.7, -34.85);
   text('CHROMA AWARDS', 0, 7.2, -34.7, 0.45, '#ffd966', 180);
   const seat = std(0x8a0c18, { roughness: 0.9 });
@@ -1395,7 +1398,7 @@ function theater(i) {
   const mat = ledMat(...[[0x7a4a10, 0xe6a020], [0x0a6a9a, 0xe620c0], [0x7a0a1a, 0xe68020], [0x0a6a9a, 0x7a22d8], [0x6a0a7a, 0x20e6a0]][i]);
   const g = dyn(x, sy, -35.05, 0, () => quad(mat, sz[0], sz[1], 0, 0, 0, 180));
   const video = document.createElement('video'); video.playsInline = true; video.crossOrigin = 'anonymous'; video.loop = false; video.muted = true; video.preload = 'none';
-  const xf = curXf, ts = { i, mat, mesh: g.children[0], video, real: null, inRoom: (px, pz) => { const [lx, lz] = xf.inv(px, pz); return Math.abs(lx - THX[i]) < 4 && lz > -35 && lz < -20.2; }, list: i === 1 ? TTA_TALL : i === 2 ? TTA_WIDE : null, n: 0, playing: false, requested: false };
+  const xf = curXf, ts = { i, mat, mesh: g.children[0], video, real: null, inRoom: (px, pz) => { const [lx, lz] = xf.inv(px, pz); return Math.abs(lx - THX[i]) < 4 && lz > -35 && lz < -20.2; }, list: THEATER_FEEDS[i], n: 0, playing: false, requested: false };
   if (ts.list) { const tex = new THREE.VideoTexture(video); tex.colorSpace = THREE.SRGBColorSpace; ts.real = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }); video.addEventListener('ended', () => nextTheaterVideo(ts, 1)); }
   tScreens.push(ts);
   if (i === 2) { for (const s of [-1, 1]) box(CA.redG, 0.5, 7.6, 0.3, x + s * 4, 3.9, -34.8); box(M.brass, 8.4, 0.3, 0.3, x, 7.05, -34.85); }
@@ -1407,7 +1410,7 @@ function theater(i) {
   });
   for (let k = 0; k < 6; k++) for (const s of [-1, 1]) box(O.warm, 0.12, 0.02, 0.3, x + s * 0.8, 0.03, -22.4 - k * 2.2);
   text(THEATER_TITLES[i], x, 7.35, -34.9, 0.3, lc[i], 180);
-  kiosk(x + 3.2, -21.9, 180, ts.list ? 'Next video' : i === 4 ? 'Play the playlist' : i === 0 ? 'Open DreamOS TV' : 'Pick an entry', side[i], () => theaterDesk(i, ts));
+  kiosk(x + 3.2, -21.9, 180, 'Screen desk', side[i], () => theaterDesk(i, ts));
   lobbyRect(x - 4, x + 4, -35, -20.2); lobbySolid(x + 2.5, x + 3.9, -22.5, -21.3);
   for (let r = 0; r < 3; r++) for (const sx of [-3.1, -1.6, 1.6, 3.1]) lobbySolid(x + sx - 0.55, x + sx + 0.55, -24.6 - r * 2.5 - 0.4, -24.6 - r * 2.5 + 0.5);
   const w = (i === 2 ? 4 : 2.6) / 2 - 0.3; lobbyRect(x - w, x + w, -20.9, -19);
@@ -1420,10 +1423,52 @@ function nextTheaterVideo(ts, step = 1) {
 }
 const ROOMS = [{ id: 'dreamos', name: 'DREAMOS TV', items: [{ title: 'DreamOS TV', url: 'tv.html' }] }, ...['vertical', 'wide', 'chroma25', 'void'].map((id) => THEATERS.find((t) => t.id === id))];
 function theaterDesk(i, ts) {
-  if (ts.list) { nextTheaterVideo(ts, 1); return; }
   const room = ROOMS[i];
-  if (i === 0 || i === 4) { openWindow(room.name, embedOf(room.items[0])); return; }
-  openPicker(room.name, room.groups || [{ name: 'ENTRIES', items: room.items }]);
+  const extra = i === 0 || i === 4 ? [{ title: i === 0 ? 'OPEN DREAMOS TV' : 'THE VOID PLAYLIST', note: 'YouTube, in a window', run: () => openWindow(room.name, embedOf(room.items[0])) }]
+    : [{ title: 'PICK AN ENTRY', note: room.name, run: () => openPicker(room.name, room.groups || [{ name: 'ENTRIES', items: room.items }]) }];
+  screenDesk(ts, () => nextTheaterVideo(ts, 1), THEATER_TITLES[i], extra);
+}
+// ---- every screen plays something, and anyone can put their own link on it ----
+function shuffled(a) { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; }
+function videoScreen(w, h, x, y, z, ry, inRoom, list, a = 0x7a0a1a, b = 0xe6a020) {   // a screen that plays the list while you stand in its room
+  const mat = ledMat(a, b), g = dyn(x, y, z, 0, () => quad(mat, w, h, 0, 0, 0, ry));
+  const video = document.createElement('video'); video.playsInline = true; video.crossOrigin = 'anonymous'; video.loop = false; video.muted = true; video.preload = 'none';
+  const tex = new THREE.VideoTexture(video); tex.colorSpace = THREE.SRGBColorSpace;
+  const ts = { i: -1, mat, mesh: g.children[0], video, real: new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }), inRoom, list, n: 0, playing: false, requested: false };
+  video.addEventListener('ended', () => nextTheaterVideo(ts, 1)); tScreens.push(ts); return ts;
+}
+function parseLink(raw) {
+  let u; try { u = new URL(raw.trim(), location.href); } catch (e) { return null; }
+  if (!/^https?:$/.test(u.protocol)) return null;
+  const h = u.hostname.replace(/^www\./, '');
+  if (h === 'youtu.be') return { kind: 'yt', embed: embedOf({ yt: u.pathname.slice(1) }) };
+  if (/(^|\.)youtube\.com$/.test(h)) {
+    const list = u.searchParams.get('list'), id = u.searchParams.get('v') || (/^\/(shorts|embed|live)\/([\w-]+)/.exec(u.pathname) || [])[2];
+    if (id) return { kind: 'yt', embed: embedOf({ yt: id }) }; if (list) return { kind: 'yt', embed: embedOf({ pl: list }) };
+  }
+  return /\.(mp4|webm|ogv|m4v|mov)(\?|#|$)/i.test(u.pathname + u.search) ? { kind: 'video', url: u.href } : { kind: 'page', url: u.href };
+}
+function playLink(s, raw, title = 'Your link') {
+  const l = parseLink(raw); if (!l) { say('that does not look like a link'); return false; }
+  if (l.kind === 'yt') { openWindow(title, l.embed); return true; }   // YouTube cannot be painted onto a screen, so it plays in a window
+  if (l.kind === 'page') { openWindow(title, l.url); return true; }
+  s.video.src = l.url; s.video.muted = !userGesture;
+  s.video.addEventListener('error', () => { if (!s.playing || s.video.error) openWindow(title, l.url); }, { once: true });   // a host that will not let it onto the screen: show it in a window instead
+  s.video.play().then(() => { if (s.mesh) s.mesh.material = s.real; s.playing = true; s.requested = true; say(`▶ ${title}`); }).catch(() => { });
+  return true;
+}
+function screenDesk(s, next, title, extra = []) {
+  openPanel(`${title} // SCREEN DESK`, [], (tab, q, body) => {
+    body.appendChild(panelRow('▶', 'NEXT VIDEO', 'the screen keeps playing on its own', '', () => { $('panel').classList.remove('on'); next(); }));
+    for (const it of extra) body.appendChild(panelRow('◆', it.title, it.note || '', '', () => { $('panel').classList.remove('on'); it.run(); }));
+    const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:8px;padding:14px 18px;align-items:center;flex-wrap:wrap';
+    const lab = document.createElement('div'); lab.className = 'lt-intro'; lab.style.cssText = 'flex:1 1 100%;margin:0'; lab.textContent = 'PLAY YOUR OWN LINK: a video file (.mp4 / .webm) plays on the screen; YouTube and other pages open in a window.';
+    const inp = document.createElement('input'); inp.type = 'url'; inp.placeholder = 'paste a link…'; inp.setAttribute('aria-label', 'Link to play'); inp.style.cssText = 'flex:1 1 220px;min-width:0;padding:9px 12px;background:#0a0a14;color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;font:inherit';
+    const go = document.createElement('button'); go.className = 'btn'; go.textContent = 'PLAY';
+    const run = () => { if (inp.value.trim() && playLink(s, inp.value)) $('panel').classList.remove('on'); };
+    go.onclick = run; inp.onkeydown = (e) => { if (e.key === 'Enter') run(); };
+    row.append(lab, inp, go); body.appendChild(row);
+  });
 }
 function openPicker(title, groups) {
   openPanel(title, groups.map((g2, k) => [String(k), g2.name]), (tab, q, body) => {
@@ -1887,7 +1932,7 @@ canvas.addEventListener('pointerup', (e) => {
 });
 canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
 const MOVE = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'];
-addEventListener('keydown', (e) => { userGesture = true; const k = e.key.toLowerCase(); if (MOVE.includes(k) && !document.querySelector('.wp-ov.on')) { player.keys.add(k); player.target = null; } });
+addEventListener('keydown', (e) => { userGesture = true; const k = e.key.toLowerCase(); if (MOVE.includes(k) && !document.querySelector('.wp-ov.on') && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '')) { player.keys.add(k); player.target = null; } });
 addEventListener('keyup', (e) => player.keys.delete(e.key.toLowerCase()));
 let activeVideo = null;   // the playing screen you are standing in front of; F sends it fullscreen (anything else: the whole page)
 addEventListener('keydown', (e) => {

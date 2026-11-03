@@ -13,7 +13,7 @@ import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 
 const PAGES = [
-  'index', 'codex', 'driftwave', 'sofaboi', 'ravecharles', 'studio', 'tanky',
+  'index', 'festival', 'codex', 'driftwave', 'sofaboi', 'ravecharles', 'studio', 'tanky',
   'shmorez', 'arcade', 'bullethell', 'lab', 'tv', 'dj', 'warehouse', 'lofi',
   'horrorcore', 'abstract', 'rooftop', 'builder', 'hidden', 'vj', 'greenroom',
   'utility', 'gameroom', 'museum', 'race', 'gamecity', 'links', 'vaporrooms',
