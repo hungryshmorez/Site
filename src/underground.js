@@ -1734,28 +1734,27 @@ $('realmBack').onclick = () => realms.exit();
 addEventListener('keydown', (e) => { if (!realms.active) return; if (e.code === 'Space') { e.preventDefault(); realms.jump(); } else if (e.key.toLowerCase() === 'q') realms.exit(); });
 
 function realmGate(x, z, toward, idx) {
-  const [name, sub, hex] = REALMS[idx], yaw = (Math.atan2(toward[0], -toward[1]) * 180) / Math.PI, neon = glow(hex), gateAt = { x, z, toward };
+  // an ordinary-looking dark door set into a wall or fence, with only a hairline of colour round the edge: you have to look to find it
+  const [name, , hex] = REALMS[idx], yaw = (Math.atan2(toward[0], -toward[1]) * 180) / Math.PI, gateAt = { x, z, toward };
+  const dim = glow(new THREE.Color(hex).multiplyScalar(0.28).getHex());
   const open = () => enterRealm(idx, gateAt);
   group(x, 0, z, yaw, () => {
-    box(M.metal, 0.45, 5.2, 0.7, -1.9, 2.6, 0); box(M.metal, 0.45, 5.2, 0.7, 1.9, 2.6, 0); box(M.wall, 4.25, 0.5, 0.7, 0, 5.2, 0);
-    box(neon, 0.07, 4.8, 0.07, -1.62, 2.5, -0.38); box(neon, 0.07, 4.8, 0.07, 1.62, 2.5, -0.38); box(neon, 3.2, 0.07, 0.07, 0, 4.92, -0.38);
-    quad(doorGlow(hex), 3.2, 4.8, 0, 2.5, 0.02, 0);
-    text(name, 0, 5.9, -0.42, 0.34, '#ffffff'); text('LIMINAL REALM', 0, 5.4, -0.42, 0.14, '#' + hex.toString(16).padStart(6, '0'));
-    hotspot(0, 2.5, -0.3, 3.4, 5, 1.2, open, name);
-    point(0, 3, -1.2, hex, 14, 8);
-    cyl(neon, 2.3, 0.03, 0, 0.03, -0.9); cyl(M.metal, 2.0, 0.04, 0, 0.05, -0.9);   // a glowing pad to step on
-    const bm = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 1.7, 16, 16, 1, true), hazeMat(hex, 0.1)), bp = wpos(0, 8, -0.2); bm.position.set(bp.x, bp.y, -bp.z); scene.add(bm);   // a light beam so it can be seen from across a room
+    box(M.metal, 0.16, 2.9, 0.34, -0.98, 1.45, 0); box(M.metal, 0.16, 2.9, 0.34, 0.98, 1.45, 0); box(M.metal, 2.12, 0.16, 0.34, 0, 2.9, 0);
+    box(INK, 1.8, 2.8, 0.1, 0, 1.4, -0.02);
+    box(dim, 0.02, 2.74, 0.02, -0.89, 1.4, -0.09); box(dim, 0.02, 2.74, 0.02, 0.89, 1.4, -0.09); box(dim, 1.78, 0.02, 0.02, 0, 2.77, -0.09);
+    text(name, 0, 3.12, -0.2, 0.07, '#' + new THREE.Color(hex).multiplyScalar(0.32).getHexString());
+    hotspot(0, 1.4, -0.3, 2.2, 2.9, 1.2, open, name);
   });
-  const along = Math.abs(Math.sin((yaw * Math.PI) / 180)) > 0.5;   // gate faces ±x → it is thin in x
-  doorTriggers.push({ floor: 0, x0: x - (along ? 0.7 : 1.5), x1: x + (along ? 0.7 : 1.5), z0: z - (along ? 1.5 : 0.7), z1: z + (along ? 1.5 : 0.7), armed: true, label: name, run: open });
+  const along = Math.abs(Math.sin((yaw * Math.PI) / 180)) > 0.5, cx = x + toward[0] * 0.8, cz = z + toward[1] * 0.8;   // stand in front of the door to open it
+  doorTriggers.push({ floor: 0, x0: cx - (along ? 0.8 : 1.1), x1: cx + (along ? 0.8 : 1.1), z0: cz - (along ? 1.1 : 0.8), z1: cz + (along ? 1.1 : 0.8), armed: true, label: name, run: open });
 }
 function realmGates(area) {
-  // the arena: the indoor realms, along the north and south walls (the viewer is inside the room)
-  if (area === 'club') [[-17, -22.1, 11], [-12, -22.1, 9], [12, -22.1, 10], [17, -22.1, 4], [-16, 22.1, 14], [16, 22.1, 0]].forEach(([x, z, i]) => realmGate(x, z, [0, z < 0 ? 1 : -1], i));
-  // the festival: the outdoor realms, in a row across the lawn facing the gateway
-  if (area === 'festival') [[-24, 5], [-12, 6], [0, 8], [12, 12], [22, 13]].forEach(([x, i]) => realmGate(x, -100, [0, 1], i));
-  // the complex: the four interior realms down both sides of the entrance hall
-  if (area === 'complex') [[-3.9, 7, 1, [0, 1]], [-3.9, 16.8, 2, [0, 1]], [3.9, 7, 3, [0, -1]], [3.9, 16.8, 7, [0, -1]]].forEach(([sx, sz, i, to]) => { const [wx, wz] = cxFwd(sx, sz); realmGate(wx, wz, to, i); });
+  // the arena: tucked into the far corners of the walls, away from the stages and the doors
+  if (area === 'club') [[-23.5, -17, [1, 0], 11], [-23.5, 17, [1, 0], 9], [23.5, -17, [-1, 0], 10], [23.5, 17, [-1, 0], 4], [-21, -23.4, [0, 1], 14], [21, 23.4, [0, -1], 0]].forEach(([x, z, to, i]) => realmGate(x, z, to, i));
+  // the festival: along the back and side fences
+  if (area === 'festival') [[-30.2, -98, [1, 0], 5], [-30.2, -113, [1, 0], 6], [-19, -131, [0, 1], 8], [19, -131, [0, 1], 12], [30.2, -84, [-1, 0], 13]].forEach(([x, z, to, i]) => realmGate(x, z, to, i));
+  // the complex: behind the hub's cover and at the far end of the computer room
+  if (area === 'complex') [[-12.6, -20, 1, [1, 0]], [12.6, -20, 2, [1, 0]], [-30.4, 9, 3, [0, 1]], [-30.4, 18, 7, [0, 1]]].forEach(([sx, sz, i, to]) => { const [wx, wz] = cxFwd(sx, sz); realmGate(wx, wz, to, i); });
 }
 
 cinemaLobby(); TOWERS.forEach(buildTower); theaterWing(); realmGates('club');
