@@ -237,7 +237,7 @@ function djStage(artwork, led, accent, label) {
   box(M.stone, 15, 1.3, 6.3, 0, 0.65, 0.1);
   for (let i = 0; i < 3; i++) { box(M.wall, 13 - i * 0.6, 0.32 + i * 0.4, 0.6, 0, 0.16 + i * 0.2, -3.8 + i * 0.4); box(accent, 12.5 - i * 0.6, 0.035, 0.035, 0, 0.3 + i * 0.2, -4.1 + i * 0.4); }
   box(accent, 14.8, 0.055, 0.06, 0, 1.31, -3.02);
-  box(M.metal, 13.95, 7.15, 0.3, 0, 5.2, 3.0); quad(led, 13.6, 6.8, 0, 5.2, 2.8);
+  box(M.metal, 13.95, 7.15, 0.3, 0, 5.2, 3.0); videoScreen(13.6, 6.8, 0, 5.2, 2.8, 0, (px, pz) => Math.abs(px) < 24 && Math.abs(pz) < 24, WIDE_MIX(), 0, 0, led, true);
   for (let i = 0; i < 7; i++) box(M.wall, 0.025, 6.8, 0.03, -6.4 + i * 2.13, 5.2, 2.75);
   group(0, 1.3, -1.1, 0, () => {
     box(M.metal, 7.4, 1.4, 1.5, 0, 0.7, 0);
@@ -379,11 +379,19 @@ function mkScreen(id, rectUnity, a, b) {
   const tex = new THREE.VideoTexture(video); tex.colorSpace = THREE.SRGBColorSpace;
   const mat = testCard(a, b), real = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
   screens[id] = { video, mat, real, rect: rectUnity, i: id === 'main' ? 0 : 3, playing: false, tex };
-  video.addEventListener('ended', () => nextVideo(id));
+  video.addEventListener('ended', () => nextVideo(id)); video.addEventListener('error', () => { if (screens[id].playing || screens[id].requested) { screens[id].playing = false; setTimeout(() => nextVideo(id), 800); } });
 }
+// start a clip on a screen. Phones and tablets refuse sound the page did not just ask for, so if it is refused we play it silent (the next tap turns the sound on), and a clip that will not play is skipped
+function startClip(s, v, advance) {
+  const vid = s.video; vid.src = v.src; vid.muted = !!s.silent || !userGesture;
+  const shown = () => { if (s.mesh) s.mesh.material = s.real; s.playing = true; s.bad = 0; say(`▶ ${v.title}`); };
+  const failed = () => { s.playing = false; s.bad = (s.bad || 0) + 1; if (s.bad < 6 && advance) setTimeout(advance, 600); else setTimeout(() => { s.requested = false; s.bad = 0; }, 4000); };
+  vid.play().then(shown).catch(() => { vid.muted = true; vid.play().then(shown).catch(failed); });
+}
+function unmutePlaying() { for (const s of [...Object.values(screens), ...tScreens]) if (s.playing && !s.silent && s.video.muted && !s.video.paused) s.video.muted = false; }
 function nextVideo(id, step = 1) {
-  const s = screens[id]; s.i = (s.i + step + TTA_WIDE.length) % TTA_WIDE.length; const v = TTA_WIDE[s.i];
-  s.video.src = v.src; s.video.muted = id !== 'main' || !userGesture; s.video.play().then(() => { swapMaterial(s); say(`▶ ${v.title}`); }).catch(() => { });
+  const s = screens[id]; s.i = (s.i + step + TTA_WIDE.length) % TTA_WIDE.length;
+  startClip(s, TTA_WIDE[s.i], () => nextVideo(id));
 }
 function swapMaterial(s) { if (s.mesh) s.mesh.material = s.real; s.playing = true; }
 let userGesture = false;
@@ -721,7 +729,7 @@ function mainStage() {
   facing(0, -26, 0, 0, () => {
     box(FST.deck, 30, 1.6, 10, 0, 0.8, 0); box(O.cyan, 30, 0.05, 0.06, 0, 1.58, -5.02);
     box(FST.deck, 16, 0.2, 3.45, 0, 0.74, -6.5, -28); for (const x of [-8.02, 8.02]) rod(O.magenta, [x, 0.06, -8], [x, 1.62, -5], 0.05);
-    box(M.metal, 22.4, 7.4, 0.3, 0, 6.2, 5.1); quad(ledA, 22, 7, 0, 6.2, 4.9); for (let i = 1; i < 11; i++) box(M.wall, 0.025, 7, 0.03, -11 + i * 2, 6.2, 4.88);
+    box(M.metal, 22.4, 7.4, 0.3, 0, 6.2, 5.1); videoScreen(22, 7, 0, 6.2, 4.9, 0, (px, pz) => Math.abs(px) < 31 && pz < -60 && pz > -134, WIDE_MIX(), 0, 0, ledA, true); for (let i = 1; i < 11; i++) box(M.wall, 0.025, 7, 0.03, -11 + i * 2, 6.2, 4.88);
     for (const x of [-12, 12]) truss([x, 0, 4.7], [x, 11, 4.7]); truss([-12.3, 10.6, 4.7], [12.3, 10.6, 4.7]); text('MAIN STAGE', 0, 11.35, 4.5, 0.6, '#d9f2ff', 180);
     for (const x of [-13, 13]) group(x, 1.6, 3, 0, () => paStack(x < 0 ? O.cyan : O.magenta, x < 0 ? 1 : -1));
     // moving heads: housing here, the sweeping beam is a separate animated mesh
@@ -1118,7 +1126,7 @@ function chromaRoom() {   // east of the entrance hall: the red carpet comes in 
   box(CA.carpet, 25, 0.02, 16, ...S(18.3, 11.4, 0.02));
   text('THE ENTRIES LOUNGE  ▶', ...S(5.3, 13, 5.6), 0.4, '#ffd966', faceYaw(-1, 0)); text('BROWSE EVERY ENTRY  ·  VOTE', ...S(5.3, 13, 5.0), 0.18, '#ffffff', faceYaw(-1, 0));
   box(M.metal, 1.2, 8, 0.4, ...S(31.1, 2, 4)); const a = S(30.95, 11.4, 3.6), b = S(5, 11.4, 3.6);
-  group(a[0], a[1], a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => { box(M.metal, 11.4, 6.4, 0.2, 0, 0, 0.1); quad(ledA, 11, 6, 0, 0, 0); });
+  group(a[0], a[1], a[2], faceYaw(b[0] - a[0], b[2] - a[2]), () => { box(M.metal, 11.4, 6.4, 0.2, 0, 0, 0.1); videoScreen(11, 6, 0, 0, 0, 0, (px, pz) => { const sx = pz - CXO.z, sz = px - CXO.x; return sx > 5.8 && sx < 30.8 && sz > 3.8 && sz < 19.2; }, WIDE_MIX(), 0, 0, ledA, true); });
   box(CXM.slab, 5, 0.6, 11, ...S(28.4, 11.5, 0.3)); for (const dz of [-5.4, 5.4]) box(CA.redG, 0.5, 6.5, 0.4, ...S(30.4, 11.5 + dz, 3.3));
   text('THE ENTRIES LOUNGE', ...S(30.6, 11.5, 7), 0.8, '#ffd966', faceYaw(-1, 0)); text('EVERY ENTRY  ·  EVERY GAME', ...S(30.6, 11.5, 6.2), 0.25, '#ffffff', faceYaw(-1, 0));
   for (const z0 of [7.6, 18]) for (let r = 0; r < 2; r++) for (let c = 0; c < 6; c++) { const sx = 11.5 + c * 2, sz = z0 + (z0 < 10 ? -r : r) * 0.9, g2 = S(sx, sz), t2 = S(sx + 1, sz); group(g2[0], 0, g2[2], faceYaw(t2[0] - g2[0], t2[2] - g2[2]), () => { box(CA.red, 1, 0.5, 0.8, 0, 0.3, 0); box(CA.red, 1, 0.9, 0.2, 0, 0.8, 0.4); }); }
@@ -1418,8 +1426,7 @@ function theater(i) {
 function nextTheaterVideo(ts, step = 1) {
   if (!ts.list) return;
   ts.n = (ts.n + step + ts.list.length) % ts.list.length; const v = ts.list[ts.n];
-  ts.video.src = v.src; ts.video.muted = !userGesture;
-  ts.video.play().then(() => { ts.mesh.material = ts.real; ts.playing = true; say(`▶ ${v.title}`); }).catch(() => { });
+  startClip(ts, v, () => nextTheaterVideo(ts, 1));
 }
 const ROOMS = [{ id: 'dreamos', name: 'DREAMOS TV', items: [{ title: 'DreamOS TV', url: 'tv.html' }] }, ...['vertical', 'wide', 'chroma25', 'void'].map((id) => THEATERS.find((t) => t.id === id))];
 function theaterDesk(i, ts) {
@@ -1430,11 +1437,11 @@ function theaterDesk(i, ts) {
 }
 // ---- every screen plays something, and anyone can put their own link on it ----
 function shuffled(a) { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; }
-function videoScreen(w, h, x, y, z, ry, inRoom, list, a = 0x7a0a1a, b = 0xe6a020) {   // a screen that plays the list while you stand in its room
-  const mat = ledMat(a, b), g = dyn(x, y, z, 0, () => quad(mat, w, h, 0, 0, 0, ry));
+function videoScreen(w, h, x, y, z, ry, inRoom, list, a = 0x7a0a1a, b = 0xe6a020, matOverride = null, silent = false) {   // a screen that plays the list while you stand in its room
+  const mat = matOverride || ledMat(a, b), g = dyn(x, y, z, 0, () => quad(mat, w, h, 0, 0, 0, ry));
   const video = document.createElement('video'); video.playsInline = true; video.crossOrigin = 'anonymous'; video.loop = false; video.muted = true; video.preload = 'none';
   const tex = new THREE.VideoTexture(video); tex.colorSpace = THREE.SRGBColorSpace;
-  const ts = { i: -1, mat, mesh: g.children[0], video, real: new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }), inRoom, list, n: 0, playing: false, requested: false };
+  const ts = { i: -1, mat, mesh: g.children[0], video, real: new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }), inRoom, list, n: 0, playing: false, requested: false, silent };
   video.addEventListener('ended', () => nextTheaterVideo(ts, 1)); tScreens.push(ts); return ts;
 }
 function parseLink(raw) {
@@ -1957,7 +1964,7 @@ function clickAt(nx, ny, walk) {
 }
 // mouse: click once to capture the pointer and look around freely; Esc lets go. Touch keeps drag-to-look and tap-to-walk.
 canvas.addEventListener('pointerdown', (e) => {
-  userGesture = true;
+  userGesture = true; unmutePlaying();
   if (e.pointerType === 'mouse') { if (looked()) { clickAt(0, 0, false); return; } down = { x: e.clientX, y: e.clientY, id: e.pointerId, mouse: true }; dragged = false; return; }
   canvas.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY, id: e.pointerId }; dragged = false; canvas.classList.add('drag');
 });
@@ -1979,7 +1986,7 @@ canvas.addEventListener('pointerup', (e) => {
 });
 canvas.addEventListener('pointercancel', () => { down = null; canvas.classList.remove('drag'); });
 const MOVE = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'shift'];
-addEventListener('keydown', (e) => { userGesture = true; const k = e.key.toLowerCase(); if (MOVE.includes(k) && !document.querySelector('.wp-ov.on') && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '')) { player.keys.add(k); player.target = null; } });
+addEventListener('keydown', (e) => { userGesture = true; unmutePlaying(); const k = e.key.toLowerCase(); if (MOVE.includes(k) && !document.querySelector('.wp-ov.on') && !/^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '')) { player.keys.add(k); player.target = null; } });
 addEventListener('keyup', (e) => player.keys.delete(e.key.toLowerCase()));
 let activeVideo = null;   // the playing screen you are standing in front of; F sends it fullscreen (anything else: the whole page)
 addEventListener('keydown', (e) => {
